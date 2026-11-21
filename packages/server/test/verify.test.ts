@@ -420,6 +420,24 @@ describe('createVerifier', () => {
     })
   })
 
+  it('does not take an ambiguous match for a removed element as proof that it is gone', async () => {
+    const gone = structureItem('r1', 'src/components/Banner.tsx', { status: 'claimed', batchId: 'b1' })
+    const { session, items } = fakeSession([gone], (wanted) =>
+      measuredWith(wanted.map((it) => answer(it, [{ expectation: it.expect[0] as Expectation, status: 'unresolved', expected: 'absent', actual: '', note: 'more than one element could be the recorded one' }], { found: false, locatorConfidence: 0.6 }))),
+    )
+    const { detector } = fakeDetector(settled())
+    const outcome = await createVerifier({ session, detector, sleep: noSleep }).verify()
+    expect(outcome.results[0]?.status).toBe('unresolved')
+    expect(items.get('r1')?.status).toBe('failed')
+  })
+
+  it('passes a removed element that is really gone', async () => {
+    const gone = structureItem('r1', 'src/components/Banner.tsx', { status: 'claimed', batchId: 'b1' })
+    const { session } = fakeSession([gone], (wanted) => measuredWith(wanted.map((it) => answer(it, [{ expectation: it.expect[0] as Expectation, status: 'pass', expected: 'absent', actual: 'absent' }], { found: false, locatorConfidence: 0 }))))
+    const { detector } = fakeDetector(settled())
+    expect((await createVerifier({ session, detector, sleep: noSleep }).verify()).results[0]?.status).toBe('pass')
+  })
+
   it('reports not_measurable for a media-scoped change outside its viewport and leaves the item claimed', async () => {
     const { session, items } = fakeSession([claimed('c1')], (wanted) =>
       measuredWith(wanted.map((it) => answer(it, [rawComputed(it.expect[0] as Expectation, '', 'not_measurable')]))),

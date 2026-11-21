@@ -270,6 +270,10 @@ export function createVerifier(options: VerifierOptions): Verifier {
             if (raw.status === 'not_measurable' && !(raw.expectation.type === 'computed' && raw.expectation.condition.media !== undefined)) {
               return { ...raw, note: raw.note ?? "could not be measured in the page's current state" }
             }
+            // More than one element could be the recorded one: "is it gone?" has no answer. Never read that as gone.
+            if (raw.status === 'unresolved' && (raw.expectation.type === 'absent' || raw.expectation.type === 'hidden')) {
+              return { ...raw, note: raw.note ?? 'the element could not be told apart from another, so its absence could not be checked' }
+            }
             const before = beforeValueFor(item, raw.expectation)
             const judged = judgeCheck(raw.expectation, toMeasured(raw, answer), before === undefined ? {} : { before })
             // A bystander of this change that the developer then edited on purpose: its value was meant to change.
