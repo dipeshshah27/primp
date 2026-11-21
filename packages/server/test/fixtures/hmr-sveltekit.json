@@ -1,0 +1,103 @@
+{
+ "about": "WebSocket messages recorded by spikes/s4-settle.ts --record from the sveltekit-svelte-5 dev server through the proxy tunnel (page load, each forward scripted edit, an edit the page does not use, a syntax error and its fix). Strings longer than 400 characters inside JSON messages are cut; binary payloads are cut to their first 96 bytes (bytes is the real length); machine paths, tokens and ids are replaced.",
+ "frames": [
+  {
+   "step": "initial",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 7,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 20,
+   "text": "{\"type\":\"connected\"}"
+  },
+  {
+   "step": "edit (Svelte component text): hero call-to-action text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 7,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 228,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171676763,\"path\":\"/src/lib/components/Hero.svelte\",\"acceptedPath\":\"/src/lib/components/Hero.svelte\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "edit (Svelte scoped style): hero lede font size",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 7,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 282,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171677205,\"path\":\"/src/lib/components/Hero.svelte?svelte&type=style&lang.css\",\"acceptedPath\":\"/src/lib/components/Hero.svelte?svelte&type=style&lang.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "edit (Svelte inline style): hero lede inline style",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 7,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 228,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171677645,\"path\":\"/src/lib/components/Hero.svelte\",\"acceptedPath\":\"/src/lib/components/Hero.svelte\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 7,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 1830,
+   "text": "{\"type\":\"error\",\"err\":{\"message\":\"/project/src/lib/components/Hero.svelte:9:0 `</sectio>` attempted to close an element that was not open\\nhttps://svelte.dev/e/element_invalid_closing_tag\",\"stack\":\"\",\"id\":\"/project/src/lib/components/Hero.svelte\",\"frame\":\"  7 |    <p class=\\\"lede\\\" data-label=\\\"hero-lede\\\">{lede}</p>\\n  8 |    <a class=\\\"cta\\\" href=\\\"#signin\\\" data-label=\\\"hero-cta\\\">Sign in to continue</a>\\n  9 |  </sectio>\\n       ^\\n 10 |  \\n 11 |  <style>\",\"plugin\":\"vite-plugin-svelte:compile\",\"pluginCode\":\"<script lang=\\\"ts\\\">\\n\\tlet { title, lede }: { title: string; lede: string } = $props();\\n</script>\\n\\n<section class=\\\"hero\\\" data-label=\\\"hero\\\">\\n\\t<h1 class=\\\"title\\\" data-label=\\\"hero-title\\\">{title}</h1>\\n\\t<p class=\\\"lede\\\" data-label=\\\"hero-lede\\\">{lede}</p>\\n\\t<a class=\\\"cta\\\" href=\\\"#signin\\\" data-label=\\\"hero-cta\\\">Sign in to continue</a>\\n</sectio>\\n\\n<style>\\n\\t.hero {\\n\\t\\tdisplay: grid;\\n\\t\\tjustify-items: start;\\n\\t\\tgap: 16p...[997 chars]\",\"loc\":{\"file\":\"Hero.svelte\",\"line\":9,\"column\":0}}}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 7,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 228,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171684343,\"path\":\"/src/lib/components/Hero.svelte\",\"acceptedPath\":\"/src/lib/components/Hero.svelte\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 7,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 228,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171684774,\"path\":\"/src/lib/components/Hero.svelte\",\"acceptedPath\":\"/src/lib/components/Hero.svelte\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  }
+ ]
+}

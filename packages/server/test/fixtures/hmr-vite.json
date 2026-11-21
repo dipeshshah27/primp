@@ -1,0 +1,243 @@
+{
+ "about": "WebSocket messages recorded by spikes/s4-settle.ts --record from the vite-react-19 dev server through the proxy tunnel (page load, each forward scripted edit, an edit the page does not use, a syntax error and its fix). Strings longer than 400 characters inside JSON messages are cut; binary payloads are cut to their first 96 bytes (bytes is the real length); machine paths, tokens and ids are replaced.",
+ "frames": [
+  {
+   "step": "initial",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 20,
+   "text": "{\"type\":\"connected\"}"
+  },
+  {
+   "step": "edit (text): hero title text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 379,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171529146,\"path\":\"/src/index.css\",\"acceptedPath\":\"/src/index.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false},{\"type\":\"js-update\",\"timestamp\":1795171529146,\"path\":\"/src/components/Hero.tsx\",\"acceptedPath\":\"/src/components/Hero.tsx\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "edit (className): hero subtitle Tailwind class",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 379,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171529721,\"path\":\"/src/index.css\",\"acceptedPath\":\"/src/index.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false},{\"type\":\"js-update\",\"timestamp\":1795171529721,\"path\":\"/src/components/Hero.tsx\",\"acceptedPath\":\"/src/components/Hero.tsx\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "edit (inline style): footer inline style",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 383,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171530176,\"path\":\"/src/index.css\",\"acceptedPath\":\"/src/index.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false},{\"type\":\"js-update\",\"timestamp\":1795171530176,\"path\":\"/src/components/Footer.tsx\",\"acceptedPath\":\"/src/components/Footer.tsx\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "edit (CSS file): banner font size in site.css",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 371,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171530731,\"path\":\"/src/styles/site.css\",\"acceptedPath\":\"/src/styles/site.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false},{\"type\":\"js-update\",\"timestamp\":1795171530731,\"path\":\"/src/index.css\",\"acceptedPath\":\"/src/index.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "edit (CSS module): card title size in Card.module.css",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 379,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171531198,\"path\":\"/src/index.css\",\"acceptedPath\":\"/src/index.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false},{\"type\":\"js-update\",\"timestamp\":1795171531198,\"path\":\"/src/components/Card.tsx\",\"acceptedPath\":\"/src/components/Card.tsx\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "edit (text): banner link text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 383,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171531737,\"path\":\"/src/index.css\",\"acceptedPath\":\"/src/index.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false},{\"type\":\"js-update\",\"timestamp\":1795171531737,\"path\":\"/src/components/Banner.tsx\",\"acceptedPath\":\"/src/components/Banner.tsx\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "edit (className): header logo Tailwind class",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 383,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171532200,\"path\":\"/src/index.css\",\"acceptedPath\":\"/src/index.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false},{\"type\":\"js-update\",\"timestamp\":1795171532200,\"path\":\"/src/components/Header.tsx\",\"acceptedPath\":\"/src/components/Header.tsx\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "edit (inline style): card title inline style",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 379,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171532751,\"path\":\"/src/index.css\",\"acceptedPath\":\"/src/index.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false},{\"type\":\"js-update\",\"timestamp\":1795171532751,\"path\":\"/src/components/Card.tsx\",\"acceptedPath\":\"/src/components/Card.tsx\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "edit (CSS file): nav link padding in site.css",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 371,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171533204,\"path\":\"/src/styles/site.css\",\"acceptedPath\":\"/src/styles/site.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false},{\"type\":\"js-update\",\"timestamp\":1795171533204,\"path\":\"/src/index.css\",\"acceptedPath\":\"/src/index.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "edit (CSS module): hero bar height in Hero.module.css",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 379,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171533606,\"path\":\"/src/index.css\",\"acceptedPath\":\"/src/index.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false},{\"type\":\"js-update\",\"timestamp\":1795171533606,\"path\":\"/src/components/Hero.tsx\",\"acceptedPath\":\"/src/components/Hero.tsx\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "unrelated",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 194,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171543306,\"path\":\"/src/index.css\",\"acceptedPath\":\"/src/index.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "unrelated",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 194,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171543429,\"path\":\"/src/index.css\",\"acceptedPath\":\"/src/index.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 379,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171543787,\"path\":\"/src/index.css\",\"acceptedPath\":\"/src/index.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false},{\"type\":\"js-update\",\"timestamp\":1795171543787,\"path\":\"/src/components/Hero.tsx\",\"acceptedPath\":\"/src/components/Hero.tsx\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 3132,
+   "text": "{\"type\":\"error\",\"err\":{\"message\":\"Transform failed with 1 error:\\n\\n[PARSE_ERROR] Unexpected token\\n   ╭─[ src/components/Hero.tsx:5:41 ]\\n   │\\n 5 │ export function Hero() { const broken = ;\\n   │                                         ┬  \\n   │                                         ╰── \\n───╯\\n\",\"stack\":\"    at transformWithOxc (file:///repo/fixtures/vite-react-19/node_modules/.pnpm/vite@8.3.8_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:7673:19)\\n    at TransformPluginContext.transform (file:///repo/fixtures/vite-react-19/node_modules/.pnpm/vite@8.3.8_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:7747:26)\\n    at EnvironmentPluginContainer.transform (file:///repo/fixtures/vite-reac...[826 chars]\",\"id\":\"/project/src/components/Hero.tsx\",\"frame\":\"\",\"plugin\":\"vite:oxc\",\"pluginCode\":\"import styles from './Hero.module.css';\\n\\n// Copy column: Tailwind utilities. Art column: CSS module, plus one Tailwind utility on the\\n// same element (hero-art) so a single element is styled by two systems at once.\\nexport function Hero() { const broken = ;\\n  return (\\n    <section data-label=\\\"hero\\\" className=\\\"grid items-center gap-8 py-12 md:grid-cols-2\\\">\\n      <div data-label=\\\"hero-copy\\\">\\n        ...[1672 chars]\"}}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 379,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171544272,\"path\":\"/src/index.css\",\"acceptedPath\":\"/src/index.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false},{\"type\":\"js-update\",\"timestamp\":1795171544272,\"path\":\"/src/components/Hero.tsx\",\"acceptedPath\":\"/src/components/Hero.tsx\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 1,
+    "path": "/?token=x",
+    "protocols": [
+     "vite-hmr"
+    ]
+   },
+   "opcode": 1,
+   "bytes": 379,
+   "text": "{\"type\":\"update\",\"updates\":[{\"type\":\"js-update\",\"timestamp\":1795171544788,\"path\":\"/src/index.css\",\"acceptedPath\":\"/src/index.css\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false},{\"type\":\"js-update\",\"timestamp\":1795171544788,\"path\":\"/src/components/Hero.tsx\",\"acceptedPath\":\"/src/components/Hero.tsx\",\"explicitImportRequired\":false,\"isWithinCircularImport\":false}]}"
+  }
+ ]
+}

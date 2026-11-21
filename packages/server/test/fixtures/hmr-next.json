@@ -1,0 +1,1877 @@
+{
+ "about": "WebSocket messages recorded by spikes/s4-settle.ts --record from the next-16-turbopack dev server through the proxy tunnel (page load, each forward scripted edit, an edit the page does not use, a syntax error and its fix). Strings longer than 400 characters inside JSON messages are cut; binary payloads are cut to their first 96 bytes (bytes is the real length); machine paths, tokens and ids are replaced.",
+ "frames": [
+  {
+   "step": "initial",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 41,
+   "text": "{\"type\":\"isrManifest\",\"data\":{\"/\":false}}"
+  },
+  {
+   "step": "initial",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 85,
+   "text": "{\"type\":\"turbopack-connected\",\"data\":{\"sessionId\":8552250771537657,\"hmrVersion\":\"0\"}}"
+  },
+  {
+   "step": "initial",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 21348,
+   "base64": "ABVkV0tRYzdOZTRyS05iWU8wTWVvOUY6TjE3OTUxNzE2MTcyNTkuMjUzCjM6IiRFT2JqZWN0LmRlZmluZVByb3BlcnR5KCgpPT57Y3R4LmNvbXBvbmVudE1vZC5wcmVs"
+  },
+  {
+   "step": "initial",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 23,
+   "base64": "ABVkV0tRYzdOZTRyS05iWU8wTWVvOUY="
+  },
+  {
+   "step": "initial",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 5177,
+   "text": "{\"event\":\"browser-logs\",\"entries\":[{\"kind\":\"console\",\"consoleMethodStack\":\"    at console.info (http://localhost:54660/_next/static/chunks/0-k-_next_dist_1p33wlm8w4zhp._.js:760:13)\\n    at http://localhost:54660/_next/static/chunks/0-k-_next_dist_compiled_react-dom_cjs_react-dom-client_development_09tvej3vs-6mu.js:16719:54\\n    at module evaluation (http://localhost:54660/_next/static/chunks/0-k-_next_dist_compiled_react-dom_cjs_react-dom-client_development_09tvej3vs-6mu.j...[4487 chars]\",\"method\":\"info\",\"args\":[{\"kind\":\"arg\",\"data\":\"\\\"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools\\\"\"},{\"kind\":\"arg\",\"data\":\"\\\"font-weight:bold\\\"\"}]}],\"router\":\"app\"}"
+  },
+  {
+   "step": "initial",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 131,
+   "text": "{\"type\":\"turbopack-subscribe\",\"path\":\"static/chunks/_tmp_run_next-16-turbopack_1anvha4rlo79g._.js\",\"hmrVersion\":\"0\"}"
+  },
+  {
+   "step": "initial",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 131,
+   "text": "{\"type\":\"turbopack-subscribe\",\"path\":\"static/chunks/_tmp_run_next-16-turbopack_219uq1sj0q91c._.js\",\"hmrVersion\":\"0\"}"
+  },
+  {
+   "step": "initial",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 146,
+   "text": "{\"type\":\"turbopack-subscribe\",\"path\":\"static/chunks/_tmp_run_next-16-turbopack_1anvha4rlo79g._.js\",\"headers\":null,\"hmrVersion\":\"0\"}"
+  },
+  {
+   "step": "initial",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 146,
+   "text": "{\"type\":\"turbopack-subscribe\",\"path\":\"static/chunks/_tmp_run_next-16-turbopack_219uq1sj0q91c._.js\",\"headers\":null,\"hmrVersion\":\"0\"}"
+  },
+  {
+   "step": "initial",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 53,
+   "text": "{\"type\":\"built\",\"hash\":\"0\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "initial",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "initial",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 206,
+   "text": "{\"type\":\"sync\",\"errors\":[],\"warnings\":[],\"hash\":\"\",\"versionInfo\":{\"staleness\":\"fresh\",\"installed\":\"16.4.6\"},\"hasVulnerabilityInsight\":false,\"debug\":{},\"devIndicator\":{\"disabledUntil\":0},\"devToolsConfig\":{}}"
+  },
+  {
+   "step": "initial",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (server component text): page title text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 50,
+   "text": "{\"type\":\"serverComponentChanges\",\"hmrVersion\":\"1\"}"
+  },
+  {
+   "step": "edit (server component text): page title text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 53,
+   "text": "{\"type\":\"built\",\"hash\":\"1\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "edit (server component text): page title text",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 65,
+   "text": "{\"event\":\"server-component-reload-page\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (server component text): page title text",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (server component text): page title text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 32,
+   "text": "{\"type\":\"isrManifest\",\"data\":{}}"
+  },
+  {
+   "step": "edit (server component text): page title text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 30,
+   "base64": "AAg5OGY2ZTJlMTpOMTc5NTE3MTYxODExNS4yMzYK"
+  },
+  {
+   "step": "edit (server component text): page title text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 15819,
+   "base64": "AAg5OGY2ZTJlMTE6W10KNTpbXQo3OltdCjg6W10KYjpJWyJbcHJvamVjdF0vZml4dHVyZXMvbmV4dC0xNi10dXJib3BhY2svbm9kZV9tb2R1bGVzLy5wbnBtL25leHRA"
+  },
+  {
+   "step": "edit (server component text): page title text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 8341,
+   "base64": "AAg5OGY2ZTJlMThmOltbIlJvb3RMYXlvdXQiLCIvVXNlcnMvZGlwZXNoL3JlZ2xldC8udG1wL3J1bi1td291cnptdC0yOTE0MS9uZXh0LTE2LXR1cmJvcGFjay8ubmV4"
+  },
+  {
+   "step": "edit (server component text): page title text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 10,
+   "base64": "AAg5OGY2ZTJlMQ=="
+  },
+  {
+   "step": "edit (server component text): page title text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 41,
+   "text": "{\"type\":\"isrManifest\",\"data\":{\"/\":false}}"
+  },
+  {
+   "step": "edit (server component text): page title text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 53,
+   "text": "{\"type\":\"built\",\"hash\":\"1\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "edit (server component text): page title text",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (client component text): counter reset text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 19,
+   "text": "{\"type\":\"building\"}"
+  },
+  {
+   "step": "edit (client component text): counter reset text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 9860,
+   "text": "{\"type\":\"turbopack-message\",\"data\":[{\"resource\":{\"path\":\"static/chunks/_tmp_run_next-16-turbopack_219uq1sj0q91c._.js\",\"headers\":null},\"type\":\"partial\",\"instruction\":{\"type\":\"ChunkListUpdate\",\"merged\":[{\"type\":\"EcmascriptMergedUpdate\",\"entries\":{\"[project]/.tmp/run/next-16-turbopack/components/client/Counter.tsx [app-client] (ecmascript)\":{\"code\":\"((__turbopack_context__) => {\\n\\\"use strict\\\";\\n\\n__turbopack_context__.s([\\n    \\\"Counter\\\",\\n    ()=>Counter\\n]);\\nvar __TURBOPACK__imported__module__$5b$project$5d2f$fixtures$2f$next$2d$16$2d$turbopack$2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$4$2e$6_$40$types$2b$node$40$22$2e$20$2e$5_react$2d$dom$40$19$2e$3$2e$1_react$40$19$2e$3$2e$1_$5f$react$40$19$2e$3$2e$1$2f$node_modules$2f$next$2f$dist$2f$compiled$...[6901 chars]\",\"url\":\"static/chunks/_tmp_run_next-16-turbopack_components_client_0l0dse-ic7zco._.js?id=%5Bproject%5D/.tmp/run/next-16-turbopack/components/client/Counter.tsx+%5Bapp-client%5D+(ecmascript)\",\"map\":\"{\\n  \\\"version\\\": 3,\\n  \\\"sources\\\": [],\\n  \\\"sections\\\": [\\n    {\\\"offset\\\": {\\\"line\\\": 3, \\\"column\\\": 0}, \\\"map\\\": {\\\"version\\\":3,\\\"sources\\\":[\\\"file:///project/components/client/Counter.tsx\\\"],\\\"sourcesContent\\\":[\\\"'use client'\\\\n\\\\nimport { useState } from 'react'\\\\nimport styles from './Counter.module.css'\\\\n\\\\nexport function Counter({ initial = 0 }: { initial?: number }) {\\\\n  const [count, setCount] = useState(initial)\\\\n\\\\...[1737 chars]\"}},\"chunks\":{\"static/chunks/_tmp_run_next-16-turbopack_components_client_0l0dse-ic7zco._.js\":{\"type\":\"partial\"}}}]},\"issues\":[],\"diagnostics\":[]}],\"hmrVersion\":\"2\"}"
+  },
+  {
+   "step": "edit (client component text): counter reset text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 53,
+   "text": "{\"type\":\"built\",\"hash\":\"1\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "edit (client component text): counter reset text",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (client component text): counter reset text",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 228,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171618469,\"endTime\":1795171618472,\"page\":\"/\",\"updatedModules\":[\"[project]/.tmp/run/next-16-turbopack/components/client/Counter.tsx [app-client]\"],\"isPageHidden\":false}"
+  },
+  {
+   "step": "edit (inline style (server component)): stats heading inline style",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 50,
+   "text": "{\"type\":\"serverComponentChanges\",\"hmrVersion\":\"3\"}"
+  },
+  {
+   "step": "edit (inline style (server component)): stats heading inline style",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 53,
+   "text": "{\"type\":\"built\",\"hash\":\"2\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "edit (inline style (server component)): stats heading inline style",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 65,
+   "text": "{\"event\":\"server-component-reload-page\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (inline style (server component)): stats heading inline style",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (inline style (server component)): stats heading inline style",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 132,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171618469,\"endTime\":1795171618848,\"page\":\"/\",\"updatedModules\":[],\"isPageHidden\":false}"
+  },
+  {
+   "step": "edit (inline style (server component)): stats heading inline style",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 32,
+   "text": "{\"type\":\"isrManifest\",\"data\":{}}"
+  },
+  {
+   "step": "edit (inline style (server component)): stats heading inline style",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 30,
+   "base64": "AAhlMDhkNTljODpOMTc5NTE3MTYxODg3NS41NzYK"
+  },
+  {
+   "step": "edit (inline style (server component)): stats heading inline style",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 16718,
+   "base64": "AAhlMDhkNTljODE6W10KNTpbXQo3OltdCjg6W10KYjpJWyJbcHJvamVjdF0vZml4dHVyZXMvbmV4dC0xNi10dXJib3BhY2svbm9kZV9tb2R1bGVzLy5wbnBtL25leHRA"
+  },
+  {
+   "step": "edit (inline style (server component)): stats heading inline style",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 8353,
+   "base64": "AAhlMDhkNTljODhmOltbIlJvb3RMYXlvdXQiLCIvVXNlcnMvZGlwZXNoL3JlZ2xldC8udG1wL3J1bi1td291cnptdC0yOTE0MS9uZXh0LTE2LXR1cmJvcGFjay8ubmV4"
+  },
+  {
+   "step": "edit (inline style (server component)): stats heading inline style",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 10,
+   "base64": "AAhlMDhkNTljOA=="
+  },
+  {
+   "step": "edit (inline style (server component)): stats heading inline style",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 41,
+   "text": "{\"type\":\"isrManifest\",\"data\":{\"/\":false}}"
+  },
+  {
+   "step": "edit (inline style (server component)): stats heading inline style",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 53,
+   "text": "{\"type\":\"built\",\"hash\":\"2\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "edit (inline style (server component)): stats heading inline style",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (inline style (server component)): stats heading inline style",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 132,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171618469,\"endTime\":1795171618848,\"page\":\"/\",\"updatedModules\":[],\"isPageHidden\":false}"
+  },
+  {
+   "step": "edit (className (client component)): tabs root className",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 19,
+   "text": "{\"type\":\"building\"}"
+  },
+  {
+   "step": "edit (className (client component)): tabs root className",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 11551,
+   "text": "{\"type\":\"turbopack-message\",\"data\":[{\"resource\":{\"path\":\"static/chunks/_tmp_run_next-16-turbopack_219uq1sj0q91c._.js\",\"headers\":null},\"type\":\"partial\",\"instruction\":{\"type\":\"ChunkListUpdate\",\"merged\":[{\"type\":\"EcmascriptMergedUpdate\",\"entries\":{\"[project]/.tmp/run/next-16-turbopack/components/client/Tabs.tsx [app-client] (ecmascript)\":{\"code\":\"((__turbopack_context__) => {\\n\\\"use strict\\\";\\n\\n__turbopack_context__.s([\\n    \\\"Tabs\\\",\\n    ()=>Tabs\\n]);\\nvar __TURBOPACK__imported__module__$5b$project$5d2f$fixtures$2f$next$2d$16$2d$turbopack$2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$4$2e$6_$40$types$2b$node$40$22$2e$20$2e$5_react$2d$dom$40$19$2e$3$2e$1_react$40$19$2e$3$2e$1_$5f$react$40$19$2e$3$2e$1$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$rea...[7945 chars]\",\"url\":\"static/chunks/_tmp_run_next-16-turbopack_components_client_0l0dse-ic7zco._.js?id=%5Bproject%5D/.tmp/run/next-16-turbopack/components/client/Tabs.tsx+%5Bapp-client%5D+(ecmascript)\",\"map\":\"{\\n  \\\"version\\\": 3,\\n  \\\"sources\\\": [],\\n  \\\"sections\\\": [\\n    {\\\"offset\\\": {\\\"line\\\": 3, \\\"column\\\": 0}, \\\"map\\\": {\\\"version\\\":3,\\\"sources\\\":[\\\"file:///project/components/client/Tabs.tsx\\\"],\\\"sourcesContent\\\":[\\\"'use client'\\\\n\\\\nimport { useState } from 'react'\\\\nimport styles from './Tabs.module.css'\\\\n\\\\nconst PANELS = {\\\\n  css: 'Change any CSS property on the page and see which other elements moved because of it.',\\\\n  lay...[2331 chars]\"}},\"chunks\":{\"static/chunks/_tmp_run_next-16-turbopack_components_client_0l0dse-ic7zco._.js\":{\"type\":\"partial\"}}}]},\"issues\":[],\"diagnostics\":[]}],\"hmrVersion\":\"4\"}"
+  },
+  {
+   "step": "edit (className (client component)): tabs root className",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 53,
+   "text": "{\"type\":\"built\",\"hash\":\"2\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "edit (className (client component)): tabs root className",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (className (client component)): tabs root className",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 225,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171619238,\"endTime\":1795171619241,\"page\":\"/\",\"updatedModules\":[\"[project]/.tmp/run/next-16-turbopack/components/client/Tabs.tsx [app-client]\"],\"isPageHidden\":false}"
+  },
+  {
+   "step": "edit (CSS file): radius variable in globals.css",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 19,
+   "text": "{\"type\":\"building\"}"
+  },
+  {
+   "step": "edit (CSS file): radius variable in globals.css",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 371,
+   "text": "{\"type\":\"turbopack-message\",\"data\":[{\"resource\":{\"path\":\"static/chunks/_tmp_run_next-16-turbopack_219uq1sj0q91c._.js\",\"headers\":null},\"type\":\"partial\",\"instruction\":{\"type\":\"ChunkListUpdate\",\"chunks\":{\"static/chunks/_tmp_run_next-16-turbopack_app_globals_0mh5q1jnzjcut.css\":{\"type\":\"total\"}}},\"issues\":[],\"diagnostics\":[]}],\"hmrVersion\":\"5\"}"
+  },
+  {
+   "step": "edit (CSS file): radius variable in globals.css",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 53,
+   "text": "{\"type\":\"built\",\"hash\":\"2\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "edit (CSS file): radius variable in globals.css",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (CSS file): radius variable in globals.css",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 132,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171619586,\"endTime\":1795171619588,\"page\":\"/\",\"updatedModules\":[],\"isPageHidden\":false}"
+  },
+  {
+   "step": "edit (CSS module (server page)): hero padding in page.module.css",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 19,
+   "text": "{\"type\":\"building\"}"
+  },
+  {
+   "step": "edit (CSS module (server page)): hero padding in page.module.css",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 361,
+   "text": "{\"type\":\"turbopack-message\",\"data\":[{\"resource\":{\"path\":\"static/chunks/_tmp_run_next-16-turbopack_219uq1sj0q91c._.js\",\"headers\":null},\"type\":\"partial\",\"instruction\":{\"type\":\"ChunkListUpdate\",\"chunks\":{\"static/chunks/_tmp_run_next-16-turbopack_1fz8e6xlx7dft._.css\":{\"type\":\"total\"}}},\"issues\":[],\"diagnostics\":[]}],\"hmrVersion\":\"6\"}"
+  },
+  {
+   "step": "edit (CSS module (server page)): hero padding in page.module.css",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 53,
+   "text": "{\"type\":\"built\",\"hash\":\"2\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "edit (CSS module (server page)): hero padding in page.module.css",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (CSS module (server page)): hero padding in page.module.css",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 132,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171619933,\"endTime\":1795171619936,\"page\":\"/\",\"updatedModules\":[],\"isPageHidden\":false}"
+  },
+  {
+   "step": "edit (CSS module (client component)): counter gap in Counter.module.css",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 19,
+   "text": "{\"type\":\"building\"}"
+  },
+  {
+   "step": "edit (CSS module (client component)): counter gap in Counter.module.css",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 361,
+   "text": "{\"type\":\"turbopack-message\",\"data\":[{\"resource\":{\"path\":\"static/chunks/_tmp_run_next-16-turbopack_219uq1sj0q91c._.js\",\"headers\":null},\"type\":\"partial\",\"instruction\":{\"type\":\"ChunkListUpdate\",\"chunks\":{\"static/chunks/_tmp_run_next-16-turbopack_1fz8e6xlx7dft._.css\":{\"type\":\"total\"}}},\"issues\":[],\"diagnostics\":[]}],\"hmrVersion\":\"7\"}"
+  },
+  {
+   "step": "edit (CSS module (client component)): counter gap in Counter.module.css",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 53,
+   "text": "{\"type\":\"built\",\"hash\":\"2\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "edit (CSS module (client component)): counter gap in Counter.module.css",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (CSS module (client component)): counter gap in Counter.module.css",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 132,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171620281,\"endTime\":1795171620284,\"page\":\"/\",\"updatedModules\":[],\"isPageHidden\":false}"
+  },
+  {
+   "step": "edit (server component in a client frame): frame note text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 50,
+   "text": "{\"type\":\"serverComponentChanges\",\"hmrVersion\":\"8\"}"
+  },
+  {
+   "step": "edit (server component in a client frame): frame note text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 53,
+   "text": "{\"type\":\"built\",\"hash\":\"3\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "edit (server component in a client frame): frame note text",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 65,
+   "text": "{\"event\":\"server-component-reload-page\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (server component in a client frame): frame note text",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (server component in a client frame): frame note text",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 132,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171620281,\"endTime\":1795171620672,\"page\":\"/\",\"updatedModules\":[],\"isPageHidden\":false}"
+  },
+  {
+   "step": "edit (server component in a client frame): frame note text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 32,
+   "text": "{\"type\":\"isrManifest\",\"data\":{}}"
+  },
+  {
+   "step": "edit (server component in a client frame): frame note text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 31,
+   "base64": "AAg3NjFhNjAyZjpOMTc5NTE3MTYyMDcwMC4yNTg1Cg=="
+  },
+  {
+   "step": "edit (server component in a client frame): frame note text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 16969,
+   "base64": "AAg3NjFhNjAyZjE6W10KNTpbXQo3OltdCjg6W10KYjpJWyJbcHJvamVjdF0vZml4dHVyZXMvbmV4dC0xNi10dXJib3BhY2svbm9kZV9tb2R1bGVzLy5wbnBtL25leHRA"
+  },
+  {
+   "step": "edit (server component in a client frame): frame note text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 8330,
+   "base64": "AAg3NjFhNjAyZjhmOltbIlJvb3RMYXlvdXQiLCIvVXNlcnMvZGlwZXNoL3JlZ2xldC8udG1wL3J1bi1td291cnptdC0yOTE0MS9uZXh0LTE2LXR1cmJvcGFjay8ubmV4"
+  },
+  {
+   "step": "edit (server component in a client frame): frame note text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 10,
+   "base64": "AAg3NjFhNjAyZg=="
+  },
+  {
+   "step": "edit (server component in a client frame): frame note text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 41,
+   "text": "{\"type\":\"isrManifest\",\"data\":{\"/\":false}}"
+  },
+  {
+   "step": "edit (server component in a client frame): frame note text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 53,
+   "text": "{\"type\":\"built\",\"hash\":\"3\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "edit (server component in a client frame): frame note text",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (server component in a client frame): frame note text",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 132,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171620281,\"endTime\":1795171620672,\"page\":\"/\",\"updatedModules\":[],\"isPageHidden\":false}"
+  },
+  {
+   "step": "edit (client component text): tab label text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 19,
+   "text": "{\"type\":\"building\"}"
+  },
+  {
+   "step": "edit (client component text): tab label text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 11555,
+   "text": "{\"type\":\"turbopack-message\",\"data\":[{\"resource\":{\"path\":\"static/chunks/_tmp_run_next-16-turbopack_219uq1sj0q91c._.js\",\"headers\":null},\"type\":\"partial\",\"instruction\":{\"type\":\"ChunkListUpdate\",\"merged\":[{\"type\":\"EcmascriptMergedUpdate\",\"entries\":{\"[project]/.tmp/run/next-16-turbopack/components/client/Tabs.tsx [app-client] (ecmascript)\":{\"code\":\"((__turbopack_context__) => {\\n\\\"use strict\\\";\\n\\n__turbopack_context__.s([\\n    \\\"Tabs\\\",\\n    ()=>Tabs\\n]);\\nvar __TURBOPACK__imported__module__$5b$project$5d2f$fixtures$2f$next$2d$16$2d$turbopack$2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$4$2e$6_$40$types$2b$node$40$22$2e$20$2e$5_react$2d$dom$40$19$2e$3$2e$1_react$40$19$2e$3$2e$1_$5f$react$40$19$2e$3$2e$1$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$rea...[7947 chars]\",\"url\":\"static/chunks/_tmp_run_next-16-turbopack_components_client_0l0dse-ic7zco._.js?id=%5Bproject%5D/.tmp/run/next-16-turbopack/components/client/Tabs.tsx+%5Bapp-client%5D+(ecmascript)\",\"map\":\"{\\n  \\\"version\\\": 3,\\n  \\\"sources\\\": [],\\n  \\\"sections\\\": [\\n    {\\\"offset\\\": {\\\"line\\\": 3, \\\"column\\\": 0}, \\\"map\\\": {\\\"version\\\":3,\\\"sources\\\":[\\\"file:///project/components/client/Tabs.tsx\\\"],\\\"sourcesContent\\\":[\\\"'use client'\\\\n\\\\nimport { useState } from 'react'\\\\nimport styles from './Tabs.module.css'\\\\n\\\\nconst PANELS = {\\\\n  css: 'Change any CSS property on the page and see which other elements moved because of it.',\\\\n  lay...[2333 chars]\"}},\"chunks\":{\"static/chunks/_tmp_run_next-16-turbopack_components_client_0l0dse-ic7zco._.js\":{\"type\":\"partial\"}}}]},\"issues\":[],\"diagnostics\":[]}],\"hmrVersion\":\"9\"}"
+  },
+  {
+   "step": "edit (client component text): tab label text",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 53,
+   "text": "{\"type\":\"built\",\"hash\":\"3\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "edit (client component text): tab label text",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (client component text): tab label text",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 225,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171621067,\"endTime\":1795171621069,\"page\":\"/\",\"updatedModules\":[\"[project]/.tmp/run/next-16-turbopack/components/client/Tabs.tsx [app-client]\"],\"isPageHidden\":false}"
+  },
+  {
+   "step": "edit (server layout text): footer note in the root layout",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"type\":\"serverComponentChanges\",\"hmrVersion\":\"10\"}"
+  },
+  {
+   "step": "edit (server layout text): footer note in the root layout",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 53,
+   "text": "{\"type\":\"built\",\"hash\":\"4\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "edit (server layout text): footer note in the root layout",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 65,
+   "text": "{\"event\":\"server-component-reload-page\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (server layout text): footer note in the root layout",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (server layout text): footer note in the root layout",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 132,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171621067,\"endTime\":1795171621445,\"page\":\"/\",\"updatedModules\":[],\"isPageHidden\":false}"
+  },
+  {
+   "step": "edit (server layout text): footer note in the root layout",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 32,
+   "text": "{\"type\":\"isrManifest\",\"data\":{}}"
+  },
+  {
+   "step": "edit (server layout text): footer note in the root layout",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 31,
+   "base64": "AAhhZmJmNmQyMDpOMTc5NTE3MTYyMTQ2OS45MDg0Cg=="
+  },
+  {
+   "step": "edit (server layout text): footer note in the root layout",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 16970,
+   "base64": "AAhhZmJmNmQyMDE6W10KNTpbXQo3OltdCjg6W10KYjpJWyJbcHJvamVjdF0vZml4dHVyZXMvbmV4dC0xNi10dXJib3BhY2svbm9kZV9tb2R1bGVzLy5wbnBtL25leHRA"
+  },
+  {
+   "step": "edit (server layout text): footer note in the root layout",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 11517,
+   "base64": "AAhhZmJmNmQyMDhmOltbIlJvb3RMYXlvdXQiLCJmaWxlOi8vL1VzZXJzL2RpcGVzaC9yZWdsZXQvLnRtcC9ydW4tbXdvdXJ6bXQtMjkxNDEvbmV4dC0xNi10dXJib3Bh"
+  },
+  {
+   "step": "edit (server layout text): footer note in the root layout",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 10,
+   "base64": "AAhhZmJmNmQyMA=="
+  },
+  {
+   "step": "edit (server layout text): footer note in the root layout",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 41,
+   "text": "{\"type\":\"isrManifest\",\"data\":{\"/\":false}}"
+  },
+  {
+   "step": "edit (server layout text): footer note in the root layout",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 53,
+   "text": "{\"type\":\"built\",\"hash\":\"4\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "edit (server layout text): footer note in the root layout",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "edit (server layout text): footer note in the root layout",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 132,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171621067,\"endTime\":1795171621445,\"page\":\"/\",\"updatedModules\":[],\"isPageHidden\":false}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 19,
+   "text": "{\"type\":\"building\"}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 993,
+   "text": "{\"type\":\"built\",\"hash\":\"9\",\"errors\":[{\"message\":\"./.tmp/run/next-16-turbopack/components/client/Counter.tsx:6:16\\nError: Expression expected\\n  \\u001b[90m4 |\\u001b[0m \\u001b[36mimport\\u001b[0m styles \\u001b[36mfrom\\u001b[0m \\u001b[32m'./Counter.module.css'\\u001b[0m\\n  \\u001b[90m5 |\\u001b[0m\\n\\u001b[31m\\u001b[1m>\\u001b[0m \\u001b[90m6 |\\u001b[0m \\u001b[36mconst\\u001b[0m broken = ;\\n  \\u001b[90m  |\\u001b[0m                \\u001b[31m\\u001b[1m^\\u001b[0m\\n  \\u001b[90m7 |\\u001b[0m \\u001b[36mexport\\u001b[0m \\u001b[36mfunction\\u001b[0m \\u001b[33mCounter\\u001b[0m({ initial = \\u001b[35m0\\u001b[0m }: { initial?: number ...[674 chars]\"}],\"warnings\":[]}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 64,
+   "text": "{\"event\":\"client-error\",\"errorCount\":1,\"clientId\":1795171617405}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 1093,
+   "text": "{\"event\":\"browser-logs\",\"entries\":[{\"kind\":\"any-logged-error\",\"method\":\"error\",\"consoleErrorStack\":\"    at handleErrors (http://localhost:54660/_next/static/chunks/0-k-_next_dist_client_1zsb_foi6v5ek._.js:15837:21)\\n    at processMessage (http://localhost:54660/_next/static/chunks/0-k-_next_dist_client_1zsb_foi6v5ek._.js:15913:21)\\n    at WebSocket.handleMessage (http://localhost:54660/_next/static/chunks/0-k-_next_dist_client_1zsb_foi6v5ek._.js:16293:52)\",\"args\":[{\"kind\":\"arg\",\"data\":\"\\\"./.tmp/run/next-16-turbopack/components/client/Counter.tsx:6:16\\\\nError: Expression expected\\\\n  4 | import styles from './Counter.module.css'\\\\n  5 |\\\\n> 6 | const broken = ;\\\\n    |                ^\\\\n  7 | export function Counter({ initial = 0 }: { initial?: number }) {\\\\n  8 |   const [count, setCount] = useState(initial)\\\\n  9 |\\\\n\\\\nParsing ecmascript source code failed\\\\n\\\\nImport trace:\\\\n  Server Com...[519 chars]\"}]}],\"router\":\"app\"}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 993,
+   "text": "{\"type\":\"built\",\"hash\":\"9\",\"errors\":[{\"message\":\"./.tmp/run/next-16-turbopack/components/client/Counter.tsx:6:16\\nError: Expression expected\\n  \\u001b[90m4 |\\u001b[0m \\u001b[36mimport\\u001b[0m styles \\u001b[36mfrom\\u001b[0m \\u001b[32m'./Counter.module.css'\\u001b[0m\\n  \\u001b[90m5 |\\u001b[0m\\n\\u001b[31m\\u001b[1m>\\u001b[0m \\u001b[90m6 |\\u001b[0m \\u001b[36mconst\\u001b[0m broken = ;\\n  \\u001b[90m  |\\u001b[0m                \\u001b[31m\\u001b[1m^\\u001b[0m\\n  \\u001b[90m7 |\\u001b[0m \\u001b[36mexport\\u001b[0m \\u001b[36mfunction\\u001b[0m \\u001b[33mCounter\\u001b[0m({ initial = \\u001b[35m0\\u001b[0m }: { initial?: number ...[674 chars]\"}],\"warnings\":[]}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 64,
+   "text": "{\"event\":\"client-error\",\"errorCount\":1,\"clientId\":1795171617405}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 1093,
+   "text": "{\"event\":\"browser-logs\",\"entries\":[{\"kind\":\"any-logged-error\",\"method\":\"error\",\"consoleErrorStack\":\"    at handleErrors (http://localhost:54660/_next/static/chunks/0-k-_next_dist_client_1zsb_foi6v5ek._.js:15837:21)\\n    at processMessage (http://localhost:54660/_next/static/chunks/0-k-_next_dist_client_1zsb_foi6v5ek._.js:15913:21)\\n    at WebSocket.handleMessage (http://localhost:54660/_next/static/chunks/0-k-_next_dist_client_1zsb_foi6v5ek._.js:16293:52)\",\"args\":[{\"kind\":\"arg\",\"data\":\"\\\"./.tmp/run/next-16-turbopack/components/client/Counter.tsx:6:16\\\\nError: Expression expected\\\\n  4 | import styles from './Counter.module.css'\\\\n  5 |\\\\n> 6 | const broken = ;\\\\n    |                ^\\\\n  7 | export function Counter({ initial = 0 }: { initial?: number }) {\\\\n  8 |   const [count, setCount] = useState(initial)\\\\n  9 |\\\\n\\\\nParsing ecmascript source code failed\\\\n\\\\nImport trace:\\\\n  Server Com...[519 chars]\"}]}],\"router\":\"app\"}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 19,
+   "text": "{\"type\":\"building\"}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 10910,
+   "text": "{\"type\":\"turbopack-message\",\"data\":[{\"resource\":{\"path\":\"static/chunks/_tmp_run_next-16-turbopack_219uq1sj0q91c._.js\",\"headers\":null},\"type\":\"partial\",\"instruction\":{\"type\":\"ChunkListUpdate\",\"merged\":[{\"type\":\"EcmascriptMergedUpdate\",\"entries\":{\"[project]/.tmp/run/next-16-turbopack/components/client/Counter.tsx [app-client] (ecmascript)\":{\"code\":\"((__turbopack_context__, module, exports) => {\\n\\nvar e = new Error(\\\"Could not parse module '[project]/.tmp/run/next-16-turbopack/components/client/Counter.tsx'\\\\n\\\\nExpression expected\\\");\\ne.code = 'MODULE_UNPARSABLE';\\nthrow e;\\n})\",\"url\":\"static/chunks/_tmp_run_next-16-turbopack_components_client_0l0dse-ic7zco._.js?id=%5Bproject%5D/.tmp/run/next-16-turbopack/components/client/Counter.tsx+%5Bapp-client%5D+(ecmascript)\",\"map\":\"{\\n  \\\"version\\\": 3,\\n  \\\"sources\\\": [],\\n  \\\"sections\\\": []\\n}\"}},\"chunks\":{\"static/chunks/_tmp_run_next-16-turbopack_components_client_0l0dse-ic7zco._.js\":{\"type\":\"partial\"}}}]},\"issues\":[],\"diagnostics\":[]},{\"resource\":{\"path\":\"static/chunks/_tmp_run_next-16-turbopack_219uq1sj0q91c._.js\",\"headers\":null},\"type\":\"partial\",\"instruction\":{\"type\":\"ChunkListUpdate\",\"merged\":[{\"type\":\"EcmascriptMergedUpdate\",\"entries\":{\"[project]/.tmp/run/next-16-turbopack/components/client/Counter.tsx [app-client] (ecmascript)\":{\"code\":\"((__turbopack_context__) => {\\n\\\"use strict\\\";\\n\\n__turbopack_context__.s([\\n    \\\"Counter\\\",\\n    ()=>Counter\\n]);\\nvar __TURBOPACK__imported__module__$5b$project$5d2f$fixtures$2f$next$2d$16$2d$turbopack$2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$4$2e$6_$40$types$2b$node$40$22$2e$20$2e$5_react$2d$dom$40$19$2e$3$2e$1_react$40$19$2e$3$2e$1_$5f$react$40$19$2e$3$2e$1$2f$node_modules$2f$next$2f$dist$2f$compiled$...[6902 chars]\",\"url\":\"static/chunks/_tmp_run_next-16-turbopack_components_client_0l0dse-ic7zco._.js?id=%5Bproject%5D/.tmp/run/next-16-turbopack/components/client/Counter.tsx+%5Bapp-client%5D+(ecmascript)\",\"map\":\"{\\n  \\\"version\\\": 3,\\n  \\\"sources\\\": [],\\n  \\\"sections\\\": [\\n    {\\\"offset\\\": {\\\"line\\\": 3, \\\"column\\\": 0}, \\\"map\\\": {\\\"version\\\":3,\\\"sources\\\":[\\\"file:///project/components/client/Counter.tsx\\\"],\\\"sourcesContent\\\":[\\\"'use client'\\\\n\\\\nimport { useState } from 'react'\\\\nimport styles from './Counter.module.css'\\\\n\\\\nexport function Counter({ initial = 0 }: { initial?: number }) {\\\\n  const [count, setCount] = useState(initial)\\\\n\\\\...[1738 chars]\"}},\"chunks\":{\"static/chunks/_tmp_run_next-16-turbopack_components_client_0l0dse-ic7zco._.js\":{\"type\":\"partial\"}}}]},\"issues\":[],\"diagnostics\":[]}],\"hmrVersion\":\"22\"}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"type\":\"serverComponentChanges\",\"hmrVersion\":\"22\"}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 54,
+   "text": "{\"type\":\"built\",\"hash\":\"10\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 65,
+   "text": "{\"event\":\"server-component-reload-page\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 228,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171646996,\"endTime\":1795171647029,\"page\":\"/\",\"updatedModules\":[\"[project]/.tmp/run/next-16-turbopack/components/client/Counter.tsx [app-client]\"],\"isPageHidden\":false}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 32,
+   "text": "{\"type\":\"isrManifest\",\"data\":{}}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 31,
+   "base64": "AAg2NjYxYWE0ZTpOMTc5NTE3MTY0NzA1Ny4wMjA4Cg=="
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 16972,
+   "base64": "AAg2NjYxYWE0ZTE6W10KNTpbXQo3OltdCjg6W10KYjpJWyJbcHJvamVjdF0vZml4dHVyZXMvbmV4dC0xNi10dXJib3BhY2svbm9kZV9tb2R1bGVzLy5wbnBtL25leHRA"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 11491,
+   "base64": "AAg2NjYxYWE0ZThmOltbIlJvb3RMYXlvdXQiLCJmaWxlOi8vL1VzZXJzL2RpcGVzaC9yZWdsZXQvLnRtcC9ydW4tbXdvdXJ6bXQtMjkxNDEvbmV4dC0xNi10dXJib3Bh"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 10,
+   "base64": "AAg2NjYxYWE0ZQ=="
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 41,
+   "text": "{\"type\":\"isrManifest\",\"data\":{\"/\":false}}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 54,
+   "text": "{\"type\":\"built\",\"hash\":\"10\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 132,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171646996,\"endTime\":1795171647029,\"page\":\"/\",\"updatedModules\":[],\"isPageHidden\":false}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 19,
+   "text": "{\"type\":\"building\"}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 9849,
+   "text": "{\"type\":\"turbopack-message\",\"data\":[{\"resource\":{\"path\":\"static/chunks/_tmp_run_next-16-turbopack_219uq1sj0q91c._.js\",\"headers\":null},\"type\":\"partial\",\"instruction\":{\"type\":\"ChunkListUpdate\",\"merged\":[{\"type\":\"EcmascriptMergedUpdate\",\"entries\":{\"[project]/.tmp/run/next-16-turbopack/components/client/Counter.tsx [app-client] (ecmascript)\":{\"code\":\"((__turbopack_context__) => {\\n\\\"use strict\\\";\\n\\n__turbopack_context__.s([\\n    \\\"Counter\\\",\\n    ()=>Counter\\n]);\\nvar __TURBOPACK__imported__module__$5b$project$5d2f$fixtures$2f$next$2d$16$2d$turbopack$2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$4$2e$6_$40$types$2b$node$40$22$2e$20$2e$5_react$2d$dom$40$19$2e$3$2e$1_react$40$19$2e$3$2e$1_$5f$react$40$19$2e$3$2e$1$2f$node_modules$2f$next$2f$dist$2f$compiled$...[6895 chars]\",\"url\":\"static/chunks/_tmp_run_next-16-turbopack_components_client_0l0dse-ic7zco._.js?id=%5Bproject%5D/.tmp/run/next-16-turbopack/components/client/Counter.tsx+%5Bapp-client%5D+(ecmascript)\",\"map\":\"{\\n  \\\"version\\\": 3,\\n  \\\"sources\\\": [],\\n  \\\"sections\\\": [\\n    {\\\"offset\\\": {\\\"line\\\": 3, \\\"column\\\": 0}, \\\"map\\\": {\\\"version\\\":3,\\\"sources\\\":[\\\"file:///project/components/client/Counter.tsx\\\"],\\\"sourcesContent\\\":[\\\"'use client'\\\\n\\\\nimport { useState } from 'react'\\\\nimport styles from './Counter.module.css'\\\\n\\\\nexport function Counter({ initial = 0 }: { initial?: number }) {\\\\n  const [count, setCount] = useState(initial)\\\\n\\\\...[1731 chars]\"}},\"chunks\":{\"static/chunks/_tmp_run_next-16-turbopack_components_client_0l0dse-ic7zco._.js\":{\"type\":\"partial\"}}}]},\"issues\":[],\"diagnostics\":[]}],\"hmrVersion\":\"23\"}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 54,
+   "text": "{\"type\":\"built\",\"hash\":\"10\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 228,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171647423,\"endTime\":1795171647425,\"page\":\"/\",\"updatedModules\":[\"[project]/.tmp/run/next-16-turbopack/components/client/Counter.tsx [app-client]\"],\"isPageHidden\":false}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 1053,
+   "text": "{\"type\":\"built\",\"hash\":\"11\",\"errors\":[{\"message\":\"./.tmp/run/next-16-turbopack/components/server/StatsPanel.tsx:4:16\\nError: Expression expected\\n  \\u001b[90m2 |\\u001b[0m\\n  \\u001b[90m3 |\\u001b[0m \\u001b[90m/** An async server component: nothing in this file ships to the browser. */\\u001b[0m\\n\\u001b[31m\\u001b[1m>\\u001b[0m \\u001b[90m4 |\\u001b[0m \\u001b[36mconst\\u001b[0m broken = ;\\n  \\u001b[90m  |\\u001b[0m                \\u001b[31m\\u001b[1m^\\u001b[0m\\n  \\u001b[90m5 |\\u001b[0m \\u001b[36mexport\\u001b[0m \\u001b[36masync\\u001b[0m \\u001b[36mfunction\\u001b[0m \\u001b[33mStatsPanel\\u001b[0m() {\\n  \\u001b...[723 chars]\"}],\"warnings\":[]}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 64,
+   "text": "{\"event\":\"client-error\",\"errorCount\":1,\"clientId\":1795171617405}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 1133,
+   "text": "{\"event\":\"browser-logs\",\"entries\":[{\"kind\":\"any-logged-error\",\"method\":\"error\",\"consoleErrorStack\":\"    at handleErrors (http://localhost:54660/_next/static/chunks/0-k-_next_dist_client_1zsb_foi6v5ek._.js:15837:21)\\n    at processMessage (http://localhost:54660/_next/static/chunks/0-k-_next_dist_client_1zsb_foi6v5ek._.js:15913:21)\\n    at WebSocket.handleMessage (http://localhost:54660/_next/static/chunks/0-k-_next_dist_client_1zsb_foi6v5ek._.js:16293:52)\",\"args\":[{\"kind\":\"arg\",\"data\":\"\\\"./.tmp/run/next-16-turbopack/components/server/StatsPanel.tsx:4:16\\\\nError: Expression expected\\\\n  2 |\\\\n  3 | /** An async server component: nothing in this file ships to the browser. */\\\\n> 4 | const broken = ;\\\\n    |                ^\\\\n  5 | export async function StatsPanel() {\\\\n  6 |   const store = getStore()\\\\n  7 |   const renderedAt = new Date().toISOString()\\\\n\\\\nParsing ecmascript source code ...[559 chars]\"}]}],\"router\":\"app\"}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"type\":\"serverComponentChanges\",\"hmrVersion\":\"24\"}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 54,
+   "text": "{\"type\":\"built\",\"hash\":\"12\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 65,
+   "text": "{\"event\":\"server-component-reload-page\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 132,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171647423,\"endTime\":1795171648278,\"page\":\"/\",\"updatedModules\":[],\"isPageHidden\":false}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 32,
+   "text": "{\"type\":\"isrManifest\",\"data\":{}}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 30,
+   "base64": "AAg3NDgxY2FlODpOMTc5NTE3MTY0ODI5OC4yMTkK"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 16979,
+   "base64": "AAg3NDgxY2FlODE6W10KNTpbXQo3OltdCjg6W10KYjpJWyJbcHJvamVjdF0vZml4dHVyZXMvbmV4dC0xNi10dXJib3BhY2svbm9kZV9tb2R1bGVzLy5wbnBtL25leHRA"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 11503,
+   "base64": "AAg3NDgxY2FlODhmOltbIlJvb3RMYXlvdXQiLCJmaWxlOi8vL1VzZXJzL2RpcGVzaC9yZWdsZXQvLnRtcC9ydW4tbXdvdXJ6bXQtMjkxNDEvbmV4dC0xNi10dXJib3Bh"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 10,
+   "base64": "AAg3NDgxY2FlOA=="
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 41,
+   "text": "{\"type\":\"isrManifest\",\"data\":{\"/\":false}}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 54,
+   "text": "{\"type\":\"built\",\"hash\":\"12\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 132,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171647423,\"endTime\":1795171648278,\"page\":\"/\",\"updatedModules\":[],\"isPageHidden\":false}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"type\":\"serverComponentChanges\",\"hmrVersion\":\"25\"}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 54,
+   "text": "{\"type\":\"built\",\"hash\":\"13\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 65,
+   "text": "{\"event\":\"server-component-reload-page\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 132,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171647423,\"endTime\":1795171648684,\"page\":\"/\",\"updatedModules\":[],\"isPageHidden\":false}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 32,
+   "text": "{\"type\":\"isrManifest\",\"data\":{}}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 31,
+   "base64": "AAgxNmY0NmYyNzpOMTc5NTE3MTY0ODcwNS4zMjk4Cg=="
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 16975,
+   "base64": "AAgxNmY0NmYyNzE6W10KNTpbXQo3OltdCjg6W10KYjpJWyJbcHJvamVjdF0vZml4dHVyZXMvbmV4dC0xNi10dXJib3BhY2svbm9kZV9tb2R1bGVzLy5wbnBtL25leHRA"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 11517,
+   "base64": "AAgxNmY0NmYyNzhmOltbIlJvb3RMYXlvdXQiLCJmaWxlOi8vL1VzZXJzL2RpcGVzaC9yZWdsZXQvLnRtcC9ydW4tbXdvdXJ6bXQtMjkxNDEvbmV4dC0xNi10dXJib3Bh"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 2,
+   "bytes": 10,
+   "base64": "AAgxNmY0NmYyNw=="
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 41,
+   "text": "{\"type\":\"isrManifest\",\"data\":{\"/\":false}}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "upstream-to-client",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 54,
+   "text": "{\"type\":\"built\",\"hash\":\"13\",\"errors\":[],\"warnings\":[]}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 51,
+   "text": "{\"event\":\"client-success\",\"clientId\":1795171617405}"
+  },
+  {
+   "step": "syntax-error",
+   "direction": "client-to-upstream",
+   "tunnel": {
+    "id": 4,
+    "path": "/_next/hmr?id=x",
+    "protocols": []
+   },
+   "opcode": 1,
+   "bytes": 132,
+   "text": "{\"event\":\"client-hmr-latency\",\"startTime\":1795171647423,\"endTime\":1795171648684,\"page\":\"/\",\"updatedModules\":[],\"isPageHidden\":false}"
+  }
+ ]
+}
