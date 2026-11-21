@@ -398,11 +398,20 @@ function includedShifts(extras: PromptExtras): PromptShift[] {
 
 const sizeText = (size: { w: number; h: number } | null): string => (size === null ? 'nothing (not in the layout)' : `${num(Math.round(size.w * 10) / 10)}x${num(Math.round(size.h * 10) / 10)}`)
 
-function movedWords(dx: number, dy: number): string {
+/**
+ * A victim's movement. The browser clips a victim's rectangles to the viewport, so one that left
+ * it (or came into it) has no distance of its own on record: say that, never a distance to nowhere.
+ */
+function movedWords(victim: Pick<PromptShift['victims'][number], 'dx' | 'dy' | 'viewport' | 'distance'>): string {
+  const { dx, dy } = victim
   const parts: string[] = []
   if (Math.abs(dy) >= 0.5) parts.push(`${num(Math.round(Math.abs(dy) * 10) / 10)}px ${dy > 0 ? 'down' : 'up'}`)
   if (Math.abs(dx) >= 0.5) parts.push(`${num(Math.round(Math.abs(dx) * 10) / 10)}px ${dx > 0 ? 'right' : 'left'}`)
-  return parts.length === 0 ? 'changed size' : parts.join(' and ')
+  const where = victim.viewport === 'out' ? 'out of the visible area' : victim.viewport === 'in' ? 'into the visible area' : ''
+  if (victim.distance === 'unknown' || (victim.distance === 'at-least' && parts.length === 0)) return where === '' ? 'moved' : `moved ${where}`
+  if (victim.distance === 'at-least') return `at least ${parts.join(' and ')}, ${where}`
+  if (parts.length === 0) return 'changed size'
+  return where === '' ? parts.join(' and ') : `${parts.join(' and ')}, ${where}`
 }
 
 function shiftLines(shift: PromptShift, extras: PromptExtras): string[] {
@@ -410,7 +419,7 @@ function shiftLines(shift: PromptShift, extras: PromptExtras): string[] {
   const lines = [`### ${code(shift.id, 60)} layout shift of ${num(shift.value)}: ${cause.name}`]
   const victims = shift.victims.filter((victim) => victim.node !== null)
   if (victims.length > 0) {
-    const shown = victims.slice(0, MAX.victims).map((victim) => `${code(victim.node?.selector ?? '', MAX.selector)} ${movedWords(victim.dx, victim.dy)}`)
+    const shown = victims.slice(0, MAX.victims).map((victim) => `${code(victim.node?.selector ?? '', MAX.selector)} ${movedWords(victim)}`)
     lines.push(`- What moved: ${shown.join(', ')}${victims.length > shown.length ? `, +${victims.length - shown.length} more` : ''}`)
   }
   const culprit = shift.culprit

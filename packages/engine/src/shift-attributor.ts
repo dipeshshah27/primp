@@ -18,9 +18,18 @@
  * element accounts for a victim, up to three that changed in the same frame
  * and lie before it may do so together (two headings that re-wrap at once). Only then is the
  * cause read off the winner: a replaced element is unsized media, a node that
- * was just inserted or shown is injected content, a text container that
- * changed size right when one of its font families finished loading is a font
- * swap.
+ * was just inserted or shown is injected content, an element that changed size
+ * right when a font family of its text, or of text inside it that changed size
+ * with it, finished loading is a font swap.
+ *
+ * The browser reports a victim's two rectangles clipped to the viewport. A box
+ * that was pushed out of it has an empty second rectangle, so its rectangles do
+ * not show how far it moved, or in which direction. Where the hook measured the
+ * box itself (`ShiftSource.rect`) the true distance is used; otherwise only a
+ * least distance is known ("it had 207 px to the bottom edge") and an element
+ * before it that grew by at least that is `consistent` with it: weaker than a
+ * match of the exact distance, and accepted only when no second element could
+ * have done the same.
  *
  * The attributor is conservative. Without a geometric match it names no
  * culprit and reports `unknown`; DOM mutations, load events and font events
@@ -33,6 +42,7 @@
 import type {
   NodeDescriptor,
   ResizeRecord,
+  ShiftRect,
   ShiftCause,
   ShiftCulprit,
   ShiftEntry,
@@ -68,21 +78,54 @@ const MEDIA_TAGS = new Set(['img', 'video', 'iframe', 'embed', 'object', 'canvas
 const STYLE_TAGS = new Set(['style', 'link'])
 const DEV_TAG = /^(vite-error-overlay|nextjs-portal|astro-dev-toolbar|astro-dev-overlay|svelte-inspector.*|wds-.*|nuxt-devtools.*)$/
 const DEV_ID = /^(webpack-dev-server-client-overlay|__next-build-watcher|__next-build-indicator|__nuxt-devtools|vite-plugin-checker|reglet)/
-const DEV_SCRIPT = /\/@vite\/|\/@react-refresh|\/__reglet\/|\/_next\/static\/chunks\/[^\s)]*(hmr|devtools|react-refresh)|webpack-dev-server|\/@id\/__x00__/i
+/** Scripts of dev servers. reglet's own are not in the list: see `callerFrames`. */
+const DEV_SCRIPT = /\/@vite\/|\/@react-refresh|\/_next\/static\/chunks\/[^\s)]*(hmr|devtools|react-refresh)|webpack-dev-server|\/@id\/__x00__/i
+/** Everything reglet serves into the page lives under this path (`RESERVED_PREFIX` of the protocol). */
+const OWN_SCRIPT = /\/__reglet\//
+/** A stack line that names a script: `at f (http://host/a.js:3:1)`, `at http://host/a.js:3:1`, `f@http://host/a.js:3:1`. */
+const FRAME_URL = /[a-z][a-z0-9+.-]*:\/\/[^\s()]+/i
 
 const FONT_URL = /\.(woff2?|ttf|otf|eot)(?:[?#]|$)/i
 
 /** A font file: requested from a stylesheet (initiator `css`) or by script, so only the URL tells. */
 export const isFontResource = (resource: { url: string }): boolean => FONT_URL.test(resource.url)
 
+/** One way a victim whose distance is not on record can have moved: at least `min` px, down (`sign` 1) or up (-1). */
+interface Bound {
+  sign: 1 | -1
+  min: number
+  /** The victim's top on the side of the shift where it was visible: `before` it or `after` it. */
+  top: number
+  when: 'before' | 'after'
+}
+
 interface Victim {
   source: ShiftSource
+  /** Movement of the start corner. Zero when `known` is not `exact`. */
   dx: number
   dy: number
   /** Area the victim covered before it moved; the share of the shift it stands for. */
   weight: number
   /** False when the rects show no movement (a text node reported with its line box). */
   moved: boolean
+  /**
+   * `exact`: `dx`/`dy` are the movement. `at-least`: the box left or entered the viewport and the
+   * browser's rectangles do not say how far it went; `bounds` lists what is possible. `unknown`: nothing.
+   */
+  known: 'exact' | 'at-least' | 'unknown'
+  bounds: Bound[]
+  viewport?: ShiftVictim['viewport']
+  /** Where the box is after the shift: the browser's rectangle, or the measured box when that one is clipped. */
+  after: ShiftRect
+}
+
+/** What the attributor needs to know about the page besides the entry. */
+interface Frame {
+  width: number
+  height: number
+  /** The page was scrolled: a rectangle that starts at the viewport's edge may be cut by it. */
+  scrolledX: boolean
+  scrolledY: boolean
 }
 
 /** One element's net change of size within the frame of an entry. */
@@ -97,8 +140,16 @@ interface Candidate {
 
 interface Scored {
   candidate: Candidate
+  /** Share of the moved area whose exact distance the candidate accounts for. */
   direct: number
+  /** Share that left or entered the viewport, for which the candidate changed size by enough, and nothing else did. */
+  bounded: number
   inside: number
+  /**
+   * Part of `inside` that is more than "consistent": an element inside the candidate that accounts
+   * for the candidate's own change of size (an image in a card) explains the victim's distance.
+   */
+  innerDirect: number
   explained: ShiftVictim['explained'][]
   /** Other elements that were needed, together with `candidate`, to account for some victims. */
   partners: Candidate[]
@@ -122,16 +173,108 @@ export function isAncestorPath(ancestor: readonly number[], node: readonly numbe
   return true
 }
 
-function toVictim(source: ShiftSource): Victim {
-  const dx = source.currentRect.x - source.previousRect.x
-  const dy = source.currentRect.y - source.previousRect.y
+const area = (rect: ShiftRect): number => Math.max(0, rect.width) * Math.max(0, rect.height)
+/** No visible point: what the browser reports for a box that is outside the viewport. */
+const isEmpty = (rect: ShiftRect): boolean => rect.width <= 0 || rect.height <= 0
+const EDGE = 0.5
+
+function frameOf(recording: ShiftRecording): Frame {
   return {
-    source,
-    dx,
-    dy,
-    weight: Math.max(1, source.previousRect.width * source.previousRect.height),
-    moved: Math.abs(dx) >= MOVE_MIN || Math.abs(dy) >= MOVE_MIN,
+    width: recording.viewport.width,
+    height: recording.viewport.height,
+    scrolledX: recording.scroll.x !== 0 || recording.scrolls.some((scroll) => scroll.x !== 0),
+    scrolledY: recording.scroll.y !== 0 || recording.scrolls.some((scroll) => scroll.y !== 0),
   }
+}
+
+/** The part of `rect` inside the viewport, as the Layout Instability API would report it. */
+function clipToViewport(rect: ShiftRect, frame: Frame): ShiftRect {
+  const x = Math.max(0, rect.x)
+  const y = Math.max(0, rect.y)
+  const width = Math.min(frame.width, rect.x + rect.width) - x
+  const height = Math.min(frame.height, rect.y + rect.height) - y
+  return width <= 0 || height <= 0 ? { x: 0, y: 0, width: 0, height: 0 } : { x, y, width, height }
+}
+
+/**
+ * The box the hook measured when the entry was delivered, when it can be trusted: it must show the
+ * same visible part as the browser's `currentRect`. It does not when the page changed again between
+ * the frame and the measurement, or when an ancestor clips the node (a scroll container).
+ */
+function measuredBox(source: ShiftSource, frame: Frame): ShiftRect | undefined {
+  const box = source.rect
+  if (box === undefined || isEmpty(box)) return undefined
+  const visible = clipToViewport(box, frame)
+  const current = source.currentRect
+  if (isEmpty(current)) return isEmpty(visible) ? box : undefined
+  const close = (a: number, b: number): boolean => Math.abs(a - b) <= 2
+  const same = close(visible.x, current.x) && close(visible.y, current.y) && close(visible.x + visible.width, current.x + current.width) && close(visible.y + visible.height, current.y + current.height)
+  return same ? box : undefined
+}
+
+/**
+ * Reads the movement of one source off its rectangles. The rectangles are clipped to the viewport
+ * (https://wicg.github.io/layout-instability/, "visual representation"), so:
+ *   - both non-empty: the start corners give the distance, as long as neither is cut by the viewport's edge;
+ *   - `currentRect` empty: the box was visible and is now outside the viewport. With the measured box
+ *     the distance is exact; without it, only "at least as far as the edge it left through";
+ *   - `previousRect` empty: it came into the viewport from somewhere outside it: at least the distance to the edge.
+ */
+function toVictim(source: ShiftSource, frame: Frame): Victim {
+  const previous = source.previousRect
+  const current = source.currentRect
+  const box = measuredBox(source, frame)
+  const weight = Math.max(1, area(previous) || area(current))
+  const exact = (dx: number, dy: number, after: ShiftRect, viewport?: Victim['viewport']): Victim => ({
+    source, dx, dy, weight, known: 'exact', bounds: [], after,
+    moved: Math.abs(dx) >= MOVE_MIN || Math.abs(dy) >= MOVE_MIN,
+    ...(viewport === undefined ? {} : { viewport }),
+  }) // prettier-ignore
+  const atLeast = (bounds: Bound[], viewport: Victim['viewport']): Victim => ({
+    source, dx: 0, dy: 0, weight, known: bounds.length > 0 ? 'at-least' : 'unknown', bounds, viewport, moved: true, after: box ?? current,
+  }) // prettier-ignore
+  // A start edge at the viewport's edge on a scrolled page: the box may begin outside, where the rectangle does not reach.
+  const cutTop = frame.scrolledY && previous.y <= EDGE
+  const cutLeft = frame.scrolledX && previous.x <= EDGE
+
+  if (isEmpty(previous) && isEmpty(current)) return { source, dx: 0, dy: 0, weight, known: 'unknown', bounds: [], moved: false, after: current }
+
+  if (isEmpty(current)) {
+    if (box !== undefined && !cutTop) {
+      // A previous rectangle that starts at the viewport's edge while the box now starts beyond that
+      // edge was cut there: on that axis the rectangles say nothing.
+      const dx = cutLeft || (previous.x <= EDGE && box.x < 0) ? 0 : box.x - previous.x
+      const dy = previous.y <= EDGE && box.y < 0 ? 0 : box.y - previous.y
+      return exact(dx, dy, box, 'out')
+    }
+    const bounds: Bound[] = []
+    // Pushed below the bottom edge: its top had `height - y` px to go.
+    if (box === undefined || box.y >= frame.height - EDGE) bounds.push({ sign: 1, min: (box?.y ?? frame.height) - previous.y, top: previous.y, when: 'before' })
+    // Pulled above the top edge, which only a scrolled page allows: its bottom had to pass y = 0.
+    if (frame.scrolledY && (box === undefined || box.y + box.height <= EDGE)) bounds.push({ sign: -1, min: previous.y + previous.height, top: previous.y, when: 'before' })
+    return atLeast(bounds, 'out')
+  }
+
+  if (isEmpty(previous)) {
+    // Pulled up from below the bottom edge, or (scrolled page) pushed down from above the top edge.
+    const bounds: Bound[] = [{ sign: -1, min: frame.height - current.y, top: current.y, when: 'after' }]
+    if (frame.scrolledY) bounds.push({ sign: 1, min: current.y + current.height, top: current.y, when: 'after' })
+    return atLeast(bounds, 'in')
+  }
+
+  // Both visible. The measured box corrects a current rectangle whose start edge is cut by the
+  // viewport (the box moved up or left, partly out of it), when the previous one shows that edge.
+  let after = current
+  let viewport: Victim['viewport']
+  if (box !== undefined) {
+    const y = box.y < current.y - 1 && previous.y > EDGE ? box.y : current.y
+    const x = box.x < current.x - 1 && previous.x > EDGE ? box.x : current.x
+    if (y !== current.y || x !== current.x) {
+      after = { x, y, width: current.width + (current.x - x), height: current.height + (current.y - y) }
+      viewport = 'cut'
+    }
+  }
+  return exact(after.x - previous.x, after.y - previous.y, after, viewport)
 }
 
 /** The resize records that belong to the frame of `entry`, one candidate per element. */
@@ -167,13 +310,15 @@ function amountMatches(delta: number, growth: number, margins: number): boolean 
   return Math.abs(delta) >= Math.abs(growth) - tolerance && Math.abs(delta) <= Math.abs(growth) + margins + tolerance
 }
 
+const outOfFlow = (style: { position: string } | undefined): boolean => style !== undefined && (style.position === 'fixed' || style.position === 'absolute')
+
 /** The candidate lies before the victim and its change of size equals the victim's movement, on every axis the victim moved. */
 function explainsDirectly(candidate: Candidate, victim: Victim): boolean {
   const { rect, style } = candidate.record
-  if (rect === undefined || !victim.moved) return false
-  if (style !== undefined && (style.position === 'fixed' || style.position === 'absolute')) return false
+  if (rect === undefined || !victim.moved || victim.known !== 'exact') return false
+  if (outOfFlow(style)) return false
   const previous = victim.source.previousRect
-  const current = victim.source.currentRect
+  const current = victim.after
   const margin = candidate.appeared && style?.margin !== undefined ? style.margin : [0, 0, 0, 0]
   const slack = 1.5
   if (Math.abs(victim.dy) >= MOVE_MIN) {
@@ -194,25 +339,103 @@ function contains(candidate: Candidate, victim: Victim): boolean {
   if (node !== null && node.path.length > 0) return isAncestorPath(candidate.node.path, node.path)
   const rect = candidate.record.rect
   const box = victim.source.currentRect
-  if (rect === undefined) return false
+  // An empty rectangle is "outside the viewport", not a box at the top-left corner.
+  if (rect === undefined || isEmpty(box)) return false
   return box.x >= rect.x - 1 && box.y >= rect.y - 1 && box.x + box.width <= rect.x + rect.width + 1 && box.y + box.height <= rect.y + rect.height + 1
 }
 
-function score(candidate: Candidate, victims: Victim[], total: number): Scored {
+/**
+ * The candidate changed size by at least the distance a victim needed to leave (or enter) the
+ * viewport, in the right direction, and lies before the victim: it is not around it, it is in the
+ * victim's column, and it ended no lower than the victim's top at the moment that top is on record
+ * (so a tall neighbour that reaches past the victim is beside it, not before it). The way the victim moved, or
+ * undefined. Weaker than `explainsDirectly`: any large enough change before the victim passes, so
+ * the caller must also make sure there is no second one (`consistentWith`).
+ */
+function reaches(candidate: Candidate, victim: Victim): Bound | undefined {
+  const { rect, style } = candidate.record
+  if (victim.known !== 'at-least' || rect === undefined || outOfFlow(style) || outOfFlow(victim.source.style)) return undefined
+  if (isAncestorPath(candidate.node.path, victim.source.node?.path ?? [])) return undefined
+  const margins = candidate.appeared ? (style?.margin?.[0] ?? 0) + (style?.margin?.[2] ?? 0) : 0
+  return victim.bounds.find((bound) => {
+    if (Math.sign(candidate.dh) !== bound.sign || Math.abs(candidate.dh) + margins < bound.min - 1.5) return false
+    // Above the victim and in its column, at the moment the victim's rectangle is on record.
+    const seen = bound.when === 'before' ? victim.source.previousRect : victim.source.currentRect
+    const bottom = rect.y + rect.height - (bound.when === 'before' ? candidate.dh : 0)
+    return rect.y <= bound.top + 1.5 && bottom <= bound.top + 1.5 && rect.x < seen.x + seen.width && rect.x + rect.width > seen.x
+  })
+}
+
+const onOneChain = (a: Candidate, b: Candidate): boolean => a === b || isAncestorPath(a.node.path, b.node.path) || isAncestorPath(b.node.path, a.node.path)
+
+/** `inner` alone is large enough to be why `outer` changed size, on every axis `outer` changed. */
+function covers(outer: Candidate, inner: Candidate): boolean {
+  const margin = inner.record.style?.margin ?? [0, 0, 0, 0]
+  const h = Math.abs(inner.dh) + (inner.appeared ? (margin[0] ?? 0) + (margin[2] ?? 0) : 0)
+  const w = Math.abs(inner.dw) + (inner.appeared ? (margin[1] ?? 0) + (margin[3] ?? 0) : 0)
+  return (Math.abs(outer.dh) < MOVE_MIN || h >= Math.abs(outer.dh) - 1.5) && (Math.abs(outer.dw) < MOVE_MIN || w >= Math.abs(outer.dw) - 1.5)
+}
+
+/** Everything that changed size in the frame, and which of it has a reason of its own on record. */
+interface Matcher {
+  candidates: Candidate[]
+  /** Those that may be named: not a victim, and not inside one. */
+  eligible: Candidate[]
+  /** The candidate, or something inside it, was inserted, shown, is replaced content, or was touched by a DOM mutation. */
+  hasReason(candidate: Candidate): boolean
+}
+
+/**
+ * The victim left or entered the viewport and `candidate` is the one change that can have done it:
+ *   - it changed size by at least the distance to the viewport's edge (`reaches`);
+ *   - the change reached the victim: an element that contains both changed size by that much too
+ *     (growth inside a box of fixed height pushes nothing outside it);
+ *   - no other change of the frame does the same that has a reason of its own and is not this one
+ *     seen at another level (its ancestor or descendant). A plain box that only stretched along
+ *     (the neighbour in a grid row) is not a rival.
+ */
+function consistentWith(candidate: Candidate, victim: Victim, matcher: Matcher): Bound | undefined {
+  const bound = reaches(candidate, victim)
+  const path = victim.source.node?.path ?? []
+  if (bound === undefined || path.length === 0) return undefined
+  const propagated = matcher.candidates.some(
+    (other) => isAncestorPath(other.node.path, candidate.node.path) && isAncestorPath(other.node.path, path) && Math.sign(other.dh) === bound.sign && Math.abs(other.dh) >= bound.min - 1.5,
+  )
+  if (!propagated) return undefined
+  const rival = matcher.candidates.some((other) => !onOneChain(other, candidate) && reaches(other, victim) !== undefined && matcher.hasReason(other))
+  return rival ? undefined : bound
+}
+
+/**
+ * An element inside `candidate` that is large enough to be why `candidate` changed size and that
+ * accounts for the distance of a victim inside `candidate`: the image of a card, for the card's text.
+ */
+function innerExplainer(candidate: Candidate, victim: Victim, matcher: Matcher): Candidate | undefined {
+  return matcher.eligible.find((other) => isAncestorPath(candidate.node.path, other.node.path) && covers(candidate, other) && explainsDirectly(other, victim))
+}
+
+function score(candidate: Candidate, victims: Victim[], total: number, matcher: Matcher): Scored {
   let direct = 0
+  let bounded = 0
   let inside = 0
+  let innerDirect = 0
   const explained = victims.map((victim): ShiftVictim['explained'] => {
     if (explainsDirectly(candidate, victim)) {
       direct += victim.weight
       return 'direct'
     }
+    if (consistentWith(candidate, victim, matcher) !== undefined) {
+      bounded += victim.weight
+      return 'consistent'
+    }
     if (contains(candidate, victim)) {
       inside += victim.weight
+      if (innerExplainer(candidate, victim, matcher) !== undefined) innerDirect += victim.weight
       return 'inside'
     }
     return 'no'
   })
-  return { candidate, direct: direct / total, inside: inside / total, explained, partners: [] }
+  return { candidate, direct: direct / total, bounded: bounded / total, inside: inside / total, innerDirect: innerDirect / total, explained, partners: [] }
 }
 
 /** Where a change starts: elements that changed size and contain no other element that did. */
@@ -223,17 +446,16 @@ function leaves(candidates: Candidate[]): Candidate[] {
 /** The candidate is in normal flow, above the victim and in its column. */
 function isAbove(candidate: Candidate, victim: Victim): boolean {
   const { rect, style } = candidate.record
-  if (rect === undefined) return false
-  if (style !== undefined && (style.position === 'fixed' || style.position === 'absolute')) return false
+  if (rect === undefined || outOfFlow(style)) return false
   const previous = victim.source.previousRect
-  const current = victim.source.currentRect
+  const current = victim.after
   if (rect.y > previous.y + 1.5 || rect.y + rect.height > current.y + 1.5) return false
   return rect.x < current.x + current.width && rect.x + rect.width > current.x
 }
 
 /** The smallest set of 2 to `GROUP_MAX` candidates above the victim whose growths add up to its vertical move. */
 function groupFor(pool: Candidate[], victim: Victim): Candidate[] | undefined {
-  if (!victim.moved || Math.abs(victim.dx) >= MOVE_MIN || Math.abs(victim.dy) < MOVE_MIN) return undefined
+  if (!victim.moved || victim.known !== 'exact' || Math.abs(victim.dx) >= MOVE_MIN || Math.abs(victim.dy) < MOVE_MIN) return undefined
   const above = pool.filter((candidate) => Math.sign(candidate.dh) === Math.sign(victim.dy) && Math.abs(candidate.dh) >= 0.5 && isAbove(candidate, victim)).slice(0, 10)
   const marginsOf = (candidate: Candidate): number => (candidate.appeared ? (candidate.record.style?.margin?.[0] ?? 0) + (candidate.record.style?.margin?.[2] ?? 0) : 0)
   const search = (start: number, chosen: Candidate[], size: number): Candidate[] | undefined => {
@@ -259,18 +481,19 @@ function groupFor(pool: Candidate[], victim: Victim): Candidate[] | undefined {
  * but several together do. The element that takes part in explaining the most moved area becomes
  * the culprit; the others are its partners.
  */
-function withGroups(best: Scored | undefined, eligible: Candidate[], carried: Candidate[], victims: Victim[], total: number): Scored | undefined {
+function withGroups(best: Scored | undefined, eligible: Candidate[], carried: Candidate[], victims: Victim[], total: number, matcher: Matcher): Scored | undefined {
   // A victim that also changed size (a second heading that re-wrapped) was pushed by what is above it
   // and pushes what is below it: it cannot be the culprit, but it can be part of the explanation.
   const pool = leaves([...eligible, ...carried])
   if (pool.length < 2) return best
-  const fits = victims.map((victim, index) => (best?.explained[index] === 'direct' ? undefined : groupFor(pool, victim)))
+  const settled = (verdict: ShiftVictim['explained'] | undefined): boolean => verdict === 'direct' || verdict === 'consistent'
+  const fits = victims.map((victim, index) => (settled(best?.explained[index]) ? undefined : groupFor(pool, victim)))
   if (fits.every((fit) => fit === undefined)) return best
   // Weight each element by the area of the victims it helps to explain.
   const share = new Map<Candidate, number>()
   const add = (candidate: Candidate, weight: number): void => void share.set(candidate, (share.get(candidate) ?? 0) + weight)
   victims.forEach((victim, index) => {
-    if (best?.explained[index] === 'direct') add(best.candidate, victim.weight)
+    if (best !== undefined && settled(best.explained[index])) add(best.candidate, victim.weight)
     for (const member of fits[index] ?? []) add(member, victim.weight)
   })
   // Most area first; among equals the first in document order.
@@ -283,9 +506,10 @@ function withGroups(best: Scored | undefined, eligible: Candidate[], carried: Ca
   }
   const primary = [...share.entries()].filter(([candidate]) => !carried.includes(candidate)).sort((a, b) => b[1] - a[1] || order(a[0], b[0]))[0]?.[0]
   if (primary === undefined) return best
-  const single = primary === best?.candidate ? best : score(primary, victims, total)
+  const single = primary === best?.candidate ? best : score(primary, victims, total, matcher)
   const partners = new Set<Candidate>()
   let direct = 0
+  let bounded = 0
   let inside = 0
   const explained = victims.map((victim, index): ShiftVictim['explained'] => {
     const fit = fits[index]
@@ -294,15 +518,18 @@ function withGroups(best: Scored | undefined, eligible: Candidate[], carried: Ca
       direct += victim.weight
       return 'direct'
     }
+    if (single.explained[index] === 'consistent') bounded += victim.weight
     if (single.explained[index] === 'inside') inside += victim.weight
     return single.explained[index] ?? 'no'
   })
-  const grouped: Scored = { candidate: primary, direct: direct / total, inside: inside / total, explained, partners: [...partners] }
-  return best === undefined || grouped.direct > best.direct ? grouped : best
+  const grouped: Scored = { candidate: primary, direct: direct / total, bounded: bounded / total, inside: inside / total, innerDirect: single.innerDirect, explained, partners: [...partners] }
+  return best === undefined || accounted(grouped) > accounted(best) ? grouped : best
 }
 
+/** Share of the moved area the candidate accounts for by its own change of size. */
+const accounted = (scored: Scored): number => scored.direct + scored.bounded
 /** Reflow inside the culprit counts half: it is consistent with the culprit, not evidence for it. */
-const total = (scored: Scored): number => scored.direct + scored.inside * 0.5
+const total = (scored: Scored): number => accounted(scored) + scored.inside * 0.5
 
 const isOrigin = (candidate: Candidate): boolean => MEDIA_TAGS.has(candidate.node.tag) || candidate.appeared
 
@@ -315,7 +542,7 @@ const isOrigin = (candidate: Candidate): boolean => MEDIA_TAGS.has(candidate.nod
  *     common container is the answer, not an arbitrary one of them.
  */
 function pickBest(scored: Scored[]): Scored | undefined {
-  const explaining = scored.filter((item) => item.direct > 0)
+  const explaining = scored.filter((item) => accounted(item) > 0)
   if (explaining.length === 0) return undefined
   const top = Math.max(...explaining.map(total))
   const tied = explaining.filter((item) => total(item) >= top - 0.02)
@@ -342,8 +569,38 @@ function isDevNode(node: NodeDescriptor): boolean {
   )
 }
 
+/**
+ * The frames of a recorded DOM-call stack that say who made the call: the stack without reglet's
+ * own frames on top of it. The hook records the stack from inside the wrapper it puts around DOM
+ * methods, and a wrapper's frame (a script under `/__reglet/`) is on every such stack, whoever
+ * called; hooks before 2026-11-21 left one in for `insertAdjacentHTML`. Frames that name no
+ * script (`at Array.forEach (<anonymous>)`) are skipped as well.
+ */
+export function callerFrames(stack: string | undefined): string[] {
+  const lines = (stack ?? '').split('\n').filter((line) => FRAME_URL.test(line))
+  let start = 0
+  while (start < lines.length && OWN_SCRIPT.test(FRAME_URL.exec(lines[start] ?? '')?.[0] ?? '')) start++
+  return lines.slice(start)
+}
+
+/** The stack as recorded, minus reglet's own frames at its top. Undefined when nothing is left. */
+function callerStack(stack: string | undefined): string | undefined {
+  if (stack === undefined) return undefined
+  const first = callerFrames(stack)[0]
+  if (first === undefined) return undefined
+  const lines = stack.split('\n')
+  return lines.slice(lines.indexOf(first)).join('\n')
+}
+
+/**
+ * Development tooling made the change: the node is a dev overlay or a dev-server stylesheet, or
+ * the script that called the DOM method is a dev client. Decided on the first frame that is not
+ * reglet's own; a stack with no such frame says nothing.
+ */
 function isDevMutation(mutation: ShiftMutationRecord): boolean {
-  return isDevNode(mutation.node) || (mutation.stack !== undefined && DEV_SCRIPT.test(mutation.stack.split('\n')[0] ?? ''))
+  if (isDevNode(mutation.node)) return true
+  const caller = callerFrames(mutation.stack)[0]
+  return caller !== undefined && DEV_SCRIPT.test(caller)
 }
 
 interface FontEvidence {
@@ -354,18 +611,46 @@ interface FontEvidence {
   detail: string
 }
 
+/** How long before a frame a face may have been reported as loaded and still be the news of that frame. */
+const FONT_FRESH_MS = 60
+
+const fileName = (url: string): string => (url.split(/[?#]/)[0] ?? url).split('/').pop() ?? url
+
 function fontEvidenceFor(recording: ShiftRecording, entry: ShiftEntry): FontEvidence[] {
   const ts = entry.startTime
   const end = entry.deliveredAt
   const file = recording.resources
     .filter((resource) => isFontResource(resource) && resource.end >= ts - FONT_LEAD_MS && resource.end <= end + 10)
     .sort((a, b) => b.end - a.end)[0]
+  // Neither source of font records can be taken at its word about WHEN a face loaded:
+  //   - a `loadingdone` event lists every face of its loading period, also one that finished long
+  //     before (measured: a face from a data: URL, there at 25 ms, is listed again at 822 ms when
+  //     another face ends the period). The snapshot that saw that face turn `loaded` back then
+  //     shows the listing is a repeat;
+  //   - a snapshot dates a face to the first frame in which something changed size after it
+  //     loaded, which may be much later (a `font-display: optional` face that never swaps in is
+  //     "found" in the frame of the next insertion). The face's own event, earlier in the interval
+  //     the snapshot covers, shows that.
+  // A face that loaded before this frame is not what changed in this frame. Faces are counted, not
+  // only named: one family has several faces with the same weight and style (unicode-range subsets).
+  const loaded = recording.fonts.filter((font) => font.event === 'loaded')
+  const faceOf = (font: { family: string; weight?: string; style?: string }): string => `${font.family.toLowerCase()}|${font.weight ?? ''}|${font.style ?? ''}`
+  const count = (face: string, via: 'event' | 'snapshot', when: (t: number) => boolean): number => loaded.filter((other) => other.via === via && faceOf(other) === face && when(other.t)).length
+  const isNews = (font: (typeof loaded)[number]): boolean => {
+    const face = faceOf(font)
+    const here = count(face, font.via, (t) => t === font.t)
+    return font.via === 'event'
+      ? here > count(face, 'snapshot', (t) => t < font.t - FONT_FRESH_MS)
+      : here > count(face, 'event', (t) => t > (font.since ?? -Infinity) && t < font.t - FONT_FRESH_MS)
+  }
   const found = new Map<string, FontEvidence>()
-  for (const font of recording.fonts) {
-    if (font.event !== 'loaded') continue
-    const viaEvent = font.via === 'event' && font.t >= ts - 60 && font.t <= end + 60
+  let reported = false
+  for (const font of loaded) {
+    const viaEvent = font.via === 'event' && font.t >= ts - FONT_FRESH_MS && font.t <= end + 60
     const viaSnapshot = font.via === 'snapshot' && font.t >= ts - 5 && font.t <= end + 5
     if (!viaEvent && !viaSnapshot) continue
+    reported = true
+    if (!isNews(font)) continue
     // A snapshot only says "loaded since the last look". It is precise when the last look was recent,
     // or when a font file finished downloading just before the shift.
     const precise = viaEvent || file !== undefined || font.t - (font.since ?? 0) <= FONT_LEAD_MS
@@ -376,10 +661,12 @@ function fontEvidenceFor(recording: ShiftRecording, entry: ShiftEntry): FontEvid
       family: font.family,
       url: file?.url,
       precise,
-      detail: `font "${font.family}" finished loading at about ${fmt(file?.end ?? font.t)} ms`,
+      detail: `font "${font.family}" finished loading at about ${fmt(file?.end ?? font.t)} ms` + (file === undefined ? '' : ` (font file ${fileName(file.url)})`),
     })
   }
-  if (found.size === 0 && file !== undefined) {
+  // A font file with no face on record at all (the face list overflowed, or the browser reported none).
+  // Not when faces were reported and none of them is news: then the file belongs to one of those.
+  if (found.size === 0 && !reported && file !== undefined) {
     found.set('', { url: file.url, precise: true, detail: `font file ${file.url} finished loading at ${fmt(file.end)} ms` })
   }
   return [...found.values()]
@@ -390,6 +677,10 @@ function usesFamily(fontFamily: string | undefined, family: string): boolean {
   const wanted = family.toLowerCase()
   return fontFamily.split(',').some((name) => name.trim().replace(/^["']|["']$/g, '').toLowerCase() === wanted)
 }
+
+/** Text of the element itself is set in `family`: its own computed font, or that of an inline child the hook noted. */
+const setIn = (candidate: Candidate, family: string): boolean =>
+  usesFamily(candidate.record.style?.fontFamily, family) || (candidate.record.inlineFonts ?? []).some((list) => usesFamily(list, family))
 
 interface Classified {
   cause: ShiftCause
@@ -427,19 +718,17 @@ function classifyCulprit(
   let culprit = best
   const within = (node: NodeDescriptor, root: NodeDescriptor): boolean => node.uid === root.uid || isAncestorPath(root.path, node.path)
 
+  /** Put into the document in this frame. */
+  const inserted = (candidate: Candidate): boolean => candidate.record.before === null || mutations.some((m) => m.kind === 'add' && m.node.uid === candidate.node.uid)
+  /** Inserted, or given its box by a change of an attribute (its own or an ancestor's): an origin whatever is inside it. */
+  const arrived = (candidate: Candidate): boolean =>
+    inserted(candidate) || mutations.some((m) => m.kind === 'attr' && (m.node.uid === candidate.node.uid || isAncestorPath(m.node.path, candidate.node.path)))
+
   // A plain container that changed size because something inside it arrived: an inserted node, an
   // image that got its dimensions. The container's growth moved the victims; what is inside is why.
   if (!isOrigin(best)) {
-    const needH = Math.abs(best.dh) >= MOVE_MIN
-    const needW = Math.abs(best.dw) >= MOVE_MIN
-    const covers = (inner: Candidate): boolean => {
-      const margin = inner.record.style?.margin ?? [0, 0, 0, 0]
-      const h = Math.abs(inner.dh) + (inner.appeared ? (margin[0] ?? 0) + (margin[2] ?? 0) : 0)
-      const w = Math.abs(inner.dw) + (inner.appeared ? (margin[1] ?? 0) + (margin[3] ?? 0) : 0)
-      return (!needH || h >= Math.abs(best.dh) - 1.5) && (!needW || w >= Math.abs(best.dw) - 1.5)
-    }
     const inner = candidates
-      .filter((candidate) => isOrigin(candidate) && isAncestorPath(best.node.path, candidate.node.path) && covers(candidate))
+      .filter((candidate) => isOrigin(candidate) && isAncestorPath(best.node.path, candidate.node.path) && covers(best, candidate))
       // Outermost first (a banner, not the paragraph inside it), then the largest.
       .sort((a, b) => a.node.path.length - b.node.path.length || b.record.after.w * b.record.after.h - a.record.after.w * a.record.after.h)[0]
     if (inner !== undefined) {
@@ -466,13 +755,33 @@ function classifyCulprit(
     }
   }
 
+  // A wrapper that had no height (or no width) and got one in the frame in which the image, video or
+  // frame inside it got its size did not "appear": its content arrived, and the replaced element is
+  // the origin. Not when the wrapper was inserted, and not when it had no box at all (`display: none`)
+  // and an attribute changed on it or around it: then it was shown, with whatever is in it.
+  const collapsed = culprit.record.before !== null && (culprit.record.before.w > 0 || culprit.record.before.h > 0)
+  if (culprit.appeared && !MEDIA_TAGS.has(culprit.node.tag) && (collapsed ? !inserted(culprit) : !arrived(culprit))) {
+    const wrapper = culprit
+    // An attribute of the wrapper itself changed (a script gave it a height, or a class): then only
+    // media whose own load event is on record for this frame is the reason, not media that followed the wrapper.
+    const ownAttribute = mutations.some((m) => m.kind === 'attr' && m.node.uid === wrapper.node.uid)
+    const justLoaded = (candidate: Candidate): boolean => recording.media.some((event) => event.node.uid === candidate.node.uid && Math.abs(event.t - entry.startTime) <= 150)
+    const media = candidates
+      .filter((candidate) => MEDIA_TAGS.has(candidate.node.tag) && isAncestorPath(wrapper.node.path, candidate.node.path) && covers(wrapper, candidate) && (!ownAttribute || justLoaded(candidate)))
+      .sort((a, b) => b.record.after.w * b.record.after.h - a.record.after.w * a.record.after.h)[0]
+    if (media !== undefined) {
+      evidence.push(`${nodeLabel(wrapper.node)} went from ${size(wrapper.record.before)} to ${size(wrapper.record.after)} because ${nodeLabel(media.node)} inside it got its size`)
+      culprit = media
+    }
+  }
+
   const own = mutations.filter((m) => within(m.node, culprit.node) || m.parent?.uid === culprit.node.uid)
   const addRecord = mutations.find((m) => m.kind === 'add' && m.node.uid === culprit.node.uid)
   const describeChange = `${nodeLabel(culprit.node)} went from ${size(culprit.record.before)} to ${size(culprit.record.after)} at ${fmt(culprit.record.t)} ms`
 
   if (isDevNode(culprit.node) || (addRecord !== undefined && isDevMutation(addRecord))) {
     evidence.push(describeChange, 'it belongs to development tooling, not to the page')
-    return { cause: 'dev-artifact', culprit, corroborated: true, specific: true, evidence, trigger: { kind: 'mutation', stack: addRecord?.stack, t: addRecord?.t } }
+    return { cause: 'dev-artifact', culprit, corroborated: true, specific: true, evidence, trigger: { kind: 'mutation', stack: callerStack(addRecord?.stack), t: addRecord?.t } }
   }
 
   if (addRecord !== undefined || (culprit.appeared && !MEDIA_TAGS.has(culprit.node.tag))) {
@@ -495,7 +804,7 @@ function classifyCulprit(
       specific: true,
       viaStyle: addRecord === undefined,
       evidence,
-      trigger: record === undefined ? undefined : { kind: 'mutation', stack: record.stack, t: record.t, detail: record.kind === 'attr' ? `${record.attr} attribute changed` : 'node inserted' },
+      trigger: record === undefined ? undefined : { kind: 'mutation', stack: callerStack(record.stack), t: record.t, detail: record.kind === 'attr' ? `${record.attr} attribute changed` : 'node inserted' },
     }
   }
 
@@ -525,32 +834,54 @@ function classifyCulprit(
       corroborated: loaded !== undefined || styled !== undefined,
       specific: true,
       evidence,
-      trigger: { kind: 'resource', url, t: resource?.end ?? loaded?.t, stack: styled?.stack },
+      trigger: { kind: 'resource', url, t: resource?.end ?? loaded?.t, stack: callerStack(styled?.stack) },
     }
   }
 
   evidence.push(describeChange)
   const contentChanged = own.filter((m) => m.kind !== 'attr' || m.node.uid !== culprit.node.uid)
   if (contentChanged.length === 0) {
+    const inside = candidates.filter((candidate) => isAncestorPath(culprit.node.path, candidate.node.path))
+    // Something else in the element has a reason of its own to change size: not the font's doing, or not only.
+    const otherReason = inside.some(isOrigin)
     for (const font of fontEvidenceFor(recording, entry)) {
       const family = font.family
-      if (family !== undefined && !usesFamily(culprit.record.style?.fontFamily, family)) continue
-      evidence.push(font.detail, family === undefined ? 'no DOM change touched the element in that frame' : `${nodeLabel(culprit.node)} is set in "${family}" and nothing else about it changed in that frame`)
-      return {
-        cause: 'font-swap',
-        culprit,
-        corroborated: font.precise && family !== undefined,
-        specific: font.precise,
-        evidence,
-        trigger: { kind: 'font', family, url: font.url },
+      const fontTrigger: ShiftTrigger = { kind: 'font', family, url: font.url }
+      if (family === undefined || setIn(culprit, family)) {
+        const own = family === undefined || usesFamily(culprit.record.style?.fontFamily, family)
+        evidence.push(
+          font.detail,
+          family === undefined
+            ? 'no DOM change touched the element in that frame'
+            : `${own ? '' : 'inline text of '}${nodeLabel(culprit.node)} is set in "${family}" and nothing else about it changed in that frame`,
+        )
+        return { cause: 'font-swap', culprit, corroborated: font.precise && family !== undefined, specific: font.precise, evidence, trigger: fontTrigger }
       }
+      // The text is further in: the element that accounts for the movement is the header, the table
+      // row, the card; what re-wrapped in the new font are the links, cells or headings inside it.
+      // They must have changed size in this frame themselves (a face that loads and changes nothing
+      // is not a swap), by enough between them to be why the element did, and nothing else in the
+      // element may have changed.
+      if (otherReason) continue
+      const users = inside.filter((candidate) => setIn(candidate, family))
+      const outermost = users.filter((user) => !users.some((other) => isAncestorPath(other.node.path, user.node.path)))
+      const sum = (pick: (candidate: Candidate) => number): number => outermost.reduce((all, user) => all + Math.abs(pick(user)), 0)
+      const enough = (Math.abs(culprit.dh) < MOVE_MIN || sum((user) => user.dh) >= Math.abs(culprit.dh) - 1.5) && (Math.abs(culprit.dw) < MOVE_MIN || sum((user) => user.dw) >= Math.abs(culprit.dw) - 1.5)
+      if (outermost.length === 0 || !enough) continue
+      const first = outermost[0] as Candidate
+      evidence.push(
+        font.detail,
+        `${nodeLabel(first.node)}${outermost.length > 1 ? ` and ${outermost.length - 1} more element(s)` : ''} inside ${nodeLabel(culprit.node)} ${outermost.length > 1 ? 'are' : 'is'} set in "${family}" and changed size in that frame ` +
+          `(${nodeLabel(first.node)} from ${size(first.record.before)} to ${size(first.record.after)}); nothing else in ${nodeLabel(culprit.node)} changed`,
+      )
+      return { cause: 'font-swap', culprit, corroborated: font.precise, specific: font.precise, evidence, trigger: fontTrigger }
     }
   }
 
   const textChange = own.find((m) => m.kind === 'text' || m.kind === 'add' || m.kind === 'remove')
   if (textChange !== undefined) {
     evidence.push(`its content was changed by script at ${fmt(textChange.t)} ms`)
-    return { cause: 'injected-content', culprit, corroborated: true, specific: true, evidence, trigger: { kind: 'mutation', stack: textChange.stack, t: textChange.t, detail: 'content changed' } }
+    return { cause: 'injected-content', culprit, corroborated: true, specific: true, evidence, trigger: { kind: 'mutation', stack: callerStack(textChange.stack), t: textChange.t, detail: 'content changed' } }
   }
   const attrChange = own.find((m) => m.kind === 'attr')
   if (attrChange !== undefined) evidence.push(`its ${attrChange.attr} attribute changed at ${fmt(attrChange.t)} ms`)
@@ -568,11 +899,38 @@ function toCulprit(candidate: Candidate): ShiftCulprit {
   }
 }
 
-function describeMove(victim: Victim): string {
+/** Direction and distance in words: `down 17.6px`, `down 12px and right 4px`. */
+function distanceWords(dx: number, dy: number): string {
   const parts: string[] = []
-  if (Math.abs(victim.dy) >= MOVE_MIN) parts.push(`${victim.dy > 0 ? 'down' : 'up'} ${fmt(Math.abs(victim.dy))}px`)
-  if (Math.abs(victim.dx) >= MOVE_MIN) parts.push(`${victim.dx > 0 ? 'right' : 'left'} ${fmt(Math.abs(victim.dx))}px`)
-  return `${nodeLabel(victim.source.node)} moved ${parts.length > 0 ? parts.join(' and ') : '(distance not visible in its rects)'}`
+  if (Math.abs(dy) >= MOVE_MIN) parts.push(`${dy > 0 ? 'down' : 'up'} ${fmt(Math.abs(dy))}px`)
+  if (Math.abs(dx) >= MOVE_MIN) parts.push(`${dx > 0 ? 'right' : 'left'} ${fmt(Math.abs(dx))}px`)
+  return parts.join(' and ')
+}
+
+/**
+ * What happened to a victim, in plain words. A box that left the viewport has no second rectangle:
+ * never "moved up and left" to the zero rectangle the browser reports for it. `bound` is the way
+ * it moved according to the culprit that is consistent with it, when there is one.
+ */
+function describeMove(victim: Victim, bound?: Bound): string {
+  const label = nodeLabel(victim.source.node)
+  if (victim.known === 'exact') {
+    const words = distanceWords(victim.dx, victim.dy)
+    if (words === '') return `${label} moved (distance not visible in its rects)`
+    if (victim.viewport !== 'out') return `${label} moved ${words}`
+    // Out of sight in the direction it mostly went.
+    const vertical = Math.abs(victim.dy) >= Math.abs(victim.dx)
+    const where = vertical ? (victim.dy > 0 ? 'below' : 'above') : victim.dx > 0 ? 'to the right of' : 'to the left of'
+    return `${label} was pushed ${words}, ${where} the visible area`
+  }
+  if (victim.viewport === 'in') {
+    return bound === undefined
+      ? `${label} came into the visible area (the browser reports no position for it before the shift, so how far it moved is not on record)`
+      : `${label} was ${bound.sign > 0 ? 'pushed down' : 'pulled up'} into the visible area (at least ${fmt(bound.min)}px)`
+  }
+  return bound === undefined
+    ? `${label} left the visible area (the browser reports no position for it after the shift, so how far it moved is not on record)`
+    : `${label} was ${bound.sign > 0 ? 'pushed below' : 'pulled above'} the visible area (at least ${fmt(bound.min)}px ${bound.sign > 0 ? 'down' : 'up'})`
 }
 
 type EntryIssue = Omit<ShiftIssue, 'id' | 'window'>
@@ -580,18 +938,25 @@ type EntryIssue = Omit<ShiftIssue, 'id' | 'window'>
 const isStylesheetUrl = (url: string): boolean => /\.css(?:[?#]|$)/i.test(url)
 
 function attributeEntry(recording: ShiftRecording, entry: ShiftEntry, previous: ShiftEntry | undefined, next: ShiftEntry | undefined): EntryIssue {
-  const victims = entry.sources.map(toVictim)
-  const toVictims = (explained?: ShiftVictim['explained'][]): ShiftVictim[] =>
-    victims.map((victim, index) => ({
-      node: victim.source.node,
-      previousRect: victim.source.previousRect,
-      currentRect: victim.source.currentRect,
-      dx: Math.round(victim.dx * 100) / 100,
-      dy: Math.round(victim.dy * 100) / 100,
-      explained: explained?.[index] ?? 'no',
-    }))
+  const frame = frameOf(recording)
+  const victims = entry.sources.map((source) => toVictim(source, frame))
+  /** `bounds`: per victim, the way it left or entered the viewport according to the culprit that is consistent with it. */
+  const toVictims = (explained?: ShiftVictim['explained'][], bounds?: (Bound | undefined)[]): ShiftVictim[] =>
+    victims.map((victim, index) => {
+      const bound = bounds?.[index]
+      return {
+        node: victim.source.node,
+        previousRect: victim.source.previousRect,
+        currentRect: victim.source.currentRect,
+        dx: Math.round(victim.dx * 100) / 100,
+        dy: Math.round((victim.known === 'exact' ? victim.dy : bound === undefined ? 0 : bound.sign * bound.min) * 100) / 100,
+        ...(victim.viewport === undefined ? {} : { viewport: victim.viewport }),
+        ...(victim.known === 'exact' ? {} : { distance: bound === undefined ? ('unknown' as const) : ('at-least' as const) }),
+        explained: explained?.[index] ?? 'no',
+      }
+    })
   const base = { entries: [entry.index], startTime: entry.startTime, endTime: entry.startTime, value: entry.value }
-  const moves = victims.slice(0, 3).map(describeMove)
+  const moves = victims.slice(0, 3).map((victim) => describeMove(victim))
 
   if (entry.hadRecentInput) {
     return {
@@ -624,11 +989,25 @@ function attributeEntry(recording: ShiftRecording, entry: ShiftEntry, previous: 
   const eligible = candidates.filter(
     (candidate) => !victimUids.has(candidate.node.uid) && !victimPaths.some((path) => isAncestorPath(path, candidate.node.path)),
   )
-  const scored = weight === 0 ? [] : eligible.map((candidate) => score(candidate, moved, weight))
+  const reasons = new Map<Candidate, boolean>()
+  const matcher: Matcher = {
+    candidates,
+    eligible,
+    hasReason(candidate) {
+      let known = reasons.get(candidate)
+      if (known === undefined) {
+        const inIt = (node: NodeDescriptor): boolean => node.uid === candidate.node.uid || isAncestorPath(candidate.node.path, node.path)
+        known = candidates.some((other) => isOrigin(other) && inIt(other.node)) || mutations.some((m) => inIt(m.node) || m.parent?.uid === candidate.node.uid)
+        reasons.set(candidate, known)
+      }
+      return known
+    },
+  }
+  const scored = weight === 0 ? [] : eligible.map((candidate) => score(candidate, moved, weight, matcher))
   const single = pickBest(scored)
   // Only when one element does not account for (nearly) everything is a group of them considered.
   const carried = candidates.filter((candidate) => victimUids.has(candidate.node.uid))
-  const best = weight === 0 || (single !== undefined && single.direct >= 0.9) ? single : withGroups(single, eligible, carried, moved, weight)
+  const best = weight === 0 || (single !== undefined && accounted(single) >= 0.9) ? single : withGroups(single, eligible, carried, moved, weight, matcher)
 
   // A stylesheet that arrived right before the shift: inserted by script, or a late <link>.
   const styleMutation = mutations.find((m) => m.kind !== 'remove' && (isStyleNode(m.node) || (m.parent !== undefined && isStyleNode(m.parent))))
@@ -645,13 +1024,21 @@ function attributeEntry(recording: ShiftRecording, entry: ShiftEntry, previous: 
   }
   const devArtifact = { cause: 'dev-artifact' as const, scored: false, excluded: 'dev-artifact' as const }
 
-  if (best === undefined || best.direct < 0.5) {
+  // The culprit's own change of size must account for half of the moved area. Content inside it counts
+  // when an element in it that is large enough to be why it changed size accounts for that content's
+  // distance (an image in a card: the card pushes the next row, the image pushes the text of the card).
+  if (best === undefined || accounted(best) + best.innerDirect < 0.5) {
     // Nothing that changed size explains the movement. Something that was taken away might.
+    // A victim that was pulled up into the viewport needed at least the distance to the bottom edge.
+    const byRemoval = (victim: Victim, height: number): boolean =>
+      victim.known === 'exact'
+        ? Math.abs(victim.dx) < MOVE_MIN && amountMatches(victim.dy, -height, 0)
+        : victim.viewport === 'in' && !outOfFlow(victim.source.style) && victim.bounds.some((bound) => bound.sign === -1 && height >= bound.min - 1.5)
     const removed = mutations
       .filter((m) => m.kind === 'remove' && m.lastSize !== undefined && m.lastSize.h > 0)
       .map((m) => ({
         mutation: m,
-        share: weight === 0 ? 0 : moved.filter((victim) => Math.abs(victim.dx) < MOVE_MIN && amountMatches(victim.dy, -(m.lastSize?.h ?? 0), 0)).reduce((sum, victim) => sum + victim.weight, 0) / weight,
+        share: weight === 0 ? 0 : moved.filter((victim) => byRemoval(victim, m.lastSize?.h ?? 0)).reduce((sum, victim) => sum + victim.weight, 0) / weight,
       }))
       .sort((a, b) => b.share - a.share)[0]
     if (removed !== undefined && removed.share >= 0.5 && removed.mutation.lastSize !== undefined) {
@@ -664,11 +1051,14 @@ function attributeEntry(recording: ShiftRecording, entry: ShiftEntry, previous: 
         confidence: 0.6,
         geometricMatch: true,
         culprit: { node: gone.node, sizeBefore: lastSize, sizeAfter: { w: 0, h: 0 } },
-        trigger: { kind: 'mutation', stack: gone.stack, t: gone.t, detail: 'node removed' },
-        victims: toVictims(spread(moved.map((victim) => (Math.abs(victim.dx) < MOVE_MIN && amountMatches(victim.dy, -lastSize.h, 0) ? 'direct' : 'no')))),
+        trigger: { kind: 'mutation', stack: callerStack(gone.stack), t: gone.t, detail: 'node removed' },
+        victims: toVictims(
+          spread(moved.map((victim) => (byRemoval(victim, lastSize.h) ? (victim.known === 'exact' ? 'direct' : 'consistent') : 'no'))),
+          victims.map((victim) => (victim.known !== 'exact' && byRemoval(victim, lastSize.h) ? victim.bounds.find((bound) => bound.sign === -1) : undefined)),
+        ),
         evidence: [
           `${nodeLabel(gone.node)} (${size(lastSize)}) was removed from ${nodeLabel(gone.parent ?? null)} at ${fmt(gone.t)} ms, after the page had painted`,
-          ...moves.slice(0, 1).map((move) => `${move}: the height of the removed element`),
+          ...moved.filter((victim) => victim.known === 'exact' && byRemoval(victim, lastSize.h)).slice(0, 1).map((victim) => `${describeMove(victim)}: the height of the removed element`),
           `${Math.round(removed.share * 100)}% of the moved area is explained by the removal`,
         ],
         scored: true,
@@ -685,10 +1075,14 @@ function attributeEntry(recording: ShiftRecording, entry: ShiftEntry, previous: 
   const classified = classify(recording, entry, best.candidate, candidates, mutations)
   // The classifier may have moved from a container to the node that was put into it: the geometry is the container's.
   const explained = spread(best.explained)
+  const bounds = victims.map((victim, index) => (explained[index] === 'consistent' ? consistentWith(best.candidate, victim, matcher) : undefined))
   const share = Math.min(1, total(best))
   const indirect = best.partners.length > 0 || classified.indirect === true
-  let confidence = CONFIDENT + 0.15 * share + (classified.corroborated ? 0.1 : 0) - (indirect ? INDIRECT_PENALTY : 0)
-  if (!classified.specific) confidence = Math.min(confidence, 0.6)
+  // No victim's distance was measured: every one of them left (or entered) the viewport, and the
+  // culprit is the one change that was large enough. That stands only with independent evidence.
+  const boundOnly = best.direct === 0 && best.innerDirect === 0
+  let confidence = CONFIDENT + 0.15 * share + (classified.corroborated ? 0.1 : 0) - (indirect || boundOnly ? INDIRECT_PENALTY : 0)
+  if (!classified.specific || (boundOnly && !classified.corroborated)) confidence = Math.min(confidence, 0.6)
   confidence = Math.round(Math.min(0.97, confidence) * 100) / 100
 
   const evidence = [...classified.evidence]
@@ -701,9 +1095,27 @@ function attributeEntry(recording: ShiftRecording, entry: ShiftEntry, previous: 
   } else if (directVictim !== undefined) {
     evidence.push(`${describeMove(directVictim)}: the same distance, and ${nodeLabel(best.candidate.node)} is right before it`)
   }
+  const boundedIndex = victims.findIndex((_, index) => bounds[index] !== undefined)
+  const boundedVictim = victims[boundedIndex]
+  if (boundedVictim !== undefined) {
+    const grew = best.candidate.dh
+    evidence.push(
+      `${describeMove(boundedVictim, bounds[boundedIndex])}: ${nodeLabel(best.candidate.node)}, before it, ${grew > 0 ? 'grew' : 'shrank'} by ${fmt(Math.abs(grew))}px, ` +
+        `and nothing else that changed size in that frame could have moved it that far`,
+    )
+  }
+  if (best.innerDirect > 0) {
+    for (const [index, victim] of moved.entries()) {
+      const inner = best.explained[index] === 'inside' ? innerExplainer(best.candidate, victim, matcher) : undefined
+      if (inner === undefined) continue
+      evidence.push(`${describeMove(victim)}: inside ${nodeLabel(best.candidate.node)}, by the distance ${nodeLabel(inner.node)} ${inner.dh > 0 || inner.dw > 0 ? 'grew' : 'shrank'}`)
+      break
+    }
+  }
   const unexplained = moved.filter((_, index) => best.explained[index] === 'no').length
   evidence.push(
     `${Math.round(best.direct * 100)}% of the moved area is explained directly` +
+      (best.bounded > 0 ? `, ${Math.round(best.bounded * 100)}% left or entered the visible area as the culprit's change of size requires` : '') +
       (best.inside > 0 ? `, ${Math.round(best.inside * 100)}% is content inside the culprit` : '') +
       (unexplained > 0 ? `; ${unexplained} moved box(es) are not explained` : ''),
   )
@@ -716,7 +1128,7 @@ function attributeEntry(recording: ShiftRecording, entry: ShiftEntry, previous: 
     culprit: toCulprit(classified.culprit),
     ...(coCulprits.length > 0 ? { coCulprits } : {}),
     trigger: classified.trigger,
-    victims: toVictims(explained),
+    victims: toVictims(explained, bounds),
     evidence,
     scored: true,
   }
@@ -728,7 +1140,7 @@ function attributeEntry(recording: ShiftRecording, entry: ShiftEntry, previous: 
     issue.evidence.push(...styleEvidence)
     if (styleIsDev) {
       // The dev server's client rewrote a stylesheet in the open page (first injection, or a hot update).
-      return { ...issue, ...devArtifact, confidence: Math.max(confidence, 0.75), trigger: { kind: 'mutation', stack: styleMutation?.stack, t: styleMutation?.t, detail: 'stylesheet injected by the dev server client' } }
+      return { ...issue, ...devArtifact, confidence: Math.max(confidence, 0.75), trigger: { kind: 'mutation', stack: callerStack(styleMutation?.stack), t: styleMutation?.t, detail: 'stylesheet injected by the dev server client' } }
     }
     if (classified.viaStyle === true && !classified.corroborated) {
       // Shown by nothing on record, right after a stylesheet arrived: late CSS, which has no cause class.

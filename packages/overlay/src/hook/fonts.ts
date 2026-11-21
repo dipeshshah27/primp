@@ -41,7 +41,7 @@ export function installFonts(): void {
   for (const [type, event] of events) {
     document.fonts.addEventListener(
       type,
-      timed('otherMs', (e: Event) => {
+      timed((e: Event) => {
         const t = now()
         for (const face of (e as FontFaceSetLoadEvent).fontfaces) {
           fonts.push({ t, event, family: family(face), weight: face.weight, style: face.style, via: 'event' })

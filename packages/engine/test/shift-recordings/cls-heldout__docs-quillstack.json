@@ -1,0 +1,1328 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/docs-quillstack/",
+ "capturedAt": 3736.8,
+ "hookStartedAt": 13.9,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 18,
+  "domContentLoaded": 18.2,
+  "load": 731.1,
+  "firstPaint": 36,
+  "firstContentfulPaint": 36,
+  "firstFrame": 25.9
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.2481278414726257,
+   "startTime": 732.4,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 25,
+      "tag": "div",
+      "classes": [
+       "docs"
+      ],
+      "path": [
+       1,
+       1
+      ],
+      "selector": "body > div:nth-of-type(1)",
+      "text": "Getting started"
+     },
+     "previousRect": {
+      "x": 0,
+      "y": 65,
+      "width": 1280,
+      "height": 735
+     },
+     "currentRect": {
+      "x": 0,
+      "y": 99.88,
+      "width": 1280,
+      "height": 700.13
+     },
+     "rect": {
+      "x": 0,
+      "y": 99.88,
+      "width": 1280,
+      "height": 1800.22
+     },
+     "style": {
+      "position": "static",
+      "display": "grid",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 26,
+      "tag": "div",
+      "classes": [
+       "header-tools"
+      ],
+      "path": [
+       1,
+       0,
+       2
+      ],
+      "selector": "body > header:nth-of-type(1) > div:nth-of-type(1)",
+      "text": "/"
+     },
+     "previousRect": {
+      "x": 847.73,
+      "y": 14,
+      "width": 408.27,
+      "height": 36
+     },
+     "currentRect": {
+      "x": 847.73,
+      "y": 31.44,
+      "width": 408.27,
+      "height": 36
+     },
+     "rect": {
+      "x": 847.73,
+      "y": 31.44,
+      "width": 408.27,
+      "height": 36
+     },
+     "style": {
+      "position": "static",
+      "display": "flex",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 27,
+      "tag": "a",
+      "classes": [
+       "brand"
+      ],
+      "path": [
+       1,
+       0,
+       0
+      ],
+      "selector": "body > header:nth-of-type(1) > a:nth-of-type(1)",
+      "text": "Quillstack",
+      "attrs": {
+       "href": "#"
+      }
+     },
+     "previousRect": {
+      "x": 24,
+      "y": 17.16,
+      "width": 183.45,
+      "height": 29.69
+     },
+     "currentRect": {
+      "x": 24,
+      "y": 34.59,
+      "width": 183.45,
+      "height": 29.69
+     },
+     "rect": {
+      "x": 24,
+      "y": 34.59,
+      "width": 183.45,
+      "height": 29.69
+     },
+     "style": {
+      "position": "static",
+      "display": "flex",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 15,
+      "tag": "li",
+      "path": [
+       1,
+       0,
+       1,
+       0,
+       1
+      ],
+      "selector": "body > header:nth-of-type(1) > nav:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(2)",
+      "text": "API reference"
+     },
+     "previousRect": {
+      "x": 295.72,
+      "y": 16.28,
+      "width": 81.67,
+      "height": 31.44
+     },
+     "currentRect": {
+      "x": 331.45,
+      "y": 14,
+      "width": 169,
+      "height": 31.44
+     },
+     "rect": {
+      "x": 331.45,
+      "y": 14,
+      "width": 169,
+      "height": 31.44
+     },
+     "style": {
+      "position": "static",
+      "display": "list-item",
+      "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 21,
+      "tag": "li",
+      "path": [
+       1,
+       0,
+       1,
+       0,
+       4
+      ],
+      "selector": "body > header:nth-of-type(1) > nav:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(5)",
+      "text": "Community"
+     },
+     "previousRect": {
+      "x": 560.61,
+      "y": 16.28,
+      "width": 69.09,
+      "height": 31.44
+     },
+     "currentRect": {
+      "x": 231.45,
+      "y": 53.44,
+      "width": 117,
+      "height": 31.44
+     },
+     "rect": {
+      "x": 231.45,
+      "y": 53.44,
+      "width": 117,
+      "height": 31.44
+     },
+     "style": {
+      "position": "static",
+      "display": "list-item",
+      "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 734
+  }
+ ],
+ "resizes": [
+  {
+   "t": 422.5,
+   "node": {
+    "uid": 3,
+    "tag": "button",
+    "classes": [
+     "copy",
+     "ready"
+    ],
+    "path": [
+     1,
+     1,
+     1,
+     6,
+     1
+    ],
+    "selector": "body > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(1)",
+    "text": "Copy"
+   },
+   "before": null,
+   "after": {
+    "w": 51.3,
+    "h": 23
+   },
+   "rect": {
+    "x": 956.7,
+    "y": 495.83,
+    "width": 51.3,
+    "height": 23
+   },
+   "style": {
+    "position": "absolute",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 422.5,
+   "node": {
+    "uid": 5,
+    "tag": "button",
+    "classes": [
+     "copy",
+     "ready"
+    ],
+    "path": [
+     1,
+     1,
+     1,
+     13,
+     1
+    ],
+    "selector": "body > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(4) > button:nth-of-type(1)",
+    "text": "Copy"
+   },
+   "before": null,
+   "after": {
+    "w": 51.3,
+    "h": 23
+   },
+   "rect": {
+    "x": 956.7,
+    "y": 1480.38,
+    "width": 51.3,
+    "height": 23
+   },
+   "style": {
+    "position": "absolute",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 8,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "Configuring webhooks · Quillstack Docs"
+   },
+   "before": {
+    "w": 1280,
+    "h": 1865.22
+   },
+   "after": {
+    "w": 1280,
+    "h": 1900.09
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 1900.09
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 9,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Quillstack"
+   },
+   "before": {
+    "w": 1280,
+    "h": 1865.22
+   },
+   "after": {
+    "w": 1280,
+    "h": 1900.09
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 1900.09
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 10,
+    "tag": "header",
+    "classes": [
+     "site-header"
+    ],
+    "path": [
+     1,
+     0
+    ],
+    "selector": "body > header:nth-of-type(1)",
+    "text": "Quillstack"
+   },
+   "before": {
+    "w": 1280,
+    "h": 65
+   },
+   "after": {
+    "w": 1280,
+    "h": 99.88
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 99.88
+   },
+   "style": {
+    "position": "static",
+    "display": "flex",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 11,
+    "tag": "nav",
+    "classes": [
+     "topnav"
+    ],
+    "path": [
+     1,
+     0,
+     1
+    ],
+    "selector": "body > header:nth-of-type(1) > nav:nth-of-type(1)",
+    "text": "Guides"
+   },
+   "before": {
+    "w": 592.28,
+    "h": 31.44
+   },
+   "after": {
+    "w": 592.28,
+    "h": 70.88
+   },
+   "rect": {
+    "x": 231.45,
+    "y": 14,
+    "width": 592.28,
+    "height": 70.88
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 12,
+    "tag": "ul",
+    "path": [
+     1,
+     0,
+     1,
+     0
+    ],
+    "selector": "body > header:nth-of-type(1) > nav:nth-of-type(1) > ul:nth-of-type(1)",
+    "text": "Guides"
+   },
+   "before": {
+    "w": 592.28,
+    "h": 31.44
+   },
+   "after": {
+    "w": 592.28,
+    "h": 70.88
+   },
+   "rect": {
+    "x": 231.45,
+    "y": 14,
+    "width": 592.28,
+    "height": 70.88
+   },
+   "style": {
+    "position": "static",
+    "display": "flex",
+    "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 13,
+    "tag": "li",
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     0
+    ],
+    "selector": "body > header:nth-of-type(1) > nav:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(1)",
+    "text": "Guides"
+   },
+   "before": {
+    "w": 42.27,
+    "h": 31.44
+   },
+   "after": {
+    "w": 78,
+    "h": 31.44
+   },
+   "rect": {
+    "x": 231.45,
+    "y": 14,
+    "width": 78,
+    "height": 31.44
+   },
+   "style": {
+    "position": "static",
+    "display": "list-item",
+    "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 14,
+    "tag": "a",
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     0,
+     0
+    ],
+    "selector": "header:nth-of-type(1) > nav:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(1) > a:nth-of-type(1)",
+    "text": "Guides",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "before": {
+    "w": 42.27,
+    "h": 31.44
+   },
+   "after": {
+    "w": 78,
+    "h": 31.44
+   },
+   "rect": {
+    "x": 231.45,
+    "y": 14,
+    "width": 78,
+    "height": 31.44
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 15,
+    "tag": "li",
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     1
+    ],
+    "selector": "body > header:nth-of-type(1) > nav:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(2)",
+    "text": "API reference"
+   },
+   "before": {
+    "w": 81.67,
+    "h": 31.44
+   },
+   "after": {
+    "w": 169,
+    "h": 31.44
+   },
+   "rect": {
+    "x": 331.45,
+    "y": 14,
+    "width": 169,
+    "height": 31.44
+   },
+   "style": {
+    "position": "static",
+    "display": "list-item",
+    "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 16,
+    "tag": "a",
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     1,
+     0
+    ],
+    "selector": "header:nth-of-type(1) > nav:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(2) > a:nth-of-type(1)",
+    "text": "API reference",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "before": {
+    "w": 81.67,
+    "h": 31.44
+   },
+   "after": {
+    "w": 169,
+    "h": 31.44
+   },
+   "rect": {
+    "x": 331.45,
+    "y": 14,
+    "width": 169,
+    "height": 31.44
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 17,
+    "tag": "li",
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     2
+    ],
+    "selector": "body > header:nth-of-type(1) > nav:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(3)",
+    "text": "Tutorials"
+   },
+   "before": {
+    "w": 51.94,
+    "h": 31.44
+   },
+   "after": {
+    "w": 117,
+    "h": 31.44
+   },
+   "rect": {
+    "x": 522.45,
+    "y": 14,
+    "width": 117,
+    "height": 31.44
+   },
+   "style": {
+    "position": "static",
+    "display": "list-item",
+    "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 18,
+    "tag": "a",
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     2,
+     0
+    ],
+    "selector": "header:nth-of-type(1) > nav:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(3) > a:nth-of-type(1)",
+    "text": "Tutorials",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "before": {
+    "w": 51.94,
+    "h": 31.44
+   },
+   "after": {
+    "w": 117,
+    "h": 31.44
+   },
+   "rect": {
+    "x": 522.45,
+    "y": 14,
+    "width": 117,
+    "height": 31.44
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 19,
+    "tag": "li",
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     3
+    ],
+    "selector": "body > header:nth-of-type(1) > nav:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(4)",
+    "text": "Changelog"
+   },
+   "before": {
+    "w": 65.28,
+    "h": 31.44
+   },
+   "after": {
+    "w": 117,
+    "h": 31.44
+   },
+   "rect": {
+    "x": 661.45,
+    "y": 14,
+    "width": 117,
+    "height": 31.44
+   },
+   "style": {
+    "position": "static",
+    "display": "list-item",
+    "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 20,
+    "tag": "a",
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     3,
+     0
+    ],
+    "selector": "header:nth-of-type(1) > nav:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(4) > a:nth-of-type(1)",
+    "text": "Changelog",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "before": {
+    "w": 65.28,
+    "h": 31.44
+   },
+   "after": {
+    "w": 117,
+    "h": 31.44
+   },
+   "rect": {
+    "x": 661.45,
+    "y": 14,
+    "width": 117,
+    "height": 31.44
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 21,
+    "tag": "li",
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     4
+    ],
+    "selector": "body > header:nth-of-type(1) > nav:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(5)",
+    "text": "Community"
+   },
+   "before": {
+    "w": 69.09,
+    "h": 31.44
+   },
+   "after": {
+    "w": 117,
+    "h": 31.44
+   },
+   "rect": {
+    "x": 231.45,
+    "y": 53.44,
+    "width": 117,
+    "height": 31.44
+   },
+   "style": {
+    "position": "static",
+    "display": "list-item",
+    "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 22,
+    "tag": "a",
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     4,
+     0
+    ],
+    "selector": "header:nth-of-type(1) > nav:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(5) > a:nth-of-type(1)",
+    "text": "Community",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "before": {
+    "w": 69.09,
+    "h": 31.44
+   },
+   "after": {
+    "w": 117,
+    "h": 31.44
+   },
+   "rect": {
+    "x": 231.45,
+    "y": 53.44,
+    "width": 117,
+    "height": 31.44
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 23,
+    "tag": "li",
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     5
+    ],
+    "selector": "body > header:nth-of-type(1) > nav:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(6)",
+    "text": "Support"
+   },
+   "before": {
+    "w": 48.69,
+    "h": 31.44
+   },
+   "after": {
+    "w": 91,
+    "h": 31.44
+   },
+   "rect": {
+    "x": 370.45,
+    "y": 53.44,
+    "width": 91,
+    "height": 31.44
+   },
+   "style": {
+    "position": "static",
+    "display": "list-item",
+    "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 732.5,
+   "node": {
+    "uid": 24,
+    "tag": "a",
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     5,
+     0
+    ],
+    "selector": "header:nth-of-type(1) > nav:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(6) > a:nth-of-type(1)",
+    "text": "Support",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "before": {
+    "w": 48.69,
+    "h": 31.44
+   },
+   "after": {
+    "w": 91,
+    "h": 31.44
+   },
+   "rect": {
+    "x": 370.45,
+    "y": 53.44,
+    "width": 91,
+    "height": 31.44
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Quill Grotesk\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 420.70000000298023,
+   "kind": "add",
+   "node": {
+    "uid": 3,
+    "tag": "button",
+    "classes": [
+     "copy"
+    ],
+    "path": [
+     1,
+     1,
+     1,
+     6,
+     1
+    ],
+    "selector": "body > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(1)",
+    "text": "Copy"
+   },
+   "parent": {
+    "uid": 4,
+    "tag": "div",
+    "classes": [
+     "codeblock"
+    ],
+    "path": [
+     1,
+     1,
+     1,
+     6
+    ],
+    "selector": "body > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(3)",
+    "text": "curl https://api.quillstack.example/v4/webhooks "
+   },
+   "stack": "    at http://localhost:4310/docs-quillstack/:206:13\n    at NodeList.forEach (<anonymous>)\n    at http://localhost:4310/docs-quillstack/:197:45"
+  },
+  {
+   "t": 420.70000000298023,
+   "kind": "add",
+   "node": {
+    "uid": 5,
+    "tag": "button",
+    "classes": [
+     "copy"
+    ],
+    "path": [
+     1,
+     1,
+     1,
+     13,
+     1
+    ],
+    "selector": "body > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(4) > button:nth-of-type(1)",
+    "text": "Copy"
+   },
+   "parent": {
+    "uid": 6,
+    "tag": "div",
+    "classes": [
+     "codeblock"
+    ],
+    "path": [
+     1,
+     1,
+     1,
+     13
+    ],
+    "selector": "body > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(4)",
+    "text": "app.post('/hooks/quill', express.raw({ type: 'ap"
+   },
+   "stack": "    at http://localhost:4310/docs-quillstack/:206:13\n    at NodeList.forEach (<anonymous>)\n    at http://localhost:4310/docs-quillstack/:197:45"
+  },
+  {
+   "t": 421.40000000596046,
+   "kind": "attr",
+   "node": {
+    "uid": 3,
+    "tag": "button",
+    "classes": [
+     "copy",
+     "ready"
+    ],
+    "path": [
+     1,
+     1,
+     1,
+     6,
+     1
+    ],
+    "selector": "body > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(1)",
+    "text": "Copy"
+   },
+   "attr": "class",
+   "oldValue": "copy",
+   "value": "copy ready"
+  },
+  {
+   "t": 421.40000000596046,
+   "kind": "attr",
+   "node": {
+    "uid": 5,
+    "tag": "button",
+    "classes": [
+     "copy",
+     "ready"
+    ],
+    "path": [
+     1,
+     1,
+     1,
+     13,
+     1
+    ],
+    "selector": "body > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(4) > button:nth-of-type(1)",
+    "text": "Copy"
+   },
+   "attr": "class",
+   "oldValue": "copy",
+   "value": "copy ready"
+  },
+  {
+   "t": 720.7999999970198,
+   "kind": "attr",
+   "node": {
+    "uid": 7,
+    "tag": "a",
+    "classes": [
+     "current"
+    ],
+    "path": [
+     1,
+     1,
+     2,
+     1,
+     0,
+     0
+    ],
+    "selector": "#toc-list > li:nth-of-type(1) > a:nth-of-type(1)",
+    "text": "Create an endpoint",
+    "attrs": {
+     "href": "#create"
+    }
+   },
+   "attr": "class",
+   "value": "current"
+  }
+ ],
+ "media": [
+  {
+   "t": 28.299999997019768,
+   "event": "load",
+   "node": {
+    "uid": 1,
+    "tag": "img",
+    "path": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "selector": "body > header:nth-of-type(1) > a:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/logo-mark.svg"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/logo-mark.svg",
+   "natural": {
+    "w": 32,
+    "h": 32
+   },
+   "size": {
+    "w": 28,
+    "h": 28
+   }
+  },
+  {
+   "t": 34.79999999701977,
+   "event": "load",
+   "node": {
+    "uid": 2,
+    "tag": "img",
+    "path": [
+     1,
+     1,
+     1,
+     11,
+     0
+    ],
+    "selector": "body > div:nth-of-type(1) > main:nth-of-type(1) > figure:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/chart-640x240.svg"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/chart-640x240.svg",
+   "natural": {
+    "w": 640,
+    "h": 240
+   },
+   "size": {
+    "w": 640,
+    "h": 240
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js?v=4c2c34f0b506",
+   "initiator": "script",
+   "start": 11.4,
+   "end": 12.6,
+   "transferSize": 18716
+  },
+  {
+   "url": "http://localhost:4310/assets/img/logo-mark.svg",
+   "initiator": "img",
+   "start": 11.5,
+   "end": 14.3,
+   "transferSize": 567
+  },
+  {
+   "url": "http://localhost:4310/__reglet/overlay.js",
+   "initiator": "script",
+   "start": 18,
+   "end": 18.9,
+   "transferSize": 147750
+  },
+  {
+   "url": "http://localhost:4310/assets/img/chart-640x240.svg",
+   "initiator": "img",
+   "start": 28.2,
+   "end": 31.4,
+   "transferSize": 828
+  },
+  {
+   "url": "http://localhost:4310/delay/700/assets/fonts/press-start-2p-latin-400-normal.woff2",
+   "initiator": "css",
+   "start": 19,
+   "end": 729.3,
+   "transferSize": 12812
+  }
+ ],
+ "fonts": [
+  {
+   "t": 732.5,
+   "since": 422.5,
+   "event": "loaded",
+   "family": "Quill Grotesk",
+   "weight": "400",
+   "style": "normal",
+   "via": "snapshot"
+  },
+  {
+   "t": 733.9000000059605,
+   "event": "loaded",
+   "family": "Quill Code",
+   "weight": "normal",
+   "style": "normal",
+   "via": "event"
+  },
+  {
+   "t": 733.9000000059605,
+   "event": "loaded",
+   "family": "Quill Grotesk",
+   "weight": "400",
+   "style": "normal",
+   "via": "event"
+  }
+ ],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.3999999910593033,
+  "shiftMs": 0.10000000894069672,
+  "mutationMs": 1.6000000089406967,
+  "resizeMs": 1,
+  "otherMs": 0.5999999940395355,
+  "mutationCallbacks": 8,
+  "resizeCallbacks": 3,
+  "tracked": 126,
+  "untracked": 0
+ }
+}

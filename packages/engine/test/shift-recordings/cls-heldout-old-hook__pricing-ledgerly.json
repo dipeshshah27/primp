@@ -1,0 +1,460 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/pricing-ledgerly/",
+ "capturedAt": 3829.3,
+ "hookStartedAt": 9.3,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 13,
+  "domContentLoaded": 13.2,
+  "load": 520.6,
+  "firstPaint": 36,
+  "firstContentfulPaint": 36,
+  "firstFrame": 15.3
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.03579374694824218,
+   "startTime": 825.9,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 8,
+      "tag": "main",
+      "path": [
+       1,
+       2
+      ],
+      "selector": "body > main:nth-of-type(1)",
+      "text": "Simple pricing for small finance teams"
+     },
+     "previousRect": {
+      "x": 0,
+      "y": 69,
+      "width": 1280,
+      "height": 731
+     },
+     "currentRect": {
+      "x": 0,
+      "y": 119.14,
+      "width": 1280,
+      "height": 680.86
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    },
+    {
+     "node": null,
+     "previousRect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+     },
+     "currentRect": {
+      "x": 509.82,
+      "y": 380.19,
+      "width": 103.08,
+      "height": 22.59
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 827.7
+  }
+ ],
+ "resizes": [
+  {
+   "t": 825.8999999910593,
+   "node": {
+    "uid": 7,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "Pricing · Ledgerly"
+   },
+   "before": {
+    "w": 1280,
+    "h": 1602.39
+   },
+   "after": {
+    "w": 1280,
+    "h": 1652.53
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 1652.53
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 825.8999999910593,
+   "node": {
+    "uid": 6,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Ledgerly"
+   },
+   "before": {
+    "w": 1280,
+    "h": 1602.39
+   },
+   "after": {
+    "w": 1280,
+    "h": 1652.53
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 1652.53
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 825.8999999910593,
+   "node": {
+    "uid": 5,
+    "tag": "aside",
+    "id": "promo-strip",
+    "classes": [
+     "promo-strip"
+    ],
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#promo-strip",
+    "text": "Winter pass"
+   },
+   "before": null,
+   "after": {
+    "w": 1280,
+    "h": 50.14
+   },
+   "rect": {
+    "x": 0,
+    "y": 69,
+    "width": 1280,
+    "height": 50.14
+   },
+   "style": {
+    "position": "static",
+    "display": "flex",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 514.5,
+   "kind": "attr",
+   "node": {
+    "uid": 2,
+    "tag": "b",
+    "path": [
+     1,
+     1,
+     1,
+     0,
+     2,
+     0
+    ],
+    "selector": "main:nth-of-type(1) > section:nth-of-type(2) > article:nth-of-type(1) > div:nth-of-type(1) > b:nth-of-type(1)",
+    "text": "£9"
+   },
+   "attr": "data-currency",
+   "value": "GBP"
+  },
+  {
+   "t": 514.5,
+   "kind": "attr",
+   "node": {
+    "uid": 2,
+    "tag": "b",
+    "path": [
+     1,
+     1,
+     1,
+     0,
+     2,
+     0
+    ],
+    "selector": "main:nth-of-type(1) > section:nth-of-type(2) > article:nth-of-type(1) > div:nth-of-type(1) > b:nth-of-type(1)",
+    "text": "£9"
+   },
+   "attr": "title",
+   "value": "Prices in pounds sterling, excluding VAT"
+  },
+  {
+   "t": 514.5,
+   "kind": "attr",
+   "node": {
+    "uid": 3,
+    "tag": "b",
+    "path": [
+     1,
+     1,
+     1,
+     1,
+     3,
+     0
+    ],
+    "selector": "main:nth-of-type(1) > section:nth-of-type(2) > article:nth-of-type(2) > div:nth-of-type(1) > b:nth-of-type(1)",
+    "text": "£29"
+   },
+   "attr": "data-currency",
+   "value": "GBP"
+  },
+  {
+   "t": 514.5,
+   "kind": "attr",
+   "node": {
+    "uid": 3,
+    "tag": "b",
+    "path": [
+     1,
+     1,
+     1,
+     1,
+     3,
+     0
+    ],
+    "selector": "main:nth-of-type(1) > section:nth-of-type(2) > article:nth-of-type(2) > div:nth-of-type(1) > b:nth-of-type(1)",
+    "text": "£29"
+   },
+   "attr": "title",
+   "value": "Prices in pounds sterling, excluding VAT"
+  },
+  {
+   "t": 514.5,
+   "kind": "attr",
+   "node": {
+    "uid": 4,
+    "tag": "b",
+    "path": [
+     1,
+     1,
+     1,
+     2,
+     2,
+     0
+    ],
+    "selector": "main:nth-of-type(1) > section:nth-of-type(2) > article:nth-of-type(3) > div:nth-of-type(1) > b:nth-of-type(1)",
+    "text": "£79"
+   },
+   "attr": "data-currency",
+   "value": "GBP"
+  },
+  {
+   "t": 514.5,
+   "kind": "attr",
+   "node": {
+    "uid": 4,
+    "tag": "b",
+    "path": [
+     1,
+     1,
+     1,
+     2,
+     2,
+     0
+    ],
+    "selector": "main:nth-of-type(1) > section:nth-of-type(2) > article:nth-of-type(3) > div:nth-of-type(1) > b:nth-of-type(1)",
+    "text": "£79"
+   },
+   "attr": "title",
+   "value": "Prices in pounds sterling, excluding VAT"
+  },
+  {
+   "t": 818.0999999940395,
+   "kind": "add",
+   "node": {
+    "uid": 5,
+    "tag": "aside",
+    "id": "promo-strip",
+    "classes": [
+     "promo-strip"
+    ],
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#promo-strip",
+    "text": "Winter pass"
+   },
+   "parent": {
+    "uid": 6,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Ledgerly"
+   },
+   "stack": "    at e.<computed> [as insertAdjacentHTML] (http://localhost:4310/__reglet/hook.js?v=a06967e3c1c1:3:111)\n    at http://localhost:4310/pricing-ledgerly/:205:14"
+  }
+ ],
+ "media": [
+  {
+   "t": 22.599999994039536,
+   "event": "load",
+   "node": {
+    "uid": 1,
+    "tag": "img",
+    "path": [
+     1,
+     0,
+     0,
+     0,
+     0
+    ],
+    "selector": "#site-header > div:nth-of-type(1) > a:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/logo-mark.svg"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/logo-mark.svg",
+   "natural": {
+    "w": 32,
+    "h": 32
+   },
+   "size": {
+    "w": 30,
+    "h": 30
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js?v=a06967e3c1c1",
+   "initiator": "script",
+   "start": 6.9,
+   "end": 8,
+   "transferSize": 18575
+  },
+  {
+   "url": "http://localhost:4310/assets/img/logo-mark.svg",
+   "initiator": "img",
+   "start": 7,
+   "end": 9.8,
+   "transferSize": 567
+  },
+  {
+   "url": "http://localhost:4310/__reglet/overlay.js",
+   "initiator": "script",
+   "start": 13.1,
+   "end": 14.1,
+   "transferSize": 147426
+  },
+  {
+   "url": "http://localhost:4310/delay/500/assets/fonts/press-start-2p-latin-400-normal.woff2",
+   "initiator": "css",
+   "start": 14.7,
+   "end": 519.1,
+   "transferSize": 12812
+  },
+  {
+   "url": "http://localhost:4310/delay/800/assets/data/promo.json",
+   "initiator": "fetch",
+   "start": 12.9,
+   "end": 817.1,
+   "transferSize": 453
+  }
+ ],
+ "fonts": [
+  {
+   "t": 522.2000000029802,
+   "event": "loaded",
+   "family": "Ledgerly Display",
+   "weight": "normal",
+   "style": "normal",
+   "via": "event"
+  },
+  {
+   "t": 825.8999999910593,
+   "since": 21,
+   "event": "loaded",
+   "family": "Ledgerly Display",
+   "weight": "normal",
+   "style": "normal",
+   "via": "snapshot"
+  }
+ ],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.29999999701976776,
+  "shiftMs": 0.09999999403953552,
+  "mutationMs": 1.2999999970197678,
+  "resizeMs": 0.6000000089406967,
+  "otherMs": 0.4000000059604645,
+  "mutationCallbacks": 6,
+  "resizeCallbacks": 2,
+  "tracked": 113,
+  "untracked": 0
+ }
+}

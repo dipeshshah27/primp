@@ -46,7 +46,7 @@ function onResources(list: PerformanceObserverEntryList): void {
 }
 
 export function installMedia(): void {
-  const listener = timed('otherMs', onMediaEvent)
+  const listener = timed(onMediaEvent)
   for (const type of ['load', 'error', 'loadedmetadata']) document.addEventListener(type, listener, true)
-  new PerformanceObserver(timed('otherMs', onResources)).observe({ type: 'resource', buffered: true })
+  new PerformanceObserver(timed(onResources)).observe({ type: 'resource', buffered: true })
 }

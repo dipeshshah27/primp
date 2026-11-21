@@ -75,8 +75,19 @@ export type MediaHints = z.infer<typeof MediaHintsSchema>
 export const ShiftSourceSchema = z.object({
   /** Null when the browser gave no node (user-agent shadow tree, or already removed). */
   node: NodeDescriptorSchema.nullable(),
+  /**
+   * Both rectangles are what the browser reports: the node's box CLIPPED TO THE VIEWPORT (its
+   * "visual representation"). A node that was pushed out of the viewport has an empty
+   * `currentRect` (all zeros); one that came into it has an empty `previousRect`.
+   */
   previousRect: RectSchema,
   currentRect: RectSchema,
+  /**
+   * The element's whole border box, NOT clipped, measured when the entry was delivered: where
+   * the node really is after the shift, also when that is outside the viewport. Elements only
+   * (not text nodes); absent in recordings of hooks that did not measure it.
+   */
+  rect: RectSchema.optional(),
   style: NodeStyleSchema.optional(),
 })
 export type ShiftSource = z.infer<typeof ShiftSourceSchema>
@@ -108,6 +119,12 @@ export const ResizeRecordSchema = z.object({
   rect: RectSchema.optional(),
   style: NodeStyleSchema.optional(),
   media: MediaHintsSchema.optional(),
+  /**
+   * Computed `font-family` lists of the element's inline children that are not size-tracked
+   * themselves (a `span` or `i` set in another font than the block around it) and differ from
+   * the element's own. Absent when there are none, and in recordings of older hooks.
+   */
+  inlineFonts: z.array(z.string()).optional(),
 })
 export type ResizeRecord = z.infer<typeof ResizeRecordSchema>
 
@@ -258,11 +275,30 @@ export const ShiftVictimSchema = z.object({
   node: NodeDescriptorSchema.nullable(),
   previousRect: RectSchema,
   currentRect: RectSchema,
-  /** Movement of the start corner in px. */
+  /**
+   * Movement of the start corner in px. With `distance: 'at-least'` a lower bound in the
+   * direction given by the sign; with `distance: 'unknown'` both are 0 and mean nothing.
+   */
   dx: z.number(),
   dy: z.number(),
-  /** Whether the culprit explains this victim's movement: directly, as reflow inside the culprit, or not. */
-  explained: z.enum(['direct', 'inside', 'no']),
+  /**
+   * Set when the two rectangles do not show the movement, because the browser clips them to the
+   * viewport: `out` the node ended outside the visible area (`currentRect` is empty), `in` it came
+   * into the visible area (`previousRect` is empty), `cut` its start edge is outside the viewport.
+   */
+  viewport: z.enum(['out', 'in', 'cut']).optional(),
+  /**
+   * How much `dx`/`dy` say. Absent: the exact movement. `at-least`: the node left or entered the
+   * viewport and moved at least this far. `unknown`: the distance and direction are not on record.
+   */
+  distance: z.enum(['at-least', 'unknown']).optional(),
+  /**
+   * Whether the culprit explains this victim's movement: `direct` it lies before the victim and
+   * changed size by the distance the victim moved; `consistent` the victim left (or entered) the
+   * viewport, so only a least distance is known, and the culprit changed size by at least that;
+   * `inside` reflow inside the culprit; `no`.
+   */
+  explained: z.enum(['direct', 'consistent', 'inside', 'no']),
 })
 export type ShiftVictim = z.infer<typeof ShiftVictimSchema>
 

@@ -1,0 +1,868 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/landing-pulsebase/",
+ "capturedAt": 3828.3,
+ "hookStartedAt": 8.4,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 13.5,
+  "domContentLoaded": 13.7,
+  "load": 818.5,
+  "firstPaint": 28,
+  "firstContentfulPaint": 28,
+  "firstFrame": 14
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.0003932516574859619,
+   "startTime": 24.4,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 2,
+      "tag": "nav",
+      "classes": [
+       "nav-links"
+      ],
+      "path": [
+       1,
+       0,
+       0,
+       1
+      ],
+      "selector": "body > div:nth-of-type(1) > header:nth-of-type(1) > nav:nth-of-type(1)",
+      "text": "Product"
+     },
+     "previousRect": {
+      "x": 222.02,
+      "y": 25.16,
+      "width": 379.78,
+      "height": 21.69
+     },
+     "currentRect": {
+      "x": 276,
+      "y": 25.16,
+      "width": 379.78,
+      "height": 21.69
+     },
+     "rect": {
+      "x": 276,
+      "y": 25.16,
+      "width": 379.78,
+      "height": 21.69
+     },
+     "style": {
+      "position": "static",
+      "display": "flex",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 26.2
+  },
+  {
+   "index": 1,
+   "value": 0.05990780591964722,
+   "startTime": 826.1,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 11,
+      "tag": "div",
+      "classes": [
+       "hero-shot"
+      ],
+      "path": [
+       1,
+       0,
+       1,
+       1
+      ],
+      "selector": "body > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(2)"
+     },
+     "previousRect": {
+      "x": 20,
+      "y": 345.42,
+      "width": 1240,
+      "height": 454.58
+     },
+     "currentRect": {
+      "x": 20,
+      "y": 453.95,
+      "width": 1240,
+      "height": 346.05
+     },
+     "rect": {
+      "x": 140,
+      "y": 543.95,
+      "width": 1000,
+      "height": 365.66
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 12,
+      "tag": "#text",
+      "path": [
+       1,
+       0,
+       1,
+       0,
+       1
+      ],
+      "selector": "#hero-title",
+      "text": "Uptime you can prove to your customers"
+     },
+     "previousRect": {
+      "x": 190,
+      "y": 168.14,
+      "width": 900,
+      "height": 154.53
+     },
+     "currentRect": {
+      "x": 190,
+      "y": 172.14,
+      "width": 900,
+      "height": 154.53
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "\"Arcade Display\", system-ui, -apple-system, \"Segoe UI\", sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 13,
+      "tag": "div",
+      "classes": [
+       "hero-cta"
+      ],
+      "path": [
+       1,
+       0,
+       1,
+       0,
+       3
+      ],
+      "selector": "body > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
+      "text": "Start monitoring free"
+     },
+     "previousRect": {
+      "x": 190,
+      "y": 323.28,
+      "width": 900,
+      "height": 44
+     },
+     "currentRect": {
+      "x": 190,
+      "y": 431.81,
+      "width": 900,
+      "height": 44
+     },
+     "rect": {
+      "x": 190,
+      "y": 431.81,
+      "width": 900,
+      "height": 44
+     },
+     "style": {
+      "position": "static",
+      "display": "flex",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 14,
+      "tag": "p",
+      "classes": [
+       "hero-sub"
+      ],
+      "path": [
+       1,
+       0,
+       1,
+       0,
+       2
+      ],
+      "selector": "body > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1)",
+      "text": "Pulsebase checks your endpoints from 14 regions "
+     },
+     "previousRect": {
+      "x": 320,
+      "y": 238.41,
+      "width": 640,
+      "height": 58.88
+     },
+     "currentRect": {
+      "x": 320,
+      "y": 346.94,
+      "width": 640,
+      "height": 58.88
+     },
+     "rect": {
+      "x": 320,
+      "y": 346.94,
+      "width": 640,
+      "height": 58.88
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 826.9
+  }
+ ],
+ "resizes": [
+  {
+   "t": 24.399999991059303,
+   "node": {
+    "uid": 1,
+    "tag": "a",
+    "classes": [
+     "wordmark"
+    ],
+    "path": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "selector": "body > div:nth-of-type(1) > header:nth-of-type(1) > a:nth-of-type(1)",
+    "text": "PULSEBASE",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "before": {
+    "w": 90.02,
+    "h": 23.25
+   },
+   "after": {
+    "w": 144,
+    "h": 23.25
+   },
+   "rect": {
+    "x": 98,
+    "y": 24.38,
+    "width": 144,
+    "height": 23.25
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Pixel Mark\", monospace",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 826.0999999940395,
+   "node": {
+    "uid": 5,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "Pulsebase · Status pages your customers believe"
+   },
+   "before": {
+    "w": 1280,
+    "h": 1275.55
+   },
+   "after": {
+    "w": 1280,
+    "h": 1384.08
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 1384.08
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 826.0999999940395,
+   "node": {
+    "uid": 6,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "PULSEBASE"
+   },
+   "before": {
+    "w": 1280,
+    "h": 1275.55
+   },
+   "after": {
+    "w": 1280,
+    "h": 1384.08
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 1384.08
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 826.0999999940395,
+   "node": {
+    "uid": 7,
+    "tag": "div",
+    "classes": [
+     "shell"
+    ],
+    "path": [
+     1,
+     0
+    ],
+    "selector": "body > div:nth-of-type(1)",
+    "text": "PULSEBASE"
+   },
+   "before": {
+    "w": 1140,
+    "h": 1210.41
+   },
+   "after": {
+    "w": 1140,
+    "h": 1318.94
+   },
+   "rect": {
+    "x": 70,
+    "y": 0,
+    "width": 1140,
+    "height": 1318.94
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     70,
+     0,
+     70
+    ]
+   }
+  },
+  {
+   "t": 826.0999999940395,
+   "node": {
+    "uid": 8,
+    "tag": "section",
+    "classes": [
+     "hero"
+    ],
+    "path": [
+     1,
+     0,
+     1
+    ],
+    "selector": "body > div:nth-of-type(1) > section:nth-of-type(1)",
+    "text": "All systems normal · median check"
+   },
+   "before": {
+    "w": 1084,
+    "h": 759.08
+   },
+   "after": {
+    "w": 1084,
+    "h": 867.61
+   },
+   "rect": {
+    "x": 98,
+    "y": 72,
+    "width": 1084,
+    "height": 867.61
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 826.0999999940395,
+   "node": {
+    "uid": 9,
+    "tag": "div",
+    "classes": [
+     "hero-inner"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     0
+    ],
+    "selector": "body > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(1)",
+    "text": "All systems normal · median check"
+   },
+   "before": {
+    "w": 900,
+    "h": 285.42
+   },
+   "after": {
+    "w": 900,
+    "h": 393.95
+   },
+   "rect": {
+    "x": 190,
+    "y": 116,
+    "width": 900,
+    "height": 393.95
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     92,
+     0,
+     92
+    ]
+   }
+  },
+  {
+   "t": 826.0999999940395,
+   "node": {
+    "uid": 10,
+    "tag": "h1",
+    "id": "hero-title",
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     1
+    ],
+    "selector": "#hero-title",
+    "text": "Uptime you can prove to your customers"
+   },
+   "before": {
+    "w": 900,
+    "h": 54.27
+   },
+   "after": {
+    "w": 900,
+    "h": 162.8
+   },
+   "rect": {
+    "x": 190,
+    "y": 168.14,
+    "width": 900,
+    "height": 162.8
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Arcade Display\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     20,
+     0,
+     16,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 411.70000000298023,
+   "kind": "text",
+   "node": {
+    "uid": 3,
+    "tag": "span",
+    "id": "latency",
+    "classes": [
+     "latency"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     0,
+     1
+    ],
+    "selector": "#latency",
+    "text": "176 ms"
+   }
+  },
+  {
+   "t": 811.7999999970198,
+   "kind": "text",
+   "node": {
+    "uid": 3,
+    "tag": "span",
+    "id": "latency",
+    "classes": [
+     "latency"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     0,
+     1
+    ],
+    "selector": "#latency",
+    "text": "191 ms"
+   }
+  },
+  {
+   "t": 819.8999999910593,
+   "kind": "attr",
+   "node": {
+    "uid": 5,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "Pulsebase · Status pages your customers believe"
+   },
+   "attr": "data-fonts",
+   "value": "ready"
+  },
+  {
+   "t": 1211.7000000029802,
+   "kind": "text",
+   "node": {
+    "uid": 3,
+    "tag": "span",
+    "id": "latency",
+    "classes": [
+     "latency"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     0,
+     1
+    ],
+    "selector": "#latency",
+    "text": "168 ms"
+   }
+  },
+  {
+   "t": 1611.7000000029802,
+   "kind": "text",
+   "node": {
+    "uid": 3,
+    "tag": "span",
+    "id": "latency",
+    "classes": [
+     "latency"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     0,
+     1
+    ],
+    "selector": "#latency",
+    "text": "185 ms"
+   }
+  },
+  {
+   "t": 2011.7000000029802,
+   "kind": "text",
+   "node": {
+    "uid": 3,
+    "tag": "span",
+    "id": "latency",
+    "classes": [
+     "latency"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     0,
+     1
+    ],
+    "selector": "#latency",
+    "text": "179 ms"
+   }
+  },
+  {
+   "t": 2411.8999999910593,
+   "kind": "text",
+   "node": {
+    "uid": 3,
+    "tag": "span",
+    "id": "latency",
+    "classes": [
+     "latency"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     0,
+     1
+    ],
+    "selector": "#latency",
+    "text": "173 ms"
+   }
+  },
+  {
+   "t": 2811.7999999970198,
+   "kind": "text",
+   "node": {
+    "uid": 3,
+    "tag": "span",
+    "id": "latency",
+    "classes": [
+     "latency"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     0,
+     1
+    ],
+    "selector": "#latency",
+    "text": "188 ms"
+   }
+  },
+  {
+   "t": 3211.7999999970198,
+   "kind": "text",
+   "node": {
+    "uid": 3,
+    "tag": "span",
+    "id": "latency",
+    "classes": [
+     "latency"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     0,
+     1
+    ],
+    "selector": "#latency",
+    "text": "182 ms"
+   }
+  },
+  {
+   "t": 3611.7999999970198,
+   "kind": "text",
+   "node": {
+    "uid": 3,
+    "tag": "span",
+    "id": "latency",
+    "classes": [
+     "latency"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     0,
+     1
+    ],
+    "selector": "#latency",
+    "text": "176 ms"
+   }
+  }
+ ],
+ "media": [
+  {
+   "t": 811.5,
+   "event": "load",
+   "node": {
+    "uid": 4,
+    "tag": "img",
+    "path": [
+     1,
+     0,
+     1,
+     1,
+     1
+    ],
+    "selector": "body > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(2) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/delay/800/assets/img/hero-1200x400.png"
+    }
+   },
+   "url": "http://localhost:4310/delay/800/assets/img/hero-1200x400.png",
+   "natural": {
+    "w": 1200,
+    "h": 400
+   },
+   "size": {
+    "w": 998,
+    "h": 332.66
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js?v=4c2c34f0b506",
+   "initiator": "script",
+   "start": 6.2,
+   "end": 7.2,
+   "transferSize": 18716
+  },
+  {
+   "url": "http://localhost:4310/__reglet/overlay.js",
+   "initiator": "script",
+   "start": 13.6,
+   "end": 14.3,
+   "transferSize": 147750
+  },
+  {
+   "url": "http://localhost:4310/delay/800/assets/img/hero-1200x400.png",
+   "initiator": "img",
+   "start": 6.4,
+   "end": 810.8,
+   "transferSize": 2756
+  },
+  {
+   "url": "http://localhost:4310/delay/800/assets/fonts/press-start-2p-latin-400-normal.woff2",
+   "initiator": "css",
+   "start": 11.7,
+   "end": 817.3,
+   "transferSize": 12812
+  }
+ ],
+ "fonts": [
+  {
+   "t": 24.399999991059303,
+   "since": 14.799999997019768,
+   "event": "loaded",
+   "family": "Pixel Mark",
+   "weight": "normal",
+   "style": "normal",
+   "via": "snapshot"
+  },
+  {
+   "t": 819.7000000029802,
+   "event": "loaded",
+   "family": "Pixel Mark",
+   "weight": "normal",
+   "style": "normal",
+   "via": "event"
+  },
+  {
+   "t": 819.7000000029802,
+   "event": "loaded",
+   "family": "Arcade Display",
+   "weight": "normal",
+   "style": "normal",
+   "via": "event"
+  },
+  {
+   "t": 826.0999999940395,
+   "since": 26.200000002980232,
+   "event": "loaded",
+   "family": "Arcade Display",
+   "weight": "normal",
+   "style": "normal",
+   "via": "snapshot"
+  }
+ ],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.4000000059604645,
+  "shiftMs": 0.20000000298023224,
+  "mutationMs": 1.5999999642372131,
+  "resizeMs": 0.6000000089406967,
+  "otherMs": 0.09999999403953552,
+  "mutationCallbacks": 14,
+  "resizeCallbacks": 3,
+  "tracked": 52,
+  "untracked": 0
+ }
+}

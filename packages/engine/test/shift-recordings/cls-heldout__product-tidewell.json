@@ -1,0 +1,919 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/product-tidewell/",
+ "capturedAt": 3931.3,
+ "hookStartedAt": 10.6,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 13.7,
+  "domContentLoaded": 13.9,
+  "load": 917,
+  "firstPaint": 32,
+  "firstContentfulPaint": 32,
+  "firstFrame": 20.9
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.06311216354370117,
+   "startTime": 927.6,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 23,
+      "tag": "section",
+      "classes": [
+       "details"
+      ],
+      "path": [
+       1,
+       2,
+       3
+      ],
+      "selector": "body > main:nth-of-type(1) > section:nth-of-type(3)",
+      "text": "Details"
+     },
+     "previousRect": {
+      "x": 84,
+      "y": 592.66,
+      "width": 1112,
+      "height": 207.34
+     },
+     "currentRect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+     },
+     "rect": {
+      "x": 84,
+      "y": 952.03,
+      "width": 1112,
+      "height": 240.5
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "\"Helvetica Neue\", Helvetica, Arial, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 928.7
+  }
+ ],
+ "resizes": [
+  {
+   "t": 927.7000000029802,
+   "node": {
+    "uid": 21,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "Estuary roll-top backpack, 22 L | Tidewell"
+   },
+   "before": {
+    "w": 1280,
+    "h": 1303.16
+   },
+   "after": {
+    "w": 1280,
+    "h": 1857.03
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 1857.03
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 927.7000000029802,
+   "node": {
+    "uid": 10,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Free delivery over £60 · Repairs for life on eve"
+   },
+   "before": {
+    "w": 1280,
+    "h": 1303.16
+   },
+   "after": {
+    "w": 1280,
+    "h": 1857.03
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 1857.03
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Helvetica Neue\", Helvetica, Arial, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 927.7000000029802,
+   "node": {
+    "uid": 22,
+    "tag": "main",
+    "classes": [
+     "inner"
+    ],
+    "path": [
+     1,
+     2
+    ],
+    "selector": "body > main:nth-of-type(1)",
+    "text": "Home / Backpacks / Estuary roll-top backpack"
+   },
+   "before": {
+    "w": 1160,
+    "h": 1134.16
+   },
+   "after": {
+    "w": 1160,
+    "h": 1493.53
+   },
+   "rect": {
+    "x": 60,
+    "y": 96.5,
+    "width": 1160,
+    "height": 1493.53
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Helvetica Neue\", Helvetica, Arial, sans-serif",
+    "margin": [
+     0,
+     60,
+     0,
+     60
+    ]
+   }
+  },
+  {
+   "t": 927.7000000029802,
+   "node": {
+    "uid": 16,
+    "tag": "section",
+    "id": "recs-slot",
+    "classes": [
+     "recs"
+    ],
+    "path": [
+     1,
+     2,
+     2
+    ],
+    "selector": "#recs-slot",
+    "text": "Frequently bought together"
+   },
+   "before": {
+    "w": 1112,
+    "h": 0
+   },
+   "after": {
+    "w": 1112,
+    "h": 359.38
+   },
+   "rect": {
+    "x": 84,
+    "y": 592.66,
+    "width": 1112,
+    "height": 359.38
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Helvetica Neue\", Helvetica, Arial, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 927.7000000029802,
+   "node": {
+    "uid": 9,
+    "tag": "section",
+    "id": "recently-viewed",
+    "classes": [
+     "seen",
+     "inner"
+    ],
+    "path": [
+     1,
+     3
+    ],
+    "selector": "#recently-viewed",
+    "text": "Recently viewed"
+   },
+   "before": null,
+   "after": {
+    "w": 1160,
+    "h": 194.5
+   },
+   "rect": {
+    "x": 60,
+    "y": 1590.03,
+    "width": 1160,
+    "height": 194.5
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Helvetica Neue\", Helvetica, Arial, sans-serif",
+    "margin": [
+     0,
+     60,
+     0,
+     60
+    ]
+   }
+  },
+  {
+   "t": 927.7000000029802,
+   "node": {
+    "uid": 15,
+    "tag": "div",
+    "classes": [
+     "recs-block"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     0
+    ],
+    "selector": "#recs-slot > div:nth-of-type(1)",
+    "text": "Frequently bought together"
+   },
+   "before": null,
+   "after": {
+    "w": 1112,
+    "h": 359.38
+   },
+   "rect": {
+    "x": 84,
+    "y": 592.66,
+    "width": 1112,
+    "height": 359.38
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Helvetica Neue\", Helvetica, Arial, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 616.3000000119209,
+   "kind": "text",
+   "node": {
+    "uid": 8,
+    "tag": "div",
+    "id": "stock-status",
+    "classes": [
+     "stock",
+     "in"
+    ],
+    "path": [
+     1,
+     2,
+     1,
+     1,
+     4
+    ],
+    "selector": "#stock-status",
+    "text": "In stock, 14 left"
+   }
+  },
+  {
+   "t": 616.3000000119209,
+   "kind": "attr",
+   "node": {
+    "uid": 8,
+    "tag": "div",
+    "id": "stock-status",
+    "classes": [
+     "stock",
+     "in"
+    ],
+    "path": [
+     1,
+     2,
+     1,
+     1,
+     4
+    ],
+    "selector": "#stock-status",
+    "text": "In stock, 14 left"
+   },
+   "attr": "class",
+   "oldValue": "stock",
+   "value": "stock in"
+  },
+  {
+   "t": 915.9000000059605,
+   "kind": "add",
+   "node": {
+    "uid": 9,
+    "tag": "section",
+    "id": "recently-viewed",
+    "classes": [
+     "seen",
+     "inner"
+    ],
+    "path": [
+     1,
+     3
+    ],
+    "selector": "#recently-viewed",
+    "text": "Recently viewed"
+   },
+   "parent": {
+    "uid": 10,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Free delivery over £60 · Repairs for life on eve"
+   },
+   "stack": "    at http://localhost:4310/product-tidewell/:246:39"
+  },
+  {
+   "t": 918.8000000119209,
+   "kind": "add",
+   "node": {
+    "uid": 15,
+    "tag": "div",
+    "classes": [
+     "recs-block"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     0
+    ],
+    "selector": "#recs-slot > div:nth-of-type(1)",
+    "text": "Frequently bought together"
+   },
+   "parent": {
+    "uid": 16,
+    "tag": "section",
+    "id": "recs-slot",
+    "classes": [
+     "recs"
+    ],
+    "path": [
+     1,
+     2,
+     2
+    ],
+    "selector": "#recs-slot",
+    "text": "Frequently bought together"
+   },
+   "stack": "    at http://localhost:4310/product-tidewell/:236:12"
+  }
+ ],
+ "media": [
+  {
+   "t": 23.200000002980232,
+   "event": "load",
+   "node": {
+    "uid": 1,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     1,
+     0,
+     1,
+     2,
+     0
+    ],
+    "selector": "section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(3) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/thumb-320x240.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/thumb-320x240.png",
+   "natural": {
+    "w": 320,
+    "h": 240
+   },
+   "size": {
+    "w": 80,
+    "h": 60
+   }
+  },
+  {
+   "t": 23.400000005960464,
+   "event": "load",
+   "node": {
+    "uid": 2,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     1,
+     0,
+     1,
+     1,
+     0
+    ],
+    "selector": "section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/thumb-320x240.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/thumb-320x240.png",
+   "natural": {
+    "w": 320,
+    "h": 240
+   },
+   "size": {
+    "w": 80,
+    "h": 60
+   }
+  },
+  {
+   "t": 23.400000005960464,
+   "event": "load",
+   "node": {
+    "uid": 3,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     1,
+     0,
+     1,
+     3,
+     0
+    ],
+    "selector": "section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(4) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/thumb-320x240.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/thumb-320x240.png",
+   "natural": {
+    "w": 320,
+    "h": 240
+   },
+   "size": {
+    "w": 80,
+    "h": 60
+   }
+  },
+  {
+   "t": 23.400000005960464,
+   "event": "load",
+   "node": {
+    "uid": 4,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     1,
+     0,
+     1,
+     0,
+     0
+    ],
+    "selector": "section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/thumb-320x240.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/thumb-320x240.png",
+   "natural": {
+    "w": 320,
+    "h": 240
+   },
+   "size": {
+    "w": 80,
+    "h": 60
+   }
+  },
+  {
+   "t": 23.400000005960464,
+   "event": "load",
+   "node": {
+    "uid": 5,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     4,
+     2,
+     0,
+     0
+    ],
+    "selector": "#reviews > article:nth-of-type(2) > header:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/avatar-160.svg"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/avatar-160.svg",
+   "natural": {
+    "w": 160,
+    "h": 160
+   },
+   "size": {
+    "w": 32,
+    "h": 32
+   }
+  },
+  {
+   "t": 23.5,
+   "event": "load",
+   "node": {
+    "uid": 6,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     4,
+     1,
+     0,
+     0
+    ],
+    "selector": "#reviews > article:nth-of-type(1) > header:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/avatar-160.svg"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/avatar-160.svg",
+   "natural": {
+    "w": 160,
+    "h": 160
+   },
+   "size": {
+    "w": 32,
+    "h": 32
+   }
+  },
+  {
+   "t": 23.5,
+   "event": "load",
+   "node": {
+    "uid": 7,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     4,
+     3,
+     0,
+     0
+    ],
+    "selector": "#reviews > article:nth-of-type(3) > header:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/avatar-160.svg"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/avatar-160.svg",
+   "natural": {
+    "w": 160,
+    "h": 160
+   },
+   "size": {
+    "w": 32,
+    "h": 32
+   }
+  },
+  {
+   "t": 916.5,
+   "event": "load",
+   "node": {
+    "uid": 11,
+    "tag": "img",
+    "id": "gallery-main",
+    "classes": [
+     "gallery-main"
+    ],
+    "path": [
+     1,
+     2,
+     1,
+     0,
+     0
+    ],
+    "selector": "#gallery-main",
+    "attrs": {
+     "src": "/delay/900/assets/img/card-600x400.png"
+    }
+   },
+   "url": "http://localhost:4310/delay/900/assets/img/card-600x400.png",
+   "natural": {
+    "w": 600,
+    "h": 400
+   },
+   "size": {
+    "w": 520,
+    "h": 346.66
+   }
+  },
+  {
+   "t": 916.9000000059605,
+   "event": "load",
+   "node": {
+    "uid": 12,
+    "tag": "img",
+    "path": [
+     1,
+     3,
+     1,
+     0,
+     0
+    ],
+    "selector": "#recently-viewed > ul:nth-of-type(1) > li:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/thumb-320x240.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/thumb-320x240.png",
+   "natural": {
+    "w": 320,
+    "h": 240
+   }
+  },
+  {
+   "t": 916.9000000059605,
+   "event": "load",
+   "node": {
+    "uid": 13,
+    "tag": "img",
+    "path": [
+     1,
+     3,
+     1,
+     1,
+     0
+    ],
+    "selector": "#recently-viewed > ul:nth-of-type(1) > li:nth-of-type(2) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/thumb-320x240.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/thumb-320x240.png",
+   "natural": {
+    "w": 320,
+    "h": 240
+   }
+  },
+  {
+   "t": 917,
+   "event": "load",
+   "node": {
+    "uid": 14,
+    "tag": "img",
+    "path": [
+     1,
+     3,
+     1,
+     2,
+     0
+    ],
+    "selector": "#recently-viewed > ul:nth-of-type(1) > li:nth-of-type(3) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/thumb-320x240.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/thumb-320x240.png",
+   "natural": {
+    "w": 320,
+    "h": 240
+   }
+  },
+  {
+   "t": 919,
+   "event": "load",
+   "node": {
+    "uid": 17,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     2,
+     0,
+     1,
+     0,
+     0
+    ],
+    "selector": "#recs-slot > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/thumb-320x240.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/thumb-320x240.png",
+   "natural": {
+    "w": 320,
+    "h": 240
+   }
+  },
+  {
+   "t": 919,
+   "event": "load",
+   "node": {
+    "uid": 18,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     2,
+     0,
+     1,
+     1,
+     0
+    ],
+    "selector": "#recs-slot > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(2) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/thumb-320x240.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/thumb-320x240.png",
+   "natural": {
+    "w": 320,
+    "h": 240
+   }
+  },
+  {
+   "t": 919.1000000089407,
+   "event": "load",
+   "node": {
+    "uid": 19,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     2,
+     0,
+     1,
+     2,
+     0
+    ],
+    "selector": "#recs-slot > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(3) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/thumb-320x240.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/thumb-320x240.png",
+   "natural": {
+    "w": 320,
+    "h": 240
+   }
+  },
+  {
+   "t": 919.1000000089407,
+   "event": "load",
+   "node": {
+    "uid": 20,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     2,
+     0,
+     1,
+     3,
+     0
+    ],
+    "selector": "#recs-slot > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(4) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/thumb-320x240.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/thumb-320x240.png",
+   "natural": {
+    "w": 320,
+    "h": 240
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js?v=4c2c34f0b506",
+   "initiator": "script",
+   "start": 8.1,
+   "end": 9.3,
+   "transferSize": 18716
+  },
+  {
+   "url": "http://localhost:4310/assets/img/thumb-320x240.png",
+   "initiator": "img",
+   "start": 8.3,
+   "end": 11.9,
+   "transferSize": 1146
+  },
+  {
+   "url": "http://localhost:4310/assets/img/avatar-160.svg",
+   "initiator": "img",
+   "start": 8.3,
+   "end": 13.5,
+   "transferSize": 849
+  },
+  {
+   "url": "http://localhost:4310/__reglet/overlay.js",
+   "initiator": "script",
+   "start": 13.8,
+   "end": 14.8,
+   "transferSize": 147750
+  },
+  {
+   "url": "http://localhost:4310/delay/900/assets/img/card-600x400.png",
+   "initiator": "img",
+   "start": 8.3,
+   "end": 913.7,
+   "transferSize": 1737
+  },
+  {
+   "url": "http://localhost:4310/delay/900/assets/data/recommendations.json",
+   "initiator": "fetch",
+   "start": 13.7,
+   "end": 915.5,
+   "transferSize": 723
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.3999999910593033,
+  "shiftMs": 0.10000000894069672,
+  "mutationMs": 1.4999999850988388,
+  "resizeMs": 0.3999999910593033,
+  "otherMs": 0.4999999850988388,
+  "mutationCallbacks": 7,
+  "resizeCallbacks": 2,
+  "tracked": 118,
+  "untracked": 0
+ }
+}

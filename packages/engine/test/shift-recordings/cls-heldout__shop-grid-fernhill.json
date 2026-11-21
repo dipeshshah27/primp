@@ -1,0 +1,2042 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/shop-grid-fernhill/",
+ "capturedAt": 3926.3,
+ "hookStartedAt": 14,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 25.1,
+  "domContentLoaded": 25.3,
+  "load": 923.6,
+  "firstPaint": 36,
+  "firstContentfulPaint": 36,
+  "firstFrame": 18.6
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.11413969867229462,
+   "startTime": 920.2,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 36,
+      "tag": "div",
+      "classes": [
+       "card-body"
+      ],
+      "path": [
+       1,
+       2,
+       2,
+       1,
+       0,
+       0,
+       1
+      ],
+      "selector": "#product-grid > article:nth-of-type(1) > div:nth-of-type(1)",
+      "text": "Ridgeline two-burner stove"
+     },
+     "previousRect": {
+      "x": 327,
+      "y": 237.8,
+      "width": 578,
+      "height": 312.72
+     },
+     "currentRect": {
+      "x": 327,
+      "y": 623.13,
+      "width": 578,
+      "height": 175.58
+     },
+     "rect": {
+      "x": 327,
+      "y": 623.13,
+      "width": 578,
+      "height": 175.58
+     },
+     "style": {
+      "position": "static",
+      "display": "flex",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 7,
+      "tag": "article",
+      "classes": [
+       "card",
+       "in-view"
+      ],
+      "path": [
+       1,
+       2,
+       2,
+       1,
+       0,
+       2
+      ],
+      "selector": "#product-grid > article:nth-of-type(3)",
+      "text": "♡"
+     },
+     "previousRect": {
+      "x": 326,
+      "y": 571.52,
+      "width": 280,
+      "height": 228.48
+     },
+     "currentRect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+     },
+     "rect": {
+      "x": 326,
+      "y": 819.7,
+      "width": 280,
+      "height": 314.72
+     },
+     "style": {
+      "position": "static",
+      "display": "flex",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 8,
+      "tag": "article",
+      "classes": [
+       "card",
+       "in-view"
+      ],
+      "path": [
+       1,
+       2,
+       2,
+       1,
+       0,
+       3
+      ],
+      "selector": "#product-grid > article:nth-of-type(4)",
+      "text": "♡"
+     },
+     "previousRect": {
+      "x": 626,
+      "y": 571.52,
+      "width": 280,
+      "height": 228.48
+     },
+     "currentRect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+     },
+     "rect": {
+      "x": 626,
+      "y": 819.7,
+      "width": 280,
+      "height": 314.72
+     },
+     "style": {
+      "position": "static",
+      "display": "flex",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 9,
+      "tag": "article",
+      "classes": [
+       "card",
+       "in-view"
+      ],
+      "path": [
+       1,
+       2,
+       2,
+       1,
+       0,
+       4
+      ],
+      "selector": "#product-grid > article:nth-of-type(5)",
+      "text": "♡"
+     },
+     "previousRect": {
+      "x": 926,
+      "y": 571.52,
+      "width": 280,
+      "height": 228.48
+     },
+     "currentRect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+     },
+     "rect": {
+      "x": 926,
+      "y": 819.7,
+      "width": 280,
+      "height": 314.72
+     },
+     "style": {
+      "position": "static",
+      "display": "flex",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 39,
+      "tag": "div",
+      "classes": [
+       "price-row"
+      ],
+      "path": [
+       1,
+       2,
+       2,
+       1,
+       0,
+       1,
+       1,
+       2
+      ],
+      "selector": "#product-grid > article:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2)",
+      "text": "£11.00"
+     },
+     "previousRect": {
+      "x": 943,
+      "y": 484.77,
+      "width": 246,
+      "height": 49.75
+     },
+     "currentRect": {
+      "x": 943,
+      "y": 732.95,
+      "width": 246,
+      "height": 49.75
+     },
+     "rect": {
+      "x": 943,
+      "y": 732.95,
+      "width": 246,
+      "height": 49.75
+     },
+     "style": {
+      "position": "static",
+      "display": "flex",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 922.6
+  }
+ ],
+ "resizes": [
+  {
+   "t": 482.29999999701977,
+   "node": {
+    "uid": 13,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     0,
+     0,
+     2
+    ],
+    "selector": "#product-grid > article:nth-of-type(1) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "before": null,
+   "after": {
+    "w": 34,
+    "h": 34
+   },
+   "rect": {
+    "x": 861,
+    "y": 247.8,
+    "width": 34,
+    "height": 34
+   },
+   "style": {
+    "position": "absolute",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 482.29999999701977,
+   "node": {
+    "uid": 15,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     1,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(2) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "before": null,
+   "after": {
+    "w": 34,
+    "h": 34
+   },
+   "rect": {
+    "x": 1161,
+    "y": 247.8,
+    "width": 34,
+    "height": 34
+   },
+   "style": {
+    "position": "absolute",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 482.29999999701977,
+   "node": {
+    "uid": 17,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     2,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(3) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "before": null,
+   "after": {
+    "w": 34,
+    "h": 34
+   },
+   "rect": {
+    "x": 561,
+    "y": 582.52,
+    "width": 34,
+    "height": 34
+   },
+   "style": {
+    "position": "absolute",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 482.29999999701977,
+   "node": {
+    "uid": 19,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     3,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(4) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "before": null,
+   "after": {
+    "w": 34,
+    "h": 34
+   },
+   "rect": {
+    "x": 861,
+    "y": 582.52,
+    "width": 34,
+    "height": 34
+   },
+   "style": {
+    "position": "absolute",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 482.29999999701977,
+   "node": {
+    "uid": 21,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     4,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(5) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "before": null,
+   "after": {
+    "w": 34,
+    "h": 34
+   },
+   "rect": {
+    "x": 1161,
+    "y": 582.52,
+    "width": 34,
+    "height": 34
+   },
+   "style": {
+    "position": "absolute",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 482.29999999701977,
+   "node": {
+    "uid": 23,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     5,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(6) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "before": null,
+   "after": {
+    "w": 34,
+    "h": 34
+   },
+   "rect": {
+    "x": 561,
+    "y": 917.23,
+    "width": 34,
+    "height": 34
+   },
+   "style": {
+    "position": "absolute",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 482.29999999701977,
+   "node": {
+    "uid": 25,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     6,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(7) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "before": null,
+   "after": {
+    "w": 34,
+    "h": 34
+   },
+   "rect": {
+    "x": 861,
+    "y": 917.23,
+    "width": 34,
+    "height": 34
+   },
+   "style": {
+    "position": "absolute",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 482.29999999701977,
+   "node": {
+    "uid": 27,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     7,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(8) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "before": null,
+   "after": {
+    "w": 34,
+    "h": 34
+   },
+   "rect": {
+    "x": 1161,
+    "y": 917.23,
+    "width": 34,
+    "height": 34
+   },
+   "style": {
+    "position": "absolute",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 920.2000000029802,
+   "node": {
+    "uid": 29,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "Camp kitchen | Fernhill Supply"
+   },
+   "before": {
+    "w": 1280,
+    "h": 1518.06
+   },
+   "after": {
+    "w": 1280,
+    "h": 1766.25
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 1766.25
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 920.2000000029802,
+   "node": {
+    "uid": 30,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Fernhill Supply"
+   },
+   "before": {
+    "w": 1280,
+    "h": 1518.06
+   },
+   "after": {
+    "w": 1280,
+    "h": 1766.25
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 1766.25
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 920.2000000029802,
+   "node": {
+    "uid": 31,
+    "tag": "div",
+    "classes": [
+     "wrap"
+    ],
+    "path": [
+     1,
+     2
+    ],
+    "selector": "body > div:nth-of-type(1)",
+    "text": "Home"
+   },
+   "before": {
+    "w": 1180,
+    "h": 1240.41
+   },
+   "after": {
+    "w": 1180,
+    "h": 1488.59
+   },
+   "rect": {
+    "x": 50,
+    "y": 110.3,
+    "width": 1180,
+    "height": 1488.59
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     50,
+     0,
+     50
+    ]
+   }
+  },
+  {
+   "t": 920.2000000029802,
+   "node": {
+    "uid": 32,
+    "tag": "div",
+    "classes": [
+     "catalog"
+    ],
+    "path": [
+     1,
+     2,
+     2
+    ],
+    "selector": "body > div:nth-of-type(1) > div:nth-of-type(3)",
+    "text": "Type"
+   },
+   "before": {
+    "w": 1132,
+    "h": 1137.91
+   },
+   "after": {
+    "w": 1132,
+    "h": 1386.09
+   },
+   "rect": {
+    "x": 74,
+    "y": 212.8,
+    "width": 1132,
+    "height": 1386.09
+   },
+   "style": {
+    "position": "static",
+    "display": "grid",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 920.2000000029802,
+   "node": {
+    "uid": 33,
+    "tag": "main",
+    "path": [
+     1,
+     2,
+     2,
+     1
+    ],
+    "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > main:nth-of-type(1)",
+    "text": "Staff pick"
+   },
+   "before": {
+    "w": 880,
+    "h": 1049.91
+   },
+   "after": {
+    "w": 880,
+    "h": 1298.09
+   },
+   "rect": {
+    "x": 326,
+    "y": 236.8,
+    "width": 880,
+    "height": 1298.09
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 920.2000000029802,
+   "node": {
+    "uid": 34,
+    "tag": "div",
+    "id": "product-grid",
+    "classes": [
+     "grid"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0
+    ],
+    "selector": "#product-grid",
+    "text": "Staff pick"
+   },
+   "before": {
+    "w": 880,
+    "h": 984.16
+   },
+   "after": {
+    "w": 880,
+    "h": 1232.34
+   },
+   "rect": {
+    "x": 326,
+    "y": 236.8,
+    "width": 880,
+    "height": 1232.34
+   },
+   "style": {
+    "position": "static",
+    "display": "grid",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 920.2000000029802,
+   "node": {
+    "uid": 5,
+    "tag": "article",
+    "classes": [
+     "card",
+     "card--featured",
+     "in-view"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(1)",
+    "text": "Staff pick"
+   },
+   "before": {
+    "w": 580,
+    "h": 314.72
+   },
+   "after": {
+    "w": 580,
+    "h": 562.91
+   },
+   "rect": {
+    "x": 326,
+    "y": 236.8,
+    "width": 580,
+    "height": 562.91
+   },
+   "style": {
+    "position": "static",
+    "display": "flex",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 920.2000000029802,
+   "node": {
+    "uid": 14,
+    "tag": "a",
+    "classes": [
+     "card-media"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     0,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(1) > a:nth-of-type(1)",
+    "text": "Staff pick",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "before": {
+    "w": 578,
+    "h": 0
+   },
+   "after": {
+    "w": 578,
+    "h": 385.33
+   },
+   "rect": {
+    "x": 327,
+    "y": 237.8,
+    "width": 578,
+    "height": 385.33
+   },
+   "style": {
+    "position": "relative",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 920.2000000029802,
+   "node": {
+    "uid": 35,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     0,
+     0,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(1) > a:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/delay/900/assets/img/card-600x400.png"
+    }
+   },
+   "before": {
+    "w": 578,
+    "h": 0
+   },
+   "after": {
+    "w": 578,
+    "h": 385.33
+   },
+   "rect": {
+    "x": 327,
+    "y": 237.8,
+    "width": 578,
+    "height": 385.33
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "media": {
+    "widthAttr": false,
+    "heightAttr": false,
+    "cssWidth": "100%",
+    "cssHeight": "auto",
+    "aspectRatio": "auto"
+   }
+  },
+  {
+   "t": 920.2000000029802,
+   "node": {
+    "uid": 36,
+    "tag": "div",
+    "classes": [
+     "card-body"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(1) > div:nth-of-type(1)",
+    "text": "Ridgeline two-burner stove"
+   },
+   "before": {
+    "w": 578,
+    "h": 312.72
+   },
+   "after": {
+    "w": 578,
+    "h": 175.58
+   },
+   "rect": {
+    "x": 327,
+    "y": 623.13,
+    "width": 578,
+    "height": 175.58
+   },
+   "style": {
+    "position": "static",
+    "display": "flex",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 920.2000000029802,
+   "node": {
+    "uid": 6,
+    "tag": "article",
+    "classes": [
+     "card",
+     "in-view"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(2)",
+    "text": "♡"
+   },
+   "before": {
+    "w": 280,
+    "h": 314.72
+   },
+   "after": {
+    "w": 280,
+    "h": 562.91
+   },
+   "rect": {
+    "x": 926,
+    "y": 236.8,
+    "width": 280,
+    "height": 562.91
+   },
+   "style": {
+    "position": "static",
+    "display": "flex",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 920.2000000029802,
+   "node": {
+    "uid": 37,
+    "tag": "div",
+    "classes": [
+     "card-body"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     1,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(2) > div:nth-of-type(1)",
+    "text": "Trail enamel mug, 350 ml"
+   },
+   "before": {
+    "w": 278,
+    "h": 127.39
+   },
+   "after": {
+    "w": 278,
+    "h": 375.58
+   },
+   "rect": {
+    "x": 927,
+    "y": 423.13,
+    "width": 278,
+    "height": 375.58
+   },
+   "style": {
+    "position": "static",
+    "display": "flex",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 25.700000002980232,
+   "kind": "attr",
+   "node": {
+    "uid": 5,
+    "tag": "article",
+    "classes": [
+     "card",
+     "card--featured",
+     "in-view"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(1)",
+    "text": "Staff pick"
+   },
+   "attr": "class",
+   "oldValue": "card card--featured",
+   "value": "card card--featured in-view"
+  },
+  {
+   "t": 25.700000002980232,
+   "kind": "attr",
+   "node": {
+    "uid": 6,
+    "tag": "article",
+    "classes": [
+     "card",
+     "in-view"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(2)",
+    "text": "Trail enamel mug, 350 ml"
+   },
+   "attr": "class",
+   "oldValue": "card",
+   "value": "card in-view"
+  },
+  {
+   "t": 25.700000002980232,
+   "kind": "attr",
+   "node": {
+    "uid": 7,
+    "tag": "article",
+    "classes": [
+     "card",
+     "in-view"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     2
+    ],
+    "selector": "#product-grid > article:nth-of-type(3)",
+    "text": "Nesting pan set, three piece"
+   },
+   "attr": "class",
+   "oldValue": "card",
+   "value": "card in-view"
+  },
+  {
+   "t": 25.700000002980232,
+   "kind": "attr",
+   "node": {
+    "uid": 8,
+    "tag": "article",
+    "classes": [
+     "card",
+     "in-view"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     3
+    ],
+    "selector": "#product-grid > article:nth-of-type(4)",
+    "text": "Summit vacuum flask, 1 litre"
+   },
+   "attr": "class",
+   "oldValue": "card",
+   "value": "card in-view"
+  },
+  {
+   "t": 25.700000002980232,
+   "kind": "attr",
+   "node": {
+    "uid": 9,
+    "tag": "article",
+    "classes": [
+     "card",
+     "in-view"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     4
+    ],
+    "selector": "#product-grid > article:nth-of-type(5)",
+    "text": "Folding titanium spork"
+   },
+   "attr": "class",
+   "oldValue": "card",
+   "value": "card in-view"
+  },
+  {
+   "t": 469.8999999910593,
+   "kind": "add",
+   "node": {
+    "uid": 13,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     0,
+     0,
+     2
+    ],
+    "selector": "#product-grid > article:nth-of-type(1) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "parent": {
+    "uid": 14,
+    "tag": "a",
+    "classes": [
+     "card-media"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     0,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(1) > a:nth-of-type(1)",
+    "text": "Staff pick",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "stack": "    at http://localhost:4310/shop-grid-fernhill/:271:13\n    at NodeList.forEach (<anonymous>)\n    at http://localhost:4310/shop-grid-fernhill/:264:46"
+  },
+  {
+   "t": 469.8999999910593,
+   "kind": "add",
+   "node": {
+    "uid": 15,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     1,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(2) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "parent": {
+    "uid": 16,
+    "tag": "a",
+    "classes": [
+     "card-media"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     1,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(2) > a:nth-of-type(1)",
+    "text": "♡",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "stack": "    at http://localhost:4310/shop-grid-fernhill/:271:13\n    at NodeList.forEach (<anonymous>)\n    at http://localhost:4310/shop-grid-fernhill/:264:46"
+  },
+  {
+   "t": 469.8999999910593,
+   "kind": "add",
+   "node": {
+    "uid": 17,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     2,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(3) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "parent": {
+    "uid": 18,
+    "tag": "a",
+    "classes": [
+     "card-media"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     2,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(3) > a:nth-of-type(1)",
+    "text": "♡",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "stack": "    at http://localhost:4310/shop-grid-fernhill/:271:13\n    at NodeList.forEach (<anonymous>)\n    at http://localhost:4310/shop-grid-fernhill/:264:46"
+  },
+  {
+   "t": 469.8999999910593,
+   "kind": "add",
+   "node": {
+    "uid": 19,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     3,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(4) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "parent": {
+    "uid": 20,
+    "tag": "a",
+    "classes": [
+     "card-media"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     3,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(4) > a:nth-of-type(1)",
+    "text": "♡",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "stack": "    at http://localhost:4310/shop-grid-fernhill/:271:13\n    at NodeList.forEach (<anonymous>)\n    at http://localhost:4310/shop-grid-fernhill/:264:46"
+  },
+  {
+   "t": 469.8999999910593,
+   "kind": "add",
+   "node": {
+    "uid": 21,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     4,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(5) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "parent": {
+    "uid": 22,
+    "tag": "a",
+    "classes": [
+     "card-media"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     4,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(5) > a:nth-of-type(1)",
+    "text": "♡",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "stack": "    at http://localhost:4310/shop-grid-fernhill/:271:13\n    at NodeList.forEach (<anonymous>)\n    at http://localhost:4310/shop-grid-fernhill/:264:46"
+  },
+  {
+   "t": 469.8999999910593,
+   "kind": "add",
+   "node": {
+    "uid": 23,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     5,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(6) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "parent": {
+    "uid": 24,
+    "tag": "a",
+    "classes": [
+     "card-media"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     5,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(6) > a:nth-of-type(1)",
+    "text": "♡",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "stack": "    at http://localhost:4310/shop-grid-fernhill/:271:13\n    at NodeList.forEach (<anonymous>)\n    at http://localhost:4310/shop-grid-fernhill/:264:46"
+  },
+  {
+   "t": 469.8999999910593,
+   "kind": "add",
+   "node": {
+    "uid": 25,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     6,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(7) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "parent": {
+    "uid": 26,
+    "tag": "a",
+    "classes": [
+     "card-media"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     6,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(7) > a:nth-of-type(1)",
+    "text": "♡",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "stack": "    at http://localhost:4310/shop-grid-fernhill/:271:13\n    at NodeList.forEach (<anonymous>)\n    at http://localhost:4310/shop-grid-fernhill/:264:46"
+  },
+  {
+   "t": 469.8999999910593,
+   "kind": "add",
+   "node": {
+    "uid": 27,
+    "tag": "button",
+    "classes": [
+     "wish"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     7,
+     0,
+     1
+    ],
+    "selector": "#product-grid > article:nth-of-type(8) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "text": "♡"
+   },
+   "parent": {
+    "uid": 28,
+    "tag": "a",
+    "classes": [
+     "card-media"
+    ],
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     7,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(8) > a:nth-of-type(1)",
+    "text": "♡",
+    "attrs": {
+     "href": "#"
+    }
+   },
+   "stack": "    at http://localhost:4310/shop-grid-fernhill/:271:13\n    at NodeList.forEach (<anonymous>)\n    at http://localhost:4310/shop-grid-fernhill/:264:46"
+  },
+  {
+   "t": 922.2999999970198,
+   "kind": "text",
+   "node": {
+    "uid": 38,
+    "tag": "span",
+    "id": "cart-badge",
+    "classes": [
+     "cart-badge",
+     "bump"
+    ],
+    "path": [
+     1,
+     0,
+     0,
+     2,
+     2,
+     0
+    ],
+    "selector": "#cart-badge",
+    "text": "2"
+   }
+  },
+  {
+   "t": 922.2999999970198,
+   "kind": "attr",
+   "node": {
+    "uid": 38,
+    "tag": "span",
+    "id": "cart-badge",
+    "classes": [
+     "cart-badge",
+     "bump"
+    ],
+    "path": [
+     1,
+     0,
+     0,
+     2,
+     2,
+     0
+    ],
+    "selector": "#cart-badge",
+    "text": "2"
+   },
+   "attr": "class",
+   "oldValue": "cart-badge",
+   "value": "cart-badge bump"
+  },
+  {
+   "t": 1174.3999999910593,
+   "kind": "attr",
+   "node": {
+    "uid": 38,
+    "tag": "span",
+    "id": "cart-badge",
+    "classes": [
+     "cart-badge"
+    ],
+    "path": [
+     1,
+     0,
+     0,
+     2,
+     2,
+     0
+    ],
+    "selector": "#cart-badge",
+    "text": "2"
+   },
+   "attr": "class",
+   "oldValue": "cart-badge bump",
+   "value": "cart-badge"
+  }
+ ],
+ "media": [
+  {
+   "t": 24.899999991059303,
+   "event": "load",
+   "node": {
+    "uid": 1,
+    "tag": "img",
+    "path": [
+     1,
+     0,
+     0,
+     0,
+     0
+    ],
+    "selector": "body > header:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/logo-mark.svg"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/logo-mark.svg",
+   "natural": {
+    "w": 32,
+    "h": 32
+   },
+   "size": {
+    "w": 32,
+    "h": 32
+   }
+  },
+  {
+   "t": 25.299999997019768,
+   "event": "load",
+   "node": {
+    "uid": 2,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     2,
+     0,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(3) > a:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/card-600x400.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/card-600x400.png",
+   "natural": {
+    "w": 600,
+    "h": 400
+   },
+   "size": {
+    "w": 278,
+    "h": 185.33
+   }
+  },
+  {
+   "t": 25.399999991059303,
+   "event": "load",
+   "node": {
+    "uid": 3,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     3,
+     0,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(4) > a:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/card-600x400.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/card-600x400.png",
+   "natural": {
+    "w": 600,
+    "h": 400
+   },
+   "size": {
+    "w": 278,
+    "h": 185.33
+   }
+  },
+  {
+   "t": 25.399999991059303,
+   "event": "load",
+   "node": {
+    "uid": 4,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     4,
+     0,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(5) > a:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/card-600x400.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/card-600x400.png",
+   "natural": {
+    "w": 600,
+    "h": 400
+   },
+   "size": {
+    "w": 278,
+    "h": 185.33
+   }
+  },
+  {
+   "t": 25.799999997019768,
+   "event": "load",
+   "node": {
+    "uid": 10,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     5,
+     0,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(6) > a:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/card-600x400.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/card-600x400.png",
+   "natural": {
+    "w": 600,
+    "h": 400
+   },
+   "size": {
+    "w": 278,
+    "h": 185.33
+   }
+  },
+  {
+   "t": 25.799999997019768,
+   "event": "load",
+   "node": {
+    "uid": 11,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     6,
+     0,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(7) > a:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/card-600x400.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/card-600x400.png",
+   "natural": {
+    "w": 600,
+    "h": 400
+   },
+   "size": {
+    "w": 278,
+    "h": 185.33
+   }
+  },
+  {
+   "t": 25.799999997019768,
+   "event": "load",
+   "node": {
+    "uid": 12,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     7,
+     0,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(8) > a:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/card-600x400.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/card-600x400.png",
+   "natural": {
+    "w": 600,
+    "h": 400
+   },
+   "size": {
+    "w": 278,
+    "h": 185.33
+   }
+  },
+  {
+   "t": 923.3999999910593,
+   "event": "load",
+   "node": {
+    "uid": 40,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     1,
+     0,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(2) > a:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/delay/900/assets/img/card-600x400.png"
+    }
+   },
+   "url": "http://localhost:4310/delay/900/assets/img/card-600x400.png",
+   "natural": {
+    "w": 600,
+    "h": 400
+   },
+   "size": {
+    "w": 278,
+    "h": 185.33
+   }
+  },
+  {
+   "t": 923.3999999910593,
+   "event": "load",
+   "node": {
+    "uid": 35,
+    "tag": "img",
+    "path": [
+     1,
+     2,
+     2,
+     1,
+     0,
+     0,
+     0,
+     0
+    ],
+    "selector": "#product-grid > article:nth-of-type(1) > a:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/delay/900/assets/img/card-600x400.png"
+    }
+   },
+   "url": "http://localhost:4310/delay/900/assets/img/card-600x400.png",
+   "natural": {
+    "w": 600,
+    "h": 400
+   },
+   "size": {
+    "w": 578,
+    "h": 385.33
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js?v=4c2c34f0b506",
+   "initiator": "script",
+   "start": 11.4,
+   "end": 13,
+   "transferSize": 18716
+  },
+  {
+   "url": "http://localhost:4310/assets/img/logo-mark.svg",
+   "initiator": "img",
+   "start": 11.5,
+   "end": 14.4,
+   "transferSize": 567
+  },
+  {
+   "url": "http://localhost:4310/assets/img/card-600x400.png",
+   "initiator": "img",
+   "start": 11.6,
+   "end": 16.5,
+   "transferSize": 1737
+  },
+  {
+   "url": "http://localhost:4310/__reglet/overlay.js",
+   "initiator": "script",
+   "start": 25.1,
+   "end": 26.3,
+   "transferSize": 147750
+  },
+  {
+   "url": "http://localhost:4310/delay/900/assets/img/card-600x400.png",
+   "initiator": "img",
+   "start": 11.5,
+   "end": 918.5,
+   "transferSize": 1737
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.3999999910593033,
+  "shiftMs": 0.7999999970197678,
+  "mutationMs": 1.0999999940395355,
+  "resizeMs": 1.4999999850988388,
+  "otherMs": 0.4000000059604645,
+  "mutationCallbacks": 9,
+  "resizeCallbacks": 3,
+  "tracked": 183,
+  "untracked": 0
+ }
+}

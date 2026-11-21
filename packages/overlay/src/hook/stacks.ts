@@ -19,20 +19,31 @@ type AnyFunction = (this: Node, ...args: unknown[]) => unknown
 
 const MAX_PENDING = 200
 
+/**
+ * Frames on top of the page's own when `capture` is called straight from a wrapper: the `Error`
+ * line, `capture`, and the wrapper. Every call below keeps exactly that shape, so the recorded
+ * stack starts at the page's statement, never at a frame of this script: a frame of reglet's
+ * wrapper says nothing about who made the call, and reads as "reglet did it" downstream.
+ */
+const OWN_FRAMES = 3
+
 function capture(target: Node | null): void {
   if (!frame.seen || target === null || !target.isConnected) return
   // One stack per changed node and observer batch: a loop that appends 10,000 rows pays for one.
   if (pendingStacks.has(target) || pendingStacks.size >= MAX_PENDING) return
-  // Drop "Error" and the two wrapper frames; six frames are enough to find the caller.
-  const stack = (new Error().stack ?? '').split('\n').slice(3, 9).join('\n')
+  // Six frames are enough to find the caller.
+  const stack = (new Error().stack ?? '').split('\n').slice(OWN_FRAMES, OWN_FRAMES + 6).join('\n')
   pendingStacks.set(target, stack.slice(0, 900))
 }
 
-function wrap(proto: object, name: string, targetOf: (node: Node) => Node | null): void {
+/** `alsoParent`: the call may change the node's parent instead of the node (insertAdjacent*); record both. */
+function wrap(proto: object, name: string, targetOf: (node: Node) => Node | null, alsoParent = false): void {
   const original = (proto as Record<string, unknown>)[name]
   if (typeof original !== 'function') return
   ;(proto as Record<string, unknown>)[name] = function (this: Node, ...args: unknown[]) {
+    // Both calls are made from this frame: `capture` counts on it (see OWN_FRAMES).
     capture(targetOf(this))
+    if (alsoParent) capture(this.parentNode)
     return (original as AnyFunction).apply(this, args)
   }
 }
@@ -41,11 +52,11 @@ export function installStacks(): void {
   const self = (node: Node): Node => node
   const parent = (node: Node): Node | null => node.parentNode
   for (const name of ['appendChild', 'insertBefore', 'replaceChild']) wrap(Node.prototype, name, self)
-  for (const name of ['append', 'prepend', 'replaceChildren', 'insertAdjacentElement', 'setAttribute', 'removeAttribute']) {
+  for (const name of ['append', 'prepend', 'replaceChildren', 'setAttribute', 'removeAttribute']) {
     wrap(Element.prototype, name, self)
   }
   // "afterbegin" and "beforeend" insert into the element, the other two into its parent; record both.
-  wrap(Element.prototype, 'insertAdjacentHTML', (node) => (capture(node.parentNode), node))
+  for (const name of ['insertAdjacentHTML', 'insertAdjacentElement']) wrap(Element.prototype, name, self, true)
   for (const name of ['before', 'after', 'replaceWith']) wrap(Element.prototype, name, parent)
   for (const name of ['innerHTML', 'outerHTML']) {
     const descriptor = Object.getOwnPropertyDescriptor(Element.prototype, name)

@@ -29,12 +29,25 @@ export function nodeName(node: NodeDescriptor | null): string {
 const score = (value: number): string => (value >= 0.0995 ? value.toFixed(2) : value.toFixed(3))
 const px = (n: number): string => `${Math.round(Math.abs(n))}px`
 
-function movement(dx: number, dy: number): string {
+type Victim = ShiftIssue['victims'][number]
+
+/**
+ * A victim that left the viewport (or came into it) has an empty rectangle on one side: its
+ * distance is the measured one, a least distance, or not on record. Never read off the empty rectangle.
+ */
+export function movement(victim: Pick<Victim, 'dx' | 'dy' | 'viewport' | 'distance'>): string {
+  const { dx, dy } = victim
+  const least = victim.distance === 'at-least' ? 'at least ' : ''
   const parts: string[] = []
-  if (Math.abs(dy) >= 0.5) parts.push(`${dy < 0 ? 'up' : 'down'} ${px(dy)}`)
-  if (Math.abs(dx) >= 0.5) parts.push(`${dx < 0 ? 'left' : 'right'} ${px(dx)}`)
-  return parts.length === 0 ? 'resized' : parts.join(', ')
+  if (Math.abs(dy) >= 0.5) parts.push(`${dy < 0 ? 'up' : 'down'} ${least}${px(dy)}`)
+  if (Math.abs(dx) >= 0.5) parts.push(`${dx < 0 ? 'left' : 'right'} ${least}${px(dx)}`)
+  const where = victim.viewport === 'out' ? 'out of view' : victim.viewport === 'in' ? 'into view' : ''
+  if (victim.distance === 'unknown' || (victim.distance === 'at-least' && parts.length === 0)) return where === '' ? 'moved' : `moved ${where}`
+  if (parts.length === 0) return 'resized'
+  return where === '' ? parts.join(', ') : `${parts.join(', ')}, ${where}`
 }
+
+const visible = (rect: { width: number; height: number }): boolean => rect.width > 0 && rect.height > 0
 
 function findElement(node: NodeDescriptor | null | undefined): Element | undefined {
   if (node === null || node === undefined || node.selector === '') return undefined
@@ -49,8 +62,9 @@ function findElement(node: NodeDescriptor | null | undefined): Element | undefin
 export function outlinesOf(issue: ShiftIssue): Outline[] {
   const out: Outline[] = []
   for (const victim of issue.victims.slice(0, 6)) {
-    out.push({ kind: 'previous', rect: victim.previousRect })
-    out.push({ kind: 'current', rect: victim.currentRect, label: nodeName(victim.node) })
+    // An empty rectangle is "outside the viewport", not a box at the top-left corner.
+    if (visible(victim.previousRect)) out.push({ kind: 'previous', rect: victim.previousRect })
+    if (visible(victim.currentRect)) out.push({ kind: 'current', rect: victim.currentRect, label: nodeName(victim.node) })
   }
   if (issue.culprit !== undefined) {
     const element = findElement(issue.culprit.node)
@@ -99,7 +113,7 @@ function IssueRow({ c, issue, state }: { c: Controller; issue: ShiftIssue; state
           {victims.map((victim, index) => (
             <span key={index}>
               {index > 0 ? ', ' : ''}
-              <b>{nodeName(victim.node)}</b> {movement(victim.dx, victim.dy)}
+              <b>{nodeName(victim.node)}</b> {movement(victim)}
             </span>
           ))}
           {issue.victims.length > victims.length ? ` and ${issue.victims.length - victims.length} more` : ''}

@@ -43,7 +43,7 @@ let lastScrollAt = -Infinity
 export function installPage(): void {
   document.addEventListener(
     'visibilitychange',
-    timed('otherMs', () => {
+    timed(() => {
       if (visibility.changes.length < MAX_CHANGES) visibility.changes.push({ t: round(now()), state: document.visibilityState })
     }),
     true,
@@ -53,13 +53,13 @@ export function installPage(): void {
   })
   addEventListener(
     'resize',
-    timed('otherMs', () => {
+    timed(() => {
       if (viewportChanges.length < MAX_CHANGES) viewportChanges.push({ t: round(now()), width: innerWidth, height: innerHeight })
     }),
   )
   addEventListener(
     'scroll',
-    timed('otherMs', () => {
+    timed(() => {
       const t = now()
       if (t - lastScrollAt < 100 || scrolls.length >= MAX_CHANGES) return
       lastScrollAt = t

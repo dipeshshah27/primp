@@ -41,7 +41,7 @@ Each value is a layout-shift score as in Cumulative Layout Shift (CLS): 0 is no 
 - Trigger: font `Press Start 2P`, file `http://localhost:4310/delay/700/assets/fonts/press-start-2p-latin-400-normal.woff2`
 - Evidence:
   - `h1#title went from 800x56 to 800x112 at 723.4 ms`
-  - `font "Press Start 2P" finished loading at about 721.3 ms`
+  - `font "Press Start 2P" finished loading at about 721.3 ms (font file press-start-2p-latin-400-normal.woff2)`
   - `h1#title is set in "Press Start 2P" and nothing else about it changed in that frame`
   - `div#content moved down 56px: the same distance, and h1#title is right before it`
   - `100% of the moved area is explained directly`

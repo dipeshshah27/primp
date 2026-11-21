@@ -66,6 +66,9 @@ function onShifts(list: PerformanceObserverEntryList): void {
           node: node === null ? null : describe(node),
           previousRect: rectOf(source.previousRect),
           currentRect: rectOf(source.currentRect),
+          // The two rectangles above are clipped to the viewport: a node that was pushed out of it has
+          // an empty one. Its own box says where it went. Read-only, and a handful of nodes per entry.
+          rect: element !== null && element === node ? rectOf(element.getBoundingClientRect()) : undefined,
           ...(element === null ? {} : { style: styleOf(element, false) }),
         }
       }),
@@ -93,5 +96,5 @@ export function onShift(listener: Listener): () => void {
 
 export function installShifts(): void {
   if (!supported) return
-  new PerformanceObserver(timed('shiftMs', onShifts)).observe({ type: 'layout-shift', buffered: true })
+  new PerformanceObserver(timed(onShifts, 'shiftMs')).observe({ type: 'layout-shift', buffered: true })
 }

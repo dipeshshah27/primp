@@ -121,8 +121,17 @@ function onResize(entries: ResizeObserverEntry[]): void {
     const record: ResizeRecord = { t, node: describe(element), before, after }
     if (enriched++ < ENRICH_PER_CALLBACK) {
       record.rect = rectOf(element.getBoundingClientRect())
-      record.style = styleOf(element, true)
+      const own = (record.style = styleOf(element, true)).fontFamily
       if (isMedia(element)) record.media = mediaHints(element)
+      // Text set in another font than the block around it sits in inline children, which never get a
+      // size of their own here (a `span` in the display face, an icon in `i`, an inline link): note
+      // their fonts on the block, or a web font that swaps in there cannot be linked to the block
+      // that re-wrapped because of it. Only for an element that changed size (one that has just
+      // appeared did not re-wrap), and only its first six children; a child without a height on
+      // record is inline (or not rendered).
+      for (let child = before && element.firstElementChild, n = 0, font; child && n < 6; n++, child = child.nextElementSibling) {
+        if (!sizes.get(child)?.h && (font = getComputedStyle(child).fontFamily) !== own) (record.inlineFonts ??= []).push(font)
+      }
     }
     resizes.push(record)
   }
@@ -156,15 +165,14 @@ function onMutations(records: MutationRecord[]): void {
         if (node.nodeType !== 1 || isOwn(node)) continue
         const size = lastSize(node as Element)
         untrack(node as Element)
-        if (room()) keep({ t, kind: 'remove', node: describe(node), parent: describe(target), ...(size === undefined ? {} : { lastSize: size }) })
+        if (room()) keep({ t, kind: 'remove', node: describe(node), parent: describe(target), lastSize: size })
       }
       for (const node of record.addedNodes) {
         if (node.nodeType === 1) {
           if (isOwn(node)) continue
           track(node as Element, recording)
           if (!room()) continue
-          const stack = pendingStacks.get(target)
-          keep({ t, kind: 'add', node: describe(node), parent: describe(target), ...(stack === undefined ? {} : { stack }) })
+          keep({ t, kind: 'add', node: describe(node), parent: describe(target), stack: pendingStacks.get(target) })
         } else if (node.nodeType === 3 && target.nodeType === 1 && room()) {
           keep({ t, kind: 'text', node: describe(target) })
         }
@@ -175,7 +183,6 @@ function onMutations(records: MutationRecord[]): void {
         // The same attribute of the same element again (an animation writing `style` every frame).
         if (last !== undefined && last.kind === 'attr' && last.attr === name && last.node.uid === uidOf(target)) continue
         if (!room()) continue
-        const stack = pendingStacks.get(target)
         keep({
           t,
           kind: 'attr',
@@ -183,7 +190,7 @@ function onMutations(records: MutationRecord[]): void {
           attr: name,
           oldValue: clip(record.oldValue),
           value: clip((target as Element).getAttribute(name)),
-          ...(stack === undefined ? {} : { stack }),
+          stack: pendingStacks.get(target),
         })
       } else if (target.parentElement !== null && room()) {
         keep({ t, kind: 'text', node: describe(target.parentElement) })
@@ -195,8 +202,8 @@ function onMutations(records: MutationRecord[]): void {
 }
 
 export function installLedger(): void {
-  resizeObserver = new ResizeObserver(timed('resizeMs', onResize))
-  new MutationObserver(timed('mutationMs', onMutations)).observe(document, {
+  resizeObserver = new ResizeObserver(timed(onResize, 'resizeMs'))
+  new MutationObserver(timed(onMutations, 'mutationMs')).observe(document, {
     childList: true,
     subtree: true,
     attributes: true,

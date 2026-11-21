@@ -1,0 +1,3387 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/dashboard-orderdesk/",
+ "capturedAt": 3790,
+ "hookStartedAt": 13.1,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 25.7,
+  "domContentLoaded": 25.9,
+  "load": 782.6,
+  "firstPaint": 36,
+  "firstContentfulPaint": 36,
+  "firstFrame": 18.2
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.008829974198341368,
+   "startTime": 784.6,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 81,
+      "tag": "tbody",
+      "path": [
+       1,
+       0,
+       1,
+       2,
+       0,
+       1,
+       0,
+       1
+      ],
+      "selector": "#orders > tbody:nth-of-type(1)",
+      "text": "#KC-20418"
+     },
+     "previousRect": {
+      "x": 253,
+      "y": 284.39,
+      "width": 998,
+      "height": 376
+     },
+     "currentRect": {
+      "x": 253,
+      "y": 301.98,
+      "width": 998,
+      "height": 376
+     },
+     "rect": {
+      "x": 253,
+      "y": 301.98,
+      "width": 998,
+      "height": 376
+     },
+     "style": {
+      "position": "static",
+      "display": "table-row-group",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 82,
+      "tag": "div",
+      "classes": [
+       "table-foot"
+      ],
+      "path": [
+       1,
+       0,
+       1,
+       2,
+       0,
+       2
+      ],
+      "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(3)",
+      "text": "Showing 8 of 1,284"
+     },
+     "previousRect": {
+      "x": 253,
+      "y": 660.89,
+      "width": 998,
+      "height": 53.5
+     },
+     "currentRect": {
+      "x": 253,
+      "y": 678.48,
+      "width": 998,
+      "height": 53.5
+     },
+     "rect": {
+      "x": 253,
+      "y": 678.48,
+      "width": 998,
+      "height": 53.5
+     },
+     "style": {
+      "position": "static",
+      "display": "flex",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 83,
+      "tag": "div",
+      "classes": [
+       "side-stack"
+      ],
+      "path": [
+       1,
+       0,
+       1,
+       2,
+       1
+      ],
+      "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
+      "text": "Fulfilment queue"
+     },
+     "previousRect": {
+      "x": 252,
+      "y": 731.39,
+      "width": 1000,
+      "height": 68.61
+     },
+     "currentRect": {
+      "x": 252,
+      "y": 748.98,
+      "width": 1000,
+      "height": 51.02
+     },
+     "rect": {
+      "x": 252,
+      "y": 748.98,
+      "width": 1000,
+      "height": 325.5
+     },
+     "style": {
+      "position": "static",
+      "display": "grid",
+      "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 20,
+      "tag": "th",
+      "path": [
+       1,
+       0,
+       1,
+       2,
+       0,
+       1,
+       0,
+       0,
+       0,
+       2
+      ],
+      "selector": "#orders > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(3)",
+      "text": "Fulfilment status"
+     },
+     "previousRect": {
+      "x": 531.61,
+      "y": 246.3,
+      "width": 164.31,
+      "height": 38.09
+     },
+     "currentRect": {
+      "x": 528.47,
+      "y": 246.3,
+      "width": 174.48,
+      "height": 55.69
+     },
+     "rect": {
+      "x": 528.47,
+      "y": 246.3,
+      "width": 174.48,
+      "height": 55.69
+     },
+     "style": {
+      "position": "static",
+      "display": "table-cell",
+      "fontFamily": "\"Ledger Caps\", system-ui, -apple-system, \"Segoe UI\", sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 19,
+      "tag": "th",
+      "path": [
+       1,
+       0,
+       1,
+       2,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1
+      ],
+      "selector": "#orders > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(2)",
+      "text": "Customer name"
+     },
+     "previousRect": {
+      "x": 385.94,
+      "y": 246.3,
+      "width": 145.67,
+      "height": 38.09
+     },
+     "currentRect": {
+      "x": 379.77,
+      "y": 246.3,
+      "width": 148.7,
+      "height": 55.69
+     },
+     "rect": {
+      "x": 379.77,
+      "y": 246.3,
+      "width": 148.7,
+      "height": 55.69
+     },
+     "style": {
+      "position": "static",
+      "display": "table-cell",
+      "fontFamily": "\"Ledger Caps\", system-ui, -apple-system, \"Segoe UI\", sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 787.7
+  }
+ ],
+ "resizes": [
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 7,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "Orders · Orderdesk"
+   },
+   "before": {
+    "w": 1280,
+    "h": 1096.89
+   },
+   "after": {
+    "w": 1280,
+    "h": 1114.48
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 1114.48
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 8,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Orderdesk"
+   },
+   "before": {
+    "w": 1280,
+    "h": 1096.89
+   },
+   "after": {
+    "w": 1280,
+    "h": 1114.48
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 1114.48
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 9,
+    "tag": "div",
+    "classes": [
+     "app"
+    ],
+    "path": [
+     1,
+     0
+    ],
+    "selector": "body > div:nth-of-type(1)",
+    "text": "Orderdesk"
+   },
+   "before": {
+    "w": 1280,
+    "h": 1096.89
+   },
+   "after": {
+    "w": 1280,
+    "h": 1114.48
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 1114.48
+   },
+   "style": {
+    "position": "static",
+    "display": "grid",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 10,
+    "tag": "aside",
+    "classes": [
+     "side"
+    ],
+    "path": [
+     1,
+     0,
+     0
+    ],
+    "selector": "body > div:nth-of-type(1) > aside:nth-of-type(1)",
+    "text": "Orderdesk"
+   },
+   "before": {
+    "w": 224,
+    "h": 1096.89
+   },
+   "after": {
+    "w": 224,
+    "h": 1114.48
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 224,
+    "height": 1114.48
+   },
+   "style": {
+    "position": "static",
+    "display": "flex",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 11,
+    "tag": "div",
+    "classes": [
+     "main"
+    ],
+    "path": [
+     1,
+     0,
+     1
+    ],
+    "selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+    "text": "Orders"
+   },
+   "before": {
+    "w": 1056,
+    "h": 1096.89
+   },
+   "after": {
+    "w": 1056,
+    "h": 1114.48
+   },
+   "rect": {
+    "x": 224,
+    "y": 0,
+    "width": 1056,
+    "height": 1114.48
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 12,
+    "tag": "div",
+    "classes": [
+     "board"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2
+    ],
+    "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
+    "text": "Recent orders"
+   },
+   "before": {
+    "w": 1000,
+    "h": 871.59
+   },
+   "after": {
+    "w": 1000,
+    "h": 889.19
+   },
+   "rect": {
+    "x": 252,
+    "y": 185.3,
+    "width": 1000,
+    "height": 889.19
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     16,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 13,
+    "tag": "section",
+    "classes": [
+     "card"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0
+    ],
+    "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1)",
+    "text": "Recent orders"
+   },
+   "before": {
+    "w": 1000,
+    "h": 530.09
+   },
+   "after": {
+    "w": 1000,
+    "h": 547.69
+   },
+   "rect": {
+    "x": 252,
+    "y": 185.3,
+    "width": 1000,
+    "height": 547.69
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 14,
+    "tag": "div",
+    "classes": [
+     "table-wrap"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1
+    ],
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(2)",
+    "text": "Order number"
+   },
+   "before": {
+    "w": 998,
+    "h": 414.59
+   },
+   "after": {
+    "w": 998,
+    "h": 432.19
+   },
+   "rect": {
+    "x": 253,
+    "y": 246.3,
+    "width": 998,
+    "height": 432.19
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 15,
+    "tag": "table",
+    "id": "orders",
+    "classes": [
+     "orders"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0
+    ],
+    "selector": "#orders",
+    "text": "Order number"
+   },
+   "before": {
+    "w": 998,
+    "h": 414.59
+   },
+   "after": {
+    "w": 998,
+    "h": 432.19
+   },
+   "rect": {
+    "x": 253,
+    "y": 246.3,
+    "width": 998,
+    "height": 432.19
+   },
+   "style": {
+    "position": "static",
+    "display": "table",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 16,
+    "tag": "thead",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     0
+    ],
+    "selector": "#orders > thead:nth-of-type(1)",
+    "text": "Order number"
+   },
+   "before": {
+    "w": 998,
+    "h": 38.09
+   },
+   "after": {
+    "w": 998,
+    "h": 55.69
+   },
+   "rect": {
+    "x": 253,
+    "y": 246.3,
+    "width": 998,
+    "height": 55.69
+   },
+   "style": {
+    "position": "static",
+    "display": "table-header-group",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 17,
+    "tag": "tr",
+    "classes": [
+     "orders-head"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     0,
+     0
+    ],
+    "selector": "#orders > thead:nth-of-type(1) > tr:nth-of-type(1)",
+    "text": "Order number"
+   },
+   "before": {
+    "w": 998,
+    "h": 38.09
+   },
+   "after": {
+    "w": 998,
+    "h": 55.69
+   },
+   "rect": {
+    "x": 253,
+    "y": 246.3,
+    "width": 998,
+    "height": 55.69
+   },
+   "style": {
+    "position": "static",
+    "display": "table-row",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 18,
+    "tag": "th",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0
+    ],
+    "selector": "#orders > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(1)",
+    "text": "Order number"
+   },
+   "before": {
+    "w": 132.94,
+    "h": 38.09
+   },
+   "after": {
+    "w": 126.77,
+    "h": 55.69
+   },
+   "rect": {
+    "x": 253,
+    "y": 246.3,
+    "width": 126.77,
+    "height": 55.69
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "\"Ledger Caps\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 19,
+    "tag": "th",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "selector": "#orders > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(2)",
+    "text": "Customer name"
+   },
+   "before": {
+    "w": 145.67,
+    "h": 38.09
+   },
+   "after": {
+    "w": 148.7,
+    "h": 55.69
+   },
+   "rect": {
+    "x": 379.77,
+    "y": 246.3,
+    "width": 148.7,
+    "height": 55.69
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "\"Ledger Caps\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 20,
+    "tag": "th",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     0,
+     0,
+     2
+    ],
+    "selector": "#orders > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(3)",
+    "text": "Fulfilment status"
+   },
+   "before": {
+    "w": 164.31,
+    "h": 38.09
+   },
+   "after": {
+    "w": 174.48,
+    "h": 55.69
+   },
+   "rect": {
+    "x": 528.47,
+    "y": 246.3,
+    "width": 174.48,
+    "height": 55.69
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "\"Ledger Caps\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 21,
+    "tag": "th",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     0,
+     0,
+     3
+    ],
+    "selector": "#orders > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(4)",
+    "text": "Payment method"
+   },
+   "before": {
+    "w": 151.28,
+    "h": 38.09
+   },
+   "after": {
+    "w": 141.36,
+    "h": 55.69
+   },
+   "rect": {
+    "x": 702.95,
+    "y": 246.3,
+    "width": 141.36,
+    "height": 55.69
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "\"Ledger Caps\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 22,
+    "tag": "th",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     0,
+     0,
+     4
+    ],
+    "selector": "#orders > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(5)",
+    "text": "Shipping country"
+   },
+   "before": {
+    "w": 159.22,
+    "h": 38.09
+   },
+   "after": {
+    "w": 161.13,
+    "h": 55.69
+   },
+   "rect": {
+    "x": 844.31,
+    "y": 246.3,
+    "width": 161.13,
+    "height": 55.69
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "\"Ledger Caps\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 23,
+    "tag": "th",
+    "classes": [
+     "num"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     0,
+     0,
+     5
+    ],
+    "selector": "#orders > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(6)",
+    "text": "Order total"
+   },
+   "before": {
+    "w": 118.45,
+    "h": 38.09
+   },
+   "after": {
+    "w": 116.69,
+    "h": 55.69
+   },
+   "rect": {
+    "x": 1005.44,
+    "y": 246.3,
+    "width": 116.69,
+    "height": 55.69
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "\"Ledger Caps\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 24,
+    "tag": "th",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     0,
+     0,
+     6
+    ],
+    "selector": "#orders > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(7)",
+    "text": "Date placed"
+   },
+   "before": {
+    "w": 126.13,
+    "h": 38.09
+   },
+   "after": {
+    "w": 128.88,
+    "h": 55.69
+   },
+   "rect": {
+    "x": 1122.13,
+    "y": 246.3,
+    "width": 128.88,
+    "height": 55.69
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "\"Ledger Caps\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 25,
+    "tag": "td",
+    "classes": [
+     "id"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     0,
+     0
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1)",
+    "text": "#KC-20418"
+   },
+   "before": {
+    "w": 132.94,
+    "h": 47
+   },
+   "after": {
+    "w": 126.77,
+    "h": 47
+   },
+   "rect": {
+    "x": 253,
+    "y": 301.98,
+    "width": 126.77,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 26,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     0,
+     1
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(2)",
+    "text": "Imogen Hartley"
+   },
+   "before": {
+    "w": 145.67,
+    "h": 47
+   },
+   "after": {
+    "w": 148.7,
+    "h": 47
+   },
+   "rect": {
+    "x": 379.77,
+    "y": 301.98,
+    "width": 148.7,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 27,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     0,
+     2
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(3)",
+    "text": "Packed"
+   },
+   "before": {
+    "w": 164.31,
+    "h": 47
+   },
+   "after": {
+    "w": 174.48,
+    "h": 47
+   },
+   "rect": {
+    "x": 528.47,
+    "y": 301.98,
+    "width": 174.48,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 28,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     0,
+     3
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(4)",
+    "text": "Card"
+   },
+   "before": {
+    "w": 151.28,
+    "h": 47
+   },
+   "after": {
+    "w": 141.36,
+    "h": 47
+   },
+   "rect": {
+    "x": 702.95,
+    "y": 301.98,
+    "width": 141.36,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 29,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     0,
+     4
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(5)",
+    "text": "United Kingdom"
+   },
+   "before": {
+    "w": 159.22,
+    "h": 47
+   },
+   "after": {
+    "w": 161.13,
+    "h": 47
+   },
+   "rect": {
+    "x": 844.31,
+    "y": 301.98,
+    "width": 161.13,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 30,
+    "tag": "td",
+    "classes": [
+     "num"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     0,
+     5
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(6)",
+    "text": "£142.00"
+   },
+   "before": {
+    "w": 118.45,
+    "h": 47
+   },
+   "after": {
+    "w": 116.69,
+    "h": 47
+   },
+   "rect": {
+    "x": 1005.44,
+    "y": 301.98,
+    "width": 116.69,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 31,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     0,
+     6
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(7)",
+    "text": "12 Mar, 09:14"
+   },
+   "before": {
+    "w": 126.13,
+    "h": 47
+   },
+   "after": {
+    "w": 128.88,
+    "h": 47
+   },
+   "rect": {
+    "x": 1122.13,
+    "y": 301.98,
+    "width": 128.88,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 32,
+    "tag": "td",
+    "classes": [
+     "id"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     1,
+     0
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(1)",
+    "text": "#KC-20417"
+   },
+   "before": {
+    "w": 132.94,
+    "h": 47
+   },
+   "after": {
+    "w": 126.77,
+    "h": 47
+   },
+   "rect": {
+    "x": 253,
+    "y": 348.98,
+    "width": 126.77,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 33,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     1,
+     1
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(2)",
+    "text": "Dawit Bekele"
+   },
+   "before": {
+    "w": 145.67,
+    "h": 47
+   },
+   "after": {
+    "w": 148.7,
+    "h": 47
+   },
+   "rect": {
+    "x": 379.77,
+    "y": 348.98,
+    "width": 148.7,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 34,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     1,
+     2
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(3)",
+    "text": "Awaiting stock"
+   },
+   "before": {
+    "w": 164.31,
+    "h": 47
+   },
+   "after": {
+    "w": 174.48,
+    "h": 47
+   },
+   "rect": {
+    "x": 528.47,
+    "y": 348.98,
+    "width": 174.48,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 35,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     1,
+     3
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(4)",
+    "text": "PayPal"
+   },
+   "before": {
+    "w": 151.28,
+    "h": 47
+   },
+   "after": {
+    "w": 141.36,
+    "h": 47
+   },
+   "rect": {
+    "x": 702.95,
+    "y": 348.98,
+    "width": 141.36,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 36,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     1,
+     4
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(5)",
+    "text": "Germany"
+   },
+   "before": {
+    "w": 159.22,
+    "h": 47
+   },
+   "after": {
+    "w": 161.13,
+    "h": 47
+   },
+   "rect": {
+    "x": 844.31,
+    "y": 348.98,
+    "width": 161.13,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 37,
+    "tag": "td",
+    "classes": [
+     "num"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     1,
+     5
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(6)",
+    "text": "£58.50"
+   },
+   "before": {
+    "w": 118.45,
+    "h": 47
+   },
+   "after": {
+    "w": 116.69,
+    "h": 47
+   },
+   "rect": {
+    "x": 1005.44,
+    "y": 348.98,
+    "width": 116.69,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 38,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     1,
+     6
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(7)",
+    "text": "12 Mar, 08:52"
+   },
+   "before": {
+    "w": 126.13,
+    "h": 47
+   },
+   "after": {
+    "w": 128.88,
+    "h": 47
+   },
+   "rect": {
+    "x": 1122.13,
+    "y": 348.98,
+    "width": 128.88,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 39,
+    "tag": "td",
+    "classes": [
+     "id"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     2,
+     0
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(3) > td:nth-of-type(1)",
+    "text": "#KC-20416"
+   },
+   "before": {
+    "w": 132.94,
+    "h": 47
+   },
+   "after": {
+    "w": 126.77,
+    "h": 47
+   },
+   "rect": {
+    "x": 253,
+    "y": 395.98,
+    "width": 126.77,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 40,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     2,
+     1
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(3) > td:nth-of-type(2)",
+    "text": "Sofia Lindqvist"
+   },
+   "before": {
+    "w": 145.67,
+    "h": 47
+   },
+   "after": {
+    "w": 148.7,
+    "h": 47
+   },
+   "rect": {
+    "x": 379.77,
+    "y": 395.98,
+    "width": 148.7,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 41,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     2,
+     2
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(3) > td:nth-of-type(3)",
+    "text": "Shipped"
+   },
+   "before": {
+    "w": 164.31,
+    "h": 47
+   },
+   "after": {
+    "w": 174.48,
+    "h": 47
+   },
+   "rect": {
+    "x": 528.47,
+    "y": 395.98,
+    "width": 174.48,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 42,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     2,
+     3
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(3) > td:nth-of-type(4)",
+    "text": "Card"
+   },
+   "before": {
+    "w": 151.28,
+    "h": 47
+   },
+   "after": {
+    "w": 141.36,
+    "h": 47
+   },
+   "rect": {
+    "x": 702.95,
+    "y": 395.98,
+    "width": 141.36,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 43,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     2,
+     4
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(3) > td:nth-of-type(5)",
+    "text": "Sweden"
+   },
+   "before": {
+    "w": 159.22,
+    "h": 47
+   },
+   "after": {
+    "w": 161.13,
+    "h": 47
+   },
+   "rect": {
+    "x": 844.31,
+    "y": 395.98,
+    "width": 161.13,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 44,
+    "tag": "td",
+    "classes": [
+     "num"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     2,
+     5
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(3) > td:nth-of-type(6)",
+    "text": "£219.99"
+   },
+   "before": {
+    "w": 118.45,
+    "h": 47
+   },
+   "after": {
+    "w": 116.69,
+    "h": 47
+   },
+   "rect": {
+    "x": 1005.44,
+    "y": 395.98,
+    "width": 116.69,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 45,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     2,
+     6
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(3) > td:nth-of-type(7)",
+    "text": "12 Mar, 08:40"
+   },
+   "before": {
+    "w": 126.13,
+    "h": 47
+   },
+   "after": {
+    "w": 128.88,
+    "h": 47
+   },
+   "rect": {
+    "x": 1122.13,
+    "y": 395.98,
+    "width": 128.88,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 46,
+    "tag": "td",
+    "classes": [
+     "id"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     3,
+     0
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(4) > td:nth-of-type(1)",
+    "text": "#KC-20415"
+   },
+   "before": {
+    "w": 132.94,
+    "h": 47
+   },
+   "after": {
+    "w": 126.77,
+    "h": 47
+   },
+   "rect": {
+    "x": 253,
+    "y": 442.98,
+    "width": 126.77,
+    "height": 47
+   },
+   "style": {
+    "position": "static",
+    "display": "table-cell",
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 47,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     3,
+     1
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(4) > td:nth-of-type(2)",
+    "text": "Marcus Oyelowo"
+   },
+   "before": {
+    "w": 145.67,
+    "h": 47
+   },
+   "after": {
+    "w": 148.7,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 48,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     3,
+     2
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(4) > td:nth-of-type(3)",
+    "text": "On hold"
+   },
+   "before": {
+    "w": 164.31,
+    "h": 47
+   },
+   "after": {
+    "w": 174.48,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 49,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     3,
+     3
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(4) > td:nth-of-type(4)",
+    "text": "Bank transfer"
+   },
+   "before": {
+    "w": 151.28,
+    "h": 47
+   },
+   "after": {
+    "w": 141.36,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 50,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     3,
+     4
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(4) > td:nth-of-type(5)",
+    "text": "Ireland"
+   },
+   "before": {
+    "w": 159.22,
+    "h": 47
+   },
+   "after": {
+    "w": 161.13,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 51,
+    "tag": "td",
+    "classes": [
+     "num"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     3,
+     5
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(4) > td:nth-of-type(6)",
+    "text": "£1,040.00"
+   },
+   "before": {
+    "w": 118.45,
+    "h": 47
+   },
+   "after": {
+    "w": 116.69,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 52,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     3,
+     6
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(4) > td:nth-of-type(7)",
+    "text": "12 Mar, 07:58"
+   },
+   "before": {
+    "w": 126.13,
+    "h": 47
+   },
+   "after": {
+    "w": 128.88,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 53,
+    "tag": "td",
+    "classes": [
+     "id"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     4,
+     0
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(5) > td:nth-of-type(1)",
+    "text": "#KC-20414"
+   },
+   "before": {
+    "w": 132.94,
+    "h": 47
+   },
+   "after": {
+    "w": 126.77,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 54,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     4,
+     1
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(5) > td:nth-of-type(2)",
+    "text": "Hana Kobayashi"
+   },
+   "before": {
+    "w": 145.67,
+    "h": 47
+   },
+   "after": {
+    "w": 148.7,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 55,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     4,
+     2
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(5) > td:nth-of-type(3)",
+    "text": "Packed"
+   },
+   "before": {
+    "w": 164.31,
+    "h": 47
+   },
+   "after": {
+    "w": 174.48,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 56,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     4,
+     3
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(5) > td:nth-of-type(4)",
+    "text": "Card"
+   },
+   "before": {
+    "w": 151.28,
+    "h": 47
+   },
+   "after": {
+    "w": 141.36,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 57,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     4,
+     4
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(5) > td:nth-of-type(5)",
+    "text": "Japan"
+   },
+   "before": {
+    "w": 159.22,
+    "h": 47
+   },
+   "after": {
+    "w": 161.13,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 58,
+    "tag": "td",
+    "classes": [
+     "num"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     4,
+     5
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(5) > td:nth-of-type(6)",
+    "text": "£76.20"
+   },
+   "before": {
+    "w": 118.45,
+    "h": 47
+   },
+   "after": {
+    "w": 116.69,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 59,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     4,
+     6
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(5) > td:nth-of-type(7)",
+    "text": "11 Mar, 22:31"
+   },
+   "before": {
+    "w": 126.13,
+    "h": 47
+   },
+   "after": {
+    "w": 128.88,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 60,
+    "tag": "td",
+    "classes": [
+     "id"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     5,
+     0
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(6) > td:nth-of-type(1)",
+    "text": "#KC-20413"
+   },
+   "before": {
+    "w": 132.94,
+    "h": 47
+   },
+   "after": {
+    "w": 126.77,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 61,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     5,
+     1
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(6) > td:nth-of-type(2)",
+    "text": "Tomás Herrera"
+   },
+   "before": {
+    "w": 145.67,
+    "h": 47
+   },
+   "after": {
+    "w": 148.7,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 62,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     5,
+     2
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(6) > td:nth-of-type(3)",
+    "text": "Shipped"
+   },
+   "before": {
+    "w": 164.31,
+    "h": 47
+   },
+   "after": {
+    "w": 174.48,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 63,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     5,
+     3
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(6) > td:nth-of-type(4)",
+    "text": "Card"
+   },
+   "before": {
+    "w": 151.28,
+    "h": 47
+   },
+   "after": {
+    "w": 141.36,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 64,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     5,
+     4
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(6) > td:nth-of-type(5)",
+    "text": "Spain"
+   },
+   "before": {
+    "w": 159.22,
+    "h": 47
+   },
+   "after": {
+    "w": 161.13,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 65,
+    "tag": "td",
+    "classes": [
+     "num"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     5,
+     5
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(6) > td:nth-of-type(6)",
+    "text": "£33.00"
+   },
+   "before": {
+    "w": 118.45,
+    "h": 47
+   },
+   "after": {
+    "w": 116.69,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 66,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     5,
+     6
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(6) > td:nth-of-type(7)",
+    "text": "11 Mar, 21:07"
+   },
+   "before": {
+    "w": 126.13,
+    "h": 47
+   },
+   "after": {
+    "w": 128.88,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 67,
+    "tag": "td",
+    "classes": [
+     "id"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     6,
+     0
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(7) > td:nth-of-type(1)",
+    "text": "#KC-20412"
+   },
+   "before": {
+    "w": 132.94,
+    "h": 47
+   },
+   "after": {
+    "w": 126.77,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 68,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     6,
+     1
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(7) > td:nth-of-type(2)",
+    "text": "Priya Nair"
+   },
+   "before": {
+    "w": 145.67,
+    "h": 47
+   },
+   "after": {
+    "w": 148.7,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 69,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     6,
+     2
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(7) > td:nth-of-type(3)",
+    "text": "Shipped"
+   },
+   "before": {
+    "w": 164.31,
+    "h": 47
+   },
+   "after": {
+    "w": 174.48,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 70,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     6,
+     3
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(7) > td:nth-of-type(4)",
+    "text": "Apple Pay"
+   },
+   "before": {
+    "w": 151.28,
+    "h": 47
+   },
+   "after": {
+    "w": 141.36,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 71,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     6,
+     4
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(7) > td:nth-of-type(5)",
+    "text": "United Kingdom"
+   },
+   "before": {
+    "w": 159.22,
+    "h": 47
+   },
+   "after": {
+    "w": 161.13,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 72,
+    "tag": "td",
+    "classes": [
+     "num"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     6,
+     5
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(7) > td:nth-of-type(6)",
+    "text": "£88.75"
+   },
+   "before": {
+    "w": 118.45,
+    "h": 47
+   },
+   "after": {
+    "w": 116.69,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 73,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     6,
+     6
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(7) > td:nth-of-type(7)",
+    "text": "11 Mar, 19:45"
+   },
+   "before": {
+    "w": 126.13,
+    "h": 47
+   },
+   "after": {
+    "w": 128.88,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 74,
+    "tag": "td",
+    "classes": [
+     "id"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     7,
+     0
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(8) > td:nth-of-type(1)",
+    "text": "#KC-20411"
+   },
+   "before": {
+    "w": 132.94,
+    "h": 47
+   },
+   "after": {
+    "w": 126.77,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 75,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     7,
+     1
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(8) > td:nth-of-type(2)",
+    "text": "Léa Fontaine"
+   },
+   "before": {
+    "w": 145.67,
+    "h": 47
+   },
+   "after": {
+    "w": 148.7,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 76,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     7,
+     2
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(8) > td:nth-of-type(3)",
+    "text": "Awaiting stock"
+   },
+   "before": {
+    "w": 164.31,
+    "h": 47
+   },
+   "after": {
+    "w": 174.48,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 77,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     7,
+     3
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(8) > td:nth-of-type(4)",
+    "text": "Card"
+   },
+   "before": {
+    "w": 151.28,
+    "h": 47
+   },
+   "after": {
+    "w": 141.36,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 78,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     7,
+     4
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(8) > td:nth-of-type(5)",
+    "text": "France"
+   },
+   "before": {
+    "w": 159.22,
+    "h": 47
+   },
+   "after": {
+    "w": 161.13,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 79,
+    "tag": "td",
+    "classes": [
+     "num"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     7,
+     5
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(8) > td:nth-of-type(6)",
+    "text": "£410.00"
+   },
+   "before": {
+    "w": 118.45,
+    "h": 47
+   },
+   "after": {
+    "w": 116.69,
+    "h": 47
+   }
+  },
+  {
+   "t": 784.7999999970198,
+   "node": {
+    "uid": 80,
+    "tag": "td",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     7,
+     6
+    ],
+    "selector": "#orders > tbody:nth-of-type(1) > tr:nth-of-type(8) > td:nth-of-type(7)",
+    "text": "11 Mar, 18:02"
+   },
+   "before": {
+    "w": 126.13,
+    "h": 47
+   },
+   "after": {
+    "w": 128.88,
+    "h": 47
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 521.7000000029802,
+   "kind": "attr",
+   "node": {
+    "uid": 3,
+    "tag": "canvas",
+    "id": "hourly",
+    "path": [
+     1,
+     0,
+     1,
+     2,
+     1,
+     1,
+     1,
+     0
+    ],
+    "selector": "#hourly"
+   },
+   "attr": "data-drawn",
+   "value": "true"
+  },
+  {
+   "t": 770.4000000059605,
+   "kind": "text",
+   "node": {
+    "uid": 4,
+    "tag": "div",
+    "id": "kpi-revenue",
+    "classes": [
+     "value"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     1,
+     0,
+     1,
+     0
+    ],
+    "selector": "#kpi-revenue",
+    "text": "£48,960"
+   }
+  },
+  {
+   "t": 770.4000000059605,
+   "kind": "text",
+   "node": {
+    "uid": 5,
+    "tag": "div",
+    "id": "kpi-orders",
+    "classes": [
+     "value"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     1,
+     1,
+     1,
+     0
+    ],
+    "selector": "#kpi-orders",
+    "text": "1,291"
+   }
+  },
+  {
+   "t": 770.4000000059605,
+   "kind": "text",
+   "node": {
+    "uid": 6,
+    "tag": "span",
+    "id": "open-count",
+    "classes": [
+     "n"
+    ],
+    "path": [
+     1,
+     0,
+     0,
+     2,
+     1
+    ],
+    "selector": "#open-count",
+    "text": "66"
+   }
+  },
+  {
+   "t": 1018.5999999940395,
+   "kind": "text",
+   "node": {
+    "uid": 84,
+    "tag": "span",
+    "id": "sync",
+    "classes": [
+     "sync"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     4
+    ],
+    "selector": "#sync",
+    "text": "Synced 1 s ago"
+   }
+  },
+  {
+   "t": 2019.7000000029802,
+   "kind": "text",
+   "node": {
+    "uid": 84,
+    "tag": "span",
+    "id": "sync",
+    "classes": [
+     "sync"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     4
+    ],
+    "selector": "#sync",
+    "text": "Synced 2 s ago"
+   }
+  },
+  {
+   "t": 3020.4000000059605,
+   "kind": "text",
+   "node": {
+    "uid": 84,
+    "tag": "span",
+    "id": "sync",
+    "classes": [
+     "sync"
+    ],
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     4
+    ],
+    "selector": "#sync",
+    "text": "Synced 3 s ago"
+   }
+  }
+ ],
+ "media": [
+  {
+   "t": 25.599999994039536,
+   "event": "load",
+   "node": {
+    "uid": 1,
+    "tag": "img",
+    "path": [
+     1,
+     0,
+     0,
+     0,
+     0
+    ],
+    "selector": "body > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/logo-mark.svg"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/logo-mark.svg",
+   "natural": {
+    "w": 32,
+    "h": 32
+   },
+   "size": {
+    "w": 28,
+    "h": 28
+   }
+  },
+  {
+   "t": 26,
+   "event": "load",
+   "node": {
+    "uid": 2,
+    "tag": "img",
+    "path": [
+     1,
+     0,
+     1,
+     0,
+     5,
+     0
+    ],
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > a:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/avatar-160.svg"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/avatar-160.svg",
+   "natural": {
+    "w": 160,
+    "h": 160
+   },
+   "size": {
+    "w": 34,
+    "h": 34
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js?v=4c2c34f0b506",
+   "initiator": "script",
+   "start": 10.5,
+   "end": 12,
+   "transferSize": 18716
+  },
+  {
+   "url": "http://localhost:4310/assets/img/logo-mark.svg",
+   "initiator": "img",
+   "start": 10.5,
+   "end": 13.8,
+   "transferSize": 567
+  },
+  {
+   "url": "http://localhost:4310/assets/img/avatar-160.svg",
+   "initiator": "img",
+   "start": 10.6,
+   "end": 16.3,
+   "transferSize": 849
+  },
+  {
+   "url": "http://localhost:4310/__reglet/overlay.js",
+   "initiator": "script",
+   "start": 25.8,
+   "end": 27.1,
+   "transferSize": 147750
+  },
+  {
+   "url": "http://localhost:4310/delay/750/assets/fonts/press-start-2p-latin-400-normal.woff2",
+   "initiator": "css",
+   "start": 19.2,
+   "end": 781,
+   "transferSize": 12812
+  }
+ ],
+ "fonts": [
+  {
+   "t": 784.7999999970198,
+   "since": 24.099999994039536,
+   "event": "loaded",
+   "family": "Ledger Caps",
+   "weight": "normal",
+   "style": "normal",
+   "via": "snapshot"
+  },
+  {
+   "t": 787.7000000029802,
+   "event": "loaded",
+   "family": "Ledger Caps",
+   "weight": "normal",
+   "style": "normal",
+   "via": "event"
+  }
+ ],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.4000000059604645,
+  "shiftMs": 0.20000000298023224,
+  "mutationMs": 2.2999999672174454,
+  "resizeMs": 2,
+  "otherMs": 0.29999998211860657,
+  "mutationCallbacks": 10,
+  "resizeCallbacks": 2,
+  "tracked": 157,
+  "untracked": 0
+ }
+}

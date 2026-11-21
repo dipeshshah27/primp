@@ -1,0 +1,759 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/recipe-saltwater-kitchen/",
+ "capturedAt": 3840.8,
+ "hookStartedAt": 19.6,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 25.8,
+  "domContentLoaded": 26.1,
+  "load": 834.6,
+  "firstPaint": 32,
+  "firstContentfulPaint": 32,
+  "firstFrame": 22.4
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.04638647460937499,
+   "startTime": 838,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 18,
+      "tag": "div",
+      "classes": [
+       "recipe-columns"
+      ],
+      "path": [
+       1,
+       1,
+       3
+      ],
+      "selector": "body > main:nth-of-type(1) > div:nth-of-type(2)",
+      "text": "Ingredients"
+     },
+     "previousRect": {
+      "x": 144,
+      "y": 686.55,
+      "width": 992,
+      "height": 113.45
+     },
+     "currentRect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+     },
+     "style": {
+      "position": "static",
+      "display": "grid",
+      "fontFamily": "\"Helvetica Neue\", Helvetica, Arial, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 19,
+      "tag": "p",
+      "classes": [
+       "caption"
+      ],
+      "path": [
+       1,
+       1,
+       2,
+       2
+      ],
+      "selector": "body > main:nth-of-type(1) > section:nth-of-type(2) > p:nth-of-type(1)",
+      "text": "Filmed in our test kitchen. The dough in the vid"
+     },
+     "previousRect": {
+      "x": 144,
+      "y": 638.86,
+      "width": 992,
+      "height": 21.69
+     },
+     "currentRect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "\"Helvetica Neue\", Helvetica, Arial, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 839
+  }
+ ],
+ "resizes": [
+  {
+   "t": 838,
+   "node": {
+    "uid": 13,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "Overnight olive oil focaccia | Saltwater Kitchen"
+   },
+   "before": {
+    "w": 1280,
+    "h": 1823.11
+   },
+   "after": {
+    "w": 1280,
+    "h": 2277.11
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 2277.11
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 838,
+   "node": {
+    "uid": 14,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Saltwater"
+   },
+   "before": {
+    "w": 1280,
+    "h": 1823.11
+   },
+   "after": {
+    "w": 1280,
+    "h": 2277.11
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 2277.11
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Helvetica Neue\", Helvetica, Arial, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 838,
+   "node": {
+    "uid": 15,
+    "tag": "main",
+    "classes": [
+     "container"
+    ],
+    "path": [
+     1,
+     1
+    ],
+    "selector": "body > main:nth-of-type(1)",
+    "text": "Recipes"
+   },
+   "before": {
+    "w": 1040,
+    "h": 1692.97
+   },
+   "after": {
+    "w": 1040,
+    "h": 2146.97
+   },
+   "rect": {
+    "x": 120,
+    "y": 65,
+    "width": 1040,
+    "height": 2146.97
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Helvetica Neue\", Helvetica, Arial, sans-serif",
+    "margin": [
+     0,
+     120,
+     0,
+     120
+    ]
+   }
+  },
+  {
+   "t": 838,
+   "node": {
+    "uid": 16,
+    "tag": "section",
+    "classes": [
+     "watch"
+    ],
+    "path": [
+     1,
+     1,
+     2
+    ],
+    "selector": "body > main:nth-of-type(1) > section:nth-of-type(2)",
+    "text": "Watch: the four folds in ninety seconds"
+   },
+   "before": {
+    "w": 992,
+    "h": 257.78
+   },
+   "after": {
+    "w": 992,
+    "h": 711.78
+   },
+   "rect": {
+    "x": 144,
+    "y": 428.77,
+    "width": 992,
+    "height": 711.78
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Helvetica Neue\", Helvetica, Arial, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 838,
+   "node": {
+    "uid": 17,
+    "tag": "div",
+    "classes": [
+     "embed-frame"
+    ],
+    "path": [
+     1,
+     1,
+     2,
+     1
+    ],
+    "selector": "body > main:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1)"
+   },
+   "before": {
+    "w": 992,
+    "h": 150
+   },
+   "after": {
+    "w": 992,
+    "h": 604
+   },
+   "rect": {
+    "x": 144,
+    "y": 478.86,
+    "width": 992,
+    "height": 604
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Helvetica Neue\", Helvetica, Arial, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 838,
+   "node": {
+    "uid": 12,
+    "tag": "iframe",
+    "classes": [
+     "video-embed"
+    ],
+    "path": [
+     1,
+     1,
+     2,
+     1,
+     0
+    ],
+    "selector": "body > main:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1) > iframe:nth-of-type(1)",
+    "attrs": {
+     "src": "/delay/800/recipe-saltwater-kitchen/embed.html"
+    }
+   },
+   "before": {
+    "w": 992,
+    "h": 150
+   },
+   "after": {
+    "w": 992,
+    "h": 604
+   },
+   "rect": {
+    "x": 144,
+    "y": 478.86,
+    "width": 992,
+    "height": 604
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Helvetica Neue\", Helvetica, Arial, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "media": {
+    "widthAttr": false,
+    "heightAttr": false,
+    "cssWidth": "100%",
+    "cssHeight": "604px",
+    "aspectRatio": "auto"
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 523.6999999880791,
+   "kind": "text",
+   "node": {
+    "uid": 2,
+    "tag": "output",
+    "id": "trays",
+    "path": [
+     1,
+     1,
+     3,
+     0,
+     1,
+     1
+    ],
+    "selector": "#trays",
+    "text": "1"
+   }
+  },
+  {
+   "t": 523.6999999880791,
+   "kind": "text",
+   "node": {
+    "uid": 3,
+    "tag": "span",
+    "classes": [
+     "qty"
+    ],
+    "path": [
+     1,
+     1,
+     3,
+     0,
+     2,
+     0,
+     0
+    ],
+    "selector": "#ingredient-list > li:nth-of-type(1) > span:nth-of-type(1)",
+    "text": "500 g"
+   }
+  },
+  {
+   "t": 523.6999999880791,
+   "kind": "text",
+   "node": {
+    "uid": 4,
+    "tag": "span",
+    "classes": [
+     "qty"
+    ],
+    "path": [
+     1,
+     1,
+     3,
+     0,
+     2,
+     1,
+     0
+    ],
+    "selector": "#ingredient-list > li:nth-of-type(2) > span:nth-of-type(1)",
+    "text": "400 g"
+   }
+  },
+  {
+   "t": 523.6999999880791,
+   "kind": "text",
+   "node": {
+    "uid": 5,
+    "tag": "span",
+    "classes": [
+     "qty"
+    ],
+    "path": [
+     1,
+     1,
+     3,
+     0,
+     2,
+     2,
+     0
+    ],
+    "selector": "#ingredient-list > li:nth-of-type(3) > span:nth-of-type(1)",
+    "text": "10 g"
+   }
+  },
+  {
+   "t": 523.6999999880791,
+   "kind": "text",
+   "node": {
+    "uid": 6,
+    "tag": "span",
+    "classes": [
+     "qty"
+    ],
+    "path": [
+     1,
+     1,
+     3,
+     0,
+     2,
+     3,
+     0
+    ],
+    "selector": "#ingredient-list > li:nth-of-type(4) > span:nth-of-type(1)",
+    "text": "4 g"
+   }
+  },
+  {
+   "t": 523.6999999880791,
+   "kind": "text",
+   "node": {
+    "uid": 7,
+    "tag": "span",
+    "classes": [
+     "qty"
+    ],
+    "path": [
+     1,
+     1,
+     3,
+     0,
+     2,
+     4,
+     0
+    ],
+    "selector": "#ingredient-list > li:nth-of-type(5) > span:nth-of-type(1)",
+    "text": "60 g"
+   }
+  },
+  {
+   "t": 523.6999999880791,
+   "kind": "text",
+   "node": {
+    "uid": 8,
+    "tag": "span",
+    "classes": [
+     "qty"
+    ],
+    "path": [
+     1,
+     1,
+     3,
+     0,
+     2,
+     5,
+     0
+    ],
+    "selector": "#ingredient-list > li:nth-of-type(6) > span:nth-of-type(1)",
+    "text": "5 g"
+   }
+  },
+  {
+   "t": 523.6999999880791,
+   "kind": "text",
+   "node": {
+    "uid": 9,
+    "tag": "span",
+    "classes": [
+     "qty"
+    ],
+    "path": [
+     1,
+     1,
+     3,
+     0,
+     2,
+     6,
+     0
+    ],
+    "selector": "#ingredient-list > li:nth-of-type(7) > span:nth-of-type(1)",
+    "text": "8 g"
+   }
+  },
+  {
+   "t": 824.6999999880791,
+   "kind": "text",
+   "node": {
+    "uid": 10,
+    "tag": "span",
+    "id": "stars",
+    "classes": [
+     "stars"
+    ],
+    "path": [
+     1,
+     1,
+     1,
+     0,
+     2,
+     1,
+     0
+    ],
+    "selector": "#stars",
+    "text": "★★★★★"
+   }
+  },
+  {
+   "t": 824.6999999880791,
+   "kind": "attr",
+   "node": {
+    "uid": 10,
+    "tag": "span",
+    "id": "stars",
+    "classes": [
+     "stars"
+    ],
+    "path": [
+     1,
+     1,
+     1,
+     0,
+     2,
+     1,
+     0
+    ],
+    "selector": "#stars",
+    "text": "★★★★★"
+   },
+   "attr": "data-loaded",
+   "value": "true"
+  },
+  {
+   "t": 834.7999999970198,
+   "kind": "attr",
+   "node": {
+    "uid": 12,
+    "tag": "iframe",
+    "classes": [
+     "video-embed"
+    ],
+    "path": [
+     1,
+     1,
+     2,
+     1,
+     0
+    ],
+    "selector": "body > main:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1) > iframe:nth-of-type(1)",
+    "attrs": {
+     "src": "/delay/800/recipe-saltwater-kitchen/embed.html"
+    }
+   },
+   "attr": "style",
+   "value": "height: 604px;"
+  }
+ ],
+ "media": [
+  {
+   "t": 25.799999997019768,
+   "event": "load",
+   "node": {
+    "uid": 1,
+    "tag": "img",
+    "path": [
+     1,
+     1,
+     1,
+     0,
+     2,
+     0
+    ],
+    "selector": "main:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/assets/img/avatar-160.svg"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/avatar-160.svg",
+   "natural": {
+    "w": 160,
+    "h": 160
+   },
+   "size": {
+    "w": 36,
+    "h": 36
+   }
+  },
+  {
+   "t": 825.2999999970198,
+   "event": "load",
+   "node": {
+    "uid": 11,
+    "tag": "img",
+    "classes": [
+     "intro-photo"
+    ],
+    "path": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "selector": "body > main:nth-of-type(1) > section:nth-of-type(1) > img:nth-of-type(1)",
+    "attrs": {
+     "src": "/delay/800/assets/img/card-600x400.png"
+    }
+   },
+   "url": "http://localhost:4310/delay/800/assets/img/card-600x400.png",
+   "natural": {
+    "w": 600,
+    "h": 400
+   },
+   "size": {
+    "w": 420,
+    "h": 280
+   }
+  },
+  {
+   "t": 834.5,
+   "event": "load",
+   "node": {
+    "uid": 12,
+    "tag": "iframe",
+    "classes": [
+     "video-embed"
+    ],
+    "path": [
+     1,
+     1,
+     2,
+     1,
+     0
+    ],
+    "selector": "body > main:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1) > iframe:nth-of-type(1)",
+    "attrs": {
+     "src": "/delay/800/recipe-saltwater-kitchen/embed.html"
+    }
+   },
+   "url": "http://localhost:4310/delay/800/recipe-saltwater-kitchen/embed.html",
+   "size": {
+    "w": 992,
+    "h": 150
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js?v=a06967e3c1c1",
+   "initiator": "script",
+   "start": 17.3,
+   "end": 18.7,
+   "transferSize": 18575
+  },
+  {
+   "url": "http://localhost:4310/assets/img/avatar-160.svg",
+   "initiator": "img",
+   "start": 17.4,
+   "end": 19.8,
+   "transferSize": 849
+  },
+  {
+   "url": "http://localhost:4310/__reglet/overlay.js",
+   "initiator": "script",
+   "start": 25.9,
+   "end": 26.7,
+   "transferSize": 147426
+  },
+  {
+   "url": "http://localhost:4310/delay/800/assets/img/card-600x400.png",
+   "initiator": "img",
+   "start": 17.4,
+   "end": 822.4,
+   "transferSize": 1737
+  },
+  {
+   "url": "http://localhost:4310/delay/800/recipe-saltwater-kitchen/embed.html",
+   "initiator": "iframe",
+   "start": 21.2,
+   "end": 823.8,
+   "transferSize": 1864
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.20000000298023224,
+  "shiftMs": 0,
+  "mutationMs": 1.2000000178813934,
+  "resizeMs": 0.4000000059604645,
+  "otherMs": 0.3999999910593033,
+  "mutationCallbacks": 8,
+  "resizeCallbacks": 2,
+  "tracked": 96,
+  "untracked": 0
+ }
+}

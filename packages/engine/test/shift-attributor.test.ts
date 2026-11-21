@@ -288,6 +288,112 @@ describe('attributeShifts on patterns beyond the corpus', () => {
   })
 })
 
+/**
+ * Pages of `fixtures/cls-heldout`, recorded through the product on 2026-11-21: once with the hook
+ * as it was when the set was first run (`cls-heldout-old-hook__*`: no measured box on shift
+ * sources, and a frame of the hook's DOM wrapper on top of the stack of `insertAdjacentHTML`), and
+ * once with the hook as it is now. The first run got these six pages wrong or left them open; they
+ * are regression fixtures since. Expectations are the pages' answer keys.
+ */
+const HELDOUT: Record<string, Want> = {
+  'pricing-ledgerly': ['injected-content', '#promo-strip'],
+  'product-tidewell': ['injected-content', '#recs-slot > div:nth-of-type(1)'],
+  'recipe-saltwater-kitchen': ['unsized-media', 'body > main:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1) > iframe:nth-of-type(1)'],
+  'shop-grid-fernhill': ['unsized-media', '#product-grid > article:nth-of-type(1) > a:nth-of-type(1) > img:nth-of-type(1)'],
+  'dashboard-orderdesk': ['font-swap', '#orders > thead:nth-of-type(1) > tr:nth-of-type(1)'],
+  'docs-quillstack': ['font-swap', 'body > header:nth-of-type(1)'],
+}
+const OLD_HOOK = ['pricing-ledgerly', 'product-tidewell', 'recipe-saltwater-kitchen', 'shop-grid-fernhill']
+/** The largest scored issue: what the held-out measurement compares with the answer key. */
+const top = (recording: ShiftRecording) => attributeShifts(recording).issues.filter((issue) => issue.scored).sort((a, b) => b.value - a.value)[0]
+
+describe('attributeShifts on the first held-out set', () => {
+  it.each(Object.entries(HELDOUT))('%s, recorded by the current hook', (name, wanted) => {
+    const issue = top(load(`cls-heldout__${name}`))
+    expect([issue?.cause, issue?.culprit?.node.selector]).toEqual(wanted)
+    expect(issue?.confidence).toBeGreaterThanOrEqual(CONFIDENT)
+    expect(issue?.geometricMatch).toBe(true)
+  })
+
+  it.each(OLD_HOOK)('%s, recorded by the hook of the first run', (name) => {
+    const issue = top(load(`cls-heldout-old-hook__${name}`))
+    expect([issue?.cause, issue?.culprit?.node.selector]).toEqual(HELDOUT[name])
+    expect(issue?.confidence).toBeGreaterThanOrEqual(CONFIDENT)
+  })
+
+  it('a page\'s own insertAdjacentHTML is the page\'s, with or without the hook\'s wrapper frame on its stack', () => {
+    const old = load('cls-heldout-old-hook__pricing-ledgerly')
+    const stack = old.mutations.find((mutation) => mutation.kind === 'add' && mutation.node.id === 'promo-strip')?.stack ?? ''
+    expect(stack.split('\n')[0]).toMatch(/\[as insertAdjacentHTML\] \(http:\/\/localhost:4310\/__reglet\/hook\.js/)
+    for (const recording of [old, load('cls-heldout__pricing-ledgerly')]) {
+      const report = attributeShifts(recording)
+      expect(report.cls).toBeGreaterThan(0.03)
+      expect(report.issues.every((issue) => issue.cause !== 'dev-artifact' && issue.excluded === undefined)).toBe(true)
+      // The source resolver gets the page's statement first.
+      expect(top(recording)?.trigger?.stack?.split('\n')[0]).toMatch(/^\s+at http:\/\/localhost:4310\/pricing-ledgerly\/:205:14$/)
+    }
+    // The current hook leaves none of its frames on the stack.
+    expect(JSON.stringify(load('cls-heldout__pricing-ledgerly').mutations)).not.toContain('/__reglet/')
+  })
+
+  it('a victim pushed below the fold: the measured distance where the hook recorded the box, a least distance where it did not', () => {
+    const measured = top(load('cls-heldout__product-tidewell'))
+    expect(measured?.victims[0]).toMatchObject({ dx: 0, viewport: 'out', explained: 'direct' })
+    expect(measured?.victims[0]?.dy).toBeCloseTo(359.4, 0)
+    expect(measured?.evidence.join('\n')).toMatch(/section\.details was pushed down 359\.4px, below the visible area: the same distance, and div\.recs-block is right before it/)
+    const bounded = top(load('cls-heldout-old-hook__product-tidewell'))
+    expect(bounded?.victims[0]).toMatchObject({ dx: 0, viewport: 'out', distance: 'at-least', explained: 'consistent' })
+    expect(bounded?.victims[0]?.dy).toBeCloseTo(207.3, 0)
+    expect(bounded?.confidence).toBeLessThan(measured?.confidence ?? 0)
+    for (const issue of [measured, bounded]) expect(issue?.evidence.join('\n')).not.toMatch(/moved (up|left)|px (up|left)|and left/)
+    // The block inserted above the footer at the same moment is below everything that moved: never named.
+    expect(JSON.stringify([measured?.culprit, measured?.coCulprits, bounded?.culprit])).not.toContain('recently-viewed')
+  })
+
+  it('an image in a card: the card pushes the next row, the image pushes the card\'s text, and the image is the culprit', () => {
+    const issue = top(load('cls-heldout__shop-grid-fernhill'))
+    const lines = issue?.evidence.join('\n') ?? ''
+    expect(lines).toMatch(/a\.card-media went from 578x0 to 578x385\.3 because .*img.* inside it got its size/)
+    expect(lines).toMatch(/its load event fired/)
+    expect(issue?.trigger?.url).toMatch(/card-600x400\.png$/)
+  })
+
+  it('a font swap of text inside the element that grew names the family and the file', () => {
+    const table = top(load('cls-heldout__dashboard-orderdesk'))
+    expect(table?.trigger).toMatchObject({ kind: 'font', family: 'Ledger Caps' })
+    expect(table?.trigger?.url).toMatch(/press-start-2p.*\.woff2$/)
+    expect(table?.evidence.join('\n')).toMatch(/font "Ledger Caps" finished loading at about [\d.]+ ms \(font file press-start-2p-latin-400-normal\.woff2\)/)
+    expect(table?.evidence.join('\n')).toMatch(/th.* and 6 more element\(s\) inside tr\.orders-head are set in "Ledger Caps" and changed size in that frame/)
+    const header = top(load('cls-heldout__docs-quillstack'))
+    expect(header?.trigger).toMatchObject({ kind: 'font', family: 'Quill Grotesk' })
+    expect(header?.evidence.join('\n')).toMatch(/nav\.topnav inside header\.site-header is set in "Quill Grotesk" and changed size in that frame/)
+  })
+
+  it('a face that loaded earlier is not blamed for a later shift, though the browser lists it again', () => {
+    // "Pixel Mark" (a data: URL) is loaded at 25 ms; the loadingdone event at 822 ms lists it beside "Arcade Display".
+    const recording = load('cls-heldout__landing-pulsebase')
+    const listed = recording.fonts.filter((font) => font.family === 'Pixel Mark' && font.event === 'loaded').map((font) => font.t)
+    expect(Math.min(...listed)).toBeLessThan(100)
+    expect(Math.max(...listed)).toBeGreaterThan(700)
+    const issues = scoredInOrder(recording)
+    expect(issues.map((issue) => [issue.cause, issue.trigger?.family, issue.startTime < 100])).toEqual([
+      ['font-swap', 'Pixel Mark', true],
+      ['font-swap', 'Arcade Display', false],
+    ])
+    expect(issues[1]?.culprit?.node.selector).toBe('#hero-title')
+    expect(issues[1]?.evidence.join('\n')).not.toContain('Pixel Mark')
+  })
+
+  it('a font that loads and is never swapped in is not blamed for the insertion that follows it', () => {
+    // "Ledgerly Display" is font-display: optional: loaded at about 520 ms, on record again in the frame of the insertion.
+    const recording = load('cls-heldout__pricing-ledgerly')
+    expect(recording.fonts.some((font) => font.family === 'Ledgerly Display' && font.event === 'loaded')).toBe(true)
+    const report = attributeShifts(recording)
+    expect(report.issues.map((issue) => issue.cause)).toEqual(['injected-content'])
+    expect(JSON.stringify(report.issues)).not.toContain('Ledgerly Display')
+  })
+})
+
 describe('entries that are not the page\'s fault', () => {
   it('excludes an entry tagged as self-induced', () => {
     const recording = clone(load('unsized-media__img-block'))
