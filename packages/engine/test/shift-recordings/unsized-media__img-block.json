@@ -1,0 +1,307 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/unsized-media/img-block/",
+ "capturedAt": 2027.5,
+ "hookStartedAt": 11.2,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "reload",
+  "domInteractive": 11.8,
+  "domContentLoaded": 11.8,
+  "load": 717.1,
+  "firstPaint": 20,
+  "firstContentfulPaint": 20,
+  "firstFrame": 12.2
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.10546463012695312,
+   "startTime": 715.5,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The morning crossing moves fifteen minutes earli"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 152,
+      "width": 800,
+      "height": 432
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 418.66,
+      "width": 800,
+      "height": 381.34
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 716.9
+  }
+ ],
+ "resizes": [
+  {
+   "t": 715.6000000014901,
+   "node": {
+    "uid": 1,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "unsized-media / img-block"
+   },
+   "before": {
+    "w": 1280,
+    "h": 624
+   },
+   "after": {
+    "w": 1280,
+    "h": 890.66
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 890.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 715.6000000014901,
+   "node": {
+    "uid": 2,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Corpus Gazette"
+   },
+   "before": {
+    "w": 1280,
+    "h": 624
+   },
+   "after": {
+    "w": 1280,
+    "h": 890.66
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 890.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 715.6000000014901,
+   "node": {
+    "uid": 3,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Harbour ferry timetable changes from Monday"
+   },
+   "before": {
+    "w": 848,
+    "h": 568
+   },
+   "after": {
+    "w": 848,
+    "h": 834.66
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 834.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 715.6000000014901,
+   "node": {
+    "uid": 4,
+    "tag": "img",
+    "id": "hero",
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#hero",
+    "attrs": {
+     "src": "/delay/700/assets/img/hero-1200x400.png"
+    }
+   },
+   "before": {
+    "w": 0,
+    "h": 0
+   },
+   "after": {
+    "w": 799.97,
+    "h": 266.66
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 799.97,
+    "height": 266.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "media": {
+    "widthAttr": false,
+    "heightAttr": false,
+    "cssWidth": "auto",
+    "cssHeight": "auto",
+    "aspectRatio": "auto"
+   }
+  }
+ ],
+ "mutations": [],
+ "media": [
+  {
+   "t": 717,
+   "event": "load",
+   "node": {
+    "uid": 4,
+    "tag": "img",
+    "id": "hero",
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#hero",
+    "attrs": {
+     "src": "/delay/700/assets/img/hero-1200x400.png"
+    }
+   },
+   "url": "http://localhost:4310/delay/700/assets/img/hero-1200x400.png",
+   "natural": {
+    "w": 1200,
+    "h": 400
+   },
+   "size": {
+    "w": 799.97,
+    "h": 266.66
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 8.5,
+   "end": 10.4,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/700/assets/img/hero-1200x400.png",
+   "initiator": "img",
+   "start": 8.6,
+   "end": 714.7,
+   "transferSize": 2756
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.10000000149011612,
+  "shiftMs": 0.10000000149011612,
+  "mutationMs": 0.20000000298023224,
+  "resizeMs": 0.8999999985098839,
+  "otherMs": 0.10000000149011612,
+  "mutationCallbacks": 1,
+  "resizeCallbacks": 2,
+  "tracked": 14,
+  "untracked": 0
+ }
+}

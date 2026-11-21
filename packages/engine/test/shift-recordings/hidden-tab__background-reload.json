@@ -1,0 +1,72 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/unsized-media/img-block/",
+ "capturedAt": 1904.1,
+ "hookStartedAt": 10.6,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 757,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "reload",
+  "domInteractive": 12.3,
+  "domContentLoaded": 12.4,
+  "load": 712.1
+ },
+ "visibility": {
+  "initial": "hidden",
+  "atNavigationStart": "hidden",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": false
+ },
+ "shifts": [],
+ "resizes": [],
+ "mutations": [],
+ "media": [],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 7.9,
+   "end": 9.4,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/700/assets/img/hero-1200x400.png",
+   "initiator": "img",
+   "start": 8.1,
+   "end": 711.8,
+   "transferSize": 2756
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.29999999701976776,
+  "shiftMs": 0,
+  "mutationMs": 0.4000000059604645,
+  "resizeMs": 0,
+  "otherMs": 0,
+  "mutationCallbacks": 1,
+  "resizeCallbacks": 0,
+  "tracked": 14,
+  "untracked": 0
+ }
+}

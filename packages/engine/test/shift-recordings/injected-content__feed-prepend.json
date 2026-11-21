@@ -1,0 +1,490 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/injected-content/feed-prepend/",
+ "capturedAt": 2015.6,
+ "hookStartedAt": 10.1,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "reload",
+  "domInteractive": 11.1,
+  "domContentLoaded": 11.1,
+  "load": 11.1,
+  "firstPaint": 16,
+  "firstContentfulPaint": 16,
+  "firstFrame": 10.6
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.05730468750000001,
+   "startTime": 723.4,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 6,
+      "tag": "li",
+      "id": "post-1",
+      "classes": [
+       "post"
+      ],
+      "path": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "selector": "#post-1",
+      "text": "09:40 Fuel berth open"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 136,
+      "width": 800,
+      "height": 96
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 280,
+      "width": 800,
+      "height": 96
+     },
+     "style": {
+      "position": "static",
+      "display": "list-item",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 7,
+      "tag": "li",
+      "id": "post-2",
+      "classes": [
+       "post"
+      ],
+      "path": [
+       1,
+       1,
+       1,
+       2
+      ],
+      "selector": "#post-2",
+      "text": "09:10 Dredger moving"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 244,
+      "width": 800,
+      "height": 96
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 388,
+      "width": 800,
+      "height": 96
+     },
+     "style": {
+      "position": "static",
+      "display": "list-item",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 8,
+      "tag": "li",
+      "id": "post-3",
+      "classes": [
+       "post"
+      ],
+      "path": [
+       1,
+       1,
+       1,
+       3
+      ],
+      "selector": "#post-3",
+      "text": "08:30 Visitor buoys"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 352,
+      "width": 800,
+      "height": 96
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 496,
+      "width": 800,
+      "height": 96
+     },
+     "style": {
+      "position": "static",
+      "display": "list-item",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 9,
+      "tag": "li",
+      "id": "post-4",
+      "classes": [
+       "post"
+      ],
+      "path": [
+       1,
+       1,
+       1,
+       4
+      ],
+      "selector": "#post-4",
+      "text": "08:05 First ferry sailed"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 460,
+      "width": 800,
+      "height": 96
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 604,
+      "width": 800,
+      "height": 96
+     },
+     "style": {
+      "position": "static",
+      "display": "list-item",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 10,
+      "tag": "li",
+      "id": "post-5",
+      "classes": [
+       "post"
+      ],
+      "path": [
+       1,
+       1,
+       1,
+       5
+      ],
+      "selector": "#post-5",
+      "text": "07:50 Ticket office open"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 568,
+      "width": 800,
+      "height": 96
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 712,
+      "width": 800,
+      "height": 88
+     },
+     "style": {
+      "position": "static",
+      "display": "list-item",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 724.3
+  }
+ ],
+ "resizes": [
+  {
+   "t": 723.6000000014901,
+   "node": {
+    "uid": 3,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "injected-content / feed-prepend"
+   },
+   "before": {
+    "w": 1280,
+    "h": 832
+   },
+   "after": {
+    "w": 1280,
+    "h": 976
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 976
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 723.6000000014901,
+   "node": {
+    "uid": 4,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Corpus Gazette"
+   },
+   "before": {
+    "w": 1280,
+    "h": 832
+   },
+   "after": {
+    "w": 1280,
+    "h": 976
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 976
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 723.6000000014901,
+   "node": {
+    "uid": 5,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Live: harbour notices"
+   },
+   "before": {
+    "w": 848,
+    "h": 776
+   },
+   "after": {
+    "w": 848,
+    "h": 920
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 920
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 723.6000000014901,
+   "node": {
+    "uid": 2,
+    "tag": "ul",
+    "id": "feed",
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#feed",
+    "text": "09:55 Route 9 diversion"
+   },
+   "before": {
+    "w": 800,
+    "h": 636
+   },
+   "after": {
+    "w": 800,
+    "h": 780
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 780
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 723.6000000014901,
+   "node": {
+    "uid": 1,
+    "tag": "li",
+    "id": "new-post",
+    "classes": [
+     "post",
+     "fresh"
+    ],
+    "path": [
+     1,
+     1,
+     1,
+     0
+    ],
+    "selector": "#new-post",
+    "text": "09:55 Route 9 diversion"
+   },
+   "before": null,
+   "after": {
+    "w": 800,
+    "h": 132
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 132
+   },
+   "style": {
+    "position": "static",
+    "display": "list-item",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     12,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 722.3999999985099,
+   "kind": "add",
+   "node": {
+    "uid": 1,
+    "tag": "li",
+    "id": "new-post",
+    "classes": [
+     "post",
+     "fresh"
+    ],
+    "path": [
+     1,
+     1,
+     1,
+     0
+    ],
+    "selector": "#new-post",
+    "text": "09:55 Route 9 diversion"
+   },
+   "parent": {
+    "uid": 2,
+    "tag": "ul",
+    "id": "feed",
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#feed",
+    "text": "09:55 Route 9 diversion"
+   }
+  }
+ ],
+ "media": [],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 6.4,
+   "end": 9.6,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/700/assets/data/status.json",
+   "initiator": "fetch",
+   "start": 10.6,
+   "end": 721.3,
+   "transferSize": 454
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.10000000149011612,
+  "shiftMs": 0.20000000298023224,
+  "mutationMs": 0.6000000014901161,
+  "resizeMs": 0.3999999985098839,
+  "otherMs": 0,
+  "mutationCallbacks": 3,
+  "resizeCallbacks": 2,
+  "tracked": 28,
+  "untracked": 0
+ }
+}

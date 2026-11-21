@@ -1,0 +1,38 @@
+{
+  "note": "Hand-written. A 48px promo banner (id 2) at the top of the page is hidden. Everything in flow below it moves up 48px; the fixed button (id 11) stays; body gets 48px shorter.",
+  "edited": [2],
+  "before": {
+    "total": 11, "truncated": false, "pinned": false,
+    "viewport": { "x": 0, "y": 0, "w": 1000, "h": 600 },
+    "page": { "w": 1000, "h": 848 },
+    "entries": [
+      { "id": 1, "parent": 0, "desc": "body", "path": "", "x": 0, "y": 0, "w": 1000, "h": 848 },
+      { "id": 2, "parent": 1, "desc": "div#promo.banner", "path": "0", "x": 0, "y": 0, "w": 1000, "h": 48 },
+      { "id": 3, "parent": 2, "desc": "span.banner-text", "path": "0.0", "x": 16, "y": 14, "w": 300, "h": 20, "lines": 1 },
+      { "id": 4, "parent": 1, "desc": "header.header", "path": "1", "x": 0, "y": 48, "w": 1000, "h": 64 },
+      { "id": 5, "parent": 4, "desc": "a.logo", "path": "1.0", "x": 16, "y": 64, "w": 120, "h": 32 },
+      { "id": 6, "parent": 4, "desc": "nav.nav", "path": "1.1", "x": 600, "y": 64, "w": 384, "h": 32 },
+      { "id": 7, "parent": 1, "desc": "main#main", "path": "2", "x": 0, "y": 112, "w": 1000, "h": 600 },
+      { "id": 8, "parent": 7, "desc": "p.intro", "path": "2.0", "x": 16, "y": 128, "w": 968, "h": 40, "lines": 2 },
+      { "id": 9, "parent": 7, "desc": "p.body", "path": "2.1", "x": 16, "y": 184, "w": 968, "h": 500 },
+      { "id": 10, "parent": 1, "desc": "footer.footer", "path": "3", "x": 0, "y": 712, "w": 1000, "h": 136 },
+      { "id": 11, "parent": 1, "desc": "button#to-top.fab", "path": "4", "x": 940, "y": 540, "w": 44, "h": 44 }
+    ]
+  },
+  "after": {
+    "total": 9, "truncated": false, "pinned": false,
+    "viewport": { "x": 0, "y": 0, "w": 1000, "h": 600 },
+    "page": { "w": 1000, "h": 800 },
+    "entries": [
+      { "id": 1, "parent": 0, "desc": "body", "path": "", "x": 0, "y": 0, "w": 1000, "h": 800 },
+      { "id": 4, "parent": 1, "desc": "header.header", "path": "1", "x": 0, "y": 0, "w": 1000, "h": 64 },
+      { "id": 5, "parent": 4, "desc": "a.logo", "path": "1.0", "x": 16, "y": 16, "w": 120, "h": 32 },
+      { "id": 6, "parent": 4, "desc": "nav.nav", "path": "1.1", "x": 600, "y": 16, "w": 384, "h": 32 },
+      { "id": 7, "parent": 1, "desc": "main#main", "path": "2", "x": 0, "y": 64, "w": 1000, "h": 600 },
+      { "id": 8, "parent": 7, "desc": "p.intro", "path": "2.0", "x": 16, "y": 80, "w": 968, "h": 40, "lines": 2 },
+      { "id": 9, "parent": 7, "desc": "p.body", "path": "2.1", "x": 16, "y": 136, "w": 968, "h": 500 },
+      { "id": 10, "parent": 1, "desc": "footer.footer", "path": "3", "x": 0, "y": 664, "w": 1000, "h": 136 },
+      { "id": 11, "parent": 1, "desc": "button#to-top.fab", "path": "4", "x": 940, "y": 540, "w": 44, "h": 44 }
+    ]
+  }
+}

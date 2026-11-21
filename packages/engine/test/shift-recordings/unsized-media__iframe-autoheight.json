@@ -1,0 +1,324 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/unsized-media/iframe-autoheight/",
+ "capturedAt": 2026.6,
+ "hookStartedAt": 15.6,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "reload",
+  "domInteractive": 17.8,
+  "domContentLoaded": 17.8,
+  "load": 726.3,
+  "firstPaint": 24,
+  "firstContentfulPaint": 24,
+  "firstFrame": 17.2
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.07294921874999999,
+   "startTime": 726.5,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "Times are shown for the north pier. Add ten minu"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 302,
+      "width": 800,
+      "height": 240
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 551,
+      "width": 800,
+      "height": 240
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 727
+  }
+ ],
+ "resizes": [
+  {
+   "t": 726.5,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "unsized-media / iframe-autoheight"
+   },
+   "before": {
+    "w": 1280,
+    "h": 582
+   },
+   "after": {
+    "w": 1280,
+    "h": 831
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 831
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 726.5,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Corpus Gazette"
+   },
+   "before": {
+    "w": 1280,
+    "h": 582
+   },
+   "after": {
+    "w": 1280,
+    "h": 831
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 831
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 726.5,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Today's departures"
+   },
+   "before": {
+    "w": 848,
+    "h": 526
+   },
+   "after": {
+    "w": 848,
+    "h": 775
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 775
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 726.5,
+   "node": {
+    "uid": 1,
+    "tag": "iframe",
+    "id": "embed",
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#embed",
+    "attrs": {
+     "src": "/delay/700/unsized-media/iframe-autoheight/embed.html"
+    }
+   },
+   "before": {
+    "w": 800,
+    "h": 150
+   },
+   "after": {
+    "w": 800,
+    "h": 399
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 399
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "media": {
+    "widthAttr": false,
+    "heightAttr": false,
+    "cssWidth": "100%",
+    "cssHeight": "399px",
+    "aspectRatio": "auto"
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 726.1000000014901,
+   "kind": "attr",
+   "node": {
+    "uid": 1,
+    "tag": "iframe",
+    "id": "embed",
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#embed",
+    "attrs": {
+     "src": "/delay/700/unsized-media/iframe-autoheight/embed.html"
+    }
+   },
+   "attr": "style",
+   "value": "height: 399px;"
+  }
+ ],
+ "media": [
+  {
+   "t": 725.3999999985099,
+   "event": "load",
+   "node": {
+    "uid": 1,
+    "tag": "iframe",
+    "id": "embed",
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#embed",
+    "attrs": {
+     "src": "/delay/700/unsized-media/iframe-autoheight/embed.html"
+    }
+   },
+   "url": "http://localhost:4310/delay/700/unsized-media/iframe-autoheight/embed.html",
+   "size": {
+    "w": 800,
+    "h": 150
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 12.1,
+   "end": 15,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/700/unsized-media/iframe-autoheight/embed.html",
+   "initiator": "iframe",
+   "start": 16.3,
+   "end": 722.5,
+   "transferSize": 1393
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.20000000298023224,
+  "shiftMs": 0.10000000149011612,
+  "mutationMs": 0.10000000149011612,
+  "resizeMs": 0.20000000298023224,
+  "otherMs": 0.30000000447034836,
+  "mutationCallbacks": 3,
+  "resizeCallbacks": 2,
+  "tracked": 11,
+  "untracked": 0
+ }
+}

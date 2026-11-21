@@ -1,0 +1,239 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/remove-banner/",
+ "capturedAt": 1805.2,
+ "hookStartedAt": 6,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 14.5,
+  "domContentLoaded": 14.5,
+  "load": 14.5,
+  "firstPaint": 16,
+  "firstContentfulPaint": 16,
+  "firstFrame": 7.2
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.0275375,
+   "startTime": 613.7,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 4,
+      "tag": "main",
+      "id": "main",
+      "path": [
+       1,
+       1
+      ],
+      "selector": "#main",
+      "text": "Winter opening hours"
+     },
+     "previousRect": {
+      "x": 216,
+      "y": 120,
+      "width": 848,
+      "height": 488
+     },
+     "currentRect": {
+      "x": 216,
+      "y": 56,
+      "width": 848,
+      "height": 488
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 5,
+      "tag": "header",
+      "id": "site-header",
+      "path": [
+       1,
+       0
+      ],
+      "selector": "#site-header",
+      "text": "Held-out Library"
+     },
+     "previousRect": {
+      "x": 0,
+      "y": 64,
+      "width": 1280,
+      "height": 56
+     },
+     "currentRect": {
+      "x": 0,
+      "y": 0,
+      "width": 1280,
+      "height": 56
+     },
+     "style": {
+      "position": "static",
+      "display": "flex",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 614.4
+  }
+ ],
+ "resizes": [
+  {
+   "t": 613.6999999955297,
+   "node": {
+    "uid": 3,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / remove-banner"
+   },
+   "before": {
+    "w": 1280,
+    "h": 608
+   },
+   "after": {
+    "w": 1280,
+    "h": 544
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 544
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 613.6999999955297,
+   "node": {
+    "uid": 2,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 608
+   },
+   "after": {
+    "w": 1280,
+    "h": 544
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 544
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 612.5,
+   "kind": "remove",
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "notice",
+    "path": [],
+    "selector": "#notice",
+    "text": "The east entrance is closed today. Please use th"
+   },
+   "parent": {
+    "uid": 2,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "lastSize": {
+    "w": 1280,
+    "h": 64
+   }
+  }
+ ],
+ "media": [],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 2.8,
+   "end": 5.4,
+   "transferSize": 10159
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.3999999985098839,
+  "shiftMs": 0.5,
+  "mutationMs": 1.2000000029802322,
+  "resizeMs": 0.30000000447034836,
+  "otherMs": 0.09999999403953552,
+  "mutationCallbacks": 3,
+  "resizeCallbacks": 2,
+  "tracked": 12,
+  "untracked": 0
+ }
+}

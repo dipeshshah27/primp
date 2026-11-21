@@ -1,0 +1,281 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/injected-content/cookie-bar-insertbefore/",
+ "capturedAt": 2011.6,
+ "hookStartedAt": 9.8,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "reload",
+  "domInteractive": 10.7,
+  "domContentLoaded": 10.7,
+  "load": 718.5,
+  "firstPaint": 16,
+  "firstContentfulPaint": 16,
+  "firstFrame": 10.2
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.028371093750000003,
+   "startTime": 718,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 4,
+      "tag": "main",
+      "id": "main",
+      "path": [
+       1,
+       2
+      ],
+      "selector": "#main",
+      "text": "Your account"
+     },
+     "previousRect": {
+      "x": 216,
+      "y": 56,
+      "width": 848,
+      "height": 424
+     },
+     "currentRect": {
+      "x": 216,
+      "y": 128,
+      "width": 848,
+      "height": 424
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 5,
+      "tag": "header",
+      "id": "site-header",
+      "path": [
+       1,
+       1
+      ],
+      "selector": "#site-header",
+      "text": "Corpus Gazette"
+     },
+     "previousRect": {
+      "x": 0,
+      "y": 0,
+      "width": 1280,
+      "height": 56
+     },
+     "currentRect": {
+      "x": 0,
+      "y": 72,
+      "width": 1280,
+      "height": 56
+     },
+     "style": {
+      "position": "static",
+      "display": "flex",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 718.6
+  }
+ ],
+ "resizes": [
+  {
+   "t": 718,
+   "node": {
+    "uid": 3,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "injected-content / cookie-bar-insertbefore"
+   },
+   "before": {
+    "w": 1280,
+    "h": 480
+   },
+   "after": {
+    "w": 1280,
+    "h": 552
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 552
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 718,
+   "node": {
+    "uid": 2,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "We use two cookies: one keeps you signed in and "
+   },
+   "before": {
+    "w": 1280,
+    "h": 480
+   },
+   "after": {
+    "w": 1280,
+    "h": 552
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 552
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 718,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "cookie-bar",
+    "path": [
+     1,
+     0
+    ],
+    "selector": "#cookie-bar",
+    "text": "We use two cookies: one keeps you signed in and "
+   },
+   "before": null,
+   "after": {
+    "w": 1280,
+    "h": 72
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 72
+   },
+   "style": {
+    "position": "static",
+    "display": "flex",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 717,
+   "kind": "add",
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "cookie-bar",
+    "path": [
+     1,
+     0
+    ],
+    "selector": "#cookie-bar",
+    "text": "We use two cookies: one keeps you signed in and "
+   },
+   "parent": {
+    "uid": 2,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "We use two cookies: one keeps you signed in and "
+   }
+  }
+ ],
+ "media": [],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 5.6,
+   "end": 9.2,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/700/injected-content/cookie-bar-insertbefore/consent.js",
+   "initiator": "script",
+   "start": 5.7,
+   "end": 716.2,
+   "transferSize": 994
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.10000000149011612,
+  "shiftMs": 0.10000000149011612,
+  "mutationMs": 0.6000000014901161,
+  "resizeMs": 0.20000000298023224,
+  "otherMs": 0.10000000149011612,
+  "mutationCallbacks": 3,
+  "resizeCallbacks": 2,
+  "tracked": 14,
+  "untracked": 0
+ }
+}

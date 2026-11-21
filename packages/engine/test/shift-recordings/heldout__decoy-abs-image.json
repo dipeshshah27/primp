@@ -1,0 +1,428 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/decoy-abs-image/",
+ "capturedAt": 1804,
+ "hookStartedAt": 6.3,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 14.3,
+  "domContentLoaded": 14.4,
+  "load": 14.4,
+  "firstPaint": 16,
+  "firstContentfulPaint": 16,
+  "firstFrame": 7.5
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.0275375,
+   "startTime": 613.2,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 6,
+      "tag": "main",
+      "id": "main",
+      "path": [
+       1,
+       2
+      ],
+      "selector": "#main",
+      "text": "Winter opening hours"
+     },
+     "previousRect": {
+      "x": 216,
+      "y": 56,
+      "width": 848,
+      "height": 488
+     },
+     "currentRect": {
+      "x": 216,
+      "y": 120,
+      "width": 848,
+      "height": 488
+     },
+     "style": {
+      "position": "relative",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 7,
+      "tag": "header",
+      "id": "site-header",
+      "path": [
+       1,
+       1
+      ],
+      "selector": "#site-header",
+      "text": "Held-out Library"
+     },
+     "previousRect": {
+      "x": 0,
+      "y": 0,
+      "width": 1280,
+      "height": 56
+     },
+     "currentRect": {
+      "x": 0,
+      "y": 64,
+      "width": 1280,
+      "height": 56
+     },
+     "style": {
+      "position": "static",
+      "display": "flex",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 614.1
+  }
+ ],
+ "resizes": [
+  {
+   "t": 613.1999999955297,
+   "node": {
+    "uid": 4,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / decoy-abs-image"
+   },
+   "before": {
+    "w": 1280,
+    "h": 544
+   },
+   "after": {
+    "w": 1280,
+    "h": 608
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 608
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 613.1999999955297,
+   "node": {
+    "uid": 5,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Winter pass: Unlimited crossings until the end o"
+   },
+   "before": {
+    "w": 1280,
+    "h": 544
+   },
+   "after": {
+    "w": 1280,
+    "h": 608
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 608
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 613.1999999955297,
+   "node": {
+    "uid": 3,
+    "tag": "div",
+    "id": "promo-slot",
+    "path": [
+     1,
+     0
+    ],
+    "selector": "#promo-slot",
+    "text": "Winter pass: Unlimited crossings until the end o"
+   },
+   "before": {
+    "w": 1280,
+    "h": 0
+   },
+   "after": {
+    "w": 1280,
+    "h": 64
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 64
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 613.1999999955297,
+   "node": {
+    "uid": 2,
+    "tag": "div",
+    "id": "promo",
+    "path": [
+     1,
+     0,
+     0
+    ],
+    "selector": "#promo",
+    "text": "Winter pass: Unlimited crossings until the end o"
+   },
+   "before": null,
+   "after": {
+    "w": 1280,
+    "h": 64
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 64
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 620.8999999985099,
+   "node": {
+    "uid": 1,
+    "tag": "img",
+    "id": "badge",
+    "path": [
+     1,
+     2,
+     0
+    ],
+    "selector": "#badge",
+    "attrs": {
+     "src": "/assets/img/thumb-320x240.png"
+    }
+   },
+   "before": {
+    "w": 0,
+    "h": 0
+   },
+   "after": {
+    "w": 320,
+    "h": 240
+   },
+   "rect": {
+    "x": 720,
+    "y": 144,
+    "width": 320,
+    "height": 240
+   },
+   "style": {
+    "position": "absolute",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "media": {
+    "widthAttr": false,
+    "heightAttr": false,
+    "cssWidth": "auto",
+    "cssHeight": "auto",
+    "aspectRatio": "auto"
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 611.2999999970198,
+   "kind": "attr",
+   "node": {
+    "uid": 1,
+    "tag": "img",
+    "id": "badge",
+    "path": [
+     1,
+     2,
+     0
+    ],
+    "selector": "#badge",
+    "attrs": {
+     "src": "/assets/img/thumb-320x240.png"
+    }
+   },
+   "attr": "src",
+   "value": "/assets/img/thumb-320x240.png"
+  },
+  {
+   "t": 611.2999999970198,
+   "kind": "add",
+   "node": {
+    "uid": 2,
+    "tag": "div",
+    "id": "promo",
+    "path": [
+     1,
+     0,
+     0
+    ],
+    "selector": "#promo",
+    "text": "Winter pass: Unlimited crossings until the end o"
+   },
+   "parent": {
+    "uid": 3,
+    "tag": "div",
+    "id": "promo-slot",
+    "path": [
+     1,
+     0
+    ],
+    "selector": "#promo-slot",
+    "text": "Winter pass: Unlimited crossings until the end o"
+   }
+  }
+ ],
+ "media": [
+  {
+   "t": 619,
+   "event": "load",
+   "node": {
+    "uid": 1,
+    "tag": "img",
+    "id": "badge",
+    "path": [
+     1,
+     2,
+     0
+    ],
+    "selector": "#badge",
+    "attrs": {
+     "src": "/assets/img/thumb-320x240.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/thumb-320x240.png",
+   "natural": {
+    "w": 320,
+    "h": 240
+   },
+   "size": {
+    "w": 0,
+    "h": 0
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 3.2,
+   "end": 5.8,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/600/assets/data/promo.json",
+   "initiator": "fetch",
+   "start": 7.4,
+   "end": 610,
+   "transferSize": 453
+  },
+  {
+   "url": "http://localhost:4310/assets/img/thumb-320x240.png",
+   "initiator": "img",
+   "start": 612.5,
+   "end": 618.6,
+   "transferSize": 1146
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.3999999985098839,
+  "shiftMs": 0.3999999985098839,
+  "mutationMs": 1.5,
+  "resizeMs": 0.7999999970197678,
+  "otherMs": 0.09999999403953552,
+  "mutationCallbacks": 3,
+  "resizeCallbacks": 3,
+  "tracked": 15,
+  "untracked": 0
+ }
+}

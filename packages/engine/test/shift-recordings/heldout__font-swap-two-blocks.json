@@ -1,0 +1,451 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/font-swap-two-blocks/",
+ "capturedAt": 1853.9,
+ "hookStartedAt": 5.7,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 10.5,
+  "domContentLoaded": 10.5,
+  "load": 614.5,
+  "firstPaint": 16,
+  "firstContentfulPaint": 16,
+  "firstFrame": 6.7
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.02421875,
+   "startTime": 615.5,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "h2",
+      "id": "h-b",
+      "path": [
+       1,
+       1,
+       3
+      ],
+      "selector": "#h-b",
+      "text": "Map collection moves to the second floor"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 296,
+      "width": 800,
+      "height": 40
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 336,
+      "width": 800,
+      "height": 80
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 6,
+      "tag": "#text",
+      "path": [
+       1,
+       1,
+       3
+      ],
+      "selector": "#h-b",
+      "text": "Map collection moves to the second floor"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 300,
+      "width": 800,
+      "height": 68
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 342,
+      "width": 800,
+      "height": 68
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 7,
+      "tag": "p",
+      "id": "p4",
+      "path": [
+       1,
+       1,
+       5
+      ],
+      "selector": "#p4",
+      "text": "Lockers by the entrance take a one pound coin, w"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 416,
+      "width": 800,
+      "height": 48
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 496,
+      "width": 800,
+      "height": 48
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 8,
+      "tag": "p",
+      "id": "p5",
+      "path": [
+       1,
+       1,
+       6
+      ],
+      "selector": "#p5",
+      "text": "The courtyard cafe closes at four. Hot drinks wi"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 480,
+      "width": 800,
+      "height": 48
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 560,
+      "width": 800,
+      "height": 48
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 9,
+      "tag": "p",
+      "id": "p3",
+      "path": [
+       1,
+       1,
+       4
+      ],
+      "selector": "#p3",
+      "text": "The map collection stays on the second floor. La"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 352,
+      "width": 800,
+      "height": 48
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 432,
+      "width": 800,
+      "height": 48
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 617.3
+  }
+ ],
+ "resizes": [
+  {
+   "t": 615.5,
+   "node": {
+    "uid": 1,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / font-swap-two-blocks"
+   },
+   "before": {
+    "w": 1280,
+    "h": 632
+   },
+   "after": {
+    "w": 1280,
+    "h": 712
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 712
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 615.5,
+   "node": {
+    "uid": 2,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 632
+   },
+   "after": {
+    "w": 1280,
+    "h": 712
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 712
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 615.5,
+   "node": {
+    "uid": 3,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Reading room hours change in December"
+   },
+   "before": {
+    "w": 848,
+    "h": 576
+   },
+   "after": {
+    "w": 848,
+    "h": 656
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 656
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 615.5,
+   "node": {
+    "uid": 4,
+    "tag": "h2",
+    "id": "h-a",
+    "path": [
+     1,
+     1,
+     0
+    ],
+    "selector": "#h-a",
+    "text": "Reading room hours change in December"
+   },
+   "before": {
+    "w": 800,
+    "h": 40
+   },
+   "after": {
+    "w": 800,
+    "h": 80
+   },
+   "rect": {
+    "x": 240,
+    "y": 104,
+    "width": 800,
+    "height": 80
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif",
+    "margin": [
+     24,
+     0,
+     12,
+     0
+    ]
+   }
+  },
+  {
+   "t": 615.5,
+   "node": {
+    "uid": 5,
+    "tag": "h2",
+    "id": "h-b",
+    "path": [
+     1,
+     1,
+     3
+    ],
+    "selector": "#h-b",
+    "text": "Map collection moves to the second floor"
+   },
+   "before": {
+    "w": 800,
+    "h": 40
+   },
+   "after": {
+    "w": 800,
+    "h": 80
+   },
+   "rect": {
+    "x": 240,
+    "y": 336,
+    "width": 800,
+    "height": 80
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif",
+    "margin": [
+     24,
+     0,
+     12,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [],
+ "media": [],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 2.7,
+   "end": 5.2,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/600/assets/fonts/press-start-2p-latin-400-normal.woff2",
+   "initiator": "css",
+   "start": 7,
+   "end": 613.5,
+   "transferSize": 12812
+  }
+ ],
+ "fonts": [
+  {
+   "t": 615.5,
+   "since": 10.300000004470348,
+   "event": "loaded",
+   "family": "Press Start 2P",
+   "weight": "normal",
+   "style": "normal",
+   "via": "snapshot"
+  },
+  {
+   "t": 617.6000000014901,
+   "event": "loaded",
+   "family": "Press Start 2P",
+   "weight": "normal",
+   "style": "normal",
+   "via": "event"
+  }
+ ],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.5,
+  "shiftMs": 0.29999999701976776,
+  "mutationMs": 0.20000000298023224,
+  "resizeMs": 1.3999999985098839,
+  "otherMs": 0,
+  "mutationCallbacks": 1,
+  "resizeCallbacks": 2,
+  "tracked": 12,
+  "untracked": 0
+ }
+}

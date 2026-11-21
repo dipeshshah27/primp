@@ -1,0 +1,337 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/logo-in-flex-header/",
+ "capturedAt": 1804.1,
+ "hookStartedAt": 7.4,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 15.5,
+  "domContentLoaded": 15.5,
+  "load": 612.4,
+  "firstPaint": 20,
+  "firstContentfulPaint": 20,
+  "firstFrame": 12
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.13979296875,
+   "startTime": 610.1,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "main",
+      "id": "main",
+      "path": [
+       1,
+       1
+      ],
+      "selector": "#main",
+      "text": "Winter opening hours"
+     },
+     "previousRect": {
+      "x": 216,
+      "y": 56,
+      "width": 848,
+      "height": 488
+     },
+     "currentRect": {
+      "x": 216,
+      "y": 240,
+      "width": 848,
+      "height": 488
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 6,
+      "tag": "span",
+      "id": "site-name",
+      "path": [
+       1,
+       0,
+       1
+      ],
+      "selector": "#site-name",
+      "text": "Held-out Library"
+     },
+     "previousRect": {
+      "x": 40,
+      "y": 16,
+      "width": 114,
+      "height": 24
+     },
+     "currentRect": {
+      "x": 360,
+      "y": 108,
+      "width": 114,
+      "height": 24
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 612.1
+  }
+ ],
+ "resizes": [
+  {
+   "t": 610.1999999955297,
+   "node": {
+    "uid": 1,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / logo-in-flex-header"
+   },
+   "before": {
+    "w": 1280,
+    "h": 544
+   },
+   "after": {
+    "w": 1280,
+    "h": 728
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 728
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 610.1999999955297,
+   "node": {
+    "uid": 2,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 544
+   },
+   "after": {
+    "w": 1280,
+    "h": 728
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 728
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 610.1999999955297,
+   "node": {
+    "uid": 3,
+    "tag": "header",
+    "id": "site-header",
+    "path": [
+     1,
+     0
+    ],
+    "selector": "#site-header",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 56
+   },
+   "after": {
+    "w": 1280,
+    "h": 240
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 240
+   },
+   "style": {
+    "position": "static",
+    "display": "flex",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 610.1999999955297,
+   "node": {
+    "uid": 4,
+    "tag": "img",
+    "id": "logo",
+    "path": [
+     1,
+     0,
+     0
+    ],
+    "selector": "#logo",
+    "attrs": {
+     "src": "/delay/600/assets/img/thumb-320x240.png"
+    }
+   },
+   "before": {
+    "w": 0,
+    "h": 0
+   },
+   "after": {
+    "w": 320,
+    "h": 240
+   },
+   "rect": {
+    "x": 24,
+    "y": 0,
+    "width": 320,
+    "height": 240
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "media": {
+    "widthAttr": false,
+    "heightAttr": false,
+    "cssWidth": "auto",
+    "cssHeight": "auto",
+    "aspectRatio": "auto"
+   }
+  }
+ ],
+ "mutations": [],
+ "media": [
+  {
+   "t": 612.2999999970198,
+   "event": "load",
+   "node": {
+    "uid": 4,
+    "tag": "img",
+    "id": "logo",
+    "path": [
+     1,
+     0,
+     0
+    ],
+    "selector": "#logo",
+    "attrs": {
+     "src": "/delay/600/assets/img/thumb-320x240.png"
+    }
+   },
+   "url": "http://localhost:4310/delay/600/assets/img/thumb-320x240.png",
+   "natural": {
+    "w": 320,
+    "h": 240
+   },
+   "size": {
+    "w": 320,
+    "h": 240
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 3,
+   "end": 6.6,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/600/assets/img/thumb-320x240.png",
+   "initiator": "img",
+   "start": 3.1,
+   "end": 609.6,
+   "transferSize": 1146
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.5,
+  "shiftMs": 0.3999999985098839,
+  "mutationMs": 0.30000000447034836,
+  "resizeMs": 1.5,
+  "otherMs": 0.20000000298023224,
+  "mutationCallbacks": 1,
+  "resizeCallbacks": 2,
+  "tracked": 13,
+  "untracked": 0
+ }
+}

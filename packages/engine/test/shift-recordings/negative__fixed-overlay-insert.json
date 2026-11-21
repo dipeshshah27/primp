@@ -1,0 +1,194 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/negative/fixed-overlay-insert/",
+ "capturedAt": 2018.4,
+ "hookStartedAt": 10.4,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "reload",
+  "domInteractive": 11.8,
+  "domContentLoaded": 11.8,
+  "load": 11.8,
+  "firstPaint": 16,
+  "firstContentfulPaint": 16,
+  "firstFrame": 11.3
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [],
+ "resizes": [
+  {
+   "t": 720.3000000044703,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "cookie-bar",
+    "path": [
+     1,
+     0
+    ],
+    "selector": "#cookie-bar",
+    "text": "We use two cookies: one keeps you signed in and "
+   },
+   "before": null,
+   "after": {
+    "w": 1280,
+    "h": 72
+   },
+   "rect": {
+    "x": 0,
+    "y": 728,
+    "width": 1280,
+    "height": 72
+   },
+   "style": {
+    "position": "fixed",
+    "display": "flex",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 720.3000000044703,
+   "node": {
+    "uid": 3,
+    "tag": "div",
+    "id": "toast",
+    "path": [
+     1,
+     2,
+     2
+    ],
+    "selector": "#toast",
+    "text": "Timetable updated a minute ago."
+   },
+   "before": null,
+   "after": {
+    "w": 292,
+    "h": 48
+   },
+   "rect": {
+    "x": 748,
+    "y": 80,
+    "width": 292,
+    "height": 48
+   },
+   "style": {
+    "position": "absolute",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 719.3000000044703,
+   "kind": "add",
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "cookie-bar",
+    "path": [
+     1,
+     0
+    ],
+    "selector": "#cookie-bar",
+    "text": "We use two cookies: one keeps you signed in and "
+   },
+   "parent": {
+    "uid": 2,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "We use two cookies: one keeps you signed in and "
+   }
+  },
+  {
+   "t": 719.3000000044703,
+   "kind": "add",
+   "node": {
+    "uid": 3,
+    "tag": "div",
+    "id": "toast",
+    "path": [
+     1,
+     2,
+     2
+    ],
+    "selector": "#toast",
+    "text": "Timetable updated a minute ago."
+   },
+   "parent": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     2
+    ],
+    "selector": "#main",
+    "text": "Overlays that sit on top of the page"
+   }
+  }
+ ],
+ "media": [],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 7.8,
+   "end": 9.4,
+   "transferSize": 10159
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.19999999552965164,
+  "shiftMs": 0,
+  "mutationMs": 0.4999999925494194,
+  "resizeMs": 0.10000000149011612,
+  "otherMs": 0,
+  "mutationCallbacks": 3,
+  "resizeCallbacks": 2,
+  "tracked": 12,
+  "untracked": 0
+ }
+}

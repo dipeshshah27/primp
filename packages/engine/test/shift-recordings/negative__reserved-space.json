@@ -1,0 +1,214 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/negative/reserved-space/",
+ "capturedAt": 2229,
+ "hookStartedAt": 15.9,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "reload",
+  "domInteractive": 18.7,
+  "domContentLoaded": 18.7,
+  "load": 923.6,
+  "firstPaint": 24,
+  "firstContentfulPaint": 24,
+  "firstFrame": 17.1
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [],
+ "resizes": [
+  {
+   "t": 830.0999999940395,
+   "node": {
+    "uid": 2,
+    "tag": "div",
+    "id": "promo",
+    "path": [
+     1,
+     1,
+     2,
+     0
+    ],
+    "selector": "#promo",
+    "text": "Winter pass"
+   },
+   "before": null,
+   "after": {
+    "w": 800,
+    "h": 96
+   },
+   "rect": {
+    "x": 240,
+    "y": 418.66,
+    "width": 800,
+    "height": 96
+   },
+   "style": {
+    "position": "static",
+    "display": "flex",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 822.0999999940395,
+   "kind": "add",
+   "node": {
+    "uid": 2,
+    "tag": "div",
+    "id": "promo",
+    "path": [
+     1,
+     1,
+     2,
+     0
+    ],
+    "selector": "#promo",
+    "text": "Winter pass"
+   },
+   "parent": {
+    "uid": 3,
+    "tag": "div",
+    "id": "promo-slot",
+    "path": [
+     1,
+     1,
+     2
+    ],
+    "selector": "#promo-slot",
+    "text": "Winter pass"
+   }
+  }
+ ],
+ "media": [
+  {
+   "t": 720.0999999940395,
+   "event": "load",
+   "node": {
+    "uid": 1,
+    "tag": "img",
+    "id": "hero",
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#hero",
+    "attrs": {
+     "src": "/delay/700/assets/img/hero-1200x400.png"
+    }
+   },
+   "url": "http://localhost:4310/delay/700/assets/img/hero-1200x400.png",
+   "natural": {
+    "w": 1200,
+    "h": 400
+   },
+   "size": {
+    "w": 800,
+    "h": 266.66
+   }
+  },
+  {
+   "t": 923.2999999970198,
+   "event": "loadedmetadata",
+   "node": {
+    "uid": 4,
+    "tag": "video",
+    "id": "clip",
+    "path": [
+     1,
+     1,
+     3,
+     0
+    ],
+    "selector": "#clip",
+    "attrs": {
+     "src": "/delay/900/assets/video/clip-640x360.webm"
+    }
+   },
+   "url": "http://localhost:4310/delay/900/assets/video/clip-640x360.webm",
+   "natural": {
+    "w": 640,
+    "h": 360
+   },
+   "size": {
+    "w": 320,
+    "h": 180
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 11.8,
+   "end": 15.2,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/700/assets/img/hero-1200x400.png",
+   "initiator": "img",
+   "start": 11.9,
+   "end": 719.2,
+   "transferSize": 2756
+  },
+  {
+   "url": "http://localhost:4310/delay/800/assets/data/promo.json",
+   "initiator": "fetch",
+   "start": 17,
+   "end": 821.7,
+   "transferSize": 453
+  },
+  {
+   "url": "http://localhost:4310/delay/900/assets/video/clip-640x360.webm",
+   "initiator": "video",
+   "start": 18.6,
+   "end": 922.3,
+   "transferSize": 21967
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.29999999701976776,
+  "shiftMs": 0,
+  "mutationMs": 0.30000000447034836,
+  "resizeMs": 0.10000000149011612,
+  "otherMs": 0.5,
+  "mutationCallbacks": 3,
+  "resizeCallbacks": 2,
+  "tracked": 14,
+  "untracked": 0
+ }
+}

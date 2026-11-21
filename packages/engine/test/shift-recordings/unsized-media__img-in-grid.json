@@ -1,0 +1,733 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/unsized-media/img-in-grid/",
+ "capturedAt": 2024.6,
+ "hookStartedAt": 11.4,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "reload",
+  "domInteractive": 13.1,
+  "domContentLoaded": 13.1,
+  "load": 718.7,
+  "firstPaint": 20,
+  "firstContentfulPaint": 20,
+  "firstFrame": 12.2
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.05179472846984864,
+   "startTime": 717.7,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 12,
+      "tag": "li",
+      "id": "card-4",
+      "classes": [
+       "card"
+      ],
+      "path": [
+       1,
+       1,
+       0,
+       3
+      ],
+      "selector": "#card-4",
+      "text": "Lifeboat open day"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 210,
+      "width": 256,
+      "height": 263.33
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 379.33,
+      "width": 256,
+      "height": 263.33
+     },
+     "style": {
+      "position": "static",
+      "display": "list-item",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 13,
+      "tag": "li",
+      "id": "card-5",
+      "classes": [
+       "card"
+      ],
+      "path": [
+       1,
+       1,
+       0,
+       4
+      ],
+      "selector": "#card-5",
+      "text": "Fuel berth hours"
+     },
+     "previousRect": {
+      "x": 512,
+      "y": 210,
+      "width": 256,
+      "height": 263.33
+     },
+     "currentRect": {
+      "x": 512,
+      "y": 379.33,
+      "width": 256,
+      "height": 263.33
+     },
+     "style": {
+      "position": "static",
+      "display": "list-item",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 14,
+      "tag": "li",
+      "id": "card-6",
+      "classes": [
+       "card"
+      ],
+      "path": [
+       1,
+       1,
+       0,
+       5
+      ],
+      "selector": "#card-6",
+      "text": "Ticket office"
+     },
+     "previousRect": {
+      "x": 784,
+      "y": 210,
+      "width": 256,
+      "height": 263.33
+     },
+     "currentRect": {
+      "x": 784,
+      "y": 379.33,
+      "width": 256,
+      "height": 263.33
+     },
+     "style": {
+      "position": "static",
+      "display": "list-item",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 15,
+      "tag": "p",
+      "id": "after-grid",
+      "path": [
+       1,
+       1,
+       1
+      ],
+      "selector": "#after-grid",
+      "text": "The harbour authority publishes these pages ever"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 497.33,
+      "width": 800,
+      "height": 48
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 666.66,
+      "width": 800,
+      "height": 48
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 16,
+      "tag": "div",
+      "id": "card-2-body",
+      "classes": [
+       "card-body"
+      ],
+      "path": [
+       1,
+       1,
+       0,
+       1,
+       1
+      ],
+      "selector": "#card-2-body",
+      "text": "East wall moorings"
+     },
+     "previousRect": {
+      "x": 513,
+      "y": 81,
+      "width": 254,
+      "height": 112
+     },
+     "currentRect": {
+      "x": 513,
+      "y": 250.33,
+      "width": 254,
+      "height": 112
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 718.6
+  }
+ ],
+ "resizes": [
+  {
+   "t": 717.7000000029802,
+   "node": {
+    "uid": 4,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "unsized-media / img-in-grid"
+   },
+   "before": {
+    "w": 1280,
+    "h": 569.33
+   },
+   "after": {
+    "w": 1280,
+    "h": 738.66
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 738.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 717.7000000029802,
+   "node": {
+    "uid": 5,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Corpus Gazette"
+   },
+   "before": {
+    "w": 1280,
+    "h": 569.33
+   },
+   "after": {
+    "w": 1280,
+    "h": 738.66
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 738.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 717.7000000029802,
+   "node": {
+    "uid": 6,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Tide tables"
+   },
+   "before": {
+    "w": 848,
+    "h": 513.33
+   },
+   "after": {
+    "w": 848,
+    "h": 682.66
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 682.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 717.7000000029802,
+   "node": {
+    "uid": 7,
+    "tag": "ul",
+    "id": "cards",
+    "path": [
+     1,
+     1,
+     0
+    ],
+    "selector": "#cards",
+    "text": "Tide tables"
+   },
+   "before": {
+    "w": 800,
+    "h": 393.33
+   },
+   "after": {
+    "w": 800,
+    "h": 562.66
+   },
+   "rect": {
+    "x": 240,
+    "y": 80,
+    "width": 800,
+    "height": 562.66
+   },
+   "style": {
+    "position": "static",
+    "display": "grid",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 717.7000000029802,
+   "node": {
+    "uid": 8,
+    "tag": "li",
+    "id": "card-1",
+    "classes": [
+     "card"
+    ],
+    "path": [
+     1,
+     1,
+     0,
+     0
+    ],
+    "selector": "#card-1",
+    "text": "Tide tables"
+   },
+   "before": {
+    "w": 256,
+    "h": 114
+   },
+   "after": {
+    "w": 256,
+    "h": 283.33
+   },
+   "rect": {
+    "x": 240,
+    "y": 80,
+    "width": 256,
+    "height": 283.33
+   },
+   "style": {
+    "position": "static",
+    "display": "list-item",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 717.7000000029802,
+   "node": {
+    "uid": 9,
+    "tag": "li",
+    "id": "card-2",
+    "classes": [
+     "card"
+    ],
+    "path": [
+     1,
+     1,
+     0,
+     1
+    ],
+    "selector": "#card-2",
+    "text": "East wall moorings"
+   },
+   "before": {
+    "w": 256,
+    "h": 114
+   },
+   "after": {
+    "w": 256,
+    "h": 283.33
+   },
+   "rect": {
+    "x": 512,
+    "y": 80,
+    "width": 256,
+    "height": 283.33
+   },
+   "style": {
+    "position": "static",
+    "display": "list-item",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 717.7000000029802,
+   "node": {
+    "uid": 10,
+    "tag": "img",
+    "id": "card-2-img",
+    "classes": [
+     "thumb"
+    ],
+    "path": [
+     1,
+     1,
+     0,
+     1,
+     0
+    ],
+    "selector": "#card-2-img",
+    "attrs": {
+     "src": "/delay/700/assets/img/card-600x400.png"
+    }
+   },
+   "before": {
+    "w": 254,
+    "h": 0
+   },
+   "after": {
+    "w": 254,
+    "h": 169.33
+   },
+   "rect": {
+    "x": 513,
+    "y": 81,
+    "width": 254,
+    "height": 169.33
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "media": {
+    "widthAttr": false,
+    "heightAttr": false,
+    "cssWidth": "100%",
+    "cssHeight": "auto",
+    "aspectRatio": "auto"
+   }
+  },
+  {
+   "t": 717.7000000029802,
+   "node": {
+    "uid": 11,
+    "tag": "li",
+    "id": "card-3",
+    "classes": [
+     "card"
+    ],
+    "path": [
+     1,
+     1,
+     0,
+     2
+    ],
+    "selector": "#card-3",
+    "text": "Notices to mariners"
+   },
+   "before": {
+    "w": 256,
+    "h": 114
+   },
+   "after": {
+    "w": 256,
+    "h": 283.33
+   },
+   "rect": {
+    "x": 784,
+    "y": 80,
+    "width": 256,
+    "height": 283.33
+   },
+   "style": {
+    "position": "static",
+    "display": "list-item",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [],
+ "media": [
+  {
+   "t": 21.30000000447035,
+   "event": "load",
+   "node": {
+    "uid": 1,
+    "tag": "img",
+    "id": "card-4-img",
+    "classes": [
+     "thumb"
+    ],
+    "path": [
+     1,
+     1,
+     0,
+     3,
+     0
+    ],
+    "selector": "#card-4-img",
+    "attrs": {
+     "src": "/assets/img/card-600x400.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/card-600x400.png",
+   "natural": {
+    "w": 600,
+    "h": 400
+   },
+   "size": {
+    "w": 254,
+    "h": 169.33
+   }
+  },
+  {
+   "t": 21.5,
+   "event": "load",
+   "node": {
+    "uid": 2,
+    "tag": "img",
+    "id": "card-6-img",
+    "classes": [
+     "thumb"
+    ],
+    "path": [
+     1,
+     1,
+     0,
+     5,
+     0
+    ],
+    "selector": "#card-6-img",
+    "attrs": {
+     "src": "/assets/img/card-600x400.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/card-600x400.png",
+   "natural": {
+    "w": 600,
+    "h": 400
+   },
+   "size": {
+    "w": 254,
+    "h": 169.33
+   }
+  },
+  {
+   "t": 21.600000001490116,
+   "event": "load",
+   "node": {
+    "uid": 3,
+    "tag": "img",
+    "id": "card-5-img",
+    "classes": [
+     "thumb"
+    ],
+    "path": [
+     1,
+     1,
+     0,
+     4,
+     0
+    ],
+    "selector": "#card-5-img",
+    "attrs": {
+     "src": "/assets/img/card-600x400.png"
+    }
+   },
+   "url": "http://localhost:4310/assets/img/card-600x400.png",
+   "natural": {
+    "w": 600,
+    "h": 400
+   },
+   "size": {
+    "w": 254,
+    "h": 169.33
+   }
+  },
+  {
+   "t": 718.7000000029802,
+   "event": "load",
+   "node": {
+    "uid": 10,
+    "tag": "img",
+    "id": "card-2-img",
+    "classes": [
+     "thumb"
+    ],
+    "path": [
+     1,
+     1,
+     0,
+     1,
+     0
+    ],
+    "selector": "#card-2-img",
+    "attrs": {
+     "src": "/delay/700/assets/img/card-600x400.png"
+    }
+   },
+   "url": "http://localhost:4310/delay/700/assets/img/card-600x400.png",
+   "natural": {
+    "w": 600,
+    "h": 400
+   },
+   "size": {
+    "w": 254,
+    "h": 169.33
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 8.1,
+   "end": 10.5,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/assets/img/card-600x400.png",
+   "initiator": "img",
+   "start": 8.2,
+   "end": 21,
+   "transferSize": 1737
+  },
+  {
+   "url": "http://localhost:4310/delay/700/assets/img/card-600x400.png",
+   "initiator": "img",
+   "start": 8.2,
+   "end": 717.1,
+   "transferSize": 1737
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.20000000298023224,
+  "shiftMs": 0.10000000149011612,
+  "mutationMs": 0.10000000149011612,
+  "resizeMs": 0.6000000014901161,
+  "otherMs": 0.29999999701976776,
+  "mutationCallbacks": 1,
+  "resizeCallbacks": 2,
+  "tracked": 34,
+  "untracked": 0
+ }
+}

@@ -1,0 +1,601 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/img-float/",
+ "capturedAt": 1851.8,
+ "hookStartedAt": 5.3,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 13.6,
+  "domContentLoaded": 13.6,
+  "load": 616.8,
+  "firstPaint": 16,
+  "firstContentfulPaint": 16,
+  "firstFrame": 9.8
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.083056640625,
+   "startTime": 615.2,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 8,
+      "tag": "p",
+      "id": "p3",
+      "path": [
+       1,
+       1,
+       1,
+       3
+      ],
+      "selector": "#p3",
+      "text": "The map collection stays on the second floor. La"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 264,
+      "width": 800,
+      "height": 48
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 312,
+      "width": 800,
+      "height": 72
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 9,
+      "tag": "#text",
+      "path": [
+       1,
+       1,
+       1,
+       3
+      ],
+      "selector": "#p3",
+      "text": "The map collection stays on the second floor. La"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 267,
+      "width": 800,
+      "height": 65
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 315,
+      "width": 800,
+      "height": 65
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 10,
+      "tag": "p",
+      "id": "p4",
+      "path": [
+       1,
+       1,
+       1,
+       4
+      ],
+      "selector": "#p4",
+      "text": "Lockers by the entrance take a one pound coin, w"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 328,
+      "width": 800,
+      "height": 48
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 400,
+      "width": 800,
+      "height": 48
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 7,
+      "tag": "p",
+      "id": "p2",
+      "path": [
+       1,
+       1,
+       1,
+       2
+      ],
+      "selector": "#p2",
+      "text": "Members who reserved a desk for the autumn keep "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 200,
+      "width": 800,
+      "height": 48
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 224,
+      "width": 800,
+      "height": 72
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 11,
+      "tag": "p",
+      "id": "p5",
+      "path": [
+       1,
+       1,
+       1,
+       5
+      ],
+      "selector": "#p5",
+      "text": "The courtyard cafe closes at four. Hot drinks wi"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 392,
+      "width": 800,
+      "height": 48
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 464,
+      "width": 800,
+      "height": 48
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 616.6
+  }
+ ],
+ "resizes": [
+  {
+   "t": 615.3000000044703,
+   "node": {
+    "uid": 1,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / img-float"
+   },
+   "before": {
+    "w": 1280,
+    "h": 544
+   },
+   "after": {
+    "w": 1280,
+    "h": 616
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 616
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 615.3000000044703,
+   "node": {
+    "uid": 2,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 544
+   },
+   "after": {
+    "w": 1280,
+    "h": 616
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 616
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 615.3000000044703,
+   "node": {
+    "uid": 3,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 488
+   },
+   "after": {
+    "w": 848,
+    "h": 560
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 560
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 615.3000000044703,
+   "node": {
+    "uid": 4,
+    "tag": "div",
+    "id": "content",
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#content",
+    "text": "The reading room opens an hour earlier from the "
+   },
+   "before": {
+    "w": 800,
+    "h": 368
+   },
+   "after": {
+    "w": 800,
+    "h": 440
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 440
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 615.3000000044703,
+   "node": {
+    "uid": 5,
+    "tag": "img",
+    "id": "thumb",
+    "path": [
+     1,
+     1,
+     1,
+     0
+    ],
+    "selector": "#thumb",
+    "attrs": {
+     "src": "/delay/600/assets/img/thumb-320x240.png"
+    }
+   },
+   "before": {
+    "w": 0,
+    "h": 0
+   },
+   "after": {
+    "w": 320,
+    "h": 240
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 320,
+    "height": 240
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "float": "left",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     16,
+     8,
+     0
+    ]
+   },
+   "media": {
+    "widthAttr": false,
+    "heightAttr": false,
+    "cssWidth": "auto",
+    "cssHeight": "auto",
+    "aspectRatio": "auto"
+   }
+  },
+  {
+   "t": 615.3000000044703,
+   "node": {
+    "uid": 6,
+    "tag": "p",
+    "id": "p1",
+    "path": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "selector": "#p1",
+    "text": "The reading room opens an hour earlier from the "
+   },
+   "before": {
+    "w": 800,
+    "h": 48
+   },
+   "after": {
+    "w": 800,
+    "h": 72
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 72
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     16,
+     0,
+     16,
+     0
+    ]
+   }
+  },
+  {
+   "t": 615.3000000044703,
+   "node": {
+    "uid": 7,
+    "tag": "p",
+    "id": "p2",
+    "path": [
+     1,
+     1,
+     1,
+     2
+    ],
+    "selector": "#p2",
+    "text": "Members who reserved a desk for the autumn keep "
+   },
+   "before": {
+    "w": 800,
+    "h": 48
+   },
+   "after": {
+    "w": 800,
+    "h": 72
+   },
+   "rect": {
+    "x": 240,
+    "y": 224,
+    "width": 800,
+    "height": 72
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     16,
+     0,
+     16,
+     0
+    ]
+   }
+  },
+  {
+   "t": 615.3000000044703,
+   "node": {
+    "uid": 8,
+    "tag": "p",
+    "id": "p3",
+    "path": [
+     1,
+     1,
+     1,
+     3
+    ],
+    "selector": "#p3",
+    "text": "The map collection stays on the second floor. La"
+   },
+   "before": {
+    "w": 800,
+    "h": 48
+   },
+   "after": {
+    "w": 800,
+    "h": 72
+   },
+   "rect": {
+    "x": 240,
+    "y": 312,
+    "width": 800,
+    "height": 72
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     16,
+     0,
+     16,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [],
+ "media": [
+  {
+   "t": 616.7000000029802,
+   "event": "load",
+   "node": {
+    "uid": 5,
+    "tag": "img",
+    "id": "thumb",
+    "path": [
+     1,
+     1,
+     1,
+     0
+    ],
+    "selector": "#thumb",
+    "attrs": {
+     "src": "/delay/600/assets/img/thumb-320x240.png"
+    }
+   },
+   "url": "http://localhost:4310/delay/600/assets/img/thumb-320x240.png",
+   "natural": {
+    "w": 320,
+    "h": 240
+   },
+   "size": {
+    "w": 320,
+    "h": 240
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 2.4,
+   "end": 4.8,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/600/assets/img/thumb-320x240.png",
+   "initiator": "img",
+   "start": 2.5,
+   "end": 614.8,
+   "transferSize": 1146
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.3999999985098839,
+  "shiftMs": 0.10000000149011612,
+  "mutationMs": 0.3999999985098839,
+  "resizeMs": 1.1000000014901161,
+  "otherMs": 0.20000000298023224,
+  "mutationCallbacks": 1,
+  "resizeCallbacks": 2,
+  "tracked": 13,
+  "untracked": 0
+ }
+}

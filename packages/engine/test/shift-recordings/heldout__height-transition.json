@@ -1,0 +1,3774 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/height-transition/",
+ "capturedAt": 1804.8,
+ "hookStartedAt": 5.4,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 13.4,
+  "domContentLoaded": 13.4,
+  "load": 13.4,
+  "firstPaint": 16,
+  "firstContentfulPaint": 16,
+  "firstFrame": 6.4
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.0025734710693359375,
+   "startTime": 620.9,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 152,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 163.13,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 622.1
+  },
+  {
+   "index": 1,
+   "value": 0.0025590133666992185,
+   "startTime": 637.5,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 163.13,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 174.19,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 638.4
+  },
+  {
+   "index": 2,
+   "value": 0.0025590133666992185,
+   "startTime": 654.2,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 174.19,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 185.25,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 654.6
+  },
+  {
+   "index": 3,
+   "value": 0.002577085494995117,
+   "startTime": 670.5,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 185.25,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 196.39,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 671
+  },
+  {
+   "index": 4,
+   "value": 0.00258026123046875,
+   "startTime": 687.5,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 196.39,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 207.52,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 687.9
+  },
+  {
+   "index": 5,
+   "value": 0.002577085494995117,
+   "startTime": 704.2,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 207.52,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 218.66,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 704.6
+  },
+  {
+   "index": 6,
+   "value": 0.0025590133666992185,
+   "startTime": 720.6,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 218.66,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 229.72,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 720.8
+  },
+  {
+   "index": 7,
+   "value": 0.002577085494995117,
+   "startTime": 737.6,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 229.72,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 240.86,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 738
+  },
+  {
+   "index": 8,
+   "value": 0.0025734710693359375,
+   "startTime": 754.2,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 240.86,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 251.98,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 754.6
+  },
+  {
+   "index": 9,
+   "value": 0.002577085494995117,
+   "startTime": 770.2,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 251.98,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 263.13,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 770.4
+  },
+  {
+   "index": 10,
+   "value": 0.0025590133666992185,
+   "startTime": 786.7,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 263.13,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 274.19,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 787
+  },
+  {
+   "index": 11,
+   "value": 0.0025734710693359375,
+   "startTime": 803.8,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 274.19,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 285.31,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 804.2
+  },
+  {
+   "index": 12,
+   "value": 0.002577085494995117,
+   "startTime": 820.8,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 285.31,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 296.45,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 821.2
+  },
+  {
+   "index": 13,
+   "value": 0.002565765380859375,
+   "startTime": 837.5,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 296.45,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 307.52,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 837.8
+  },
+  {
+   "index": 14,
+   "value": 0.002577085494995117,
+   "startTime": 854.2,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 307.52,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 318.66,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 854.8
+  },
+  {
+   "index": 15,
+   "value": 0.0025590133666992185,
+   "startTime": 870.8,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 318.66,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 329.72,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 871.2
+  },
+  {
+   "index": 16,
+   "value": 0.002577085494995117,
+   "startTime": 887.6,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 329.72,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 340.86,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 888.1
+  },
+  {
+   "index": 17,
+   "value": 0.0025734710693359375,
+   "startTime": 903.3,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 340.86,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 351.98,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 903.8
+  }
+ ],
+ "resizes": [
+  {
+   "t": 620.8999999985099,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 560
+   },
+   "after": {
+    "w": 1280,
+    "h": 571.13
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 571.13
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 620.8999999985099,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 560
+   },
+   "after": {
+    "w": 1280,
+    "h": 571.13
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 571.13
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 620.8999999985099,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 504
+   },
+   "after": {
+    "w": 848,
+    "h": 515.13
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 515.13
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 620.8999999985099,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 0
+   },
+   "after": {
+    "w": 800,
+    "h": 11.13
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 11.13
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 637.5999999940395,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 571.13
+   },
+   "after": {
+    "w": 1280,
+    "h": 582.19
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 582.19
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 637.5999999940395,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 571.13
+   },
+   "after": {
+    "w": 1280,
+    "h": 582.19
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 582.19
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 637.5999999940395,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 515.13
+   },
+   "after": {
+    "w": 848,
+    "h": 526.19
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 526.19
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 637.5999999940395,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 11.13
+   },
+   "after": {
+    "w": 800,
+    "h": 22.19
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 22.19
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 654.1999999955297,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 582.19
+   },
+   "after": {
+    "w": 1280,
+    "h": 593.25
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 593.25
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 654.1999999955297,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 582.19
+   },
+   "after": {
+    "w": 1280,
+    "h": 593.25
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 593.25
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 654.1999999955297,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 526.19
+   },
+   "after": {
+    "w": 848,
+    "h": 537.25
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 537.25
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 654.1999999955297,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 22.19
+   },
+   "after": {
+    "w": 800,
+    "h": 33.25
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 33.25
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 670.5999999940395,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 593.25
+   },
+   "after": {
+    "w": 1280,
+    "h": 604.39
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 604.39
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 670.5999999940395,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 593.25
+   },
+   "after": {
+    "w": 1280,
+    "h": 604.39
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 604.39
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 670.5999999940395,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 537.25
+   },
+   "after": {
+    "w": 848,
+    "h": 548.39
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 548.39
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 670.5999999940395,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 33.25
+   },
+   "after": {
+    "w": 800,
+    "h": 44.39
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 44.39
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 687.5,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 604.39
+   },
+   "after": {
+    "w": 1280,
+    "h": 615.52
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 615.52
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 687.5,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 604.39
+   },
+   "after": {
+    "w": 1280,
+    "h": 615.52
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 615.52
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 687.5,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 548.39
+   },
+   "after": {
+    "w": 848,
+    "h": 559.52
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 559.52
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 687.5,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 44.39
+   },
+   "after": {
+    "w": 800,
+    "h": 55.52
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 55.52
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 704.1999999955297,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 615.52
+   },
+   "after": {
+    "w": 1280,
+    "h": 626.66
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 626.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 704.1999999955297,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 615.52
+   },
+   "after": {
+    "w": 1280,
+    "h": 626.66
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 626.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 704.1999999955297,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 559.52
+   },
+   "after": {
+    "w": 848,
+    "h": 570.66
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 570.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 704.1999999955297,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 55.52
+   },
+   "after": {
+    "w": 800,
+    "h": 66.66
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 66.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 720.6999999955297,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 626.66
+   },
+   "after": {
+    "w": 1280,
+    "h": 637.72
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 637.72
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 720.6999999955297,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 626.66
+   },
+   "after": {
+    "w": 1280,
+    "h": 637.72
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 637.72
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 720.6999999955297,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 570.66
+   },
+   "after": {
+    "w": 848,
+    "h": 581.72
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 581.72
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 720.6999999955297,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 66.66
+   },
+   "after": {
+    "w": 800,
+    "h": 77.72
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 77.72
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 737.5999999940395,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 637.72
+   },
+   "after": {
+    "w": 1280,
+    "h": 648.86
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 648.86
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 737.5999999940395,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 637.72
+   },
+   "after": {
+    "w": 1280,
+    "h": 648.86
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 648.86
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 737.5999999940395,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 581.72
+   },
+   "after": {
+    "w": 848,
+    "h": 592.86
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 592.86
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 737.5999999940395,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 77.72
+   },
+   "after": {
+    "w": 800,
+    "h": 88.86
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 88.86
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 754.2999999970198,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 648.86
+   },
+   "after": {
+    "w": 1280,
+    "h": 659.98
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 659.98
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 754.2999999970198,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 648.86
+   },
+   "after": {
+    "w": 1280,
+    "h": 659.98
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 659.98
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 754.2999999970198,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 592.86
+   },
+   "after": {
+    "w": 848,
+    "h": 603.98
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 603.98
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 754.2999999970198,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 88.86
+   },
+   "after": {
+    "w": 800,
+    "h": 99.98
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 99.98
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 770.1999999955297,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 659.98
+   },
+   "after": {
+    "w": 1280,
+    "h": 671.13
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 671.13
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 770.1999999955297,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 659.98
+   },
+   "after": {
+    "w": 1280,
+    "h": 671.13
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 671.13
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 770.1999999955297,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 603.98
+   },
+   "after": {
+    "w": 848,
+    "h": 615.13
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 615.13
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 770.1999999955297,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 99.98
+   },
+   "after": {
+    "w": 800,
+    "h": 111.13
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 111.13
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 786.6999999955297,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 671.13
+   },
+   "after": {
+    "w": 1280,
+    "h": 682.19
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 682.19
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 786.6999999955297,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 671.13
+   },
+   "after": {
+    "w": 1280,
+    "h": 682.19
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 682.19
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 786.6999999955297,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 615.13
+   },
+   "after": {
+    "w": 848,
+    "h": 626.19
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 626.19
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 786.6999999955297,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 111.13
+   },
+   "after": {
+    "w": 800,
+    "h": 122.19
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 122.19
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 803.7999999970198,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 682.19
+   },
+   "after": {
+    "w": 1280,
+    "h": 693.31
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 693.31
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 803.7999999970198,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 682.19
+   },
+   "after": {
+    "w": 1280,
+    "h": 693.31
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 693.31
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 803.7999999970198,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 626.19
+   },
+   "after": {
+    "w": 848,
+    "h": 637.31
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 637.31
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 803.7999999970198,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 122.19
+   },
+   "after": {
+    "w": 800,
+    "h": 133.31
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 133.31
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 820.8999999985099,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 693.31
+   },
+   "after": {
+    "w": 1280,
+    "h": 704.45
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 704.45
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 820.8999999985099,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 693.31
+   },
+   "after": {
+    "w": 1280,
+    "h": 704.45
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 704.45
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 820.8999999985099,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 637.31
+   },
+   "after": {
+    "w": 848,
+    "h": 648.45
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 648.45
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 820.8999999985099,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 133.31
+   },
+   "after": {
+    "w": 800,
+    "h": 144.45
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 144.45
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 837.5,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 704.45
+   },
+   "after": {
+    "w": 1280,
+    "h": 715.52
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 715.52
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 837.5,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 704.45
+   },
+   "after": {
+    "w": 1280,
+    "h": 715.52
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 715.52
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 837.5,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 648.45
+   },
+   "after": {
+    "w": 848,
+    "h": 659.52
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 659.52
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 837.5,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 144.45
+   },
+   "after": {
+    "w": 800,
+    "h": 155.52
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 155.52
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 854.2999999970198,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 715.52
+   },
+   "after": {
+    "w": 1280,
+    "h": 726.66
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 726.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 854.2999999970198,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 715.52
+   },
+   "after": {
+    "w": 1280,
+    "h": 726.66
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 726.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 854.2999999970198,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 659.52
+   },
+   "after": {
+    "w": 848,
+    "h": 670.66
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 670.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 854.2999999970198,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 155.52
+   },
+   "after": {
+    "w": 800,
+    "h": 166.66
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 166.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 870.7999999970198,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 726.66
+   },
+   "after": {
+    "w": 1280,
+    "h": 737.72
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 737.72
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 870.7999999970198,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 726.66
+   },
+   "after": {
+    "w": 1280,
+    "h": 737.72
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 737.72
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 870.7999999970198,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 670.66
+   },
+   "after": {
+    "w": 848,
+    "h": 681.72
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 681.72
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 870.7999999970198,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 166.66
+   },
+   "after": {
+    "w": 800,
+    "h": 177.72
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 177.72
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 887.5999999940395,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 737.72
+   },
+   "after": {
+    "w": 1280,
+    "h": 748.86
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 748.86
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 887.5999999940395,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 737.72
+   },
+   "after": {
+    "w": 1280,
+    "h": 748.86
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 748.86
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 887.5999999940395,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 681.72
+   },
+   "after": {
+    "w": 848,
+    "h": 692.86
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 692.86
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 887.5999999940395,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 177.72
+   },
+   "after": {
+    "w": 800,
+    "h": 188.86
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 188.86
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 903.2999999970198,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 748.86
+   },
+   "after": {
+    "w": 1280,
+    "h": 759.98
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 759.98
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 903.2999999970198,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 748.86
+   },
+   "after": {
+    "w": 1280,
+    "h": 759.98
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 759.98
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 903.2999999970198,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 692.86
+   },
+   "after": {
+    "w": 848,
+    "h": 703.98
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 703.98
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 903.2999999970198,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 188.86
+   },
+   "after": {
+    "w": 800,
+    "h": 199.98
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 199.98
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 920.7999999970198,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / height-transition"
+   },
+   "before": {
+    "w": 1280,
+    "h": 759.98
+   },
+   "after": {
+    "w": 1280,
+    "h": 760
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 760
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 920.7999999970198,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 759.98
+   },
+   "after": {
+    "w": 1280,
+    "h": 760
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 760
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 920.7999999970198,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 703.98
+   },
+   "after": {
+    "w": 848,
+    "h": 704
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 704
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 920.7999999970198,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "before": {
+    "w": 800,
+    "h": 199.98
+   },
+   "after": {
+    "w": 800,
+    "h": 200
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 200
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 612.2999999970198,
+   "kind": "attr",
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "panel",
+    "classes": [
+     "open"
+    ],
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#panel",
+    "text": "Holiday closures: the library is shut from the 2"
+   },
+   "attr": "class",
+   "value": "open"
+  }
+ ],
+ "media": [],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 2.5,
+   "end": 4.9,
+   "transferSize": 10159
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.29999999701976776,
+  "shiftMs": 1.8000000044703484,
+  "mutationMs": 0.9999999925494194,
+  "resizeMs": 3.6000000089406967,
+  "otherMs": 0.10000000149011612,
+  "mutationCallbacks": 3,
+  "resizeCallbacks": 20,
+  "tracked": 14,
+  "untracked": 0
+ }
+}

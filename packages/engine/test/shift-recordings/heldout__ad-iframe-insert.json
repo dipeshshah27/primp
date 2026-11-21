@@ -1,0 +1,394 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/ad-iframe-insert/",
+ "capturedAt": 1805,
+ "hookStartedAt": 6.9,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 14.7,
+  "domContentLoaded": 14.8,
+  "load": 14.8,
+  "firstPaint": 16,
+  "firstContentfulPaint": 16,
+  "firstFrame": 8
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.02735595703125,
+   "startTime": 617.2,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 6,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 152,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 242,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 7,
+      "tag": "h1",
+      "id": "title",
+      "path": [
+       1,
+       1,
+       1
+      ],
+      "selector": "#title",
+      "text": "Winter opening hours"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 96,
+      "width": 800,
+      "height": 40
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 186,
+      "width": 800,
+      "height": 40
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 618.6
+  }
+ ],
+ "resizes": [
+  {
+   "t": 617.2000000029802,
+   "node": {
+    "uid": 3,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / ad-iframe-insert"
+   },
+   "before": {
+    "w": 1280,
+    "h": 560
+   },
+   "after": {
+    "w": 1280,
+    "h": 650
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 650
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 617.2000000029802,
+   "node": {
+    "uid": 4,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 560
+   },
+   "after": {
+    "w": 1280,
+    "h": 650
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 650
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 617.2000000029802,
+   "node": {
+    "uid": 5,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 504
+   },
+   "after": {
+    "w": 848,
+    "h": 594
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 594
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 617.2000000029802,
+   "node": {
+    "uid": 2,
+    "tag": "div",
+    "id": "ad-slot",
+    "path": [
+     1,
+     1,
+     0
+    ],
+    "selector": "#ad-slot"
+   },
+   "before": {
+    "w": 800,
+    "h": 0
+   },
+   "after": {
+    "w": 800,
+    "h": 90
+   },
+   "rect": {
+    "x": 240,
+    "y": 80,
+    "width": 800,
+    "height": 90
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     16,
+     0
+    ]
+   }
+  },
+  {
+   "t": 617.2000000029802,
+   "node": {
+    "uid": 1,
+    "tag": "iframe",
+    "id": "ad",
+    "path": [
+     1,
+     1,
+     0,
+     0
+    ],
+    "selector": "#ad"
+   },
+   "before": null,
+   "after": {
+    "w": 728,
+    "h": 90
+   },
+   "rect": {
+    "x": 240,
+    "y": 80,
+    "width": 728,
+    "height": 90
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "media": {
+    "widthAttr": true,
+    "heightAttr": true,
+    "cssWidth": "728px",
+    "cssHeight": "90px",
+    "aspectRatio": "auto"
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 615.9000000059605,
+   "kind": "add",
+   "node": {
+    "uid": 1,
+    "tag": "iframe",
+    "id": "ad",
+    "path": [
+     1,
+     1,
+     0,
+     0
+    ],
+    "selector": "#ad"
+   },
+   "parent": {
+    "uid": 2,
+    "tag": "div",
+    "id": "ad-slot",
+    "path": [
+     1,
+     1,
+     0
+    ],
+    "selector": "#ad-slot"
+   }
+  }
+ ],
+ "media": [
+  {
+   "t": 621.2000000029802,
+   "event": "load",
+   "node": {
+    "uid": 1,
+    "tag": "iframe",
+    "id": "ad",
+    "path": [
+     1,
+     1,
+     0,
+     0
+    ],
+    "selector": "#ad"
+   },
+   "url": "",
+   "size": {
+    "w": 728,
+    "h": 90
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 3.8,
+   "end": 6.3,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/600/assets/data/promo.json",
+   "initiator": "fetch",
+   "start": 7.9,
+   "end": 613.9,
+   "transferSize": 453
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.29999999701976776,
+  "shiftMs": 0.20000000298023224,
+  "mutationMs": 1.1000000014901161,
+  "resizeMs": 1,
+  "otherMs": 0.30000000447034836,
+  "mutationCallbacks": 3,
+  "resizeCallbacks": 2,
+  "tracked": 14,
+  "untracked": 0
+ }
+}

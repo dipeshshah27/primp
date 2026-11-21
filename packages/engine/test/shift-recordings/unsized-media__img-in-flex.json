@@ -1,0 +1,506 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/unsized-media/img-in-flex/",
+ "capturedAt": 2027.3,
+ "hookStartedAt": 15.1,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "reload",
+  "domInteractive": 16.3,
+  "domContentLoaded": 16.4,
+  "load": 720.7,
+  "firstPaint": 20,
+  "firstContentfulPaint": 20,
+  "firstFrame": 15.8
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.11391552734375,
+   "startTime": 721.9,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 9,
+      "tag": "section",
+      "id": "posts",
+      "path": [
+       1,
+       1,
+       1
+      ],
+      "selector": "#posts",
+      "text": "Recent notices"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 226,
+      "width": 800,
+      "height": 328
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 378,
+      "width": 800,
+      "height": 328
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 6,
+      "tag": "div",
+      "id": "bio",
+      "path": [
+       1,
+       1,
+       0,
+       1
+      ],
+      "selector": "#bio",
+      "text": "Ines Okafor, harbour master"
+     },
+     "previousRect": {
+      "x": 281,
+      "y": 97,
+      "width": 742,
+      "height": 88
+     },
+     "currentRect": {
+      "x": 601,
+      "y": 97,
+      "width": 422,
+      "height": 136
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 722.6
+  }
+ ],
+ "resizes": [
+  {
+   "t": 721.8999999985099,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "unsized-media / img-in-flex"
+   },
+   "before": {
+    "w": 1280,
+    "h": 590
+   },
+   "after": {
+    "w": 1280,
+    "h": 742
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 742
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 721.8999999985099,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Corpus Gazette"
+   },
+   "before": {
+    "w": 1280,
+    "h": 590
+   },
+   "after": {
+    "w": 1280,
+    "h": 742
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 742
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 721.8999999985099,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Ines Okafor, harbour master"
+   },
+   "before": {
+    "w": 848,
+    "h": 534
+   },
+   "after": {
+    "w": 848,
+    "h": 686
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 686
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 721.8999999985099,
+   "node": {
+    "uid": 5,
+    "tag": "section",
+    "id": "profile",
+    "path": [
+     1,
+     1,
+     0
+    ],
+    "selector": "#profile",
+    "text": "Ines Okafor, harbour master"
+   },
+   "before": {
+    "w": 800,
+    "h": 122
+   },
+   "after": {
+    "w": 800,
+    "h": 274
+   },
+   "rect": {
+    "x": 240,
+    "y": 80,
+    "width": 800,
+    "height": 274
+   },
+   "style": {
+    "position": "static",
+    "display": "flex",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 721.8999999985099,
+   "node": {
+    "uid": 1,
+    "tag": "img",
+    "id": "portrait",
+    "path": [
+     1,
+     1,
+     0,
+     0
+    ],
+    "selector": "#portrait",
+    "attrs": {
+     "src": "/delay/700/assets/img/thumb-320x240.png"
+    }
+   },
+   "before": {
+    "w": 0,
+    "h": 0
+   },
+   "after": {
+    "w": 320,
+    "h": 240
+   },
+   "rect": {
+    "x": 257,
+    "y": 97,
+    "width": 320,
+    "height": 240
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "media": {
+    "widthAttr": false,
+    "heightAttr": false,
+    "cssWidth": "auto",
+    "cssHeight": "auto",
+    "aspectRatio": "auto"
+   }
+  },
+  {
+   "t": 721.8999999985099,
+   "node": {
+    "uid": 6,
+    "tag": "div",
+    "id": "bio",
+    "path": [
+     1,
+     1,
+     0,
+     1
+    ],
+    "selector": "#bio",
+    "text": "Ines Okafor, harbour master"
+   },
+   "before": {
+    "w": 742,
+    "h": 88
+   },
+   "after": {
+    "w": 422,
+    "h": 136
+   },
+   "rect": {
+    "x": 601,
+    "y": 97,
+    "width": 422,
+    "height": 136
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 721.8999999985099,
+   "node": {
+    "uid": 7,
+    "tag": "h1",
+    "id": "name",
+    "path": [
+     1,
+     1,
+     0,
+     1,
+     0
+    ],
+    "selector": "#name",
+    "text": "Ines Okafor, harbour master"
+   },
+   "before": {
+    "w": 742,
+    "h": 32
+   },
+   "after": {
+    "w": 422,
+    "h": 32
+   },
+   "rect": {
+    "x": 601,
+    "y": 97,
+    "width": 422,
+    "height": 32
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     8,
+     0
+    ]
+   }
+  },
+  {
+   "t": 721.8999999985099,
+   "node": {
+    "uid": 8,
+    "tag": "p",
+    "id": "bio-text",
+    "path": [
+     1,
+     1,
+     0,
+     1,
+     1
+    ],
+    "selector": "#bio-text",
+    "text": "Ines has run the north pier since the ferry comp"
+   },
+   "before": {
+    "w": 742,
+    "h": 48
+   },
+   "after": {
+    "w": 422,
+    "h": 96
+   },
+   "rect": {
+    "x": 601,
+    "y": 137,
+    "width": 422,
+    "height": 96
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [],
+ "media": [
+  {
+   "t": 720.3999999985099,
+   "event": "load",
+   "node": {
+    "uid": 1,
+    "tag": "img",
+    "id": "portrait",
+    "path": [
+     1,
+     1,
+     0,
+     0
+    ],
+    "selector": "#portrait",
+    "attrs": {
+     "src": "/delay/700/assets/img/thumb-320x240.png"
+    }
+   },
+   "url": "http://localhost:4310/delay/700/assets/img/thumb-320x240.png",
+   "natural": {
+    "w": 320,
+    "h": 240
+   },
+   "size": {
+    "w": 0,
+    "h": 0
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 10.4,
+   "end": 14.4,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/700/assets/img/thumb-320x240.png",
+   "initiator": "img",
+   "start": 10.4,
+   "end": 719.9,
+   "transferSize": 1146
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.20000000298023224,
+  "shiftMs": 0.10000000149011612,
+  "mutationMs": 0.10000000149011612,
+  "resizeMs": 0.5000000074505806,
+  "otherMs": 0.30000000447034836,
+  "mutationCallbacks": 1,
+  "resizeCallbacks": 2,
+  "tracked": 16,
+  "untracked": 0
+ }
+}

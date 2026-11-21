@@ -1,0 +1,44 @@
+{
+  "note": "Hand-written. Card B (id 6) gets 8px more padding on each side and grows 16px taller. Its row siblings A (3) and C (9) stretch with it; A's button (5) is pinned to the bottom of A and so moves inside it. The second row (10, 12) and the footer (13) move down 16px. body is a fixed 700px app shell, so it does not grow and instead starts to overflow vertically.",
+  "edited": [6],
+  "before": {
+    "total": 13, "truncated": false, "pinned": false,
+    "viewport": { "x": 0, "y": 0, "w": 1000, "h": 600 },
+    "page": { "w": 1000, "h": 700 },
+    "entries": [
+      { "id": 1, "parent": 0, "desc": "body", "path": "", "x": 0, "y": 0, "w": 1000, "h": 700 },
+      { "id": 2, "parent": 1, "desc": "main.grid", "path": "0", "x": 0, "y": 0, "w": 1000, "h": 520 },
+      { "id": 3, "parent": 2, "desc": "article#card-a.card", "path": "0.0", "x": 0, "y": 0, "w": 320, "h": 240 },
+      { "id": 4, "parent": 3, "desc": "h3.title", "path": "0.0.0", "x": 16, "y": 16, "w": 288, "h": 24, "lines": 1 },
+      { "id": 5, "parent": 3, "desc": "button.btn", "path": "0.0.1", "x": 16, "y": 192, "w": 80, "h": 32, "lines": 1 },
+      { "id": 6, "parent": 2, "desc": "article#card-b.card", "path": "0.1", "x": 340, "y": 0, "w": 320, "h": 240 },
+      { "id": 7, "parent": 6, "desc": "h3.title", "path": "0.1.0", "x": 356, "y": 16, "w": 288, "h": 24, "lines": 1 },
+      { "id": 8, "parent": 6, "desc": "button.btn", "path": "0.1.1", "x": 356, "y": 192, "w": 80, "h": 32, "lines": 1 },
+      { "id": 9, "parent": 2, "desc": "article#card-c.card", "path": "0.2", "x": 680, "y": 0, "w": 320, "h": 240 },
+      { "id": 10, "parent": 2, "desc": "article#card-d.card", "path": "0.3", "x": 0, "y": 260, "w": 320, "h": 240 },
+      { "id": 11, "parent": 10, "desc": "h3.title", "path": "0.3.0", "x": 16, "y": 276, "w": 288, "h": 24, "lines": 1 },
+      { "id": 12, "parent": 2, "desc": "article#card-e.card", "path": "0.4", "x": 340, "y": 260, "w": 320, "h": 240 },
+      { "id": 13, "parent": 1, "desc": "footer.footer", "path": "1", "x": 0, "y": 540, "w": 1000, "h": 160 }
+    ]
+  },
+  "after": {
+    "total": 13, "truncated": false, "pinned": false,
+    "viewport": { "x": 0, "y": 0, "w": 1000, "h": 600 },
+    "page": { "w": 1000, "h": 700 },
+    "entries": [
+      { "id": 1, "parent": 0, "desc": "body", "path": "", "x": 0, "y": 0, "w": 1000, "h": 700, "overflow": "y" },
+      { "id": 2, "parent": 1, "desc": "main.grid", "path": "0", "x": 0, "y": 0, "w": 1000, "h": 536 },
+      { "id": 3, "parent": 2, "desc": "article#card-a.card", "path": "0.0", "x": 0, "y": 0, "w": 320, "h": 256 },
+      { "id": 4, "parent": 3, "desc": "h3.title", "path": "0.0.0", "x": 16, "y": 16, "w": 288, "h": 24, "lines": 1 },
+      { "id": 5, "parent": 3, "desc": "button.btn", "path": "0.0.1", "x": 16, "y": 208, "w": 80, "h": 32, "lines": 1 },
+      { "id": 6, "parent": 2, "desc": "article#card-b.card", "path": "0.1", "x": 340, "y": 0, "w": 320, "h": 256 },
+      { "id": 7, "parent": 6, "desc": "h3.title", "path": "0.1.0", "x": 364, "y": 24, "w": 272, "h": 24, "lines": 1 },
+      { "id": 8, "parent": 6, "desc": "button.btn", "path": "0.1.1", "x": 364, "y": 200, "w": 80, "h": 32, "lines": 1 },
+      { "id": 9, "parent": 2, "desc": "article#card-c.card", "path": "0.2", "x": 680, "y": 0, "w": 320, "h": 256 },
+      { "id": 10, "parent": 2, "desc": "article#card-d.card", "path": "0.3", "x": 0, "y": 276, "w": 320, "h": 240 },
+      { "id": 11, "parent": 10, "desc": "h3.title", "path": "0.3.0", "x": 16, "y": 292, "w": 288, "h": 24, "lines": 1 },
+      { "id": 12, "parent": 2, "desc": "article#card-e.card", "path": "0.4", "x": 340, "y": 276, "w": 320, "h": 240 },
+      { "id": 13, "parent": 1, "desc": "footer.footer", "path": "1", "x": 0, "y": 556, "w": 1000, "h": 160 }
+    ]
+  }
+}

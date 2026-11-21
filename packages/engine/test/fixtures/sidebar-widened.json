@@ -1,0 +1,38 @@
+{
+  "note": "Hand-written. The sidebar (id 3) goes from 200px to 260px wide. main (5) moves right 60px, gets 60px narrower and, because its heading (6) now wraps to two lines, 40px taller. The 780px fixed-width table (8) no longer fits: main overflows, the page gains a horizontal scrollbar and the badge (9) at the table's right edge leaves the viewport. The footer (10) moves down 40px.",
+  "edited": [3],
+  "before": {
+    "total": 10, "truncated": false, "pinned": false,
+    "viewport": { "x": 0, "y": 0, "w": 1000, "h": 600 },
+    "page": { "w": 1000, "h": 680 },
+    "entries": [
+      { "id": 1, "parent": 0, "desc": "body", "path": "", "x": 0, "y": 0, "w": 1000, "h": 680 },
+      { "id": 2, "parent": 1, "desc": "div.layout", "path": "0", "x": 0, "y": 0, "w": 1000, "h": 600 },
+      { "id": 3, "parent": 2, "desc": "aside#sidebar.sidebar", "path": "0.0", "x": 0, "y": 0, "w": 200, "h": 600 },
+      { "id": 4, "parent": 3, "desc": "a.side-link", "path": "0.0.0", "x": 16, "y": 16, "w": 168, "h": 20, "lines": 1 },
+      { "id": 5, "parent": 2, "desc": "main#content.content", "path": "0.1", "x": 200, "y": 0, "w": 800, "h": 600 },
+      { "id": 6, "parent": 5, "desc": "h1.title", "path": "0.1.0", "x": 210, "y": 10, "w": 780, "h": 40, "lines": 1 },
+      { "id": 7, "parent": 5, "desc": "p.lead", "path": "0.1.1", "x": 210, "y": 60, "w": 780, "h": 60, "lines": 3 },
+      { "id": 8, "parent": 5, "desc": "div.table", "path": "0.1.2", "x": 210, "y": 130, "w": 780, "h": 300 },
+      { "id": 9, "parent": 8, "desc": "span.badge", "path": "0.1.2.0", "x": 950, "y": 140, "w": 40, "h": 20, "lines": 1 },
+      { "id": 10, "parent": 1, "desc": "footer.footer", "path": "1", "x": 0, "y": 600, "w": 1000, "h": 80 }
+    ]
+  },
+  "after": {
+    "total": 10, "truncated": false, "pinned": false,
+    "viewport": { "x": 0, "y": 0, "w": 1000, "h": 600 },
+    "page": { "w": 1050, "h": 720 },
+    "entries": [
+      { "id": 1, "parent": 0, "desc": "body", "path": "", "x": 0, "y": 0, "w": 1000, "h": 720 },
+      { "id": 2, "parent": 1, "desc": "div.layout", "path": "0", "x": 0, "y": 0, "w": 1000, "h": 640 },
+      { "id": 3, "parent": 2, "desc": "aside#sidebar.sidebar", "path": "0.0", "x": 0, "y": 0, "w": 260, "h": 640 },
+      { "id": 4, "parent": 3, "desc": "a.side-link", "path": "0.0.0", "x": 16, "y": 16, "w": 228, "h": 20, "lines": 1 },
+      { "id": 5, "parent": 2, "desc": "main#content.content", "path": "0.1", "x": 260, "y": 0, "w": 740, "h": 640, "overflow": "x" },
+      { "id": 6, "parent": 5, "desc": "h1.title", "path": "0.1.0", "x": 270, "y": 10, "w": 720, "h": 80, "lines": 2 },
+      { "id": 7, "parent": 5, "desc": "p.lead", "path": "0.1.1", "x": 270, "y": 100, "w": 720, "h": 60, "lines": 3 },
+      { "id": 8, "parent": 5, "desc": "div.table", "path": "0.1.2", "x": 270, "y": 170, "w": 780, "h": 300 },
+      { "id": 9, "parent": 8, "desc": "span.badge", "path": "0.1.2.0", "x": 1010, "y": 180, "w": 40, "h": 20, "lines": 1 },
+      { "id": 10, "parent": 1, "desc": "footer.footer", "path": "1", "x": 0, "y": 640, "w": 1000, "h": 80 }
+    ]
+  }
+}

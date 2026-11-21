@@ -1,0 +1,735 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/font-swap/nav/",
+ "capturedAt": 2025.9,
+ "hookStartedAt": 13.8,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "reload",
+  "domInteractive": 15.2,
+  "domContentLoaded": 15.2,
+  "load": 723.3,
+  "firstPaint": 20,
+  "firstContentfulPaint": 20,
+  "firstFrame": 14.4
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.13802574501037598,
+   "startTime": 724.6,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 12,
+      "tag": "main",
+      "id": "main",
+      "path": [
+       1,
+       1
+      ],
+      "selector": "#main",
+      "text": "Planning a journey"
+     },
+     "previousRect": {
+      "x": 216,
+      "y": 56,
+      "width": 848,
+      "height": 424
+     },
+     "currentRect": {
+      "x": 216,
+      "y": 96,
+      "width": 848,
+      "height": 424
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 10,
+      "tag": "a",
+      "id": "nav-lost",
+      "path": [
+       1,
+       0,
+       0,
+       5
+      ],
+      "selector": "#nav-lost",
+      "text": "Lost property",
+      "attrs": {
+       "href": "#lost"
+      }
+     },
+     "previousRect": {
+      "x": 668.27,
+      "y": 8,
+      "width": 94,
+      "height": 40
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 48,
+      "width": 208,
+      "height": 40
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 9,
+      "tag": "a",
+      "id": "nav-accessibility",
+      "path": [
+       1,
+       0,
+       0,
+       4
+      ],
+      "selector": "#nav-accessibility",
+      "text": "Accessibility",
+      "attrs": {
+       "href": "#accessibility"
+      }
+     },
+     "previousRect": {
+      "x": 556.13,
+      "y": 8,
+      "width": 89,
+      "height": 40
+     },
+     "currentRect": {
+      "x": 768,
+      "y": 8,
+      "width": 208,
+      "height": 40
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 6,
+      "tag": "a",
+      "id": "nav-timetables",
+      "path": [
+       1,
+       0,
+       0,
+       1
+      ],
+      "selector": "#nav-timetables",
+      "text": "Timetables",
+      "attrs": {
+       "href": "#timetables"
+      }
+     },
+     "previousRect": {
+      "x": 306.69,
+      "y": 8,
+      "width": 77.66,
+      "height": 40
+     },
+     "currentRect": {
+      "x": 328,
+      "y": 8,
+      "width": 160,
+      "height": 40
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 11,
+      "tag": "a",
+      "id": "nav-contact",
+      "path": [
+       1,
+       0,
+       0,
+       6
+      ],
+      "selector": "#nav-contact",
+      "text": "Contact",
+      "attrs": {
+       "href": "#contact"
+      }
+     },
+     "previousRect": {
+      "x": 785.66,
+      "y": 8,
+      "width": 55.14,
+      "height": 40
+     },
+     "currentRect": {
+      "x": 472,
+      "y": 48,
+      "width": 112,
+      "height": 40
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 725.4
+  }
+ ],
+ "resizes": [
+  {
+   "t": 724.7000000029802,
+   "node": {
+    "uid": 1,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "font-swap / nav"
+   },
+   "before": {
+    "w": 1280,
+    "h": 480
+   },
+   "after": {
+    "w": 1280,
+    "h": 520
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 520
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 724.7000000029802,
+   "node": {
+    "uid": 2,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Home"
+   },
+   "before": {
+    "w": 1280,
+    "h": 480
+   },
+   "after": {
+    "w": 1280,
+    "h": 520
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 520
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 724.7000000029802,
+   "node": {
+    "uid": 3,
+    "tag": "header",
+    "id": "site-header",
+    "path": [
+     1,
+     0
+    ],
+    "selector": "#site-header",
+    "text": "Home"
+   },
+   "before": {
+    "w": 1280,
+    "h": 56
+   },
+   "after": {
+    "w": 1280,
+    "h": 96
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 96
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 724.7000000029802,
+   "node": {
+    "uid": 4,
+    "tag": "nav",
+    "id": "nav",
+    "path": [
+     1,
+     0,
+     0
+    ],
+    "selector": "#nav",
+    "text": "Home"
+   },
+   "before": {
+    "w": 848,
+    "h": 56
+   },
+   "after": {
+    "w": 848,
+    "h": 96
+   },
+   "rect": {
+    "x": 216,
+    "y": 0,
+    "width": 848,
+    "height": 96
+   },
+   "style": {
+    "position": "static",
+    "display": "flex",
+    "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 724.7000000029802,
+   "node": {
+    "uid": 5,
+    "tag": "a",
+    "id": "nav-home",
+    "path": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "selector": "#nav-home",
+    "text": "Home",
+    "attrs": {
+     "href": "#home"
+    }
+   },
+   "before": {
+    "w": 42.69,
+    "h": 40
+   },
+   "after": {
+    "w": 64,
+    "h": 40
+   },
+   "rect": {
+    "x": 240,
+    "y": 8,
+    "width": 64,
+    "height": 40
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 724.7000000029802,
+   "node": {
+    "uid": 6,
+    "tag": "a",
+    "id": "nav-timetables",
+    "path": [
+     1,
+     0,
+     0,
+     1
+    ],
+    "selector": "#nav-timetables",
+    "text": "Timetables",
+    "attrs": {
+     "href": "#timetables"
+    }
+   },
+   "before": {
+    "w": 77.66,
+    "h": 40
+   },
+   "after": {
+    "w": 160,
+    "h": 40
+   },
+   "rect": {
+    "x": 328,
+    "y": 8,
+    "width": 160,
+    "height": 40
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 724.7000000029802,
+   "node": {
+    "uid": 7,
+    "tag": "a",
+    "id": "nav-tickets",
+    "path": [
+     1,
+     0,
+     0,
+     2
+    ],
+    "selector": "#nav-tickets",
+    "text": "Tickets",
+    "attrs": {
+     "href": "#tickets"
+    }
+   },
+   "before": {
+    "w": 50.08,
+    "h": 40
+   },
+   "after": {
+    "w": 112,
+    "h": 40
+   },
+   "rect": {
+    "x": 512,
+    "y": 8,
+    "width": 112,
+    "height": 40
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 724.7000000029802,
+   "node": {
+    "uid": 8,
+    "tag": "a",
+    "id": "nav-routes",
+    "path": [
+     1,
+     0,
+     0,
+     3
+    ],
+    "selector": "#nav-routes",
+    "text": "Routes",
+    "attrs": {
+     "href": "#routes"
+    }
+   },
+   "before": {
+    "w": 50.7,
+    "h": 40
+   },
+   "after": {
+    "w": 96,
+    "h": 40
+   },
+   "rect": {
+    "x": 648,
+    "y": 8,
+    "width": 96,
+    "height": 40
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 724.7000000029802,
+   "node": {
+    "uid": 9,
+    "tag": "a",
+    "id": "nav-accessibility",
+    "path": [
+     1,
+     0,
+     0,
+     4
+    ],
+    "selector": "#nav-accessibility",
+    "text": "Accessibility",
+    "attrs": {
+     "href": "#accessibility"
+    }
+   },
+   "before": {
+    "w": 87.14,
+    "h": 40
+   },
+   "after": {
+    "w": 208,
+    "h": 40
+   },
+   "rect": {
+    "x": 768,
+    "y": 8,
+    "width": 208,
+    "height": 40
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 724.7000000029802,
+   "node": {
+    "uid": 10,
+    "tag": "a",
+    "id": "nav-lost",
+    "path": [
+     1,
+     0,
+     0,
+     5
+    ],
+    "selector": "#nav-lost",
+    "text": "Lost property",
+    "attrs": {
+     "href": "#lost"
+    }
+   },
+   "before": {
+    "w": 93.39,
+    "h": 40
+   },
+   "after": {
+    "w": 208,
+    "h": 40
+   },
+   "rect": {
+    "x": 240,
+    "y": 48,
+    "width": 208,
+    "height": 40
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 724.7000000029802,
+   "node": {
+    "uid": 11,
+    "tag": "a",
+    "id": "nav-contact",
+    "path": [
+     1,
+     0,
+     0,
+     6
+    ],
+    "selector": "#nav-contact",
+    "text": "Contact",
+    "attrs": {
+     "href": "#contact"
+    }
+   },
+   "before": {
+    "w": 55.14,
+    "h": 40
+   },
+   "after": {
+    "w": 112,
+    "h": 40
+   },
+   "rect": {
+    "x": 472,
+    "y": 48,
+    "width": 112,
+    "height": 40
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [],
+ "media": [],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 10.4,
+   "end": 12.8,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/700/assets/fonts/press-start-2p-latin-400-normal.woff2",
+   "initiator": "css",
+   "start": 14.6,
+   "end": 722.3,
+   "transferSize": 12812
+  }
+ ],
+ "fonts": [
+  {
+   "t": 724,
+   "event": "loaded",
+   "family": "Press Start 2P",
+   "weight": "normal",
+   "style": "normal",
+   "via": "event"
+  },
+  {
+   "t": 724.7000000029802,
+   "since": 14.899999998509884,
+   "event": "loaded",
+   "family": "Press Start 2P",
+   "weight": "normal",
+   "style": "normal",
+   "via": "snapshot"
+  }
+ ],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.20000000298023224,
+  "shiftMs": 0.10000000149011612,
+  "mutationMs": 0.19999999552965164,
+  "resizeMs": 0.6000000014901161,
+  "otherMs": 0.20000000298023224,
+  "mutationCallbacks": 1,
+  "resizeCallbacks": 2,
+  "tracked": 19,
+  "untracked": 0
+ }
+}

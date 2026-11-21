@@ -1,0 +1,367 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/unsized-media/video-metadata/",
+ "capturedAt": 2028.9,
+ "hookStartedAt": 18.1,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "reload",
+  "domInteractive": 19.8,
+  "domContentLoaded": 19.9,
+  "load": 724.9,
+  "firstPaint": 24,
+  "firstContentfulPaint": 24,
+  "firstFrame": 18.8
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.1104605712890625,
+   "startTime": 735.1,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "transcript",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#transcript",
+      "text": "The two gates were built upriver and floated dow"
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 302,
+      "width": 800,
+      "height": 304
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 512,
+      "width": 800,
+      "height": 288
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "system-ui, sans-serif"
+     }
+    },
+    {
+     "node": null,
+     "previousRect": {
+      "x": 240,
+      "y": 214,
+      "width": 300,
+      "height": 48
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 424,
+      "width": 640,
+      "height": 48
+     }
+    },
+    {
+     "node": null,
+     "previousRect": {
+      "x": 241,
+      "y": 249,
+      "width": 298,
+      "height": 34
+     },
+     "currentRect": {
+      "x": 241,
+      "y": 459,
+      "width": 638,
+      "height": 34
+     }
+    },
+    {
+     "node": null,
+     "previousRect": {
+      "x": 240,
+      "y": 262,
+      "width": 300,
+      "height": 24
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 472,
+      "width": 640,
+      "height": 24
+     }
+    },
+    {
+     "node": null,
+     "previousRect": {
+      "x": 354,
+      "y": 163,
+      "width": 72,
+      "height": 72
+     },
+     "currentRect": {
+      "x": 524,
+      "y": 268,
+      "width": 72,
+      "height": 72
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 736.2
+  }
+ ],
+ "resizes": [
+  {
+   "t": 735.1000000014901,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "unsized-media / video-metadata"
+   },
+   "before": {
+    "w": 1280,
+    "h": 646
+   },
+   "after": {
+    "w": 1280,
+    "h": 856
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 856
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 735.1000000014901,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Corpus Gazette"
+   },
+   "before": {
+    "w": 1280,
+    "h": 646
+   },
+   "after": {
+    "w": 1280,
+    "h": 856
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 856
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 735.1000000014901,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Watch: the new lock gates being lowered in"
+   },
+   "before": {
+    "w": 848,
+    "h": 590
+   },
+   "after": {
+    "w": 848,
+    "h": 800
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 800
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 735.1000000014901,
+   "node": {
+    "uid": 1,
+    "tag": "video",
+    "id": "clip",
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#clip",
+    "attrs": {
+     "src": "/delay/700/assets/video/clip-640x360.webm"
+    }
+   },
+   "before": {
+    "w": 300,
+    "h": 150
+   },
+   "after": {
+    "w": 640,
+    "h": 360
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 640,
+    "height": 360
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "media": {
+    "widthAttr": false,
+    "heightAttr": false,
+    "cssWidth": "auto",
+    "cssHeight": "auto",
+    "aspectRatio": "auto"
+   }
+  }
+ ],
+ "mutations": [],
+ "media": [
+  {
+   "t": 724.6000000014901,
+   "event": "loadedmetadata",
+   "node": {
+    "uid": 1,
+    "tag": "video",
+    "id": "clip",
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#clip",
+    "attrs": {
+     "src": "/delay/700/assets/video/clip-640x360.webm"
+    }
+   },
+   "url": "http://localhost:4310/delay/700/assets/video/clip-640x360.webm",
+   "natural": {
+    "w": 640,
+    "h": 360
+   },
+   "size": {
+    "w": 300,
+    "h": 150
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 12.8,
+   "end": 13.3,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/700/assets/video/clip-640x360.webm",
+   "initiator": "video",
+   "start": 19.8,
+   "end": 723.5,
+   "transferSize": 21967
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.19999999552965164,
+  "shiftMs": 0.20000000298023224,
+  "mutationMs": 0.19999999552965164,
+  "resizeMs": 0.3999999985098839,
+  "otherMs": 0.3999999985098839,
+  "mutationCallbacks": 1,
+  "resizeCallbacks": 2,
+  "tracked": 12,
+  "untracked": 0
+ }
+}

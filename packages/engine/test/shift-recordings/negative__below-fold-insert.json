@@ -1,0 +1,316 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/negative/below-fold-insert/",
+ "capturedAt": 2021.5,
+ "hookStartedAt": 11,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "reload",
+  "domInteractive": 12.4,
+  "domContentLoaded": 12.4,
+  "load": 12.4,
+  "firstPaint": 20,
+  "firstContentfulPaint": 20,
+  "firstFrame": 11.9
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [],
+ "resizes": [
+  {
+   "t": 720,
+   "node": {
+    "uid": 4,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "negative / below-fold-insert"
+   },
+   "before": {
+    "w": 1280,
+    "h": 2080
+   },
+   "after": {
+    "w": 1280,
+    "h": 2544
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 2544
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 720,
+   "node": {
+    "uid": 5,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Corpus Gazette"
+   },
+   "before": {
+    "w": 1280,
+    "h": 2080
+   },
+   "after": {
+    "w": 1280,
+    "h": 2544
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 2544
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 720,
+   "node": {
+    "uid": 2,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "A long page with late content far down"
+   },
+   "before": {
+    "w": 848,
+    "h": 2024
+   },
+   "after": {
+    "w": 848,
+    "h": 2488
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 2488
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 720,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "late-promo",
+    "path": [
+     1,
+     1,
+     4
+    ],
+    "selector": "#late-promo",
+    "text": "Winter pass: Unlimited crossings until the end o"
+   },
+   "before": null,
+   "after": {
+    "w": 800,
+    "h": 200
+   },
+   "rect": {
+    "x": 240,
+    "y": 1288,
+    "width": 800,
+    "height": 200
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     24,
+     0
+    ]
+   }
+  },
+  {
+   "t": 720,
+   "node": {
+    "uid": 3,
+    "tag": "div",
+    "id": "related",
+    "path": [
+     1,
+     1,
+     7
+    ],
+    "selector": "#related",
+    "text": "Related: tide tables, notices to mariners, lifeb"
+   },
+   "before": null,
+   "after": {
+    "w": 800,
+    "h": 240
+   },
+   "rect": {
+    "x": 240,
+    "y": 2280,
+    "width": 800,
+    "height": 240
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "system-ui, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 719.4000000059605,
+   "kind": "add",
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "late-promo",
+    "path": [
+     1,
+     1,
+     4
+    ],
+    "selector": "#late-promo",
+    "text": "Winter pass: Unlimited crossings until the end o"
+   },
+   "parent": {
+    "uid": 2,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "A long page with late content far down"
+   }
+  },
+  {
+   "t": 719.4000000059605,
+   "kind": "add",
+   "node": {
+    "uid": 3,
+    "tag": "div",
+    "id": "related",
+    "path": [
+     1,
+     1,
+     7
+    ],
+    "selector": "#related",
+    "text": "Related: tide tables, notices to mariners, lifeb"
+   },
+   "parent": {
+    "uid": 2,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "A long page with late content far down"
+   }
+  }
+ ],
+ "media": [],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 8.7,
+   "end": 9.9,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/700/assets/data/promo.json",
+   "initiator": "fetch",
+   "start": 11.8,
+   "end": 718.6,
+   "transferSize": 453
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.30000000447034836,
+  "shiftMs": 0,
+  "mutationMs": 0.6000000014901161,
+  "resizeMs": 0.20000000298023224,
+  "otherMs": 0.10000000149011612,
+  "mutationCallbacks": 3,
+  "resizeCallbacks": 2,
+  "tracked": 22,
+  "untracked": 0
+ }
+}

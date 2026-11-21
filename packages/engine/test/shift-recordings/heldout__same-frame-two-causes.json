@@ -1,0 +1,554 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/same-frame-two-causes/",
+ "capturedAt": 1806.5,
+ "hookStartedAt": 5.9,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 15.1,
+  "domContentLoaded": 15.1,
+  "load": 612.7,
+  "firstPaint": 20,
+  "firstContentfulPaint": 20,
+  "firstFrame": 10.8
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.10334882736206054,
+   "startTime": 610.4,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       2,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 152,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 418.66,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 612.2
+  },
+  {
+   "index": 1,
+   "value": 0.031051562499999998,
+   "startTime": 620.7,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 3,
+      "tag": "main",
+      "id": "main",
+      "path": [
+       1,
+       2
+      ],
+      "selector": "#main",
+      "text": "Winter opening hours"
+     },
+     "previousRect": {
+      "x": 216,
+      "y": 56,
+      "width": 848,
+      "height": 744
+     },
+     "currentRect": {
+      "x": 216,
+      "y": 112,
+      "width": 848,
+      "height": 688
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    },
+    {
+     "node": {
+      "uid": 8,
+      "tag": "header",
+      "id": "site-header",
+      "path": [
+       1,
+       1
+      ],
+      "selector": "#site-header",
+      "text": "Held-out Library"
+     },
+     "previousRect": {
+      "x": 0,
+      "y": 0,
+      "width": 1280,
+      "height": 56
+     },
+     "currentRect": {
+      "x": 0,
+      "y": 56,
+      "width": 1280,
+      "height": 56
+     },
+     "style": {
+      "position": "static",
+      "display": "flex",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 621.3
+  }
+ ],
+ "resizes": [
+  {
+   "t": 610.3999999985099,
+   "node": {
+    "uid": 1,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / same-frame-two-causes"
+   },
+   "before": {
+    "w": 1280,
+    "h": 560
+   },
+   "after": {
+    "w": 1280,
+    "h": 826.66
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 826.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 610.3999999985099,
+   "node": {
+    "uid": 2,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 560
+   },
+   "after": {
+    "w": 1280,
+    "h": 826.66
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 826.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 610.3999999985099,
+   "node": {
+    "uid": 3,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     2
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 504
+   },
+   "after": {
+    "w": 848,
+    "h": 770.66
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 770.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 610.3999999985099,
+   "node": {
+    "uid": 4,
+    "tag": "img",
+    "id": "hero",
+    "path": [
+     1,
+     2,
+     1
+    ],
+    "selector": "#hero",
+    "attrs": {
+     "src": "/delay/600/assets/img/hero-1200x400.png"
+    }
+   },
+   "before": {
+    "w": 0,
+    "h": 0
+   },
+   "after": {
+    "w": 799.97,
+    "h": 266.66
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 799.97,
+    "height": 266.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "media": {
+    "widthAttr": false,
+    "heightAttr": false,
+    "cssWidth": "auto",
+    "cssHeight": "auto",
+    "aspectRatio": "auto"
+   }
+  },
+  {
+   "t": 620.8999999985099,
+   "node": {
+    "uid": 1,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / same-frame-two-causes"
+   },
+   "before": {
+    "w": 1280,
+    "h": 826.66
+   },
+   "after": {
+    "w": 1280,
+    "h": 882.66
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 882.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 620.8999999985099,
+   "node": {
+    "uid": 2,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "New: the reading room now opens at eight."
+   },
+   "before": {
+    "w": 1280,
+    "h": 826.66
+   },
+   "after": {
+    "w": 1280,
+    "h": 882.66
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 882.66
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 620.8999999985099,
+   "node": {
+    "uid": 7,
+    "tag": "div",
+    "id": "flash-slot",
+    "path": [
+     1,
+     0
+    ],
+    "selector": "#flash-slot",
+    "text": "New: the reading room now opens at eight."
+   },
+   "before": {
+    "w": 1280,
+    "h": 0
+   },
+   "after": {
+    "w": 1280,
+    "h": 56
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 56
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 620.8999999985099,
+   "node": {
+    "uid": 6,
+    "tag": "div",
+    "id": "flash",
+    "path": [
+     1,
+     0,
+     0
+    ],
+    "selector": "#flash",
+    "text": "New: the reading room now opens at eight."
+   },
+   "before": null,
+   "after": {
+    "w": 1280,
+    "h": 56
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 56
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 612.6000000014901,
+   "kind": "add",
+   "node": {
+    "uid": 6,
+    "tag": "div",
+    "id": "flash",
+    "path": [
+     1,
+     0,
+     0
+    ],
+    "selector": "#flash",
+    "text": "New: the reading room now opens at eight."
+   },
+   "parent": {
+    "uid": 7,
+    "tag": "div",
+    "id": "flash-slot",
+    "path": [
+     1,
+     0
+    ],
+    "selector": "#flash-slot",
+    "text": "New: the reading room now opens at eight."
+   }
+  }
+ ],
+ "media": [
+  {
+   "t": 612.3999999985099,
+   "event": "load",
+   "node": {
+    "uid": 4,
+    "tag": "img",
+    "id": "hero",
+    "path": [
+     1,
+     2,
+     1
+    ],
+    "selector": "#hero",
+    "attrs": {
+     "src": "/delay/600/assets/img/hero-1200x400.png"
+    }
+   },
+   "url": "http://localhost:4310/delay/600/assets/img/hero-1200x400.png",
+   "natural": {
+    "w": 1200,
+    "h": 400
+   },
+   "size": {
+    "w": 799.97,
+    "h": 266.66
+   }
+  }
+ ],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 2.7,
+   "end": 5.3,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/600/assets/img/hero-1200x400.png",
+   "initiator": "img",
+   "start": 2.8,
+   "end": 609.5,
+   "transferSize": 2756
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.4000000059604645,
+  "shiftMs": 0.20000000298023224,
+  "mutationMs": 0.5000000074505806,
+  "resizeMs": 1.4000000059604645,
+  "otherMs": 0.30000000447034836,
+  "mutationCallbacks": 3,
+  "resizeCallbacks": 3,
+  "tracked": 15,
+  "untracked": 0
+ }
+}

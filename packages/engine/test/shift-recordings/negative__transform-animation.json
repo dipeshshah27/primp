@@ -1,0 +1,90 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/negative/transform-animation/",
+ "capturedAt": 2221.8,
+ "hookStartedAt": 12.8,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "reload",
+  "domInteractive": 14.1,
+  "domContentLoaded": 14.2,
+  "load": 14.2,
+  "firstPaint": 20,
+  "firstContentfulPaint": 20,
+  "firstFrame": 13.4
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [],
+ "resizes": [],
+ "mutations": [
+  {
+   "t": 717.3999999985099,
+   "kind": "attr",
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "card",
+    "classes": [
+     "raised"
+    ],
+    "path": [
+     1,
+     1,
+     3
+    ],
+    "selector": "#card",
+    "text": "This card is moved 40px right and 60px down with"
+   },
+   "attr": "class",
+   "value": "raised"
+  }
+ ],
+ "media": [],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 11.3,
+   "end": 12.3,
+   "transferSize": 10159
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.20000000298023224,
+  "shiftMs": 0,
+  "mutationMs": 0.10000000149011612,
+  "resizeMs": 0.10000000149011612,
+  "otherMs": 0,
+  "mutationCallbacks": 3,
+  "resizeCallbacks": 1,
+  "tracked": 12,
+  "untracked": 0
+ }
+}

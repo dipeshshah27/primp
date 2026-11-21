@@ -1,0 +1,287 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/text-replace/",
+ "capturedAt": 1802.9,
+ "hookStartedAt": 6,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "navigate",
+  "domInteractive": 14.2,
+  "domContentLoaded": 14.2,
+  "load": 14.2,
+  "firstPaint": 20,
+  "firstContentfulPaint": 20,
+  "firstFrame": 10.6
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.0193359375,
+   "startTime": 612.4,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       2
+      ],
+      "selector": "#content",
+      "text": "The reading room opens an hour earlier from the "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 200,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 272,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 613.2
+  }
+ ],
+ "resizes": [
+  {
+   "t": 612.5,
+   "node": {
+    "uid": 2,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "held-out / text-replace"
+   },
+   "before": {
+    "w": 1280,
+    "h": 608
+   },
+   "after": {
+    "w": 1280,
+    "h": 680
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 680
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 612.5,
+   "node": {
+    "uid": 3,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Held-out Library"
+   },
+   "before": {
+    "w": 1280,
+    "h": 608
+   },
+   "after": {
+    "w": 1280,
+    "h": 680
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 680
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 612.5,
+   "node": {
+    "uid": 4,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Winter opening hours"
+   },
+   "before": {
+    "w": 848,
+    "h": 552
+   },
+   "after": {
+    "w": 848,
+    "h": 624
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 624
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 612.5,
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "summary",
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#summary",
+    "text": "Unlimited crossings until the end of February fo"
+   },
+   "before": {
+    "w": 800,
+    "h": 48
+   },
+   "after": {
+    "w": 800,
+    "h": 120
+   },
+   "rect": {
+    "x": 240,
+    "y": 136,
+    "width": 800,
+    "height": 120
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     16,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "t": 611.3000000044703,
+   "kind": "text",
+   "node": {
+    "uid": 1,
+    "tag": "div",
+    "id": "summary",
+    "path": [
+     1,
+     1,
+     1
+    ],
+    "selector": "#summary",
+    "text": "Unlimited crossings until the end of February fo"
+   }
+  }
+ ],
+ "media": [],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 2.8,
+   "end": 5.4,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/600/assets/data/promo.json",
+   "initiator": "fetch",
+   "start": 7.1,
+   "end": 610.2,
+   "transferSize": 453
+  }
+ ],
+ "fonts": [],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.4000000059604645,
+  "shiftMs": 0.29999999701976776,
+  "mutationMs": 0.8999999985098839,
+  "resizeMs": 0.30000000447034836,
+  "otherMs": 0,
+  "mutationCallbacks": 3,
+  "resizeCallbacks": 2,
+  "tracked": 13,
+  "untracked": 0
+ }
+}

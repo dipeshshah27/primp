@@ -1,0 +1,288 @@
+{
+ "version": 1,
+ "url": "http://localhost:4310/font-swap/heading/",
+ "capturedAt": 2030.6,
+ "hookStartedAt": 13,
+ "supported": true,
+ "viewport": {
+  "width": 1280,
+  "height": 800,
+  "dpr": 1
+ },
+ "viewportChanges": [],
+ "scroll": {
+  "x": 0,
+  "y": 0
+ },
+ "scrolls": [],
+ "navigation": {
+  "type": "reload",
+  "domInteractive": 14.4,
+  "domContentLoaded": 14.4,
+  "load": 722.6,
+  "firstPaint": 20,
+  "firstContentfulPaint": 20,
+  "firstFrame": 13.7
+ },
+ "visibility": {
+  "initial": "visible",
+  "atNavigationStart": "visible",
+  "changes": [],
+  "prerendered": false,
+  "restored": false,
+  "visibleThroughout": true
+ },
+ "shifts": [
+  {
+   "index": 0,
+   "value": 0.014492187499999998,
+   "startTime": 723.4,
+   "hadRecentInput": false,
+   "lastInputTime": 0,
+   "sources": [
+    {
+     "node": {
+      "uid": 5,
+      "tag": "div",
+      "id": "content",
+      "path": [
+       1,
+       1,
+       1
+      ],
+      "selector": "#content",
+      "text": "The ring road service starts again on the first "
+     },
+     "previousRect": {
+      "x": 240,
+      "y": 152,
+      "width": 800,
+      "height": 368
+     },
+     "currentRect": {
+      "x": 240,
+      "y": 208,
+      "width": 800,
+      "height": 368
+     },
+     "style": {
+      "position": "static",
+      "display": "block",
+      "fontFamily": "Arial, Helvetica, sans-serif"
+     }
+    }
+   ],
+   "visibility": "visible",
+   "deliveredAt": 724.2
+  }
+ ],
+ "resizes": [
+  {
+   "t": 723.3999999985099,
+   "node": {
+    "uid": 1,
+    "tag": "html",
+    "path": [],
+    "selector": "html",
+    "text": "font-swap / heading"
+   },
+   "before": {
+    "w": 1280,
+    "h": 560
+   },
+   "after": {
+    "w": 1280,
+    "h": 616
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 616
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Times",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 723.3999999985099,
+   "node": {
+    "uid": 2,
+    "tag": "body",
+    "path": [
+     1
+    ],
+    "selector": "body",
+    "text": "Corpus Gazette"
+   },
+   "before": {
+    "w": 1280,
+    "h": 560
+   },
+   "after": {
+    "w": 1280,
+    "h": 616
+   },
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1280,
+    "height": 616
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "t": 723.3999999985099,
+   "node": {
+    "uid": 3,
+    "tag": "main",
+    "id": "main",
+    "path": [
+     1,
+     1
+    ],
+    "selector": "#main",
+    "text": "Night buses return this winter"
+   },
+   "before": {
+    "w": 848,
+    "h": 504
+   },
+   "after": {
+    "w": 848,
+    "h": 560
+   },
+   "rect": {
+    "x": 216,
+    "y": 56,
+    "width": 848,
+    "height": 560
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     216,
+     0,
+     216
+    ]
+   }
+  },
+  {
+   "t": 723.3999999985099,
+   "node": {
+    "uid": 4,
+    "tag": "h1",
+    "id": "title",
+    "path": [
+     1,
+     1,
+     0
+    ],
+    "selector": "#title",
+    "text": "Night buses return this winter"
+   },
+   "before": {
+    "w": 800,
+    "h": 56
+   },
+   "after": {
+    "w": 800,
+    "h": 112
+   },
+   "rect": {
+    "x": 240,
+    "y": 80,
+    "width": 800,
+    "height": 112
+   },
+   "style": {
+    "position": "static",
+    "display": "block",
+    "fontFamily": "\"Press Start 2P\", Arial, Helvetica, sans-serif",
+    "margin": [
+     0,
+     0,
+     16,
+     0
+    ]
+   }
+  }
+ ],
+ "mutations": [],
+ "media": [],
+ "resources": [
+  {
+   "url": "http://localhost:4310/__reglet/hook.js",
+   "initiator": "script",
+   "start": 10.5,
+   "end": 11.8,
+   "transferSize": 10159
+  },
+  {
+   "url": "http://localhost:4310/delay/700/assets/fonts/press-start-2p-latin-400-normal.woff2",
+   "initiator": "css",
+   "start": 14,
+   "end": 721.3,
+   "transferSize": 12812
+  }
+ ],
+ "fonts": [
+  {
+   "t": 723.3999999985099,
+   "since": 14.199999995529652,
+   "event": "loaded",
+   "family": "Press Start 2P",
+   "weight": "normal",
+   "style": "normal",
+   "via": "snapshot"
+  },
+  {
+   "t": 724.2999999970198,
+   "event": "loaded",
+   "family": "Press Start 2P",
+   "weight": "normal",
+   "style": "normal",
+   "via": "event"
+  }
+ ],
+ "selfMarks": [],
+ "dropped": {
+  "shifts": 0,
+  "resizes": 0,
+  "mutations": 0,
+  "media": 0,
+  "resources": 0
+ },
+ "cost": {
+  "topLevelMs": 0.29999999701976776,
+  "shiftMs": 0.10000000149011612,
+  "mutationMs": 0.19999999552965164,
+  "resizeMs": 0.5,
+  "otherMs": 0.10000000149011612,
+  "mutationCallbacks": 1,
+  "resizeCallbacks": 2,
+  "tracked": 12,
+  "untracked": 0
+ }
+}
