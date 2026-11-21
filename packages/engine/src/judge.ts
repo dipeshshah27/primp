@@ -29,8 +29,16 @@
  *   fail    everything else.
  *
  * OTHER CHECKS
- *   not found                   `unresolved` for computed, hidden and no-move checks.
+ *   not found                   `unresolved` for computed, hidden, no-move and order checks.
  *   media query does not match  `not_measurable` (checked after "found").
+ *   state cannot be emulated    a `computed` check under `condition.state` (`:hover`, ...) is
+ *                               measured with that state emulated from the page's stylesheets.
+ *                               When the probe says it could not do that (`stateBlocked`), the
+ *                               check is `not_measurable` with a note that starts with
+ *                               `STATE_NOT_EMULATED`. Checked after the media query, so a
+ *                               viewport that does not match keeps its own note. A state check
+ *                               that was measured is judged like any other computed value;
+ *                               `before` is then the value in that state.
  *   absent                      pass when the element is not in the document. Present and
  *                               rendered: fail. Present but not rendered: drift ("hidden rather
  *                               than removed").
@@ -56,6 +64,20 @@
  *                               against the change, and it must not block it. This is the one
  *                               check that can pass without a measurement, and it always says
  *                               so in its note and in the item's hint.
+ *   order                       after a reorder: the moved element (the entry with `self`) and
+ *                               the siblings listed with it, compared by label in document
+ *                               order. The moved element not found: unresolved. Found, but
+ *                               fewer than two of the listed elements in all: unresolved, with
+ *                               the note `ORDER_NEIGHBOURS_LOST` (its position cannot be told
+ *                               from one element). Otherwise pass when the elements that were
+ *                               found stand in the wanted relative order, with a note when some
+ *                               were not found (`1 of 2 neighbours could not be found again`),
+ *                               else fail with the order found, in words. The probe knows the
+ *                               elements apart where labels repeat, and whether they still share
+ *                               a parent: when it says `inOrder: false`, labels that happen to
+ *                               read in the wanted order do not make a pass. An order is right
+ *                               or wrong: there is no drift. `expected` and `actual` are JSON
+ *                               arrays of labels (see `orderLabels`).
  *
  * ITEMS (`judgeItem`), first match wins:
  *   1. no_browser          no tab with the dock is connected.
@@ -105,6 +127,24 @@ export interface Measured {
   present?: boolean
   /** `absent` / `hidden`: whether it takes space or is painted. */
   rendered?: boolean
+  /**
+   * `computed` under `condition.state`: set when the state could not be emulated, to the reason
+   * (without the `STATE_NOT_EMULATED` prefix; may be empty). No value was read then.
+   */
+  stateBlocked?: string
+  /**
+   * `order`: what the probe found of `expectation.siblings`. `found` is then about the moved
+   * element (the entry with `self`).
+   */
+  order?: {
+    /** Labels of the listed siblings that were found again, in document order as it is now; those not found are left out. */
+    actual: string[]
+    /**
+     * The probe's own answer: the found elements stand in the wanted relative order under one
+     * parent. It compares elements, not labels, so `false` overrules labels that read in order.
+     */
+    inOrder?: boolean
+  }
 }
 
 export interface CheckContext {
@@ -154,6 +194,15 @@ export function describeRectChange(before: Rect, after: Rect, minPx = 0.5): stri
 
 const NOT_FOUND = 'element not found'
 const NOT_MEASURED = 'not measured'
+/**
+ * Start of the note of a `computed` check whose interaction state could not be emulated; the
+ * reason follows after `: `. The probe writes it on the raw check, the judge on the judged one.
+ */
+export const STATE_NOT_EMULATED = 'the state could not be emulated'
+/** Note of an `order` check that is unresolved although the moved element was found: nothing to compare its position with. */
+export const ORDER_NEIGHBOURS_LOST = 'none of the siblings it was placed next to could be found again'
+/** Note of an `order` check that fails although the labels read in the wanted order; see the header. */
+export const ORDER_NOT_AS_LABELLED = 'the page does not have these elements in this order under one parent'
 /** Note of a bystander check that passes because there was nothing to measure; see the header. */
 export const BYSTANDER_NOT_CHECKED = 'not checked: the element could not be found again'
 
@@ -222,6 +271,10 @@ function judgeComputed(expectation: Extract<Expectation, { type: 'computed' }>, 
   if (media !== undefined && measured.mediaMatches === false) {
     return { ...base, status: 'not_measurable', actual: measured.actual ?? NOT_MEASURED, note: `the viewport does not match @media ${oneLine(media)}` }
   }
+  if (expectation.condition.state !== undefined && measured.stateBlocked !== undefined) {
+    const reason = oneLine(measured.stateBlocked)
+    return { ...base, status: 'not_measurable', actual: NOT_MEASURED, note: reason === '' ? STATE_NOT_EMULATED : `${STATE_NOT_EMULATED}: ${reason}` }
+  }
   if (measured.actual === undefined) return { ...base, status: 'not_measurable', actual: NOT_MEASURED, note: 'no computed value was read' }
 
   const actual = measured.actual
@@ -239,6 +292,37 @@ function judgeComputed(expectation: Extract<Expectation, { type: 'computed' }>, 
     return { ...base, status: 'drift', actual, ...withDelta, note: 'near the target' }
   }
   return { ...base, status: 'fail', actual, ...withDelta }
+}
+
+/** True when `part` can be read off `whole` from left to right, skipping entries. */
+function isSubsequence(part: readonly string[], whole: readonly string[]): boolean {
+  let at = 0
+  for (const label of part) {
+    const index = whole.indexOf(label, at)
+    if (index < 0) return false
+    at = index + 1
+  }
+  return true
+}
+
+function judgeOrder(expectation: Extract<Expectation, { type: 'order' }>, measured: Measured): CheckResult {
+  const wanted = expectation.siblings.map((sibling) => sibling.label)
+  const expected = JSON.stringify(wanted)
+  const self = expectation.siblings.find((sibling) => sibling.self === true)
+  const found = measured.order?.actual
+  if (!measured.found) return { expectation, status: 'unresolved', expected, actual: NOT_FOUND }
+  if (found === undefined) return { expectation, status: 'not_measurable', expected, actual: NOT_MEASURED, note: 'the order of the elements was not read' }
+  // The list does not hold the moved element: whatever `found` says, there is no position to judge.
+  if (self !== undefined && !found.includes(self.label)) return { expectation, status: 'unresolved', expected, actual: NOT_FOUND }
+  const actual = JSON.stringify(found)
+  if (found.length < 2) return { expectation, status: 'unresolved', expected, actual, note: ORDER_NEIGHBOURS_LOST }
+  const asLabelled = isSubsequence(found, wanted)
+  if (asLabelled && measured.order?.inOrder !== false) {
+    const missing = wanted.length - found.length
+    const neighbours = wanted.length - (self === undefined ? 0 : 1)
+    return { expectation, status: 'pass', expected, actual, ...(missing > 0 ? { note: `${missing} of ${neighbours} neighbours could not be found again` } : {}) }
+  }
+  return { expectation, status: 'fail', expected, actual, note: asLabelled ? ORDER_NOT_AS_LABELLED : `the order in the page is ${found.map(oneLine).join(', then ')}` }
 }
 
 /** Judges one expectation against what was measured. */
@@ -293,12 +377,55 @@ export function judgeCheck(expectation: Expectation, measured: Measured, context
       const delta = primaryDelta(comparison)
       return { expectation, status: 'fail', expected, actual, ...(delta === undefined ? {} : { delta }), note: `changed from ${oneLine(expected)} to ${oneLine(actual)} although it was not part of this edit` }
     }
+    case 'order':
+      return judgeOrder(expectation, measured)
   }
 }
 
 /** True for a bystander check that passed without a measurement. */
 export function isSkippedBystander(check: CheckResult): boolean {
   return check.expectation.type === 'unchanged' && check.status === 'pass' && check.note === BYSTANDER_NOT_CHECKED
+}
+
+const parseLabels = (text: string): string[] | undefined => {
+  try {
+    const value: unknown = JSON.parse(text)
+    if (Array.isArray(value) && value.every((entry) => typeof entry === 'string')) return value as string[]
+  } catch {
+    // Not a list of labels.
+  }
+  return undefined
+}
+
+/**
+ * The two label lists of an `order` check: `wanted` from the expectation, `actual` as the
+ * siblings that were found stand in the page now (empty when the check carries no list, as when
+ * the moved element was not found). Undefined for any other check.
+ */
+export function orderLabels(check: CheckResult): { wanted: string[]; actual: string[] } | undefined {
+  const e = check.expectation
+  if (e.type !== 'order') return undefined
+  return { wanted: e.siblings.map((sibling) => sibling.label), actual: parseLabels(check.actual) ?? [] }
+}
+
+/** How many siblings an `order` check lists next to the moved element; 0 for any other check. */
+function neighbourCount(check: CheckResult): number {
+  const e = check.expectation
+  return e.type === 'order' ? e.siblings.filter((sibling) => sibling.self !== true).length : 0
+}
+
+/** True for an `order` check that found the moved element but none of the siblings its position is told by. */
+export function isNeighboursLost(check: CheckResult): boolean {
+  return check.expectation.type === 'order' && check.status === 'unresolved' && check.note === ORDER_NEIGHBOURS_LOST
+}
+
+/**
+ * True for an unresolved check that is unresolved because the item's own element was not found
+ * again. Not so for a `no-move` check (it names another element) and not for an `order` check
+ * that only lost the neighbours.
+ */
+export function isTargetLost(check: CheckResult): boolean {
+  return check.status === 'unresolved' && check.expectation.type !== 'no-move' && !isNeighboursLost(check)
 }
 
 // ---------------------------------------------------------------------------
@@ -342,12 +469,33 @@ export function rollUpChecks(checks: readonly CheckResult[]): CheckStatus {
   return 'pass'
 }
 
-/** What a check is about, as a code span: the property, or the label of the element that must not move or must not change. */
+/** What a check is about, as a code span: the property, or the label of the element that must not move or must not change. An order check is about `the element`. */
 export function checkSubject(check: CheckResult): string {
   const e = check.expectation
   if (e.type === 'computed') return code(e.property, 60)
   if (e.type === 'no-move' || e.type === 'unchanged') return code(e.label, 80)
   return 'the element'
+}
+
+/** `:hover` as a code span. */
+const stateName = (state: string): string => code(`:${state}`, 30)
+
+/** ` in the `:hover` state` for a `computed` check made under an interaction state, else nothing. */
+const stateClause = (check: CheckResult): string => {
+  const e = check.expectation
+  return e.type === 'computed' && e.condition.state !== undefined ? ` in the ${stateName(e.condition.state)} state` : ''
+}
+
+/** Labels as code spans in a row; `self` gets `(the moved element)` behind it. */
+const labelRow = (labels: readonly string[], self?: string): string => {
+  let marked = false
+  return labels
+    .map((label) => {
+      const mark = !marked && label === self
+      if (mark) marked = true
+      return `${code(label, 60)}${mark ? ' (the moved element)' : ''}`
+    })
+    .join(', ')
 }
 
 /** One clause saying what a check found, naming expected and actual values. No full stop. */
@@ -356,13 +504,15 @@ export function describeCheck(check: CheckResult): string {
   const expected = code(check.expected)
   const actual = code(check.actual)
   switch (e.type) {
-    case 'computed':
-      if (check.status === 'pass') return `${checkSubject(check)} is ${actual}, as expected`
-      if (check.status === 'unresolved') return `${checkSubject(check)} could not be read (expected ${expected})`
-      if (check.status === 'not_measurable') return `${checkSubject(check)} could not be checked (expected ${expected})`
-      if (check.status === 'drift') return `${checkSubject(check)} landed as ${actual} instead of ${expected}`
-      if (check.note === 'unchanged') return `${checkSubject(check)} is still ${actual} (unchanged); expected ${expected}`
-      return `${checkSubject(check)} is ${actual}; expected ${expected}`
+    case 'computed': {
+      const subject = `${checkSubject(check)}${stateClause(check)}`
+      if (check.status === 'pass') return `${subject} is ${actual}, as expected`
+      if (check.status === 'unresolved') return `${subject} could not be read (expected ${expected})`
+      if (check.status === 'not_measurable') return `${subject} could not be checked (expected ${expected})`
+      if (check.status === 'drift') return `${subject} landed as ${actual} instead of ${expected}`
+      if (check.note === 'unchanged') return `${subject} is still ${actual} (unchanged); expected ${expected}`
+      return `${subject} is ${actual}; expected ${expected}`
+    }
     case 'absent':
       if (check.status === 'pass') return 'the element is gone from the document'
       if (check.status === 'drift') return 'the element is hidden but still in the document; it was to be removed'
@@ -383,6 +533,22 @@ export function describeCheck(check: CheckResult): string {
       if (check.status === 'fail') return `${checkSubject(check)} was not part of this change, but its ${property} went from ${expected} to ${actual}`
       return `the ${property} of ${checkSubject(check)}, which must stay ${expected}, could not be read`
     }
+    case 'order': {
+      const labels = orderLabels(check) ?? { wanted: [], actual: [] }
+      const self = e.siblings.find((sibling) => sibling.self === true)?.label
+      const wanted = labelRow(labels.wanted, self)
+      if (check.status === 'pass') return check.note === undefined ? 'the element is in its new position among its siblings' : `the element is in its new position among the siblings that were found (${oneLine(check.note)})`
+      if (check.status === 'fail') {
+        if (check.note === ORDER_NOT_AS_LABELLED) return `the element and its neighbours are not in the wanted order (${wanted}) as children of one parent, although their labels read that way: it may have ended up inside another element, or two of them look alike`
+        return `the element is not where it was moved to: the order in the page is ${labelRow(labels.actual)}; the wanted order is ${wanted}`
+      }
+      if (isNeighboursLost(check)) {
+        const neighbours = neighbourCount(check)
+        return `the new position of the element could not be checked: ${neighbours === 1 ? 'the sibling it was placed next to could not' : `none of the ${neighbours} siblings it was placed next to could`} be found again`
+      }
+      if (check.status === 'unresolved') return `the new position of the element could not be checked: it was not found again (wanted order: ${wanted})`
+      return `the new position of the element could not be checked (wanted order: ${wanted})`
+    }
   }
 }
 
@@ -394,10 +560,15 @@ const mediaClause = (check: CheckResult): string => {
 function failAdvice(check: CheckResult): string {
   const e = check.expectation
   switch (e.type) {
-    case 'computed':
-      return check.note === 'unchanged'
-        ? 'Your edit has no effect on this property here: check that you changed the file and rule that render this element, and that no more specific rule or inline style overrides it.'
-        : `Make it compute to ${code(check.expected)}${mediaClause(check)}.`
+    case 'computed': {
+      if (check.note !== 'unchanged') return `Make it compute to ${code(check.expected)}${stateClause(check)}${mediaClause(check)}.`
+      const state = e.condition.state
+      if (state === undefined) {
+        return 'Your edit has no effect on this property here: check that you changed the file and rule that render this element, and that no more specific rule or inline style overrides it.'
+      }
+      const name = stateName(state)
+      return `Your edit has no effect on this property in the ${name} state: the value has to come from CSS that applies in that state (a ${name} rule, or the project's variant for it) on the element this page renders, with no more specific rule or inline style overriding it. A change made in script is not seen, and if you changed the resting style instead, restore it: it was to stay as it is.`
+    }
     case 'absent':
       return 'Remove it from the source.'
     case 'hidden':
@@ -406,6 +577,10 @@ function failAdvice(check: CheckResult): string {
       return 'Keep the requested change and adjust the layout so that this element stays where it was.'
     case 'unchanged':
       return 'The rule you edited is shared: restore it and make the change with a more specific rule or a class on the changed element(s).'
+    case 'order':
+      return check.note === ORDER_NOT_AS_LABELLED
+        ? 'Keep it a direct child of the same parent, at the position asked for.'
+        : 'Change the order in the source; if these elements come from a list or array, reorder the data, not the markup of one item.'
   }
 }
 
@@ -436,12 +611,15 @@ export function deltaText(check: CheckResult): string | undefined {
  * fix-up prompt are both built from this, so they never disagree.
  */
 export function explainCheck(check: CheckResult): string {
+  // A state that could not be emulated needs its own two sentences: what it means, and that it is not the edit's fault.
+  if (isStateBlocked(check)) return stateBlockedText(check)
   const delta = check.expectation.type === 'computed' && check.note !== 'unchanged' && (check.status === 'fail' || check.status === 'drift') ? deltaText(check) : undefined
   const off = delta === undefined ? '' : delta.startsWith('colour') ? ` (${delta})` : ` (off by ${delta})`
   let advice = ''
   if (check.status === 'fail') advice = failAdvice(check)
   else if (check.status === 'drift') advice = driftAdvice(check)
   else if (check.status === 'unresolved' && check.expectation.type === 'no-move') advice = 'If you renamed or restructured it, that is why; otherwise ask the user to check it by eye.'
+  else if (isNeighboursLost(check)) advice = `If you renamed ${neighbourCount(check) === 1 ? 'that sibling or changed its' : 'those siblings or changed their'} content, that is why; otherwise ask the user to check the order by eye.`
   else if (check.status === 'not_measurable' && check.note !== undefined) advice = `Reason: ${oneLine(check.note)}.`
   return `${sentence(`${describeCheck(check)}${off}`)}${advice === '' ? '' : ` ${advice}`}`
 }
@@ -450,6 +628,15 @@ export function explainCheck(check: CheckResult): string {
 export function isMediaBlocked(check: CheckResult): boolean {
   const e = check.expectation
   return check.status === 'not_measurable' && e.type === 'computed' && e.condition.media !== undefined && check.note?.startsWith('the viewport does not match') === true
+}
+
+/**
+ * True for a `computed` check that could not be made because its interaction state could not be
+ * emulated. Never true for a media query that does not match: that note is another one.
+ */
+export function isStateBlocked(check: CheckResult): boolean {
+  const e = check.expectation
+  return check.status === 'not_measurable' && e.type === 'computed' && e.condition.state !== undefined && check.note?.startsWith(STATE_NOT_EMULATED) === true
 }
 
 /** What to say when the target of an item could not be found again. */
@@ -461,7 +648,16 @@ export function unresolvedText(item: ChangeItem): string {
 export function mediaBlockedText(check: CheckResult): string {
   const e = check.expectation
   const media = e.type === 'computed' && e.condition.media !== undefined ? code(`@media ${e.condition.media}`) : 'the media query'
-  return `Could not be checked at the current viewport: ${media} does not match (expected ${checkSubject(check)} ${code(check.expected)}). Resize the browser so that the query matches, then verify again.`
+  return `Could not be checked at the current viewport: ${media} does not match (expected ${checkSubject(check)} ${code(check.expected)}${stateClause(check)}). Resize the browser so that the query matches, then verify again.`
+}
+
+/** What to say when an interaction state could not be emulated, so that a check under it was not made. */
+export function stateBlockedText(check: CheckResult): string {
+  const e = check.expectation
+  const state = e.type === 'computed' && e.condition.state !== undefined ? `the ${stateName(e.condition.state)} state` : 'the interaction state'
+  const given = oneLine((check.note ?? '').slice(STATE_NOT_EMULATED.length).replace(/^\s*:\s*/, ''))
+  const reason = isStateBlocked(check) && given !== '' ? ` (reason: ${code(given, 200)})` : ''
+  return `Not checked: reglet could not emulate ${state} on this page${reason}, so ${checkSubject(check)} in that state was not measured (expected ${code(check.expected)}). That is a limit of the measurement, not a fault found in your edit, and verifying again will not change it: ask the user to check this state by eye.`
 }
 
 function others(checks: readonly CheckResult[], first: CheckResult): string {
@@ -504,7 +700,8 @@ export function hintFor(status: VerificationStatus, item: ChangeItem, checks: re
     }
     case 'unresolved': {
       const check = first('unresolved')
-      if (check?.expectation.type === 'no-move') return `${explainCheck(check)}${others(checks, check)}${unsettled}`
+      // A check about other elements than the item's own (a must-not-move, the neighbours of a moved element) speaks for itself.
+      if (check !== undefined && !isTargetLost(check)) return `${explainCheck(check)}${others(checks, check)}${unsettled}`
       return `${unresolvedText(item)}${check === undefined ? '' : others(checks, check)}${unsettled}`
     }
     case 'fail': {
@@ -521,6 +718,7 @@ export function hintFor(status: VerificationStatus, item: ChangeItem, checks: re
       const check = first('not_measurable')
       if (check === undefined) return 'This change has nothing that can be checked.'
       if (isMediaBlocked(check)) return `${mediaBlockedText(check)}${unsettled}`
+      if (isStateBlocked(check)) return `${stateBlockedText(check)}${others(checks, check)}${unsettled}`
       return `${explainCheck(check)} Verify again.${unsettled}`
     }
     case 'pass': {
@@ -532,7 +730,10 @@ export function hintFor(status: VerificationStatus, item: ChangeItem, checks: re
         skipped.length === 0
           ? ''
           : ` ${skipped.length === 1 ? 'One of them was' : `${skipped.length} of them were`} not measured: ${labels.slice(0, 3).join(', ')}${labels.length > 3 ? ` and ${labels.length - 3} more` : ''}, which this change must leave as ${labels.length === 1 ? 'it was' : 'they were'}, could not be found again.`
-      return checks.length === 1 ? 'The check passes.' : `All ${checks.length} checks pass.${open}`
+      // So does an order that was told by fewer neighbours than were recorded.
+      const thin = checks.find((check) => check.expectation.type === 'order' && check.note !== undefined)
+      const order = thin?.note === undefined ? '' : ` The new position was checked against fewer elements than recorded: ${oneLine(thin.note)}.`
+      return checks.length === 1 ? `The check passes.${order}` : `All ${checks.length} checks pass.${open}${order}`
     }
   }
 }

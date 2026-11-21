@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Expectation } from '@reglet/protocol/change'
 import { ExpectationSchema } from '@reglet/protocol/change'
 import { NO_MOVE_TOLERANCE_PX, deriveExpectations } from '../src/expect.ts'
-import { bystander, condition, locator, rect, sideEffect, structure, style } from './change-fixtures.ts'
+import { bystander, condition, locator, move, rect, ref, sibling, sideEffect, structure, style } from './change-fixtures.ts'
 
 describe('deriveExpectations: style changes', () => {
   it('one computed expectation for the property when there are no longhands', () => {
@@ -48,10 +48,63 @@ describe('deriveExpectations: style changes', () => {
   })
 })
 
+describe('deriveExpectations: a change made for an interaction state', () => {
+  it('every computed expectation carries the state, alone or with a media query', () => {
+    const hover = condition({ state: 'hover' })
+    expect(deriveExpectations(style({ property: 'background-color', after: { authored: '#0f172a', computed: 'rgb(15, 23, 42)' }, condition: hover }))).toEqual<Expectation[]>([
+      { type: 'computed', property: 'background-color', value: 'rgb(15, 23, 42)', condition: hover },
+    ])
+    const both = condition({ state: 'focus-visible', media: '(min-width: 768px)' })
+    const item = style({ property: 'padding', condition: both, longhands: { 'padding-left': { before: '12px', after: '24px' }, 'padding-top': { before: '12px', after: '16px' } } })
+    expect(deriveExpectations(item)).toEqual<Expectation[]>([
+      { type: 'computed', property: 'padding-left', value: '24px', condition: both },
+      { type: 'computed', property: 'padding-top', value: '16px', condition: both },
+    ])
+  })
+})
+
 describe('deriveExpectations: structural changes', () => {
   it('absent for remove, hidden for hide', () => {
     expect(deriveExpectations(structure({ op: 'remove' }))).toEqual<Expectation[]>([{ type: 'absent' }])
     expect(deriveExpectations(structure({ op: 'hide' }))).toEqual<Expectation[]>([{ type: 'hidden' }])
+  })
+
+  describe('reorder', () => {
+    const gesha = ref({ uid: 'u_gesha', label: 'li "Gesha"', locator: sibling('li "Gesha"', 1).locator })
+    const self = { label: 'li "Gesha"', locator: gesha.locator, self: true }
+    const kiamabara = sibling('li "Kiamabara"', 0)
+    const yirgacheffe = sibling('li "Yirgacheffe"', 2)
+
+    it('one `order` from where the element stands now: the neighbour before, the element itself, the neighbour after', () => {
+      const derived = deriveExpectations(structure({ op: 'reorder', target: gesha, move: move() }))
+      expect(derived).toEqual<Expectation[]>([{ type: 'order', siblings: [kiamabara, self, yirgacheffe] }])
+      for (const e of derived) expect(ExpectationSchema.safeParse(e).success).toBe(true)
+    })
+
+    it('a first child has only the neighbour after it, a last child only the one before', () => {
+      expect(deriveExpectations(structure({ op: 'reorder', target: gesha, move: move({ toIndex: 0, now: { next: kiamabara } }) }))).toEqual<Expectation[]>([{ type: 'order', siblings: [self, kiamabara] }])
+      expect(deriveExpectations(structure({ op: 'reorder', target: gesha, move: move({ toIndex: 5, now: { prev: yirgacheffe } }) }))).toEqual<Expectation[]>([{ type: 'order', siblings: [yirgacheffe, self] }])
+    })
+
+    it('where it WAS plays no part, and nothing but label and locator is copied from an anchor', () => {
+      const extra = { ...kiamabara, selector: 'ul > li:first-child' } as typeof kiamabara
+      const derived = deriveExpectations(structure({ op: 'reorder', target: gesha, move: move({ was: { prev: sibling('li "Other"', 4) }, now: { prev: extra, next: yirgacheffe } }) }))
+      expect(derived).toEqual<Expectation[]>([{ type: 'order', siblings: [kiamabara, self, yirgacheffe] }])
+    })
+
+    it('nothing to check without a neighbour (an only child) or without `move`; never `hidden`', () => {
+      expect(deriveExpectations(structure({ op: 'reorder', target: gesha, move: move({ fromIndex: 0, toIndex: 0, siblingCount: 1, was: {}, now: {} }) }))).toEqual([])
+      expect(deriveExpectations(structure({ op: 'reorder', target: gesha }))).toEqual([])
+      for (const item of [structure({ op: 'reorder', move: move() }), structure({ op: 'reorder' })]) {
+        expect(deriveExpectations(item).some((e) => e.type === 'hidden' || e.type === 'absent')).toBe(false)
+      }
+    })
+
+    it('an unwanted side effect still adds its no-move, after the order', () => {
+      const item = structure({ op: 'reorder', target: gesha, move: move(), sideEffects: [sideEffect({ verdict: 'unwanted' }), sideEffect({ selector: 'x' })] })
+      expect(deriveExpectations(item).map((e) => e.type)).toEqual(['order', 'no-move'])
+      expect(deriveExpectations(structure({ op: 'reorder', target: gesha, sideEffects: [sideEffect({ verdict: 'unwanted' })] })).map((e) => e.type)).toEqual(['no-move'])
+    })
   })
 })
 

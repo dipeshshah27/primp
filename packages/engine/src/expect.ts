@@ -1,4 +1,4 @@
-import type { ChangeItem, Expectation, SideEffect as RecordedSideEffect, StructuralChange, StyleChange } from '@reglet/protocol/change'
+import type { ChangeItem, Expectation, SiblingAnchor, SideEffect as RecordedSideEffect, StructuralChange, StyleChange } from '@reglet/protocol/change'
 import { normalizeValue } from './units.ts'
 
 /** `Omit` that keeps the members of a union apart, so `kind` still narrows. */
@@ -12,15 +12,19 @@ export const NO_MOVE_TOLERANCE_PX = 1
 
 /**
  * Derives what must be true once the source matches an item: a computed value
- * per changed longhand, absence/hiddenness for structural edits, a `no-move`
- * constraint for every side effect the user marked unwanted, and an
- * `unchanged` check for every bystander of a style change.
+ * per changed longhand, absence/hiddenness or the new sibling order for
+ * structural edits, a `no-move` constraint for every side effect the user
+ * marked unwanted, and an `unchanged` check for every bystander of a style change.
  *
  * Order (the same input always gives the same list):
  *   1. style change: `computed` expectations, one per longhand whose value changed, sorted by
  *      property name. Without `longhands`, or when none of them changed, a single one for
- *      `property` with `after.computed` (so a style change always has at least one).
- *      structural change: `absent` for remove, `hidden` for hide.
+ *      `property` with `after.computed` (so a style change always has at least one). Each
+ *      carries the item's condition, so a change made for `:hover` is checked in that state.
+ *      structural change: `absent` for remove, `hidden` for hide. For reorder one `order`
+ *      built from `move.now`: the neighbour before (if any), the moved element itself (the
+ *      item's target, marked `self`), the neighbour after (if any). Nothing when neither
+ *      neighbour is recorded (an only child, or no `move`): there is no order to check then.
  *   2. one `no-move` per side effect with verdict `unwanted`, in the order of `sideEffects`,
  *      each carrying the BEFORE rectangle. A selector listed twice gives one constraint.
  *   3. style change with `bystanders`: `unchanged` expectations, bystander by bystander in the
@@ -52,8 +56,17 @@ export function deriveExpectations(input: ItemWithoutExpect | Omit<ChangeItem, '
     } else {
       out.push({ type: 'computed', property: item.property, value: item.after.computed, condition: item.condition })
     }
+  } else if (item.op === 'remove') {
+    out.push({ type: 'absent' })
+  } else if (item.op === 'hide') {
+    out.push({ type: 'hidden' })
   } else {
-    out.push(item.op === 'remove' ? { type: 'absent' } : { type: 'hidden' })
+    const now = item.move?.now
+    const anchor = (sibling: SiblingAnchor | undefined): SiblingAnchor[] => (sibling === undefined ? [] : [{ label: sibling.label, locator: sibling.locator }])
+    const neighbours = [...anchor(now?.prev), ...anchor(now?.next)]
+    if (neighbours.length > 0) {
+      out.push({ type: 'order', siblings: [...anchor(now?.prev), { label: item.target.label, locator: item.target.locator, self: true }, ...anchor(now?.next)] })
+    }
   }
 
   const seen = new Set<string>()

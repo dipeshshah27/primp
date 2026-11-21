@@ -4,7 +4,7 @@ Edit your running app by hand, let your coding agent write the code, and have th
 
 reglet is a proxy you run in front of your dev server. It adds a dock to your app with three jobs:
 
-- **Edits.** Pick an element, change any CSS property, hide or remove it. reglet records what you changed, where the element lives in your source, and what else on the page moved because of it.
+- **Edits.** Pick an element, change any CSS property (at rest or for `:hover`, `:focus`, `:focus-visible` or `:active`), resize it by dragging its edge, move it among its siblings, hide or remove it. reglet records what you changed, where the element lives in your source, and what else on the page moved because of it.
 - **Shifts.** See the layout shifts of the page load: which element caused each one, why, and on which source line.
 - **Verify.** After your agent (Claude Code, Cursor, Codex, any MCP client, or a pasted prompt) edits the source, reglet re-measures the page and reports pass, drift or fail for every change, so the agent can correct itself.
 
@@ -66,6 +66,8 @@ Several tools let you edit a live page and hand the changes to an agent. reglet 
 
 **Bystanders.** A change often gets implemented by editing a rule that other elements share. reglet records up to three elements the same rule styles that you did not touch, tells the agent they must stay as they are, and fails the change if one of them moved: "`a.btn "See plans"` was not part of this change, but its `padding-top` went from 10px to 14px".
 
+**States, order and size, checked too.** A `:hover` or `:focus` change is previewed and verified with the state emulated: you see the hover look while you edit without holding the mouse still, and the check reads the value in that state, not at rest. Moving an element among its siblings is verified by the order of the elements in the page, and the agent is told to reorder the data when the elements come from a list. A resize is an ordinary width and height change, checked like any other.
+
 **Layout shifts.** reglet records the page load from its first script, attributes each shift to the element that caused it (an image without reserved space, a web font swapping in, content inserted above other content), and resolves that element to a line in your source.
 
 ![The Shifts tab: one shift, its culprit outlined on the page, and the evidence](docs/img/shifts.png)
@@ -81,7 +83,7 @@ Several tools let you edit a live page and hand the changes to an agent. reglet 
 | The build is broken | `build_error`, with the message |
 | No source file changed | `no_update_observed` |
 | The element cannot be found again | `unresolved` |
-| The viewport is outside the change's media query | `not_measurable` |
+| The viewport is outside the change's media query, or the state cannot be emulated | `not_measurable` |
 | The tab is in the background, or closed | `tab_hidden`, `no_browser` |
 
 The last three are never counted as success.
@@ -107,7 +109,10 @@ Each claim below has a script in `spikes/` that exits 0 or 1.
 - Every response through reglet is sent uncached, so each load is a first visit. That is deliberate (it is the load whose layout shifts matter, and an edit is never hidden by a stale stylesheet), but pages load a little slower than straight from the dev server.
 - A dev server's shifts can differ from production. Point reglet at `vite preview` or `next start` to check; source positions are then less precise.
 - If your app opens a modal `<dialog>`, the dock cannot be used until it closes.
-- Editing `:hover` and other states, drag to reorder, and resize handles are not there yet.
+- Reordering moves an element among the children of its parent only, never into another parent.
+- Resize has right, bottom and corner handles; there are none on the left and top edges.
+- `:hover` and focus changes are verified by emulating the state from the page's readable stylesheets. Behaviour made by script (a class added on mouse-over) and rules in stylesheets from another origin cannot be checked: such a change is reported as `fail` or `not_measurable`, never as a pass.
+- State changes do not get the bystander check: other elements that share the rule are not recorded for them.
 - A preview cannot override an author `!important` of higher specificity.
 
 ## Privacy

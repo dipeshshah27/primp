@@ -1,4 +1,5 @@
 import {
+  STATE_NOT_EMULATED,
   beforeValueFor,
   judgeCheck,
   judgeItem,
@@ -80,6 +81,29 @@ export function itemStatusAfter(status: VerificationStatus): ItemStatus | undefi
 
 const VERIFIABLE: ReadonlySet<ItemStatus> = new Set<ItemStatus>(['queued', 'claimed', 'failed', 'verified'])
 
+/**
+ * The reason the dock gives when it could not emulate the interaction state of a `computed`
+ * check (the text after `the state could not be emulated: `; may be empty). Undefined for every
+ * other check, among them one whose media query does not match: the dock checks that first and
+ * says so in another note.
+ */
+export function stateBlockedReason(raw: CheckResult): string | undefined {
+  const expectation = raw.expectation
+  if (raw.status !== 'not_measurable' || expectation.type !== 'computed' || expectation.condition.state === undefined) return undefined
+  if (raw.note?.startsWith(STATE_NOT_EMULATED) !== true) return undefined
+  return raw.note.slice(STATE_NOT_EMULATED.length).replace(/^\s*:\s*/, '').trim()
+}
+
+const parseLabels = (text: string): string[] | undefined => {
+  try {
+    const value: unknown = JSON.parse(text)
+    if (Array.isArray(value) && value.every((entry) => typeof entry === 'string')) return value as string[]
+  } catch {
+    // Not a list of labels.
+  }
+  return undefined
+}
+
 const parseRect = (text: string): Rect | undefined => {
   try {
     const value = JSON.parse(text) as Partial<Rect> | null
@@ -97,7 +121,14 @@ const parseRect = (text: string): Rect | undefined => {
  *
  * Wire convention (packages/overlay/src/probe/measure.ts):
  *   computed  expected = the target as a computed string, actual = the computed value now;
- *             status `not_measurable` when the media condition does not match
+ *             status `not_measurable` when the media condition does not match.
+ *             Under `condition.state` the value is read with the state emulated; when that
+ *             cannot be done the status is `not_measurable` with a note that starts with
+ *             `the state could not be emulated`. The media condition is checked first.
+ *   order     expected = the labels of `expectation.siblings` in the wanted order, actual = the
+ *             labels of those found again, in document order as it is now; both as JSON arrays.
+ *             `unresolved`: the moved element was not found, or fewer than two of the list were.
+ *             `fail`: the found ones do not stand in the wanted order under one parent.
  *   no-move   expected / actual = the recorded / current rect as JSON
  *   unchanged expected = the bystander's recorded computed value, actual = its computed value now
  *   absent, hidden   actual = `absent` | `hidden` | `rendered`
@@ -108,12 +139,16 @@ export function toMeasured(raw: CheckResult, item: MeasuredItem): Measured {
   const expectation: Expectation = raw.expectation
   const base = { found: item.found && raw.status !== 'unresolved', locatorConfidence: item.locatorConfidence }
   switch (expectation.type) {
-    case 'computed':
+    case 'computed': {
+      // A state that could not be emulated is not a viewport that does not match: the media condition was checked before it.
+      const stateBlocked = stateBlockedReason(raw)
+      if (stateBlocked !== undefined) return { ...base, mediaMatches: true, stateBlocked }
       return {
         ...base,
         mediaMatches: raw.status !== 'not_measurable',
         ...(base.found ? { actual: raw.actual, expectedComputed: raw.expected } : {}),
       }
+    }
     case 'no-move': {
       // The constrained element is located on its own; `unresolved` there is about it, not about the item's target.
       const rect = raw.status === 'unresolved' ? undefined : parseRect(raw.actual)
@@ -128,6 +163,20 @@ export function toMeasured(raw: CheckResult, item: MeasuredItem): Measured {
     case 'hidden': {
       const present = raw.actual !== 'absent' && item.found
       return { found: present, locatorConfidence: item.locatorConfidence, present, rendered: present && raw.actual === 'rendered' }
+    }
+    case 'order': {
+      // The moved element and its neighbours are located by the check itself, each with its own locator.
+      const lost: Measured = { found: false, locatorConfidence: item.locatorConfidence }
+      const wanted = expectation.siblings.map((sibling) => sibling.label)
+      const expected = parseLabels(raw.expected)
+      const actual = parseLabels(raw.actual)
+      // Anything but two lists of the recorded labels is not an answer about this order.
+      if (expected === undefined || actual === undefined || JSON.stringify(expected) !== JSON.stringify(wanted) || actual.some((label) => !wanted.includes(label))) return lost
+      const self = expectation.siblings.find((sibling) => sibling.self === true)
+      const selfFound = self === undefined ? actual.length > 0 : actual.includes(self.label)
+      // `unresolved` with the moved element and a neighbour in the list contradicts itself: the dock was not sure, so neither are we.
+      if (!selfFound || (raw.status === 'unresolved' && actual.length >= 2)) return lost
+      return { found: true, locatorConfidence: item.locatorConfidence, order: { actual, ...(raw.status === 'pass' ? { inOrder: true } : raw.status === 'fail' ? { inOrder: false } : {}) } }
     }
   }
 }
@@ -156,17 +205,25 @@ export function createVerifier(options: VerifierOptions): Verifier {
   }
   const startTime = (start: number | JournalPosition): number => (typeof start === 'number' ? start : start.at)
 
-  /** Another change that is out and sets `property` on the element `selector` names: the one case in which a bystander is meant to change. */
-  const changedElsewhere = (item: ChangeItem, selector: string, property: string): ChangeItem | undefined =>
-    session.items().find(
+  /**
+   * Another change that is out and sets `property` on the element `selector` names, in the same
+   * interaction state as `item` (a bystander is measured in the state its change is made for,
+   * which is the resting one unless the change says otherwise): the one case in which a
+   * bystander is meant to change. A `:hover` edit of the property does not explain a resting value that moved.
+   */
+  const changedElsewhere = (item: ChangeItem, selector: string, property: string): ChangeItem | undefined => {
+    const state = item.kind === 'style' ? item.condition.state : undefined
+    return session.items().find(
       (other) =>
         other.id !== item.id &&
         other.kind === 'style' &&
         other.status !== 'draft' &&
         other.status !== 'dismissed' &&
+        other.condition.state === state &&
         other.target.selector === selector &&
         (other.property === property || Object.hasOwn(other.longhands ?? {}, property)),
     )
+  }
 
   const verify = async (params: VerifyParams = {}): Promise<VerifyOutcome> => {
     const wanted =
@@ -265,9 +322,10 @@ export function createVerifier(options: VerifierOptions): Verifier {
         } else {
           extras.locatorConfidence = answer.locatorConfidence
           checks = answer.checks.map((raw) => {
-            // The judge knows one reason a value cannot be measured (a media query that does not match).
-            // Any other reason the probe gives (the colour scheme, for one) is passed through as it is.
-            if (raw.status === 'not_measurable' && !(raw.expectation.type === 'computed' && raw.expectation.condition.media !== undefined)) {
+            // The judge knows two reasons a value cannot be measured: a media query that does not match, and an
+            // interaction state that could not be emulated. Any other reason the probe gives (the colour scheme,
+            // for one) is passed through as it is.
+            if (raw.status === 'not_measurable' && stateBlockedReason(raw) === undefined && !(raw.expectation.type === 'computed' && raw.expectation.condition.media !== undefined)) {
               return { ...raw, note: raw.note ?? "could not be measured in the page's current state" }
             }
             // More than one element could be the recorded one: "is it gone?" has no answer. Never read that as gone.

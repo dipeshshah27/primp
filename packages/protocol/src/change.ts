@@ -89,9 +89,18 @@ export type Ref = z.infer<typeof RefSchema>
 // Under which condition a style change applies
 // ---------------------------------------------------------------------------
 
+/** An interaction state a style change can be made for. */
+export const ElementStateSchema = z.enum(['hover', 'focus', 'focus-visible', 'active'])
+export type ElementState = z.infer<typeof ElementStateSchema>
+
 export const ConditionSchema = z.object({
   /** Media query text of the rule the change is scoped to, exactly as authored, e.g. `(min-width: 768px)`. Absent: unconditional. */
   media: z.string().optional(),
+  /**
+   * The change applies only while the element is in this state (`:hover`, ...). Absent: the resting style.
+   * `before` and `after` of the change, and the expectation's value, are the values IN that state.
+   */
+  state: ElementStateSchema.optional(),
   /** Viewport when the change was made. */
   viewport: z.object({ w: z.number(), h: z.number(), dpr: z.number() }),
   colorScheme: z.enum(['light', 'dark']),
@@ -120,6 +129,14 @@ export type SideEffect = z.infer<typeof SideEffectSchema>
 // ---------------------------------------------------------------------------
 // What must be true once the source matches the edit
 // ---------------------------------------------------------------------------
+
+/** A sibling named in a reorder: enough to tell the reader which one and to find it again. */
+export const SiblingAnchorSchema = z.object({
+  /** Short human label, for example `li "Kiamabara"`. */
+  label: z.string(),
+  locator: LocatorSchema,
+})
+export type SiblingAnchor = z.infer<typeof SiblingAnchorSchema>
 
 export const ExpectationSchema = z.discriminatedUnion('type', [
   /** `getComputedStyle(target)[property]` equals `value` under `condition`. */
@@ -152,6 +169,15 @@ export const ExpectationSchema = z.discriminatedUnion('type', [
     locator: LocatorSchema,
     property: z.string(),
     value: z.string(),
+  }),
+  /**
+   * After a reorder: these children of one parent appear in the document in exactly this order.
+   * The moved element is the entry with `self`; the others are its nearest siblings (at most five
+   * each side) as they should stand around it. Other nodes may lie between them.
+   */
+  z.object({
+    type: z.literal('order'),
+    siblings: z.array(SiblingAnchorSchema.extend({ self: z.boolean().optional() })).min(2).max(11),
   }),
 ])
 export type Expectation = z.infer<typeof ExpectationSchema>
@@ -313,8 +339,26 @@ export type StyleChange = z.infer<typeof StyleChangeSchema>
 export const StructuralChangeSchema = z.object({
   ...ItemBase,
   kind: z.literal('structure'),
-  /** `remove`: delete the element from the source. `hide`: keep it in the DOM but not displayed. */
-  op: z.enum(['remove', 'hide']),
+  /**
+   * `remove`: delete the element from the source. `hide`: keep it in the DOM but not displayed.
+   * `reorder`: the element was moved among the children of its parent; `move` says from where to where.
+   */
+  op: z.enum(['remove', 'hide', 'reorder']),
+  /** Only with `reorder`. Indexes count the parent's element children, starting at 0. */
+  move: z
+    .object({
+      fromIndex: z.number().int().nonnegative(),
+      toIndex: z.number().int().nonnegative(),
+      /** How many element children the parent has. */
+      siblingCount: z.number().int().positive(),
+      /** Short label of the parent, for example `ul.bean-grid`. */
+      parent: z.string(),
+      /** The neighbours before the move; absent at the start or the end of the parent. */
+      was: z.object({ prev: SiblingAnchorSchema.optional(), next: SiblingAnchorSchema.optional() }),
+      /** The neighbours after the move. */
+      now: z.object({ prev: SiblingAnchorSchema.optional(), next: SiblingAnchorSchema.optional() }),
+    })
+    .optional(),
 })
 export type StructuralChange = z.infer<typeof StructuralChangeSchema>
 

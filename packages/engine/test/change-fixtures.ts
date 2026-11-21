@@ -1,4 +1,4 @@
-import type { Bystander, Condition, Locator, Rect, Ref, SideEffect, SourceLoc, StructuralChange, StyleChange } from '@reglet/protocol/change'
+import type { Bystander, Condition, Locator, Rect, Ref, SiblingAnchor, SideEffect, SourceLoc, StructuralChange, StyleChange } from '@reglet/protocol/change'
 import { deriveExpectations } from '../src/expect.ts'
 
 /** Builders for change items used by several test files. Every default is fixed, so output is deterministic. */
@@ -91,6 +91,30 @@ export function style(over: StyleInput = {}): StyleChange {
     ...rest,
   }
   return { ...item, expect: expect ?? deriveExpectations(item) }
+}
+
+/** A sibling named by a reorder: a list item at `index` among the children of the list, found again by its text. */
+export function sibling(label: string, index: number, over: Partial<Locator> = {}): SiblingAnchor {
+  const text = /"(.*)"$/.exec(label)?.[1]
+  return { label, locator: locator({ tag: 'li', ...(text === undefined ? {} : { text }), indexPath: [1, 2, 0, index], ancestors: ['body', 'main', 'section', 'ul'], ...over }) }
+}
+
+export type Move = NonNullable<StructuralChange['move']>
+
+/**
+ * Where a reorder moved its element. By default the fourth of six beans (Kiamabara, Yirgacheffe,
+ * Huila, the moved one, Sidamo, Antigua) became the second; index paths are those after the move.
+ */
+export function move(over: Partial<Move> = {}): Move {
+  return {
+    fromIndex: 3,
+    toIndex: 1,
+    siblingCount: 6,
+    parent: 'ul.bean-grid',
+    was: { prev: sibling('li "Huila"', 3), next: sibling('li "Sidamo"', 4) },
+    now: { prev: sibling('li "Kiamabara"', 0), next: sibling('li "Yirgacheffe"', 2) },
+    ...over,
+  }
 }
 
 type StructureInput = Partial<Omit<StructuralChange, 'kind' | 'expect'>> & { expect?: StructuralChange['expect'] }

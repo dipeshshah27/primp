@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { ChangeItem, CheckResult, Expectation } from '@reglet/protocol/change'
 import type { MeasureOutcome, MeasuredItem, Session, SessionBatch } from '../src/session.ts'
 import type { JournalEntry, SettleResult } from '../src/settle.ts'
-import { createVerifier, itemStatusAfter, startAutoVerify, toMeasured } from '../src/verify.ts'
+import { createVerifier, itemStatusAfter, startAutoVerify, stateBlockedReason, toMeasured } from '../src/verify.ts'
 import { structureItem, styleItem } from './session-helpers.ts'
 
 /** The parts of a Session that verification uses, over a plain list of items. */
@@ -96,6 +96,60 @@ const measuredWith = (results: MeasuredItem[], visible = true): MeasureOutcome =
 
 const noSleep = async (): Promise<void> => {}
 
+// --- a moved list item and a :hover change, as the dock reports them -------------------------
+
+const li = (text: string, index: number) => ({ label: `li "${text}"`, locator: { tag: 'li', text, indexPath: [1, 0, index], ancestors: ['body', 'main', 'ul'] } })
+const KIAMABARA = li('Kiamabara', 0)
+const GESHA = { ...li('Gesha', 1), self: true }
+const YIRGACHEFFE = li('Yirgacheffe', 2)
+const ORDER: Extract<Expectation, { type: 'order' }> = { type: 'order', siblings: [KIAMABARA, GESHA, YIRGACHEFFE] }
+const WANTED = JSON.stringify([KIAMABARA.label, GESHA.label, YIRGACHEFFE.label])
+/** An `order` check as the dock sends it: both lists as JSON arrays of labels. */
+const rawOrder = (status: CheckResult['status'], actual: string[] | string, note?: string): CheckResult => ({
+  expectation: ORDER,
+  status,
+  expected: WANTED,
+  actual: typeof actual === 'string' ? actual : JSON.stringify(actual),
+  ...(note === undefined ? {} : { note }),
+})
+const reorderItem = (id: string, over: Partial<ChangeItem> = {}): ChangeItem =>
+  structureItem(id, 'src/components/BeanGrid.tsx', {
+    status: 'claimed',
+    batchId: 'b1',
+    op: 'reorder',
+    move: { fromIndex: 3, toIndex: 1, siblingCount: 6, parent: 'ul.bean-grid', was: { prev: li('Huila', 3), next: li('Sidamo', 4) }, now: { prev: KIAMABARA, next: YIRGACHEFFE } },
+    expect: [ORDER],
+    ...over,
+  } as never)
+
+const HOVER = { ...styleItem('x').condition, state: 'hover' as const }
+const hoverExpectation = (media?: string): Extract<Expectation, { type: 'computed' }> => ({
+  type: 'computed',
+  property: 'background-color',
+  value: 'rgb(15, 23, 42)',
+  condition: media === undefined ? HOVER : { ...HOVER, media },
+})
+const hoverItem = (id: string, media?: string, over: Partial<ChangeItem> = {}): ChangeItem =>
+  styleItem(id, 'src/components/PricingTable.tsx', {
+    status: 'claimed',
+    batchId: 'b1',
+    property: 'background-color',
+    before: { authored: 'var(--ink-700)', computed: 'rgb(30, 41, 59)' },
+    after: { authored: '#0f172a', computed: 'rgb(15, 23, 42)' },
+    condition: hoverExpectation(media).condition,
+    expect: [hoverExpectation(media)],
+    ...over,
+  } as never)
+/** A `computed` check under :hover as the dock sends it. */
+const rawHover = (status: CheckResult['status'], actual: string, note = 'measured with :hover emulated', media?: string): CheckResult => ({
+  expectation: hoverExpectation(media),
+  status,
+  expected: 'rgb(15, 23, 42)',
+  actual,
+  note,
+})
+const NOT_EMULATED = 'the state could not be emulated: a stylesheet from another origin cannot be read'
+
 describe('itemStatusAfter', () => {
   it('maps what was learned to an item status and leaves the item alone when nothing was learned', () => {
     expect(itemStatusAfter('pass')).toBe('verified')
@@ -135,6 +189,65 @@ describe('toMeasured', () => {
     // The item's own element was not found: that says nothing about the bystander.
     expect(toMeasured({ ...raw, status: 'pass', actual: '10px' }, answer(item, [], { found: false }))).toMatchObject({ found: true, actual: '10px', expectedComputed: '10px' })
     expect(toMeasured({ ...raw, status: 'unresolved', actual: '' }, answer(item, []))).toEqual({ found: false, locatorConfidence: 0.93 })
+  })
+
+  it('reads an order check: the labels found, in the order they stand in, and the dock\'s own verdict', () => {
+    const moved = reorderItem('r1')
+    const inOrder = [KIAMABARA.label, GESHA.label, YIRGACHEFFE.label]
+    const behind = [KIAMABARA.label, YIRGACHEFFE.label, GESHA.label]
+    expect(toMeasured(rawOrder('pass', inOrder), answer(moved, []))).toEqual({ found: true, locatorConfidence: 0.93, order: { actual: inOrder, inOrder: true } })
+    expect(toMeasured(rawOrder('fail', behind), answer(moved, []))).toEqual({ found: true, locatorConfidence: 0.93, order: { actual: behind, inOrder: false } })
+    // The labels read in order, the dock says the elements do not stand so: its verdict travels with them.
+    expect(toMeasured(rawOrder('fail', inOrder), answer(moved, [])).order).toEqual({ actual: inOrder, inOrder: false })
+    // Some neighbours were not found: they are simply not in the list.
+    expect(toMeasured(rawOrder('pass', [GESHA.label, YIRGACHEFFE.label]), answer(moved, [])).order).toEqual({ actual: [GESHA.label, YIRGACHEFFE.label], inOrder: true })
+    // Found on its own: the judge is told so, and decides.
+    expect(toMeasured(rawOrder('unresolved', [GESHA.label]), answer(moved, []))).toEqual({ found: true, locatorConfidence: 0.93, order: { actual: [GESHA.label] } })
+    // The check locates its elements itself: what became of the item's recorded target does not decide it.
+    expect(toMeasured(rawOrder('pass', inOrder), answer(moved, [], { found: false })).found).toBe(true)
+  })
+
+  it('an order check without the moved element, or without two readable lists of the recorded labels, is "not found"', () => {
+    const moved = reorderItem('r1')
+    const lost = { found: false, locatorConfidence: 0.93 }
+    const inOrder = [KIAMABARA.label, GESHA.label, YIRGACHEFFE.label]
+    expect(toMeasured(rawOrder('unresolved', [KIAMABARA.label, YIRGACHEFFE.label]), answer(moved, []))).toEqual(lost)
+    expect(toMeasured(rawOrder('unresolved', []), answer(moved, []))).toEqual(lost)
+    // `unresolved` although the element and a neighbour are listed: the dock was not sure which is which.
+    expect(toMeasured(rawOrder('unresolved', inOrder), answer(moved, []))).toEqual(lost)
+    for (const actual of ['', 'not json', '{"0":"li"}', '[1,2]', '"li \\"Gesha\\""', JSON.stringify([GESHA.label, 'li "Somebody else"'])]) {
+      expect(toMeasured(rawOrder('pass', actual), answer(moved, [])), actual).toEqual(lost)
+    }
+    for (const expected of ['', 'not json', JSON.stringify([GESHA.label, KIAMABARA.label, YIRGACHEFFE.label]), JSON.stringify([KIAMABARA.label, GESHA.label])]) {
+      expect(toMeasured({ ...rawOrder('pass', inOrder), expected }, answer(moved, [])), expected).toEqual(lost)
+    }
+  })
+
+  it('reads a state that could not be emulated as that, never as a viewport that does not match', () => {
+    const hover = hoverItem('h1')
+    const blocked = toMeasured(rawHover('not_measurable', '', NOT_EMULATED), answer(hover, []))
+    expect(blocked).toEqual({ found: true, locatorConfidence: 0.93, mediaMatches: true, stateBlocked: 'a stylesheet from another origin cannot be read' })
+    // The same inside a media query: the dock checked the query first, so it matched.
+    expect(toMeasured(rawHover('not_measurable', '', NOT_EMULATED, '(min-width: 768px)'), answer(hoverItem('h2', '(min-width: 768px)'), []))).toMatchObject({ mediaMatches: true, stateBlocked: 'a stylesheet from another origin cannot be read' })
+    expect(toMeasured(rawHover('not_measurable', '', 'the state could not be emulated'), answer(hover, [])).stateBlocked).toBe('')
+    // A viewport outside the media query keeps its meaning, state or no state.
+    const viewport = toMeasured(rawHover('not_measurable', '', 'the viewport (390x844) does not match @media (min-width: 768px)', '(min-width: 768px)'), answer(hover, []))
+    expect(viewport.mediaMatches).toBe(false)
+    expect(viewport.stateBlocked).toBeUndefined()
+    // Measured with the state emulated: an ordinary value.
+    expect(toMeasured(rawHover('fail', 'rgb(30, 41, 59)'), answer(hover, []))).toEqual({ found: true, locatorConfidence: 0.93, mediaMatches: true, actual: 'rgb(30, 41, 59)', expectedComputed: 'rgb(15, 23, 42)' })
+  })
+
+  it('stateBlockedReason: only a not-measurable computed check under a state, with the agreed start of the note', () => {
+    expect(stateBlockedReason(rawHover('not_measurable', '', NOT_EMULATED))).toBe('a stylesheet from another origin cannot be read')
+    expect(stateBlockedReason(rawHover('not_measurable', '', 'the state could not be emulated:   2 sheets  '))).toBe('2 sheets')
+    expect(stateBlockedReason(rawHover('not_measurable', '', 'the state could not be emulated'))).toBe('')
+    expect(stateBlockedReason(rawHover('not_measurable', '', 'the colour scheme is dark'))).toBeUndefined()
+    expect(stateBlockedReason(rawHover('not_measurable', '', 'The state could not be emulated: x'))).toBeUndefined()
+    expect(stateBlockedReason(rawHover('fail', 'rgb(30, 41, 59)', NOT_EMULATED))).toBeUndefined()
+    expect(stateBlockedReason({ ...rawHover('not_measurable', ''), note: undefined })).toBeUndefined()
+    // The same note on a check that has no state is not the dock speaking about a state.
+    expect(stateBlockedReason({ ...rawComputed(computed, '', 'not_measurable'), note: NOT_EMULATED })).toBeUndefined()
   })
 
   it('reads absent and hidden checks from the three words the probe sends', () => {
@@ -417,6 +530,221 @@ describe('createVerifier', () => {
       expect(result?.status).toBe('unresolved')
       // The bystander was still measured on its own.
       expect(result?.checks[1]).toMatchObject({ status: 'fail', actual: '24px' })
+    })
+  })
+
+  describe('reorder', () => {
+    const run = async (raw: CheckResult, over: Partial<MeasuredItem> = {}) => {
+      const state = fakeSession([reorderItem('r1')], (wanted) => measuredWith(wanted.map((it) => answer(it, [raw], over))))
+      const { detector } = fakeDetector(settled({ filesChanged: ['src/data/beans.json'] }))
+      const outcome = await createVerifier({ session: state.session, detector, sleep: noSleep }).verify()
+      return { outcome, result: outcome.results[0], item: state.items.get('r1') }
+    }
+
+    it('the element stands between the two neighbours: pass, the item is verified, no fix-up', async () => {
+      const { outcome, result, item } = await run(rawOrder('pass', [KIAMABARA.label, GESHA.label, YIRGACHEFFE.label]))
+      expect(result?.status).toBe('pass')
+      expect(result?.checks[0]).toMatchObject({ status: 'pass', expected: WANTED, actual: WANTED })
+      expect(result?.checks[0]?.note).toBeUndefined()
+      expect(result?.hint).toBe('The check passes.')
+      expect(item?.status).toBe('verified')
+      expect(outcome.fixup).toBe('')
+    })
+
+    it('one neighbour was not found again, the other is on the right side: pass, and the hint says what it rests on', async () => {
+      const { result, item } = await run(rawOrder('pass', [KIAMABARA.label, GESHA.label]))
+      expect(result?.status).toBe('pass')
+      expect(result?.checks[0]?.note).toBe('1 of 2 neighbours could not be found again')
+      expect(result?.hint).toBe('The check passes. The new position was checked against fewer elements than recorded: 1 of 2 neighbours could not be found again.')
+      expect(item?.status).toBe('verified')
+    })
+
+    it('the element is somewhere else: fail, the item is failed, and the fix-up names both orders', async () => {
+      const { outcome, result, item } = await run(rawOrder('fail', [KIAMABARA.label, YIRGACHEFFE.label, GESHA.label]))
+      expect(result?.status).toBe('fail')
+      expect(result?.checks[0]).toMatchObject({ status: 'fail', expected: WANTED, note: 'the order in the page is li "Kiamabara", then li "Yirgacheffe", then li "Gesha"' })
+      expect(result?.hint).toBe(
+        'The element is not where it was moved to: the order in the page is `li "Kiamabara"`, `li "Yirgacheffe"`, `li "Gesha"`; the wanted order is `li "Kiamabara"`, `li "Gesha"` (the moved element), `li "Yirgacheffe"`. Change the order in the source; if these elements come from a list or array, reorder the data, not the markup of one item.',
+      )
+      expect(item?.status).toBe('failed')
+      expect(outcome.counts).toEqual({ fail: 1 })
+      expect(outcome.fixup).toContain('### `r1` fail: move element')
+      expect(outcome.fixup).toContain('- Do: move this element so that it comes after `li "Kiamabara"` and before `li "Yirgacheffe"`.')
+      expect(outcome.fixup).toContain('- Found: The element is not where it was moved to')
+    })
+
+    it('labels in the wanted order do not pass when the dock says the elements do not stand that way', async () => {
+      const { result, item } = await run(rawOrder('fail', [KIAMABARA.label, GESHA.label, YIRGACHEFFE.label]))
+      expect(result?.status).toBe('fail')
+      expect(result?.checks[0]?.note).toBe('the page does not have these elements in this order under one parent')
+      expect(item?.status).toBe('failed')
+    })
+
+    it('a wrong order does not pass because the dock said pass', async () => {
+      const { result } = await run(rawOrder('pass', [GESHA.label, KIAMABARA.label, YIRGACHEFFE.label]))
+      expect(result?.status).toBe('fail')
+    })
+
+    it('the moved element was not found again: unresolved, with the sentence about the element', async () => {
+      const { result, item } = await run(rawOrder('unresolved', [KIAMABARA.label, YIRGACHEFFE.label], 'the moved element was not found again'), { found: false, locatorConfidence: 0.2 })
+      expect(result?.status).toBe('unresolved')
+      expect(result?.checks[0]).toMatchObject({ status: 'unresolved', actual: 'element not found' })
+      expect(result?.hint).toContain('The element `button.btn "Sign in"` could not be found again after the edit')
+      expect(item?.status).toBe('failed')
+    })
+
+    it('only the moved element was found: unresolved, and the hint is about the neighbours', async () => {
+      const { result, item } = await run(rawOrder('unresolved', [GESHA.label]))
+      expect(result?.status).toBe('unresolved')
+      expect(result?.checks[0]).toMatchObject({ status: 'unresolved', note: 'none of the siblings it was placed next to could be found again' })
+      expect(result?.hint).toBe(
+        'The new position of the element could not be checked: none of the 2 siblings it was placed next to could be found again. If you renamed those siblings or changed their content, that is why; otherwise ask the user to check the order by eye.',
+      )
+      expect(item?.status).toBe('failed')
+    })
+
+    it('an answer that is not two lists of labels is unresolved, never pass', async () => {
+      for (const raw of [rawOrder('pass', 'not json'), rawOrder('pass', ''), { ...rawOrder('pass', [KIAMABARA.label, GESHA.label, YIRGACHEFFE.label]), expected: '' }]) {
+        expect((await run(raw)).result?.status).toBe('unresolved')
+      }
+    })
+
+    it('nothing changed in the source and the order is not there: no_update_observed', async () => {
+      const state = fakeSession([reorderItem('r1')], (wanted) => measuredWith(wanted.map((it) => answer(it, [rawOrder('fail', [KIAMABARA.label, YIRGACHEFFE.label, GESHA.label])]))))
+      const { detector } = fakeDetector(settled({ status: 'no_update_observed', signal: 'timeout', filesChanged: [], domChanged: false }))
+      const outcome = await createVerifier({ session: state.session, detector, sleep: noSleep }).verify()
+      expect(outcome.results[0]?.status).toBe('no_update_observed')
+      expect(outcome.fixup).toContain('- Do: move this element so that it comes after')
+    })
+  })
+
+  describe('a change made for an interaction state', () => {
+    const run = async (raw: CheckResult, item: ChangeItem = hoverItem('h1'), others: ChangeItem[] = []) => {
+      const state = fakeSession([item, ...others], (wanted) => measuredWith(wanted.map((it) => answer(it, [raw]))))
+      const { detector } = fakeDetector(settled({ filesChanged: ['src/styles/site.css'] }))
+      const outcome = await createVerifier({ session: state.session, detector, sleep: noSleep }).verify({ ids: [item.id] })
+      return { outcome, result: outcome.results[0], item: state.items.get(item.id) }
+    }
+
+    it('measured with the state emulated and on target: pass, the item is verified', async () => {
+      const { outcome, result, item } = await run(rawHover('pass', 'rgb(15, 23, 42)'))
+      expect(result?.status).toBe('pass')
+      expect(item?.status).toBe('verified')
+      expect(outcome.fixup).toBe('')
+    })
+
+    it('measured with the state emulated and still the old value: fail, the item is failed, and the hint is about the state', async () => {
+      const { outcome, result, item } = await run(rawHover('fail', 'rgb(30, 41, 59)'))
+      expect(result?.status).toBe('fail')
+      expect(result?.checks[0]).toMatchObject({ status: 'fail', expected: 'rgb(15, 23, 42)', actual: 'rgb(30, 41, 59)', note: 'unchanged' })
+      expect(result?.hint).toContain('`background-color` in the `:hover` state is still `rgb(30, 41, 59)` (unchanged); expected `rgb(15, 23, 42)`.')
+      expect(result?.hint).toContain('if you changed the resting style instead, restore it')
+      expect(item?.status).toBe('failed')
+      expect(outcome.fixup).toContain('### `h1` fail: `background-color` on `:hover`:')
+      expect(outcome.fixup).toContain('- Condition: only in the `:hover` state. Do not change the resting style.')
+    })
+
+    it('another value than the one asked for: fail, with the state in the advice', async () => {
+      const { result, item } = await run(rawHover('fail', 'rgb(239, 68, 68)'))
+      expect(result?.status).toBe('fail')
+      expect(result?.hint).toContain('Make it compute to `rgb(15, 23, 42)` in the `:hover` state.')
+      expect(item?.status).toBe('failed')
+    })
+
+    it('the state could not be emulated: not_measurable, the item stays as it was, and nothing is said about the viewport', async () => {
+      const { outcome, result, item } = await run(rawHover('not_measurable', '', NOT_EMULATED))
+      expect(result?.status).toBe('not_measurable')
+      expect(result?.checks[0]).toMatchObject({ status: 'not_measurable', note: NOT_EMULATED })
+      expect(result?.hint).toBe(
+        'Not checked: reglet could not emulate the `:hover` state on this page (reason: `a stylesheet from another origin cannot be read`), so `background-color` in that state was not measured (expected `rgb(15, 23, 42)`). That is a limit of the measurement, not a fault found in your edit, and verifying again will not change it: ask the user to check this state by eye.',
+      )
+      expect(item?.status).toBe('claimed')
+      expect(item?.verification?.status).toBe('not_measurable')
+      expect(outcome.counts).toEqual({ not_measurable: 1 })
+      expect(outcome.fixup).toContain('### `h1` not measurable:')
+      expect(`${result?.hint} ${outcome.fixup}`).not.toMatch(/viewport|Resize the browser|does not match/)
+    })
+
+    it('the same inside a media query that matches: still the state, not the viewport', async () => {
+      const media = '(min-width: 768px)'
+      const { result, item } = await run(rawHover('not_measurable', '', NOT_EMULATED, media), hoverItem('h1', media))
+      expect(result?.status).toBe('not_measurable')
+      expect(result?.checks[0]?.note).toBe(NOT_EMULATED)
+      expect(result?.hint).toContain('could not emulate the `:hover` state')
+      expect(result?.hint).not.toMatch(/viewport|Resize/)
+      expect(item?.status).toBe('claimed')
+    })
+
+    it('a state change outside its media query is the viewport\'s doing, as for any other change', async () => {
+      const media = '(min-width: 768px)'
+      const { result, item } = await run(rawHover('not_measurable', '', `the viewport (390x844) does not match @media ${media}`, media), hoverItem('h1', media))
+      expect(result?.status).toBe('not_measurable')
+      expect(result?.checks[0]?.note).toBe('the viewport does not match @media (min-width: 768px)')
+      expect(result?.hint).toBe(
+        'Could not be checked at the current viewport: `@media (min-width: 768px)` does not match (expected `background-color` `rgb(15, 23, 42)` in the `:hover` state). Resize the browser so that the query matches, then verify again.',
+      )
+      expect(item?.status).toBe('claimed')
+    })
+
+    it('an item that had failed before stays failed when its state cannot be emulated: nothing new was learned', async () => {
+      const { result, item } = await run(rawHover('not_measurable', '', NOT_EMULATED), hoverItem('h1', undefined, { status: 'failed' }))
+      expect(result?.status).toBe('not_measurable')
+      expect(item?.status).toBe('failed')
+    })
+
+    it('any other reason the dock gives for not measuring is passed through with its note', async () => {
+      const { result, item } = await run(rawHover('not_measurable', '', 'the page is printing'))
+      expect(result?.status).toBe('not_measurable')
+      expect(result?.checks[0]?.note).toBe('the page is printing')
+      expect(item?.status).toBe('claimed')
+    })
+  })
+
+  describe('bystanders and states', () => {
+    const secondary = { label: 'a.btn "Docs"', selector: 'nav > a:nth-of-type(2)', locator: { tag: 'a', indexPath: [0, 1], ancestors: ['body', 'nav'], text: 'Docs' } }
+    const unchanged: Expectation = { type: 'unchanged', ...secondary, property: 'background-color', value: 'rgb(255, 255, 255)' }
+    /** A resting change of the background whose shared rule also styles `secondary`; the agent's edit dragged it along. */
+    const resting = (): ChangeItem =>
+      styleItem('c1', 'src/components/Header.tsx', {
+        status: 'claimed',
+        batchId: 'b1',
+        property: 'background-color',
+        before: { authored: '#fff', computed: 'rgb(255, 255, 255)' },
+        after: { authored: '#0f172a', computed: 'rgb(15, 23, 42)' },
+        bystanders: [{ ...secondary, values: { 'background-color': 'rgb(255, 255, 255)' } }],
+        expect: [{ type: 'computed', property: 'background-color', value: 'rgb(15, 23, 42)', condition: styleItem('x').condition }, unchanged],
+      } as never)
+    const onBystander = (over: Partial<ChangeItem>): ChangeItem => {
+      const other = styleItem('c2', 'src/components/Header.tsx', { status: 'claimed', batchId: 'b2', property: 'background-color', ...over } as never)
+      other.target = { ...other.target, selector: secondary.selector }
+      return other
+    }
+    const run = async (other: ChangeItem) => {
+      const state = fakeSession([resting(), other], (wanted) =>
+        measuredWith(
+          wanted.map((it) =>
+            answer(it, [
+              { expectation: it.expect[0] as Expectation, status: 'pass', expected: 'rgb(15, 23, 42)', actual: 'rgb(15, 23, 42)' },
+              { expectation: unchanged, status: 'fail', expected: 'rgb(255, 255, 255)', actual: 'rgb(15, 23, 42)' },
+            ]),
+          ),
+        ),
+      )
+      const { detector } = fakeDetector(settled())
+      return (await createVerifier({ session: state.session, detector, sleep: noSleep }).verify({ ids: ['c1'] })).results[0]
+    }
+
+    it('a resting change of the same property on the bystander explains its new value', async () => {
+      const result = await run(onBystander({}))
+      expect(result?.status).toBe('pass')
+      expect(result?.checks[1]?.note).toContain('c2')
+    })
+
+    it('a :hover change of that property does not: the resting value was not meant to move', async () => {
+      const result = await run(onBystander({ condition: HOVER } as never))
+      expect(result?.status).toBe('fail')
+      expect(result?.checks[1]).toMatchObject({ status: 'fail', expected: 'rgb(255, 255, 255)', actual: 'rgb(15, 23, 42)' })
+      expect(result?.hint).toContain('`a.btn "Docs"` was not part of this change, but its `background-color` went from `rgb(255, 255, 255)` to `rgb(15, 23, 42)`')
     })
   })
 

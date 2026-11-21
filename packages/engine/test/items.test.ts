@@ -12,11 +12,12 @@ import {
   historyReducer,
   isNoop,
   knownFile,
+  mergeReorder,
   mergeStyleEdit,
   upsertEdit,
 } from '../src/items.ts'
 import type { ItemHistory } from '../src/items.ts'
-import { bystander, condition, ref, sideEffect, source, structure, style } from './change-fixtures.ts'
+import { bystander, condition, move, ref, sibling, sideEffect, source, structure, style } from './change-fixtures.ts'
 
 describe('editKey', () => {
   const base = style()
@@ -39,7 +40,22 @@ describe('editKey', () => {
     expect(keys.size).toBe(6)
   })
 
+  it('an interaction state is part of the key: a :hover edit and a resting edit of one property are two edits', () => {
+    const hover = style({ condition: condition({ state: 'hover' }) })
+    expect(editKey(hover)).not.toBe(editKey(base))
+    expect(editKey(style({ id: 'again', condition: condition({ state: 'hover' }), after: { authored: '20px', computed: '20px' } }))).toBe(editKey(hover))
+    const keys = new Set([base, ...(['hover', 'focus', 'focus-visible', 'active'] as const).map((state) => style({ condition: condition({ state }) }))].map(editKey))
+    expect(keys.size).toBe(5)
+    // State and media are separate parts.
+    expect(editKey(style({ condition: condition({ state: 'hover', media: '(min-width: 768px)' }) }))).not.toBe(editKey(hover))
+    expect(editKey(style({ condition: condition({ state: 'hover', media: '(min-width: 768px)' }) }))).not.toBe(editKey(style({ condition: condition({ media: '(min-width: 768px)' }) })))
+  })
+
   it('structural: element and operation', () => {
+    const moved = structure({ op: 'reorder', move: move() })
+    expect(editKey(moved)).toBe(editKey(structure({ op: 'reorder', id: 'later', move: move({ toIndex: 5 }) })))
+    expect(editKey(moved)).not.toBe(editKey(structure({ op: 'hide' })))
+    expect(editKey(moved)).not.toBe(editKey(structure({ op: 'remove' })))
     expect(editKey(structure({ op: 'remove' }))).toBe(editKey(structure({ op: 'remove', id: 'x' })))
     expect(editKey(structure({ op: 'remove' }))).not.toBe(editKey(structure({ op: 'hide' })))
     expect(editKey(structure({ op: 'remove' }))).not.toBe(editKey(structure({ op: 'remove', target: ref({ uid: 'other' }) })))
@@ -177,8 +193,79 @@ describe('isNoop', () => {
     ).toBe(false)
   })
 
-  it('a structural change is never a no-op', () => {
+  it('removing and hiding are never no-ops', () => {
     expect(isNoop(structure())).toBe(false)
+    expect(isNoop(structure({ op: 'hide' }))).toBe(false)
+  })
+
+  it('a reorder is a no-op when the element is back at the index it started from', () => {
+    expect(isNoop(structure({ op: 'reorder', move: move() }))).toBe(false)
+    expect(isNoop(structure({ op: 'reorder', move: move({ fromIndex: 3, toIndex: 3 }) }))).toBe(true)
+    expect(isNoop(structure({ op: 'reorder', move: move({ fromIndex: 0, toIndex: 0 }) }))).toBe(true)
+    // Without `move` nothing says it went nowhere.
+    expect(isNoop(structure({ op: 'reorder' }))).toBe(false)
+  })
+})
+
+describe('mergeReorder', () => {
+  // Kiamabara, Yirgacheffe, Huila, [Gesha], Sidamo, Antigua: Gesha is moved to second place, then on to last.
+  const gesha = (index: number) => ref({ uid: 'u_gesha', label: 'li "Gesha"', selector: `ul.bean-grid > li:nth-of-type(${index + 1})`, locator: sibling('li "Gesha"', index).locator })
+  const first = structure({
+    id: 'it_a',
+    seq: 3,
+    createdAt: 100,
+    status: 'draft',
+    op: 'reorder',
+    target: gesha(1),
+    move: move(),
+    note: 'featured bean first',
+    sideEffects: [sideEffect({ verdict: 'unwanted' }), sideEffect({ label: 'h2', selector: 'h2', verdict: 'expected' })],
+  })
+  // Made from where the first move left it: second place.
+  const second = structure({
+    id: 'it_b',
+    seq: 4,
+    createdAt: 200,
+    status: 'draft',
+    op: 'reorder',
+    target: gesha(5),
+    move: move({ fromIndex: 1, toIndex: 5, was: { prev: sibling('li "Kiamabara"', 0), next: sibling('li "Yirgacheffe"', 1) }, now: { prev: sibling('li "Antigua"', 4) } }),
+    sideEffects: [sideEffect({ after: { x: 0, y: 912, w: 1280, h: 120 } }), sideEffect({ label: 'p', selector: 'p' })],
+  })
+  const merged = mergeReorder(first, second)
+
+  it('keeps identity and where the element ORIGINALLY stood; takes where it stands now', () => {
+    expect([merged.id, merged.seq, merged.createdAt]).toEqual(['it_a', 3, 100])
+    expect(merged.move).toEqual({ ...second.move, fromIndex: 3, was: first.move?.was })
+    expect(merged.move?.toIndex).toBe(5)
+    expect(merged.move?.now).toEqual({ prev: sibling('li "Antigua"', 4) })
+    // The target as recorded after the latest move: that locator is the one that finds it again.
+    expect(merged.target).toEqual(second.target)
+    expect(merged.note).toBe('featured bean first')
+    expect(mergeReorder(first, { ...second, note: 'last after all' }).note).toBe('last after all')
+    expect(ChangeItemSchema.safeParse(merged).success).toBe(true)
+  })
+
+  it('takes the new side effects, carries a verdict over to the same element, and derives expect again', () => {
+    expect(merged.sideEffects.map((e) => [e.selector, e.verdict, e.after.y])).toEqual([
+      ['body > footer.site-footer', 'unwanted', 912],
+      ['p', 'unreviewed', 908],
+    ])
+    expect(merged.expect).toEqual([
+      { type: 'order', siblings: [sibling('li "Antigua"', 4), { label: 'li "Gesha"', locator: second.target.locator, self: true }] },
+      { type: 'no-move', label: 'footer.site-footer', locator: sideEffect().locator, rect: sideEffect().before, tolerancePx: 1 },
+    ])
+  })
+
+  it('does not mutate its arguments; without `move` only the identity is kept', () => {
+    const frozenA = JSON.stringify(first)
+    const frozenB = JSON.stringify(second)
+    mergeReorder(first, second)
+    expect(JSON.stringify(first)).toBe(frozenA)
+    expect(JSON.stringify(second)).toBe(frozenB)
+    const { move: _dropped, ...bare } = second
+    void _dropped
+    expect(mergeReorder(first, bare)).toEqual({ ...bare, id: 'it_a', seq: 3, createdAt: 100 })
   })
 })
 
@@ -210,6 +297,39 @@ describe('upsertEdit', () => {
     const b = structure({ id: 'it_b', seq: 4, status: 'draft', note: 'again' })
     expect(upsertEdit([a], b)).toEqual([{ ...b, id: 'it_a', seq: 3 }])
     expect(upsertEdit([a], structure({ id: 'it_c', op: 'hide', status: 'draft' }))).toHaveLength(2)
+  })
+
+  it('a :hover edit does not merge into the resting edit of the same property', () => {
+    const hover = style({ id: 'it_h', status: 'draft', condition: condition({ state: 'hover' }), before: { computed: '12px' }, after: { authored: '20px', computed: '20px' } })
+    const both = upsertEdit([first], hover)
+    expect(both.map((item) => item.id)).toEqual(['it_1', 'it_h'])
+    // Each merges with its own kind afterwards.
+    const again = upsertEdit(both, style({ id: 'it_h2', status: 'draft', condition: condition({ state: 'hover' }), before: { computed: '20px' }, after: { authored: '24px', computed: '24px' } }))
+    expect(again.map((item) => [item.id, item.kind === 'style' ? item.after.computed : ''])).toEqual([
+      ['it_1', '14px'],
+      ['it_h', '24px'],
+    ])
+    expect(again[1]).toMatchObject({ before: { computed: '12px' }, condition: { state: 'hover' } })
+    expect(again[1]?.expect[0]).toMatchObject({ type: 'computed', value: '24px', condition: { state: 'hover' } })
+  })
+
+  it('a second move of the same element replaces the first and keeps where it started; moving it back deletes the draft', () => {
+    const target = ref({ uid: 'u_gesha', label: 'li "Gesha"' })
+    const a = structure({ id: 'it_a', seq: 3, status: 'draft', op: 'reorder', target, move: move() })
+    const b = structure({ id: 'it_b', seq: 4, status: 'draft', op: 'reorder', target, move: move({ fromIndex: 1, toIndex: 4, was: { prev: sibling('li "Kiamabara"', 0), next: sibling('li "Yirgacheffe"', 1) }, now: { prev: sibling('li "Sidamo"', 3), next: sibling('li "Antigua"', 5) } }) })
+    const moved = upsertEdit([a], b)
+    expect(moved).toHaveLength(1)
+    expect(moved[0]).toMatchObject({ id: 'it_a', seq: 3, move: { fromIndex: 3, toIndex: 4, was: a.move?.was, now: b.move?.now } })
+    expect(moved[0]?.expect[0]).toMatchObject({ type: 'order', siblings: [{ label: 'li "Sidamo"' }, { label: 'li "Gesha"', self: true }, { label: 'li "Antigua"' }] })
+
+    // From fifth place back to fourth, where it started: nothing is left to do.
+    const back = structure({ id: 'it_c', seq: 5, status: 'draft', op: 'reorder', target, move: move({ fromIndex: 4, toIndex: 3, was: b.move?.now, now: a.move?.was }) })
+    expect(upsertEdit(moved, back)).toEqual([])
+    // A first move that goes nowhere is not recorded at all.
+    expect(upsertEdit([], structure({ status: 'draft', op: 'reorder', target, move: move({ toIndex: 3 }) }))).toEqual([])
+    // A reorder does not merge with hiding the same element, nor into a reorder that was already sent.
+    expect(upsertEdit([a], structure({ id: 'it_h', status: 'draft', op: 'hide', target }))).toHaveLength(2)
+    expect(upsertEdit([{ ...a, status: 'queued' }], b)).toHaveLength(2)
   })
 })
 
