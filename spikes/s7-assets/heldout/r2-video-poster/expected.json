@@ -1,0 +1,16 @@
+{
+  "page": "r2-video-poster/index.html",
+  "observeMs": 1800,
+  "positive": true,
+  "accept": [
+    {
+      "causes": [
+        "unsized-media"
+      ],
+      "culprits": [
+        "#player"
+      ]
+    }
+  ],
+  "notes": "A <video> without dimensions and with preload=\"none\" shows its poster when the poster image arrives; the box changes from the default 300x150 to the poster's 600x400. No load event fires on the video element for a poster."
+}

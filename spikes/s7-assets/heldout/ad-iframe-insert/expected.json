@@ -1,0 +1,16 @@
+{
+  "page": "ad-iframe-insert/index.html",
+  "observeMs": 1800,
+  "positive": true,
+  "accept": [
+    {
+      "causes": [
+        "injected-content"
+      ],
+      "culprits": [
+        "#ad"
+      ]
+    }
+  ],
+  "notes": "An advert iframe with explicit width and height is inserted into an empty slot above the content. The iframe is sized; the problem is that it was injected into a slot that reserved no space."
+}

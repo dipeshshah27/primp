@@ -1,0 +1,17 @@
+{
+  "page": "r2-details-open/index.html",
+  "observeMs": 1800,
+  "positive": true,
+  "accept": [
+    {
+      "causes": [
+        "injected-content",
+        "unknown"
+      ],
+      "culprits": [
+        "#faq"
+      ]
+    }
+  ],
+  "notes": "A script opens a <details> element after a fetch: its content appears and pushes the page down. No node is inserted; an attribute changes on an element that was already there and already had a box."
+}

@@ -1,0 +1,1398 @@
+/**
+ * M1/M2 integration check of the browser side: the head script, the dock, the probe.
+ *
+ * Everything is real: the fixtures' dev servers, reglet itself (`startReglet`: proxy, session
+ * server, settle detector, source resolver, shift attributor, verifier) bundling the entries of
+ * packages/overlay the way the product does, and headless Chromium. The dock is driven through
+ * `window.__reglet_test` and, where the point is the UI, with real mouse and keyboard input.
+ *
+ * One thing the real server cannot be made to say on demand is a shift report for a tab that
+ * was hidden; for that single check the same bundles run against a small fake session server
+ * (m1-overlay-assets/fake-session.ts).
+ *
+ * Fixtures: vite-react-19 (most checks), next-16-turbopack (strict nonce CSP), static-html,
+ * and one positive page of cls-corpus (the Shifts tab).
+ *
+ * Run: pnpm spike:m1-overlay                  (exit 0 = every check passed)
+ *      pnpm spike:m1-overlay vite next ...    only these sections: vite, next, static, cls, shots
+ * Screenshots go to .tmp/m1-overlay-shots/.
+ */
+
+import { mkdirSync } from 'node:fs'
+import { join } from 'node:path'
+import type { Browser } from '@playwright/test'
+import type { ChangeItem, Expectation, StyleChange } from '../packages/protocol/src/change.ts'
+import type { ShiftReport } from '../packages/protocol/src/shift.ts'
+import { createReport, editFile, expect, launchBrowser, newPage, replaceOnce, runCleanups, sleep, TMP_ROOT, waitFor } from './lib/index.ts'
+import { buildBundles, computed, computedAll, items, marks, openDock, px, rect, restartReglet, startFakeLane, startLane, testState, type Bundles, type DockPage, type Lane } from './m1-overlay-assets/harness.ts'
+import { fixed, readPlainEntries, sum, type PlainEntry } from './s7-assets/measure.ts'
+
+const report = createReport('M1 overlay: head script, dock and probe against the real reglet server')
+const SHOTS = join(TMP_ROOT, 'm1-overlay-shots')
+const HOOK_TARGET_BYTES = 12_000
+/** Budget for what this milestone adds to the head script on top of the M0 recorder and settle client. */
+const HOOK_ADDED_BYTES = 2_500
+const EFFECTS_BUDGET_MS = 30
+const SENT_TEXT = 'Copied. Paste into your agent, or it will pick the batch up over MCP.'
+
+/** Equal within the half pixel the geometry snapshot rounds to. */
+const near = (a: number, b: number): boolean => Math.abs(a - b) <= 0.5
+const scored = (entries: PlainEntry[]): PlainEntry[] => entries.filter((entry) => !entry.hadRecentInput)
+const describeEntries = (entries: PlainEntry[]): string => `${scored(entries).length} (${fixed(sum(scored(entries).map((entry) => entry.value)), 6)})`
+const style = (item: ChangeItem | null | undefined): StyleChange => {
+  if (item === null || item === undefined || item.kind !== 'style') throw new Error(`expected a style change, got ${JSON.stringify(item)?.slice(0, 120)}`)
+  return item
+}
+
+/**
+ * What the fixture logs and violates by itself, read from the same page WITHOUT reglet. Next's
+ * dev tools, for one, insert unnonced <style> elements that its own strict policy blocks; that
+ * is the fixture's doing and happens with or without the dock.
+ */
+interface Baseline {
+  errors: Set<string>
+  violations: Set<string>
+  counts: { errors: number; violations: number }
+}
+const baselines = new Map<Lane, Baseline>()
+const normal = (text: string): string => text.replace(/nonce-[A-Za-z0-9+/=_-]+/g, 'nonce-*')
+const violationKey = (violation: { effectiveDirective: string; blockedURI: string; target: string }): string => `${violation.effectiveDirective} ${violation.blockedURI} (${violation.target})`
+
+async function readBaseline(browser: Browser, lane: Lane, path: string, observeMs: number): Promise<Baseline> {
+  const handle = await newPage(browser)
+  try {
+    await handle.page.goto(lane.control.url + path, { waitUntil: 'load' })
+    await sleep(observeMs)
+    const baseline: Baseline = {
+      errors: new Set(handle.record.consoleErrors().map((entry) => normal(entry.text))),
+      violations: new Set(handle.record.cspViolations.map(violationKey)),
+      counts: { errors: handle.record.consoleErrors().length, violations: handle.record.cspViolations.length },
+    }
+    baselines.set(lane, baseline)
+    return baseline
+  } finally {
+    await handle.close()
+  }
+}
+
+function hygiene(page: DockPage, lane: Lane): string[] {
+  const baseline = baselines.get(lane)
+  const problems: string[] = []
+  const errors = page.record.consoleErrors().filter((entry) => baseline?.errors.has(normal(entry.text)) !== true)
+  if (errors.length > 0) problems.push(`console errors: ${errors.map((entry) => entry.text).slice(0, 3).join(' | ')}`)
+  const warnings = page.record.console.filter((entry) => entry.text.includes('[reglet]'))
+  if (warnings.length > 0) problems.push(`reglet logged: ${warnings.map((entry) => entry.text).slice(0, 3).join(' | ')}`)
+  if (page.record.pageErrors.length > 0) problems.push(`page errors: ${page.record.pageErrors.slice(0, 2).join(' | ')}`)
+  // A violation counts against reglet unless the same one happens on the page without it; anything
+  // on reglet's own host or in the dock's document counts in any case. (The source file is no
+  // guide: with stack capture on, the page's own DOM insertions run through a wrapper in hook.js,
+  // and the browser then names hook.js for a <style> that Next's dev tools inserted.)
+  const violations = page.record.cspViolations.filter(
+    (violation) => baseline?.violations.has(violationKey(violation)) !== true || violation.target === 'reglet-root' || violation.documentURI === 'about:blank',
+  )
+  if (violations.length > 0) {
+    problems.push(`CSP violations: ${violations.map((violation) => `${violationKey(violation)} in ${violation.documentURI}`).slice(0, 4).join(' | ')}`)
+  }
+  // The server validates every `session:*` message against the protocol's schema and warns about one it drops.
+  const refused = lane.logs.filter((line) => line.includes('did not match the protocol') || line.startsWith('error'))
+  if (refused.length > 0) problems.push(`the server complained: ${refused.slice(0, 3).join(' | ')}`)
+  return problems
+}
+
+/** `0 console errors, 0 CSP violations`, or how many the fixture produces by itself. */
+function hygieneText(page: DockPage, lane: Lane): string {
+  const own = { errors: page.record.consoleErrors().length, violations: page.record.cspViolations.length }
+  const without = baselines.get(lane)?.counts
+  const fixture = own.errors + own.violations === 0 ? '' : ` (the page's own, of the kinds it has without reglet: ${own.violations} CSP violations and ${own.errors} console errors here, ${without?.violations} and ${without?.errors} on one load without reglet)`
+  return `0 console errors, 0 CSP violations, 0 page errors from reglet${fixture}`
+}
+
+// ---------------------------------------------------------------------------
+// Every fixture: the dock mounts, breaks nothing, adds no layout shift
+// ---------------------------------------------------------------------------
+
+async function mountChecks(browser: Browser, lane: Lane, path: string, observeMs: number): Promise<void> {
+  const baseline = await readBaseline(browser, lane, path, observeMs)
+  if (baseline.errors.size + baseline.violations.size > 0) {
+    report.info(`without reglet this page already has ${baseline.violations.size} kind(s) of CSP violation (${[...baseline.violations].join('; ')}) and ${baseline.errors.size} console error(s); only what comes on top counts against the dock`)
+  }
+  await report.attempt('the dock mounts: one host in the top layer, its own document, session state received', async () => {
+    const page = await openDock(browser, lane, path)
+    try {
+      const facts = await page.page.evaluate(() => {
+        const hosts = document.querySelectorAll('reglet-root')
+        const host = hosts[0]
+        const frame = host?.shadowRoot?.querySelector('iframe')
+        const box = frame?.getBoundingClientRect()
+        return {
+          hosts: hosts.length,
+          marked: host?.hasAttribute('data-reglet-root') ?? false,
+          parent: host?.parentElement?.localName,
+          topLayer: host?.matches(':popover-open') ?? false,
+          position: host === undefined ? '' : getComputedStyle(host).position,
+          hostBox: host === undefined ? '' : `${host.getBoundingClientRect().width}x${host.getBoundingClientRect().height}`,
+          frame: box === undefined ? undefined : { w: Math.round(box.width), h: Math.round(box.height), inView: box.left >= 0 && box.top >= 0 && box.right <= innerWidth && box.bottom <= innerHeight },
+          leftoverScript: document.querySelectorAll('script[data-reglet-root]').length,
+          focusStolen: document.activeElement !== document.body && document.activeElement !== null && document.activeElement.localName === 'reglet-root',
+          hook: typeof window.__reglet?.recording === 'function',
+          bus: typeof window.__reglet_bus?.send === 'function',
+        }
+      })
+      const state = await testState(page.page)
+      const dockText = await page.dock.evaluate(() => ({ text: document.body.innerText, tabs: document.querySelectorAll('[role="tab"]').length, lang: document.documentElement.lang }))
+      expect(facts.hosts === 1 && facts.marked && facts.parent === 'html', `host: ${JSON.stringify(facts)}`)
+      expect(facts.topLayer && facts.position === 'fixed' && facts.hostBox === '0x0', `host is not a 0x0 fixed box in the top layer: ${JSON.stringify(facts)}`)
+      expect(facts.frame !== undefined && facts.frame.w >= 240 && facts.frame.h >= 200 && facts.frame.inView, `dock frame: ${JSON.stringify(facts.frame)}`)
+      expect(facts.hook && facts.bus, 'window.__reglet or window.__reglet_bus is missing')
+      expect(facts.leftoverScript === 0, 'the loader script element was left in the document')
+      expect(!facts.focusStolen, 'the dock took focus on load')
+      expect(state.connected && state.ready && state.mounted, `state: ${JSON.stringify(state)}`)
+      expect(dockText.tabs === 3 && dockText.text.includes('reglet') && dockText.text.includes(lane.name), `dock content: ${JSON.stringify(dockText).slice(0, 200)}`)
+      const documents = lane.reglet.session.documents()
+      await waitFor(() => lane.reglet.detector.status().browsers === 1, { timeoutMs: 3000, what: 'the settle detector to count the document' })
+      expect(documents.length === 1 && documents[0]?.url.endsWith(path) === true, `the session knows ${documents.length} document(s): ${JSON.stringify(documents).slice(0, 200)}`)
+      const problems = hygiene(page, lane)
+      expect(problems.length === 0, problems.join('; '))
+      const sockets = page.record.webSockets.filter((url) => url.includes('/__reglet/'))
+      expect(sockets.length === 1, `expected ONE overlay socket, the page opened ${sockets.length}: ${sockets.join(', ')}`)
+      return `host 0x0 fixed in the top layer, dock ${facts.frame.w}x${facts.frame.h}, project "${lane.name}" shown, 1 overlay socket serving the session (1 document) and the settle detector (1 browser), ${hygieneText(page, lane)}`
+    } finally {
+      await page.close()
+    }
+  })
+
+  await report.attempt('the dock adds no layout-shift entry (2 loads with it, 2 without)', async () => {
+    const read = async (withDock: boolean): Promise<PlainEntry[]> => {
+      if (withDock) {
+        const page = await openDock(browser, lane, path)
+        try {
+          await sleep(observeMs)
+          return await readPlainEntries(page.page)
+        } finally {
+          await page.close()
+        }
+      }
+      const handle = await newPage(browser)
+      try {
+        await handle.page.goto(lane.control.url + path, { waitUntil: 'load' })
+        await sleep(observeMs)
+        const clean = await handle.page.evaluate(() => window.__reglet === undefined && document.querySelector('reglet-root') === null)
+        expect(clean, 'the control page has reglet in it')
+        return await readPlainEntries(handle.page)
+      } finally {
+        await handle.close()
+      }
+    }
+    const control = [await read(false), await read(false)]
+    const dock = [await read(true), await read(true)]
+    const line = `without ${control.map(describeEntries).join(' ')} | with dock ${dock.map(describeEntries).join(' ')}`
+    const counts = (runs: PlainEntry[][]): string => JSON.stringify(runs.map((run) => scored(run).length).sort())
+    expect(counts(dock) === counts(control), `entry counts differ: ${line}`)
+    const total = (runs: PlainEntry[][]): number => Math.max(...runs.map((run) => sum(scored(run).map((entry) => entry.value))))
+    expect(Math.abs(total(dock) - total(control)) <= 1e-4, `summed values differ: ${line}`)
+    return `entries per load (count, summed value): ${line}`
+  })
+}
+
+// ---------------------------------------------------------------------------
+// vite-react-19
+// ---------------------------------------------------------------------------
+
+const CARD = '[data-label="card"]'
+const BANNER = '[data-label="banner"]'
+
+async function viteSelection(browser: Browser, lane: Lane): Promise<void> {
+  const page = await openDock(browser, lane, '/')
+  try {
+    await report.attempt('select through the test handle: Ref, unique selector, instances, source badge', async () => {
+      const ref = await page.page.evaluate((selector) => window.__reglet_test!.select(selector), CARD)
+      const matches = await page.page.evaluate((selector) => document.querySelectorAll(selector).length, ref.selector)
+      expect(matches === 1, `selector ${ref.selector} matches ${matches} elements`)
+      expect(ref.label.startsWith('article.card "'), `label is ${ref.label}`)
+      expect(ref.instanceCount === 6, `instanceCount is ${ref.instanceCount}`)
+      expect(ref.locator.tag === 'article' && ref.locator.role === 'article' && ref.locator.indexPath.length === ref.locator.ancestors.length, `locator: ${JSON.stringify(ref.locator)}`)
+      expect(!JSON.stringify(ref.locator).includes('_card_'), 'the locator contains a class name')
+      const state = await waitFor(async () => {
+        const now = await testState(page.page)
+        return now.source?.state === 'done' ? now : undefined
+      })
+      // Ground truth: the fixture's labels.json.
+      const truth = lane.fixture.labels.find((entry) => entry.label === 'card')
+      expect(truth !== undefined && state.source?.file === truth.file && state.source.line === truth.line && state.source.level === 'exact', `source: ${JSON.stringify(state.source)}, labels.json says ${truth?.file}:${truth?.line}`)
+      const badge = await page.dock.evaluate(() => ({ text: document.querySelector('.target .source')?.textContent ?? '', title: document.querySelector('.target .source')?.getAttribute('title') ?? '' }))
+      expect(badge.text.includes(`Card.tsx:${truth.line}`) && badge.title.includes(truth.file), `badge shows "${badge.text}" with tooltip "${badge.title}"`)
+      return `${ref.label} -> selector "${ref.selector}" (1 match), 6 instances, locator without class names; the real resolver answered ${state.source.file}:${state.source.line} (${state.source.level}) = labels.json; badge "${badge.text.trim()}", full path in the tooltip`
+    })
+
+    await report.attempt('pick mode with a real mouse: hover highlight, click selects, the app\'s own click handler does not fire', async () => {
+      const documents = page.record.documentRequests.length
+      await page.dock.locator('button', { hasText: 'Pick element' }).click()
+      expect((await testState(page.page)).pickMode, 'pick mode did not turn on')
+      const dismiss = await rect(page.page, '[data-label="banner-dismiss"]')
+      const x = dismiss.x + dismiss.w / 2
+      const y = dismiss.y + dismiss.h / 2
+      await page.page.mouse.move(x, y)
+      const hover = await waitFor(() =>
+        page.page.evaluate(() => {
+          const box = document.querySelector('reglet-root')?.shadowRoot?.querySelector<HTMLElement>('.box.hover')
+          if (box === null || box === undefined || getComputedStyle(box).display === 'none') return undefined
+          const r = box.getBoundingClientRect()
+          return { x: r.left, y: r.top, w: r.width, h: r.height, label: box.textContent ?? '' }
+        }),
+      )
+      expect(Math.abs(hover.x - dismiss.x) <= 1 && Math.abs(hover.y - dismiss.y) <= 1 && Math.abs(hover.w - dismiss.w) <= 1, `hover box ${JSON.stringify(hover)} is not on the button ${JSON.stringify(dismiss)}`)
+      await page.page.mouse.click(x, y)
+      const afterPick = await page.page.evaluate(() => ({ selected: window.__reglet_test!.selection()?.label, banner: document.querySelector('[data-label="banner"]') !== null, pick: window.__reglet_test!.state().pickMode }))
+      expect(afterPick.selected?.startsWith('button.banner__dismiss') === true, `selected ${afterPick.selected}`)
+      expect(afterPick.banner, 'the Dismiss handler of the app ran: the banner is gone')
+      expect(!afterPick.pick, 'pick mode stayed on after the click')
+      // A link is not followed either.
+      await page.page.evaluate(() => window.__reglet_test!.pick(true))
+      const link = await rect(page.page, '[data-label="nav-big"]')
+      await page.page.mouse.click(link.x + link.w / 2, link.y + link.h / 2)
+      await sleep(150)
+      expect(page.record.documentRequests.length === documents && new URL(page.page.url()).pathname === '/', `the link was followed: ${page.page.url()}`)
+      expect((await page.page.evaluate(() => window.__reglet_test!.selection()?.tag)) === 'a', 'the link was not selected')
+      // With pick mode off the same click reaches the app.
+      await page.page.mouse.click(x, y)
+      const dismissed = await waitFor(() => page.page.evaluate(() => document.querySelector('[data-label="banner"]') === null))
+      expect(dismissed, 'with pick mode off the click did not reach the app')
+      return `hover box on the button (${Math.round(hover.w)}x${Math.round(hover.h)}, "${hover.label.trim()}"); click selected ${afterPick.selected}, banner still mounted, link not followed; the same click with pick mode off dismissed the banner`
+    })
+
+    await report.attempt('keyboard in pick mode: arrows walk parent / child / siblings, Escape leaves (from the page and from the dock)', async () => {
+      await page.page.evaluate((selector) => window.__reglet_test!.select(`${selector}:nth-of-type(2)`), CARD)
+      await page.page.evaluate(() => window.__reglet_test!.pick(true))
+      await page.page.locator('body').focus()
+      const label = (): Promise<string | undefined> => page.page.evaluate(() => window.__reglet_test!.selection()?.label)
+      await page.page.keyboard.press('ArrowRight')
+      const next = await label()
+      await page.page.keyboard.press('ArrowLeft')
+      await page.page.keyboard.press('ArrowUp')
+      const parent = await page.page.evaluate(() => window.__reglet_test!.selection()?.locator.testId ?? window.__reglet_test!.selection()?.tag)
+      await page.page.keyboard.press('ArrowDown')
+      const child = await label()
+      expect(next?.includes('03') === true && parent === 'div' && child?.includes('01') === true, `right -> ${next}; up -> ${parent}; down -> ${child}`)
+      await page.page.keyboard.press('Escape')
+      expect(!(await testState(page.page)).pickMode, 'Escape on the page did not leave pick mode')
+      await page.dock.locator('button', { hasText: 'Pick element' }).click()
+      expect((await testState(page.page)).pickMode, 'pick mode did not turn on')
+      await page.page.keyboard.press('Escape')
+      expect(!(await testState(page.page)).pickMode, 'Escape in the dock did not leave pick mode')
+      return `ArrowRight -> card 03, ArrowUp -> the grid div, ArrowDown -> card 01; Escape left pick mode with focus on the page and with focus in the dock`
+    })
+  } finally {
+    await page.close()
+  }
+}
+
+async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
+  const page = await openDock(browser, lane, '/')
+  const t = page.page
+  const first = `${CARD}:nth-of-type(1)`
+  try {
+    await t.evaluate((selector) => window.__reglet_test!.select(selector), first)
+    await waitFor(async () => (await testState(t)).source?.state === 'done')
+
+    let itemId = ''
+    await report.attempt('padding on a card: computed style, before/after, longhands, origin, and a side-effect summary that matches an independent measurement', async () => {
+      const pricingBefore = await rect(t, '#pricing')
+      const neighbourBefore = await rect(t, `${CARD}:nth-of-type(2)`)
+      const result = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '28px'))
+      expect(result.ok, `rejected: ${result.error}`)
+      const item = style(result.item)
+      itemId = item.id
+      const paddings = await computedAll(t, CARD, 'padding')
+      expect(paddings[0] === '28px' && paddings.slice(1).every((value) => value === '20px'), `computed padding of the six cards: ${paddings.join(', ')}`)
+      expect(item.before.computed === '20px' && item.before.authored === '20px' && item.after.computed === '28px' && item.after.authored === '28px', `before ${JSON.stringify(item.before)} after ${JSON.stringify(item.after)}`)
+      const sides = ['padding-top', 'padding-right', 'padding-bottom', 'padding-left']
+      expect(sides.every((side) => item.longhands?.[side]?.before === '20px' && item.longhands[side].after === '28px') && Object.keys(item.longhands ?? {}).length === 4, `longhands: ${JSON.stringify(item.longhands)}`)
+      expect(item.status === 'draft' && item.page === '/' && item.scope === 'instance' && item.condition.media === undefined, `item: ${JSON.stringify({ status: item.status, page: item.page, scope: item.scope, condition: item.condition })}`)
+      expect(item.condition.viewport.w === 1280 && item.condition.viewport.h === 800 && item.condition.colorScheme === 'light', `condition: ${JSON.stringify(item.condition)}`)
+      expect(item.origin?.via === 'rule' && item.origin.selector?.includes('_card_') === true && item.origin.sheet?.includes('Card.module.css') === true, `origin: ${JSON.stringify(item.origin)}`)
+      expect(item.stylingSystem === 'css-modules', `styling system: ${item.stylingSystem}`)
+      expect(item.target.source?.file === 'src/components/Card.tsx' && item.target.source.line === 12, `target source: ${JSON.stringify(item.target.source)}`)
+      expect(item.expect.length === 4 && item.expect.every((entry) => entry.type === 'computed' && entry.value === '28px'), `expect: ${JSON.stringify(item.expect)}`)
+
+      const pricingAfter = await rect(t, '#pricing')
+      const neighbourAfter = await rect(t, `${CARD}:nth-of-type(2)`)
+      const dy = pricingAfter.y - pricingBefore.y
+      const dh = neighbourAfter.h - neighbourBefore.h
+      expect(near(dy, 16) && near(dh, 16), `independent measurement: #pricing moved ${dy}px, the neighbour card grew ${dh}px (expected 16 and 16)`)
+      const pricing = item.sideEffects.find((effect) => effect.selector === '#pricing')
+      expect(pricing !== undefined, `no side effect for #pricing among ${item.sideEffects.map((effect) => effect.selector).join(', ')}`)
+      expect(pricing.type === 'moved' && near(pricing.before.y, pricingBefore.y) && near(pricing.after.y, pricingAfter.y) && pricing.verdict === 'unreviewed', `#pricing effect: ${JSON.stringify(pricing)} vs measured ${pricingBefore.y} -> ${pricingAfter.y}`)
+      const neighbour = item.sideEffects.find((effect) => effect.selector.endsWith('article:nth-of-type(2)'))
+      expect(neighbour?.type === 'resized' && near(neighbour.after.h - neighbour.before.h, dh), `neighbour effect: ${JSON.stringify(neighbour)}`)
+      expect(!item.sideEffects.some((effect) => effect.selector === item.target.selector), 'the edited element is listed as its own side effect')
+      const summary = await t.evaluate((id) => window.__reglet_test!.summary(id), item.id)
+      expect(summary.includes(`moved down ${px(dy)}`) && summary.includes(`${px(dh)} taller`), `summary "${summary}" does not say "moved down ${px(dy)}" and "${px(dh)} taller"`)
+      const cost = (await testState(t)).lastEffects
+      const stored = await waitFor(() => lane.reglet.session.item(item.id), { timeoutMs: 3000, what: 'the server to store the item' })
+      expect(stored.kind === 'style' && stored.after.authored === '28px' && stored.status === 'draft', `the server stored ${JSON.stringify(stored).slice(0, 160)}`)
+      return `card padding 20px -> 28px (others unchanged); longhands 4/4; origin ${item.origin.selector} in ${item.origin.sheet.split('/').pop()}; #pricing measured ${pricingBefore.y} -> ${pricingAfter.y} = recorded effect; neighbour +${dh}px = recorded; summary "${summary}"; ${item.sideEffects.length} effects in ${cost?.ms.toFixed(1)} ms over ${cost?.elements} elements`
+    })
+
+    await report.attempt('editing the same property again keeps ONE item with the original before value', async () => {
+      const result = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '32px'))
+      const item = style(result.item)
+      const all = await items(t)
+      expect(all.length === 1 && item.id === itemId, `${all.length} items; id ${item.id} vs ${itemId}`)
+      expect(item.before.computed === '20px' && item.before.authored === '20px' && item.after.computed === '32px', `before ${JSON.stringify(item.before)} after ${JSON.stringify(item.after)}`)
+      expect(item.longhands?.['padding-top']?.before === '20px' && item.longhands['padding-top'].after === '32px', `longhands: ${JSON.stringify(item.longhands?.['padding-top'])}`)
+      expect((await computed(t, first, 'padding')) === '32px', 'the page does not show 32px')
+      const pricing = item.sideEffects.find((effect) => effect.selector === '#pricing')
+      expect(pricing !== undefined && near(pricing.after.y - pricing.before.y, 24), `side effects are not measured against the original page: ${JSON.stringify(pricing)}`)
+      await waitFor(() => {
+        const stored = lane.reglet.session.item(itemId)
+        return stored?.kind === 'style' && stored.after.authored === '32px' && stored.before.computed === '20px'
+      }, { timeoutMs: 3000, what: 'the server to hold the updated item' })
+      expect(lane.reglet.session.items().length === 1, `the server holds ${lane.reglet.session.items().length} items`)
+      return `1 item, same id; before 20px (authored and computed), after 32px; side effects re-measured against the original (#pricing +24px)`
+    })
+
+    await report.attempt('setting the property back to its original value deletes the item', async () => {
+      const result = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '20px'))
+      expect(result.ok && result.item === null, `result: ${JSON.stringify(result).slice(0, 200)}`)
+      const state = await testState(t)
+      expect((await items(t)).length === 0 && state.previewCss === '' && (await marks(t)) === 0, `items ${(await items(t)).length}, preview css "${state.previewCss}", marks ${await marks(t)}`)
+      expect((await computed(t, first, 'padding')) === '20px', 'the page is not back at 20px')
+      await waitFor(() => lane.reglet.session.items().length === 0, { timeoutMs: 3000, what: 'the server to drop the item' })
+      return '0 items, empty preview stylesheet, no mark left on the page, session:delete sent'
+    })
+
+    await report.attempt('an invalid value or an unknown property is rejected with a message, and nothing is recorded', async () => {
+      const bad = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '12pxx'))
+      const unknown = await t.evaluate(() => window.__reglet_test!.setStyle('paddding', '12px'))
+      const important = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '12px !important'))
+      expect(!bad.ok && bad.error?.includes('not a valid value for padding') === true, `12pxx: ${JSON.stringify(bad)}`)
+      expect(!unknown.ok && unknown.error?.includes('not a CSS property') === true, `paddding: ${JSON.stringify(unknown)}`)
+      expect(!important.ok, '"12px !important" was accepted')
+      expect((await items(t)).length === 0 && (await computed(t, first, 'padding')) === '20px', 'something was recorded or applied')
+      // The same through the dock: type into the padding row and press Enter.
+      const input = page.dock.locator('#v-padding')
+      await input.fill('12pxx')
+      await input.press('Enter')
+      const message = await waitFor(() => page.dock.evaluate(() => document.querySelector('.prop .msg[role="alert"]')?.textContent ?? undefined))
+      const invalid = await input.getAttribute('aria-invalid')
+      expect(message.includes('not a valid value') && invalid === 'true', `row message "${message}", aria-invalid ${invalid}`)
+      await input.press('Escape')
+      expect((await input.inputValue()) === '20px' && (await items(t)).length === 0, 'Escape did not restore the value')
+      return `"12pxx" -> "${bad.error}"; "paddding" -> "${unknown.error}"; in the dock the row shows the message with aria-invalid, Escape restores 20px`
+    })
+
+    await report.attempt('the dock\'s own inputs: Enter applies, ArrowUp nudges by 1 and Shift+ArrowUp by 10', async () => {
+      const input = page.dock.locator('#v-padding')
+      await input.fill('24px')
+      await input.press('Enter')
+      await waitFor(async () => (await computed(t, first, 'padding')) === '24px')
+      await input.press('ArrowUp')
+      await waitFor(async () => (await computed(t, first, 'padding')) === '25px')
+      await input.press('Shift+ArrowUp')
+      await waitFor(async () => (await computed(t, first, 'padding')) === '35px')
+      await input.press('ArrowDown')
+      // The item is committed a frame after the preview shows.
+      await waitFor(async () => (await computed(t, first, 'padding')) === '34px' && style((await items(t))[0]).after.authored === '34px')
+      await t.evaluate(() => window.__reglet_overlay!.controller.idle())
+      const all = await items(t)
+      expect(all.length === 1 && style(all[0]).before.computed === '20px' && style(all[0]).after.authored === '34px', `items: ${JSON.stringify(all.map((item) => (item.kind === 'style' ? [item.before.computed, item.after.authored] : item.op)))}`)
+      const tray = await page.dock.evaluate(() => document.querySelector('.tray .item .change')?.textContent ?? '')
+      expect(tray.includes('padding') && tray.includes('20px') && tray.includes('34px'), `tray line: "${tray}"`)
+      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__reglet_test!.undo())
+      expect((await items(t)).length === 0, 'four undos did not clear the four steps')
+      return `24px (Enter) -> 25px (ArrowUp) -> 35px (Shift+ArrowUp) -> 34px (ArrowDown): one item, before 20px; the tray reads "${tray.trim()}"`
+    })
+
+    await report.attempt('undo and redo restore the page and the item list exactly', async () => {
+      // `seq` is the server's numbering (a re-created item gets a new number); everything else must be identical.
+      const snapshot = async () => ({
+        items: JSON.stringify((await items(t)).map((item) => ({ ...item, seq: 0 }))),
+        padding: await computed(t, first, 'padding'),
+        gap: await computed(t, first, 'gap'),
+        marks: await marks(t),
+        css: (await testState(t)).previewCss,
+      })
+      const s0 = await snapshot()
+      await t.evaluate(() => window.__reglet_test!.setStyle('padding', '28px'))
+      const s1 = await snapshot()
+      await t.evaluate(() => window.__reglet_test!.setStyle('gap', '2px'))
+      const s2 = await snapshot()
+      expect(s2.padding === '28px' && s2.gap === '2px' && JSON.parse(s2.items).length === 2, `after two edits: ${s2.padding}, ${s2.gap}, ${JSON.parse(s2.items).length} items`)
+      await t.evaluate(() => window.__reglet_test!.undo())
+      const u1 = await snapshot()
+      expect(JSON.stringify(u1) === JSON.stringify(s1), `after one undo the state differs from the state after the first edit:\n${JSON.stringify(u1).slice(0, 300)}\n${JSON.stringify(s1).slice(0, 300)}`)
+      // The second undo with the keyboard, in pick mode.
+      await t.evaluate(() => window.__reglet_test!.pick(true))
+      await t.locator('body').focus()
+      await t.keyboard.press('Control+z')
+      const u0 = await snapshot()
+      expect(JSON.stringify(u0) === JSON.stringify(s0), `after two undos the state differs from the start: ${JSON.stringify(u0).slice(0, 300)}`)
+      await t.keyboard.press('Control+Shift+z')
+      await t.evaluate(() => window.__reglet_test!.pick(false))
+      const r1 = await snapshot()
+      expect(JSON.stringify(r1) === JSON.stringify(s1), 'after redo the state differs from the state after the first edit')
+      await t.evaluate(() => window.__reglet_test!.redo())
+      const r2 = await snapshot()
+      expect(JSON.stringify(r2) === JSON.stringify(s2), 'after the second redo the state differs from the state after both edits')
+      const state = await testState(t)
+      expect(state.canUndo && !state.canRedo, `canUndo ${state.canUndo}, canRedo ${state.canRedo}`)
+      await waitFor(() => lane.reglet.session.items().length === 2, { timeoutMs: 3000 })
+      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__reglet_test!.undo())
+      await waitFor(() => lane.reglet.session.items().length === 0, { timeoutMs: 3000 })
+      return 'two edits; undo, undo (Ctrl+Z in pick mode), redo (Ctrl+Shift+Z), redo: items JSON, computed styles, marks and preview stylesheet identical at every step; the server followed (2 items, then 0)'
+    })
+
+    await report.attempt('scope "all instances" changes all 6 cards', async () => {
+      const result = await t.evaluate(() => window.__reglet_test!.setStyle('border-radius', '2px', { scope: 'all-instances' }))
+      const item = style(result.item)
+      const radii = await computedAll(t, CARD, 'border-radius')
+      expect(radii.length === 6 && radii.every((value) => value === '2px'), `border-radius of the cards: ${radii.join(', ')}`)
+      expect(item.scope === 'all-instances' && item.target.instanceCount === 6 && (await marks(t)) === 6, `scope ${item.scope}, instanceCount ${item.target.instanceCount}, marks ${await marks(t)}`)
+      const label = await page.dock.evaluate(() => [...document.querySelectorAll('.seg button')].map((button) => button.textContent).join(' | '))
+      await t.evaluate(() => window.__reglet_test!.undo())
+      const back = await computedAll(t, CARD, 'border-radius')
+      expect(back.every((value) => value === '12px') && (await marks(t)) === 0, `after undo: ${back.join(', ')}, marks ${await marks(t)}`)
+      return `6 of 6 cards at 2px with 6 marks; the scope control reads "${label}"; undo restores 12px and removes every mark`
+    })
+
+    await report.attempt('an edit scoped to a matching @media query applies, and stops applying outside the query', async () => {
+      const featured = '.plan--featured'
+      await t.evaluate((selector) => window.__reglet_test!.select(selector), featured)
+      const options = await page.dock.evaluate(() => [...document.querySelectorAll('select option')].map((option) => option.textContent ?? ''))
+      expect(options.some((option) => option.includes('(min-width: 768px)')) && options[0] === 'No media query', `media control offers: ${options.join(' | ')}`)
+      const before = await computed(t, featured, 'padding-top')
+      const result = await t.evaluate(() => window.__reglet_test!.setStyle('padding-top', '40px', { media: '(min-width: 768px)' }))
+      const item = style(result.item)
+      const state = await testState(t)
+      expect(item.condition.media === '(min-width: 768px)' && item.before.computed === '32px' && item.after.computed === '40px', `item: ${JSON.stringify({ condition: item.condition, before: item.before, after: item.after })}`)
+      expect(item.origin?.media === '(min-width: 768px)', `origin: ${JSON.stringify(item.origin)}`)
+      expect(item.expect.every((entry) => entry.type !== 'computed' || entry.condition.media === '(min-width: 768px)'), 'the expectation lost the media condition')
+      expect(state.previewCss.startsWith('@media (min-width: 768px) {'), `preview rule: ${state.previewCss}`)
+      const wide = await computed(t, featured, 'padding-top')
+      await t.setViewportSize({ width: 600, height: 800 })
+      const narrow = await computed(t, featured, 'padding-top')
+      const refused = await t.evaluate(() => window.__reglet_test!.setStyle('padding-bottom', '40px', { media: '(min-width: 768px)' }))
+      await t.setViewportSize({ width: 1280, height: 800 })
+      const again = await computed(t, featured, 'padding-top')
+      expect(before === '32px' && wide === '40px' && narrow === '24px' && again === '40px', `padding-top: ${before} before, ${wide} at 1280, ${narrow} at 600, ${again} back at 1280`)
+      expect(!refused.ok && refused.error?.includes('does not match') === true, `an edit under a query that does not match was accepted: ${JSON.stringify(refused).slice(0, 160)}`)
+      await t.evaluate(() => window.__reglet_test!.undo())
+      return `padding-top 32px -> 40px inside @media (min-width: 768px) at 1280px; 24px (the unscoped rule) at 600px; 40px again at 1280px; editing under the query at 600px is refused`
+    })
+
+    await report.attempt('styling systems are told apart', async () => {
+      const system = async (selector: string, property: string, value: string): Promise<string> => {
+        await t.evaluate((sel) => window.__reglet_test!.select(sel), selector)
+        const result = await t.evaluate(([prop, val]) => window.__reglet_test!.setStyle(prop, val), [property, value] as const)
+        const item = style(result.item)
+        await t.evaluate(() => window.__reglet_test!.undo())
+        return `${item.stylingSystem} (${item.origin?.via}${item.origin?.selector === undefined ? '' : ` ${item.origin.selector}`})`
+      }
+      const card = await system(first, 'gap', '4px')
+      const header = await system('[data-label="header-inner"]', 'gap', '8px')
+      const banner = await system(BANNER, 'gap', '8px')
+      expect(card.startsWith('css-modules') && header.startsWith('tailwind') && banner.startsWith('plain-css'), `card: ${card}; header: ${header}; banner: ${banner}`)
+      return `Card -> ${card}; Header -> ${header}; Banner -> ${banner}`
+    })
+
+    await report.attempt('hide and remove preview as display:none, the node stays, and the content below is reported as moving up by the element\'s height', async () => {
+      const banner = await rect(t, BANNER)
+      const mainBefore = await rect(t, '[data-label="main"]')
+      await t.evaluate((selector) => window.__reglet_test!.select(selector), BANNER)
+      const hidden = await t.evaluate(() => window.__reglet_test!.hide())
+      expect(hidden.ok && hidden.item?.kind === 'structure' && hidden.item.op === 'hide', `hide: ${JSON.stringify(hidden).slice(0, 160)}`)
+      const mainAfter = await rect(t, '[data-label="main"]')
+      const up = mainBefore.y - mainAfter.y
+      expect((await computed(t, BANNER, 'display')) === 'none' && near(up, banner.h) && banner.h > 20, `display ${await computed(t, BANNER, 'display')}; main moved up ${up}px, banner height ${banner.h}px`)
+      const effect = hidden.item.sideEffects.find((entry) => entry.selector === 'main' || entry.label.startsWith('main'))
+      expect(effect?.type === 'moved' && near(effect.before.y - effect.after.y, up), `effect for <main>: ${JSON.stringify(effect)}; measured ${up}px`)
+      const summary = await t.evaluate((id) => window.__reglet_test!.summary(id), hidden.item.id)
+      expect(summary.includes(`moved up ${px(up)}`), `summary "${summary}" does not say "moved up ${px(up)}"`)
+      expect(JSON.stringify(hidden.item.expect) === JSON.stringify([{ type: 'hidden' }]), `expect: ${JSON.stringify(hidden.item.expect)}`)
+
+      const removed = await t.evaluate(() => window.__reglet_test!.remove())
+      const afterRemove = await items(t)
+      expect(removed.ok && removed.item?.kind === 'structure' && removed.item.op === 'remove' && afterRemove.length === 1, `remove: ${JSON.stringify(removed).slice(0, 120)}; ${afterRemove.length} items`)
+      expect(JSON.stringify(removed.item.expect) === JSON.stringify([{ type: 'absent' }]), `expect: ${JSON.stringify(removed.item.expect)}`)
+      const removeEffect = removed.item.sideEffects.find((entry) => entry.selector === 'main' || entry.label.startsWith('main'))
+      expect(removeEffect?.type === 'moved' && near(removeEffect.before.y - removeEffect.after.y, up), `effect of remove for <main>: ${JSON.stringify(removeEffect)}`)
+      const still = await t.evaluate((selector) => document.querySelector(selector)?.isConnected === true, BANNER)
+      expect(still && (await computed(t, BANNER, 'display')) === 'none', 'the banner node was taken out of the DOM')
+
+      await t.evaluate(() => window.__reglet_test!.undo())
+      const undone = await items(t)
+      expect(undone.length === 1 && undone[0]?.kind === 'structure' && undone[0].op === 'hide' && (await computed(t, BANNER, 'display')) === 'none', 'undo did not bring the hide back')
+      await t.evaluate(() => window.__reglet_test!.undo())
+      const restored = await rect(t, '[data-label="main"]')
+      expect((await items(t)).length === 0 && (await computed(t, BANNER, 'display')) === 'flex' && near(restored.y, mainBefore.y), `after undo: display ${await computed(t, BANNER, 'display')}, main at ${restored.y} (was ${mainBefore.y})`)
+      return `banner ${banner.h}px high: hide -> display none, <main> measured ${mainBefore.y} -> ${mainAfter.y}, effect recorded with the same numbers, summary "${summary}"; remove replaces hide (expect absent), node still in the DOM; two undos restore the page`
+    })
+
+    await report.attempt('add-property autocomplete: every supported property, shorthands included', async () => {
+      const names = await t.evaluate(() => window.__reglet_test!.properties())
+      const wanted = ['padding', 'margin', 'border', 'gap', 'inset', 'background', 'font', 'flex', 'grid-template-columns', 'transition']
+      const missing = wanted.filter((name) => !names.includes(name))
+      expect(names.length >= 300 && missing.length === 0, `${names.length} properties; missing: ${missing.join(', ')}`)
+      expect(names.every((name) => name === name.toLowerCase() || name.startsWith('--')) && new Set(names).size === names.length && !names.includes('cssText') && !names.includes('css-text'), 'the list has names that are not kebab-case properties, or duplicates')
+      await t.evaluate((selector) => window.__reglet_test!.select(selector), first)
+      const input = page.dock.locator('input[aria-label="Property to add"]')
+      await input.fill('pad')
+      const options = await waitFor(() => page.dock.evaluate(() => {
+        const list = [...document.querySelectorAll('[role="listbox"] [role="option"]')].map((option) => option.textContent ?? '')
+        return list.length > 0 ? list : undefined
+      }))
+      expect(options[0] === 'padding' && options.includes('padding-top'), `suggestions for "pad": ${options.join(', ')}`)
+      await input.press('Enter')
+      await page.dock.locator('input[aria-label="Value of the property to add"]').fill('0.5')
+      await page.dock.locator('input[aria-label="Property to add"]').fill('opacity')
+      await page.dock.locator('input[aria-label="Value of the property to add"]').press('Enter')
+      await waitFor(async () => (await computed(t, first, 'opacity')) === '0.5' && (await items(t)).length === 1)
+      const added = style((await items(t))[0])
+      expect(added.property === 'opacity' && added.before.computed === '1' && added.origin?.via === 'default', `added: ${JSON.stringify({ property: added.property, before: added.before, origin: added.origin })}`)
+      await t.evaluate(() => window.__reglet_test!.undo())
+      return `${names.length} properties, all of ${wanted.join(', ')} present; typing "pad" suggests ${options.slice(0, 4).join(', ')}...; "opacity: 0.5" added through the row (before 1, origin default)`
+    })
+  } finally {
+    await page.close()
+  }
+}
+
+async function viteVerdictAndSend(browser: Browser, lane: Lane): Promise<void> {
+  const page = await openDock(browser, lane, '/', { context: { permissions: ['clipboard-read', 'clipboard-write'] } })
+  const t = page.page
+  const first = `${CARD}:nth-of-type(1)`
+  try {
+    const resolved = (): Promise<unknown> => waitFor(async () => (await testState(t)).source?.state === 'done', { timeoutMs: 20_000, what: 'the source position to resolve' })
+    await report.attempt('marking a side effect unwanted sets the verdict and derives a must-not-move expectation', async () => {
+      await t.evaluate((selector) => window.__reglet_test!.select(selector), first)
+      await resolved()
+      const result = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '28px'))
+      const item = style(result.item)
+      const index = item.sideEffects.findIndex((effect) => effect.selector === '#pricing')
+      expect(index >= 0, 'no #pricing side effect')
+      // Through the dock: open the chip, tick "unwanted".
+      await page.dock.locator('.tray .item button.chip').click()
+      await page.dock.locator('.effects .effect').nth(index).locator('input[type="checkbox"]').check()
+      const updated = await waitFor(async () => {
+        const now = (await items(t)).find((entry) => entry.id === item.id)
+        return now?.sideEffects[index]?.verdict === 'unwanted' ? now : undefined
+      })
+      const noMove = updated.expect.find((entry): entry is Extract<Expectation, { type: 'no-move' }> => entry.type === 'no-move')
+      expect(noMove !== undefined && noMove.rect.y === item.sideEffects[index]!.before.y && noMove.locator.id === 'pricing' && noMove.tolerancePx > 0, `expect: ${JSON.stringify(updated.expect).slice(0, 300)}`)
+      const back = await t.evaluate(([id, at]) => window.__reglet_test!.setVerdict(id, at, 'unreviewed'), [item.id, index] as const)
+      expect(back?.expect.every((entry) => entry.type !== 'no-move') === true, 'clearing the verdict left the constraint')
+      await t.evaluate(([id, at]) => window.__reglet_test!.setVerdict(id, at, 'unwanted'), [item.id, index] as const)
+      await waitFor(() => {
+        const stored = lane.reglet.session.item(item.id)
+        return stored?.sideEffects[index]?.verdict === 'unwanted' && stored.expect.some((entry) => entry.type === 'no-move')
+      }, { timeoutMs: 3000, what: 'the server to hold the verdict' })
+      return `ticking "unwanted" for #pricing in the dock: verdict unwanted, expectation no-move at y=${noMove.rect.y} (the BEFORE rectangle), sent to the server; unticking removes it`
+    })
+
+    await report.attempt('Send (clicked in the dock): prompt on the clipboard, previews off, items queued, the message shown', async () => {
+      await t.evaluate((selector) => window.__reglet_test!.select(selector), BANNER)
+      await resolved()
+      await t.evaluate(() => window.__reglet_test!.hide())
+      await t.evaluate((id) => window.__reglet_test!.setNote(id, 'Keep the pricing section where it is.'), (await items(t))[0]!.id)
+      expect((await computed(t, first, 'padding')) === '28px' && (await computed(t, BANNER, 'display')) === 'none', 'the two previews are not applied before sending')
+      const button = page.dock.locator('.foot button.primary')
+      const label = (await button.textContent()) ?? ''
+      expect(label.includes('Send 2 changes'), `Send button reads "${label}"`)
+      await button.click()
+      const notice = await waitFor(() => page.dock.evaluate(() => document.querySelector('.notice')?.textContent ?? undefined), { timeoutMs: 5000 })
+      expect(notice.includes(SENT_TEXT), `the dock says "${notice}"`)
+      const clipboard = await t.evaluate(() => navigator.clipboard.readText())
+      const batches = lane.reglet.session.batches()
+      expect(batches.length === 1 && batches[0]?.itemIds.length === 2, `batches on the server: ${JSON.stringify(batches).slice(0, 200)}`)
+      // The prompt is the engine's; it must carry what was recorded here.
+      const wanted = ['src/components/Card.tsx', 'padding', '20px', '28px', 'src/components/Banner.tsx', 'Keep the pricing section where it is.', '#pricing']
+      const missing = wanted.filter((text) => !clipboard.includes(text))
+      expect(missing.length === 0, `the prompt on the clipboard lacks ${missing.join(', ')}:\n${clipboard.slice(0, 600)}`)
+      const state = await testState(t)
+      expect((await computed(t, first, 'padding')) === '20px' && (await computed(t, BANNER, 'display')) === 'flex' && state.previewCss === '' && (await marks(t)) === 0, `previews are still on: padding ${await computed(t, first, 'padding')}, banner ${await computed(t, BANNER, 'display')}, css "${state.previewCss}", marks ${await marks(t)}`)
+      const all = await items(t)
+      expect(all.length === 2 && all.every((item) => item.status === 'queued' && item.batchId !== undefined), `items: ${all.map((item) => item.status).join(', ')}`)
+      expect(all[0]?.note === 'Keep the pricing section where it is.', `note: ${all[0]?.note}`)
+      expect(!state.canUndo && state.sent?.copied === true && state.sent.count === 2, `state: ${JSON.stringify({ canUndo: state.canUndo, sent: state.sent })}`)
+      await t.evaluate(() => window.__reglet_test!.openTab('verify'))
+      const verify = await waitFor(() => page.dock.evaluate(() => {
+        const rows = [...document.querySelectorAll('[data-item] [data-status]')].map((chip) => chip.getAttribute('data-status'))
+        return rows.length === 2 ? rows : undefined
+      }))
+      expect(verify.every((status) => status === 'queued'), `Verify tab: ${verify.join(', ')}`)
+      return `"${label.trim()}" -> one batch of 2 on the server; the clipboard holds the engine's prompt (${clipboard.length} chars, naming Card.tsx, Banner.tsx, the values, the note and the must-not-move constraint); previews off (padding 20px, banner shown, no marks); both items queued; Verify tab lists them; the dock says "${SENT_TEXT}"`
+    })
+
+    await report.attempt('Verify tab renders what the server sends: statuses and per-check results', async () => {
+      const [a, b] = await items(t)
+      expect(a !== undefined && b !== undefined && a.kind === 'style', 'expected two sent items')
+      const check = a.expect[0]!
+      lane.reglet.session.patchItem(a.id, {
+        status: 'failed',
+        verification: {
+          itemId: a.id,
+          attempt: 1,
+          at: Date.now(),
+          status: 'fail',
+          checks: [{ expectation: check, status: 'fail', expected: '28px', actual: '24px', delta: 4 }],
+          settle: { status: 'settled', signal: 'hmr', ms: 412, filesChanged: ['src/components/Card.module.css'] },
+          hint: 'padding-top is 24px, expected 28px.',
+        },
+      })
+      lane.reglet.session.patchItem(b.id, { status: 'verified' })
+      const text = await waitFor(() => page.dock.evaluate(() => {
+        const body = document.querySelector('#panel')?.textContent ?? ''
+        return body.includes('expected 28px') ? body : undefined
+      }))
+      const statuses = await page.dock.evaluate(() => [...document.querySelectorAll('[data-item] [data-status]')].map((chip) => chip.getAttribute('data-status')))
+      expect(statuses.includes('failed') && statuses.includes('verified'), `statuses: ${statuses.join(', ')}`)
+      expect(text.includes('got 24px') && text.includes('padding-top is 24px, expected 28px.') && text.includes('settled by hmr'), `Verify tab text: ${text.slice(0, 300)}`)
+      await t.evaluate(() => window.__reglet_test!.openTab('edits'))
+      return 'a failed item shows "fail", the check (expected 28px, got 24px, off by 4), the hint and the settle signal; the other shows "verified"'
+    })
+
+    await report.attempt('send() through the test handle returns the prompt; without clipboard access the prompt is shown for manual copying', async () => {
+      const denied = await openDock(browser, lane, '/', { keepSession: true })
+      try {
+        await denied.page.evaluate((selector) => window.__reglet_test!.select(selector), first)
+        await denied.page.evaluate(() => window.__reglet_test!.setStyle('gap', '2px'))
+        // Make the clipboard refuse, as it does without focus or permission.
+        await denied.dock.evaluate(() => {
+          Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new DOMException('denied', 'NotAllowedError')) } })
+        })
+        await denied.page.evaluate(() => {
+          Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new DOMException('denied', 'NotAllowedError')) } })
+        })
+        const prompt = await denied.page.evaluate(() => window.__reglet_test!.send())
+        const state = await testState(denied.page)
+        const shown = await waitFor(() => denied.dock.evaluate(() => (document.querySelector('textarea.prompt') as HTMLTextAreaElement | null)?.value ?? undefined))
+        expect(prompt.includes('gap') && prompt.includes('2px') && prompt.includes('Card.tsx') && shown === prompt && state.sent?.copied === false, `shown ${shown === prompt}, copied ${state.sent?.copied}, prompt:\n${prompt}`)
+        expect((await computed(denied.page, first, 'gap')) === '8px' && state.previewCss === '', 'the preview is still on after send()')
+        return `send() -> "${prompt.split('\n')[0]}" (${prompt.length} chars); clipboard refused -> the same text in a read-only textarea; preview off`
+      } finally {
+        await denied.close()
+      }
+    })
+  } finally {
+    await page.close()
+  }
+}
+
+async function viteHmr(browser: Browser, lane: Lane): Promise<void> {
+  const page = await openDock(browser, lane, '/')
+  const t = page.page
+  const third = `${CARD}:nth-of-type(3)`
+  const RED = 'rgb(255, 0, 0)'
+  try {
+    await waitFor(() => page.record.webSockets.some((url) => !url.includes('/__reglet/')) && lane.reglet.hmr.status().live, { what: 'the HMR socket' })
+    await t.evaluate((selector) => window.__reglet_test!.select(selector), third)
+    const result = await t.evaluate((value) => window.__reglet_test!.setStyle('background-color', value), RED)
+    const item = style(result.item)
+    expect((await computed(t, third, 'background-color')) === RED, 'the preview was not applied')
+
+    const reverts: (() => void)[] = []
+    await report.attempt('hot update that re-renders the component: the pending preview is still applied', async () => {
+      reverts.push(editFile(lane.fixture, 'src/components/Card.tsx', replaceOnce('<article data-label="card" className={styles.card}>', '<article data-label="card" data-rev="2" className={styles.card}>')).revert)
+      await waitFor(() => t.evaluate(() => document.querySelectorAll('[data-rev="2"]').length === 6), { what: 'the hot update' })
+      await sleep(200)
+      const state = await testState(t)
+      expect((await computed(t, third, 'background-color')) === RED && state.detached.length === 0, `background ${await computed(t, third, 'background-color')}, detached ${state.detached.join(',')}`)
+      expect(page.record.documentRequests.length === 1, 'the page reloaded')
+      return 'Card.tsx edited (new attribute), React re-rendered in place: card 3 still red, nothing detached, no reload'
+    })
+
+    await report.attempt('hot update that REPLACES the nodes: the preview follows the new node (found again by its locator)', async () => {
+      await t.evaluate((selector) => {
+        ;(window as unknown as { __old: Element | null }).__old = document.querySelector(selector)
+      }, third)
+      reverts.push(editFile(lane.fixture, 'src/components/Features.tsx', replaceOnce('key={card.id}', "key={card.id + '-remounted'}")).revert)
+      await waitFor(() => t.evaluate(() => (window as unknown as { __old: Element | null }).__old?.isConnected === false), { what: 'React to replace the card nodes' })
+      const followed = await waitFor(async () => ((await computed(t, third, 'background-color')) === RED ? true : undefined), { timeoutMs: 3000, what: 'the preview to be applied to the new node' })
+      const facts = await t.evaluate(([selector, uid]) => ({ mark: document.querySelector(selector)?.getAttribute('data-reglet-id'), marks: document.querySelectorAll('[data-reglet-id]').length, uid }), [third, item.target.uid] as const)
+      const state = await testState(t)
+      expect(followed && facts.mark === item.target.uid && facts.marks === 1 && state.detached.length === 0, `mark ${facts.mark} (want ${facts.uid}), ${facts.marks} marks, detached ${state.detached.join(',')}`)
+      expect((await items(t)).length === 1, 'the item was lost')
+      return `Features.tsx edited (new keys), all six cards remounted: the new third card carries the mark ${facts.mark} and is red; 1 item, nothing detached`
+    })
+
+    await report.attempt('hot update after which the element cannot be found: the item is flagged detached, not lost; it re-attaches when the element is back', async () => {
+      const toSection = editFile(lane.fixture, 'src/components/Card.tsx', (source) => source.replace('<article data-label="card"', '<section data-label="card"').replace('</article>', '</section>'))
+      await waitFor(() => t.evaluate(() => document.querySelectorAll('section[data-label="card"]').length === 6), { what: 'the cards to become <section>' })
+      const detached = await waitFor(async () => {
+        const state = await testState(t)
+        return state.detached.includes(item.id) ? state : undefined
+      }, { timeoutMs: 3000, what: 'the item to be flagged detached' })
+      const chip = await page.dock.evaluate(() => document.querySelector('.tray .item.detached .chip.warn')?.textContent ?? '')
+      const all = await items(t)
+      expect(all.length === 1 && all[0]?.id === item.id && chip.includes('not found'), `${all.length} items; chip "${chip}"; detached ${detached.detached.join(',')}`)
+      const wrongly = await t.evaluate(() => document.querySelectorAll('[data-reglet-id]').length)
+      expect(wrongly === 0, `${wrongly} element(s) carry the mark although the target is gone`)
+      toSection.revert()
+      await waitFor(() => t.evaluate(() => document.querySelectorAll('article[data-label="card"]').length === 6), { what: 'the cards to be <article> again' })
+      await waitFor(async () => (await computed(t, third, 'background-color')) === RED && (await testState(t)).detached.length === 0, { timeoutMs: 3000, what: 'the preview to re-attach' })
+      return `cards turned into <section>: item kept, flagged detached, the tray says "${chip.trim()}", no other element marked; reverted: re-attached and red again`
+    })
+    // Leave the working copy as it was for the checks that follow.
+    for (const revert of reverts.reverse()) revert()
+    await waitFor(() => t.evaluate(() => document.querySelectorAll('[data-rev="2"]').length === 0), { what: 'the fixture source to be restored' })
+  } finally {
+    await page.close()
+  }
+}
+
+async function viteMeasure(browser: Browser, lane: Lane): Promise<void> {
+  const page = await openDock(browser, lane, '/')
+  const t = page.page
+  const first = `${CARD}:nth-of-type(1)`
+  /** The card rule is in the stylesheet with this padding and the cards carry a class that rule matches (the module hash changes with the file). */
+  const sourceApplied = (padding: string): Promise<boolean> =>
+    t.evaluate(([selector, value]) => {
+      const sheet = [...document.querySelectorAll('style')].find((style) => (style.getAttribute('data-vite-dev-id') ?? '').includes('Card.module.css'))
+      const card = document.querySelector(selector)
+      return sheet !== undefined && card !== null && (sheet.textContent ?? '').includes(`padding: ${value}`) && (sheet.textContent ?? '').includes(`.${card.classList[0]} `) && getComputedStyle(card).display === 'flex'
+    }, [first, padding] as const)
+  let revert: (() => void) | undefined
+  try {
+    await waitFor(() => page.record.webSockets.some((url) => !url.includes('/__reglet/')) && lane.reglet.hmr.status().live, { what: 'the HMR socket' })
+    await t.evaluate((selector) => window.__reglet_test!.select(selector), first)
+    const result = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '28px', { scope: 'all-instances' }))
+    const item = style(result.item)
+    const ask = async () => {
+      const outcome = await lane.reglet.session.measure([item], 5000)
+      if (outcome.status !== 'measured') throw new Error(`session.measure: ${outcome.status}`)
+      return outcome
+    }
+
+    await report.attempt('session:measure before the source changed: previews are switched off for the measurement, so nothing reads as done', async () => {
+      const answer = await ask()
+      const checks = answer.results[0]?.checks ?? []
+      expect(answer.visible && answer.results.length === 1 && answer.results[0]?.found === true && (answer.results[0]?.locatorConfidence ?? 0) >= 0.9, `answer: ${JSON.stringify(answer).slice(0, 300)}`)
+      expect(checks.length === 4 && checks.every((check) => check.status === 'fail' && check.expected === '28px' && check.actual === '20px'), `checks: ${JSON.stringify(checks.map((check) => [check.status, check.expected, check.actual]))}`)
+      const state = await testState(t)
+      expect(!state.previewsSuspended && (await computed(t, first, 'padding')) === '28px', 'the previews were not switched back on')
+      return `the server asked over the socket: 4 raw checks, expected 28px / actual 20px (fail) although the preview shows 28px; locator confidence ${answer.results[0]?.locatorConfidence}; previews back on afterwards`
+    })
+
+    await report.attempt('session:measure after the source was edited to match (hot update): raw results that read as pass', async () => {
+      revert = editFile(lane.fixture, 'src/components/Card.module.css', replaceOnce('padding: 20px;', 'padding: 28px;')).revert
+      await waitFor(() => sourceApplied('28px'), { what: 'the stylesheet hot update to be applied to the cards' })
+      const answer = await ask()
+      const checks = answer.results[0]?.checks ?? []
+      expect(checks.length === 4 && checks.every((check) => check.status === 'pass' && check.expected === '28px' && check.actual === '28px'), `checks: ${JSON.stringify(checks.map((check) => [check.status, check.expected, check.actual]))}`)
+      expect(page.record.documentRequests.length === 1, 'the page reloaded')
+      return `Card.module.css changed to padding: 28px, applied by HMR (new module class on the cards): 4 raw checks pass (expected 28px, actual 28px), measured with previews off`
+    })
+
+    await report.attempt('raw measurements: relative values resolved on the element, wrong values, structure and position', async () => {
+      const condition = item.condition
+      const locator = item.target.locator
+      const now = await rect(t, first)
+      const answer = await t.evaluate(
+        ([loc, cond, box]) =>
+          window.__reglet_test!.measure([
+            {
+              itemId: 'probe',
+              locator: loc,
+              expect: [
+                { type: 'computed', property: 'padding-top', value: '1.75rem', condition: cond },
+                { type: 'computed', property: 'padding-top', value: '30px', condition: cond },
+                { type: 'computed', property: 'padding', value: '28px', condition: cond },
+                { type: 'computed', property: 'border', value: '1px solid #e2e8f0', condition: cond },
+                { type: 'hidden' },
+                { type: 'absent' },
+                { type: 'no-move', label: 'card', locator: loc, rect: box, tolerancePx: 1 },
+                { type: 'no-move', label: 'card', locator: loc, rect: { ...box, y: box.y + 40 }, tolerancePx: 1 },
+              ],
+            },
+            { itemId: 'gone', locator: { tag: 'video', indexPath: [0, 9], ancestors: ['body'] }, expect: [{ type: 'absent' }, { type: 'hidden' }] },
+          ]),
+        [locator, condition, now] as const,
+      )
+      const checks = answer.results[0]!.checks
+      const gone = answer.results[1]!
+      const lines = checks.map((check) => `${check.expectation.type}: ${check.status} (${check.expected} | ${check.actual})`)
+      expect(JSON.stringify(checks.map((check) => check.status)) === JSON.stringify(['pass', 'fail', 'pass', 'pass', 'fail', 'fail', 'pass', 'fail']), lines.join('\n'))
+      expect(checks[0]!.expected === '28px' && checks[1]!.expected === '30px' && checks[1]!.actual === '28px', `1.75rem was resolved to "${checks[0]!.expected}"; ${lines[1]}`)
+      expect(checks[3]!.expected === '1px solid rgb(226, 232, 240)', `the border value was resolved to "${checks[3]!.expected}"`)
+      expect(checks[4]!.actual === 'rendered' && checks[5]!.actual === 'rendered', `hidden/absent on a visible element: ${lines[4]}; ${lines[5]}`)
+      const rectNow = JSON.parse(checks[6]!.actual) as { x: number; y: number; w: number; h: number }
+      expect(near(rectNow.y, now.y) && near(rectNow.h, now.h) && near(checks[7]!.delta ?? 0, 40) && JSON.parse(checks[7]!.expected).y === now.y + 40, `no-move: ${lines[6]}; ${lines[7]}`)
+      expect(!gone.found && gone.checks[0]!.status === 'pass' && gone.checks[0]!.actual === 'absent' && gone.checks[1]!.status === 'unresolved', `missing element: ${JSON.stringify(gone)}`)
+      const left = await t.evaluate(() => document.adoptedStyleSheets.map((sheet) => sheet.cssRules.length))
+      expect((await computed(t, first, 'padding')) === '28px' && left.filter((rules) => rules > 0).length === 1, `after measuring: adopted sheets with rules ${JSON.stringify(left)}`)
+      return `1.75rem -> expected "28px" (pass); 30px fail; shorthand padding pass; "1px solid #e2e8f0" -> "1px solid rgb(226, 232, 240)" (pass); hidden/absent report "rendered"; no-move carries the rectangle now as JSON (pass; fail with delta 40 against a shifted one); a missing element: absent "absent" (pass), hidden unresolved; the probe rule is gone afterwards`
+    })
+
+    await report.attempt('a media-scoped expectation outside its viewport is not_measurable, never pass', async () => {
+      const featured = await t.evaluate(() => window.__reglet_test!.select('.plan--featured'))
+      const expectation: Expectation = { type: 'computed', property: 'padding-top', value: '32px', condition: { media: '(min-width: 768px)', viewport: { w: 1280, h: 800, dpr: 1 }, colorScheme: 'light' } }
+      const measureNow = () => t.evaluate(([loc, exp]) => window.__reglet_test!.measure([{ itemId: 'media', locator: loc, expect: [exp] }]), [featured.locator, expectation] as const)
+      const wide = (await measureNow()).results[0]!.checks[0]!
+      await t.setViewportSize({ width: 600, height: 800 })
+      const narrow = (await measureNow()).results[0]!.checks[0]!
+      await t.setViewportSize({ width: 1280, height: 800 })
+      expect(wide.status === 'pass' && wide.actual === '32px', `at 1280: ${JSON.stringify(wide)}`)
+      expect(narrow.status === 'not_measurable' && narrow.note?.includes('600x800') === true, `at 600: ${JSON.stringify(narrow)}`)
+      return `at 1280px the check is measured (pass, 32px); at 600px: not_measurable ("${narrow.note}")`
+    })
+
+    await report.attempt('end to end with the real verifier: send, the source already matches, "Check again" in the dock -> verified', async () => {
+      await t.evaluate(() => window.__reglet_test!.send())
+      expect(lane.reglet.session.item(item.id)?.status === 'queued', `status on the server: ${lane.reglet.session.item(item.id)?.status}`)
+      await t.evaluate(() => window.__reglet_test!.openTab('verify'))
+      await page.dock.locator('[data-item] button', { hasText: 'Check again' }).click()
+      const verified = await waitFor(() => {
+        const stored = lane.reglet.session.item(item.id)
+        return stored?.verification !== undefined ? stored : undefined
+      }, { timeoutMs: 15_000, what: 'the server to verify the item' })
+      const shown = await waitFor(() => page.dock.evaluate(() => {
+        const row = document.querySelector('[data-item]')
+        const status = row?.querySelector('[data-status]')?.getAttribute('data-status')
+        return status === 'queued' || status === undefined ? undefined : { status, text: row?.textContent ?? '' }
+      }), { timeoutMs: 5000, what: 'the Verify tab to show the result' })
+      expect(verified.verification?.status === 'pass' && verified.status === 'verified', `the server judged: ${JSON.stringify(verified.verification).slice(0, 400)}`)
+      expect(shown.status === 'verified' && shown.text.includes('pass') && shown.text.includes('padding-top'), `Verify tab: ${JSON.stringify(shown).slice(0, 300)}`)
+      return `the dock sent session:reverify; the server settled, asked the dock to measure, judged the raw checks with the engine: ${verified.verification.status} (${verified.verification.checks.length} checks, settle ${verified.verification.settle?.status}/${verified.verification.settle?.signal}); the Verify tab shows "verified" with the per-check rows`
+    })
+  } finally {
+    revert?.()
+    if (revert !== undefined) await waitFor(() => sourceApplied('20px'), { what: 'the fixture source to be restored' }).catch(() => undefined)
+    await page.close()
+  }
+}
+
+async function viteKeyboardAndConnection(browser: Browser, lane: Lane): Promise<void> {
+  const page = await openDock(browser, lane, '/')
+  const t = page.page
+  const first = `${CARD}:nth-of-type(1)`
+  try {
+    await t.evaluate((selector) => window.__reglet_test!.select(selector), first)
+    await t.evaluate(() => window.__reglet_test!.setStyle('padding', '30px'))
+    await t.evaluate(() => window.__reglet_test!.setStyle('gap', '2px'))
+
+    await report.attempt('keyboard: Tab reaches every control of the dock, in order', async () => {
+      const total = await page.dock.evaluate(() => {
+        const controls = [...document.querySelectorAll<HTMLElement>('button, input, select, textarea, summary, [tabindex]')].filter(
+          // `checkVisibility` is false inside a closed <details>, whose content keeps its boxes.
+          (control) => !(control as HTMLButtonElement).disabled && control.tabIndex >= 0 && control.checkVisibility(),
+        )
+        controls.forEach((control, index) => control.setAttribute('data-k', String(index)))
+        controls[0]?.focus()
+        return controls.length
+      })
+      const visited = ['0']
+      for (let i = 0; i < total + 3; i++) {
+        await t.keyboard.press('Tab')
+        const key = await page.dock.evaluate(() => (document.hasFocus() ? (document.activeElement?.getAttribute('data-k') ?? null) : null))
+        if (key === null) break
+        visited.push(key)
+      }
+      const expected = Array.from({ length: total }, (_, index) => String(index))
+      const missing = expected.filter((key) => !visited.includes(key))
+      const labels = await page.dock.evaluate((keys) => keys.map((key) => {
+        const control = document.querySelector(`[data-k="${key}"]`)
+        return `${control?.localName}:${(control?.getAttribute('aria-label') ?? control?.textContent ?? control?.id ?? '').trim().slice(0, 24)}`
+      }), missing)
+      expect(total >= 25 && missing.length === 0 && JSON.stringify(visited) === JSON.stringify(expected), `${visited.length} of ${total} controls reached; missing: ${labels.join(', ')}; order ${visited.join(',')}`)
+      const unlabelled = await page.dock.evaluate(() => [...document.querySelectorAll<HTMLElement>('button, input, select, textarea')].filter((control) => {
+        const text = (control.getAttribute('aria-label') ?? control.textContent ?? '').trim()
+        const labelled = control.id !== '' && document.querySelector(`label[for="${control.id}"]`) !== null
+        return text === '' && !labelled && control.closest('label') === null
+      }).length)
+      expect(unlabelled === 0, `${unlabelled} controls have no accessible name`)
+      const ring = await page.dock.evaluate(() => {
+        const control = document.querySelector<HTMLElement>('[data-k="1"]')
+        control?.focus()
+        return control === null ? '' : getComputedStyle(control).outlineStyle
+      })
+      expect(ring === 'solid', `a control focused from the keyboard shows outline-style "${ring}"`)
+      return `${total} focusable controls (header, tabs, pick, breadcrumb, scope, media, property inputs, add row, hide/remove, tray, undo/redo/send), all reached by Tab in DOM order; every control has a name; keyboard focus draws a ring`
+    })
+
+    await report.attempt('collapse to a button and back, move to another corner', async () => {
+      await page.dock.locator('button[aria-label="Collapse reglet"]').click()
+      await sleep(350)
+      const small = await t.evaluate(() => {
+        const frame = document.querySelector('reglet-root')!.shadowRoot!.querySelector('iframe')!
+        const r = frame.getBoundingClientRect()
+        return { w: r.width, h: r.height, right: innerWidth - r.right, bottom: innerHeight - r.bottom }
+      })
+      await waitFor(() => page.dock.evaluate(() => document.activeElement?.classList.contains('launcher') === true), { timeoutMs: 2000, what: 'focus to land on the collapsed dock' })
+      const launcher = await page.dock.evaluate(() => ({ label: document.querySelector('.launcher')?.getAttribute('aria-label') ?? '', focused: document.activeElement?.classList.contains('launcher') ?? false }))
+      expect(small.w === 44 && small.h === 44 && near(small.right, 12) && near(small.bottom, 12) && launcher.label.includes('2 unsent changes') && launcher.focused, `collapsed: ${JSON.stringify(small)}, ${JSON.stringify(launcher)}`)
+      await page.dock.locator('.launcher').press('Enter')
+      await page.dock.locator('button[aria-label="Move the dock to the next corner"]').click()
+      await sleep(400)
+      const moved = await t.evaluate(() => {
+        const r = document.querySelector('reglet-root')!.shadowRoot!.querySelector('iframe')!.getBoundingClientRect()
+        return { left: Math.round(r.left), bottom: Math.round(innerHeight - r.bottom), w: Math.round(r.width) }
+      })
+      expect(moved.left === 12 && moved.bottom === 12 && moved.w > 300, `after moving: ${JSON.stringify(moved)}`)
+      return `collapsed to 44x44 in the corner (label "${launcher.label}", focus kept on it), reopened with Enter, moved to the bottom-left corner with the move button`
+    })
+
+    await report.attempt('reglet is restarted under a Vite app (whose own client then reloads the page): no draft is lost', async () => {
+      const loads = page.record.documentRequests.length
+      const closing = lane.reglet.close()
+      await waitFor(async () => !(await testState(t)).connected, { timeoutMs: 3000, what: 'the dock to notice the lost connection' })
+      const indicator = await waitFor(() => page.dock.evaluate(() => (document.querySelector('.conn')?.getAttribute('aria-label') === 'Reconnecting' ? 'Reconnecting' : undefined)), { timeoutMs: 1500, what: 'the indicator to say Reconnecting' })
+      const header = await page.dock.evaluate(() => document.querySelector('.project')?.textContent ?? '')
+      // An edit made while reglet is down is kept too.
+      const offline = await t.evaluate(() => window.__reglet_test!.setStyle('border-radius', '6px'))
+      expect(offline.ok && indicator === 'Reconnecting' && header.includes('reconnecting'), `edit while down: ${JSON.stringify(offline).slice(0, 100)}; indicator "${indicator}", header "${header}"`)
+      await closing
+      await sleep(500)
+      await restartReglet(lane)
+      await waitFor(() => lane.reglet.session.items().length === 3, { timeoutMs: 20_000, what: `the three drafts to arrive at the new, empty session (it has ${lane.reglet.session.items().length})` })
+      await waitFor(() => t.evaluate(() => window.__reglet_test?.state().connected === true).catch(() => false), { timeoutMs: 5000, what: 'the dock to be connected' })
+      const reloaded = page.record.documentRequests.length - loads
+      await waitFor(async () => (await computed(t, first, 'padding')) === '30px' && (await computed(t, first, 'gap')) === '2px' && (await computed(t, first, 'border-radius')) === '6px', { timeoutMs: 5000, what: 'the previews to be on the page' })
+      const all = await items(t)
+      expect(all.length === 3 && all.every((item) => item.status === 'draft') && (await testState(t)).detached.length === 0, `${all.length} items after the restart`)
+      return `reglet stopped: indicator "Reconnecting", an edit made meanwhile accepted; reglet started again with an empty session: ${reloaded === 0 ? 'the same document reconnected' : `Vite's client reloaded the page (${reloaded} load)`}, the tab's 3 drafts were sent to the new session and all three previews are on the page`
+    })
+
+    await report.attempt('after a page reload the drafts of this page come back from the server with their previews', async () => {
+      // Without the tab's own copy, so that this is the server's state alone.
+      await t.evaluate(() => sessionStorage.removeItem('reglet:drafts'))
+      await t.reload({ waitUntil: 'load' })
+      await t.waitForFunction(() => window.__reglet_test !== undefined)
+      await t.evaluate(() => window.__reglet_test!.ready())
+      const restored = await waitFor(async () => ((await computed(t, first, 'padding')) === '30px' && (await computed(t, first, 'gap')) === '2px' && (await computed(t, first, 'border-radius')) === '6px' ? true : undefined), { timeoutMs: 4000, what: 'the previews to be restored' })
+      const all = await items(t)
+      const state = await testState(t)
+      expect(restored && all.length === 3 && all.every((item) => item.status === 'draft') && state.detached.length === 0, `${all.length} items, detached ${state.detached.join(',')}`)
+      const left = await t.evaluate(() => Math.round(document.querySelector('reglet-root')!.shadowRoot!.querySelector('iframe')!.getBoundingClientRect().left))
+      expect(left === 12, `the dock did not keep its corner over the reload: left ${left}`)
+      return 'reload: 3 drafts adopted from session:state, all three previews applied again to the re-found card, the dock is still in the corner it was moved to'
+    })
+  } finally {
+    await page.close()
+  }
+}
+
+async function viteBigPage(browser: Browser, lane: Lane): Promise<void> {
+  const page = await openDock(browser, lane, '/big')
+  const t = page.page
+  const cell = '.big-table tbody tr:nth-child(3) td:nth-child(2)'
+  const edits = async (): Promise<{ runs: number[]; parts: string; last: StyleChange; elements: number; partial: boolean }> => {
+    const runs: number[] = []
+    let last: StyleChange | undefined
+    for (const value of ['12px', '14px', '16px', '18px', '20px', '22px']) {
+      const result = await t.evaluate((next) => window.__reglet_test!.setStyle('padding-top', next), value)
+      last = style(result.item)
+      runs.push((await testState(t)).lastEffects?.ms ?? Infinity)
+    }
+    const cost = (await testState(t)).lastEffects
+    if (cost === null || last === undefined) throw new Error('no side-effect measurement was recorded')
+    const parts = `first snapshot ${cost.parts.before.toFixed(1)}, second ${cost.parts.after.toFixed(1)}, diff + classify ${cost.parts.classify.toFixed(1)}, describing ${cost.parts.describe.toFixed(1)} ms`
+    return { runs, parts, last, elements: cost.elements, partial: cost.partial }
+  }
+  try {
+    await report.attempt('a page with 13,000 elements: the side-effect check looks at 2,500 of them and says so', async () => {
+      const elements = await t.evaluate(() => document.querySelectorAll('body *').length)
+      const started = Date.now()
+      const ref = await t.evaluate((selector) => window.__reglet_test!.select(selector), cell)
+      const selectMs = Date.now() - started
+      const { runs, parts, last, elements: checked, partial } = await edits()
+      expect(elements > 10_000 && checked === 2500 && partial && last.sideEffectsPartial === true, `${elements} elements; checked ${checked}; partial ${partial}; flag on the item ${last.sideEffectsPartial}`)
+      const summary = await t.evaluate((id) => window.__reglet_test!.summary(id), last.id)
+      expect(last.sideEffects.length > 0 && summary.includes('checked 2500 of'), `summary: ${summary}`)
+      const chip = await page.dock.evaluate(() => document.querySelector('.tray .item .chip')?.textContent ?? '')
+      expect(chip.includes('partly checked'), `the tray chip does not say that the check was partial: "${chip}"`)
+      await t.evaluate(() => window.__reglet_test!.undo())
+      report.info(`13,000-element page: the snapshot reads every element's box before it applies the cap, so the cost follows the page, not the cap: ${runs.map((ms) => ms.toFixed(1)).join(', ')} ms per edit (last: ${parts}). Selecting a cell with ${ref.instanceCount} instances took ${selectMs} ms.`)
+      return `${elements} elements, 2,500 checked, sideEffectsPartial set, summary "${summary}", the tray says "partly checked"`
+    })
+
+    await report.attempt(`2,500 elements: both snapshots, the diff and the conversion stay under ${EFFECTS_BUDGET_MS} ms`, async () => {
+      // The same page cut down to the size the budget is stated for (the test removes rows; React is not involved again).
+      const elements = await t.evaluate(() => {
+        const rows = [...document.querySelectorAll('.big-table tbody tr')]
+        for (const row of rows.slice(497)) row.remove()
+        return document.querySelectorAll('body *').length
+      })
+      await t.evaluate((selector) => window.__reglet_test!.select(selector), cell)
+      const { runs, parts, last, elements: checked, partial } = await edits()
+      const sorted = [...runs].sort((a, b) => a - b)
+      const worst = sorted[sorted.length - 1] ?? Infinity
+      expect(elements >= 2450 && elements <= 2550 && checked >= 2400 && !partial && last.sideEffectsPartial === undefined, `${elements} elements, ${checked} checked, partial ${partial}`)
+      expect(worst < EFFECTS_BUDGET_MS, `side-effect measurement took ${runs.map((ms) => ms.toFixed(1)).join(', ')} ms (${parts})`)
+      return `${elements} elements, ${checked} in the snapshot, 6 edits: ${runs.map((ms) => ms.toFixed(1)).join(', ')} ms (last: ${parts}); ${last.sideEffects.length} effects recorded`
+    })
+  } finally {
+    await page.close()
+  }
+}
+
+// ---------------------------------------------------------------------------
+// next-16-turbopack and static-html
+// ---------------------------------------------------------------------------
+
+async function nextEdits(browser: Browser, lane: Lane): Promise<void> {
+  const page = await openDock(browser, lane, '/')
+  const t = page.page
+  const card = '[data-label="home-card-edits"]'
+  try {
+    await report.attempt('under a strict nonce CSP: select, edit all instances, undo, send, with zero CSP violations', async () => {
+      const policy = await t.evaluate(async () => (await fetch(location.href)).headers.get('content-security-policy') ?? '')
+      expect(policy.includes("'strict-dynamic'") && /style-src 'self' 'nonce-/.test(policy), `this page is not under the strict policy: ${policy}`)
+      const ref = await t.evaluate((selector) => window.__reglet_test!.select(selector), card)
+      const source = (await waitFor(async () => {
+        const now = await testState(t)
+        return now.source?.state === 'done' ? now : undefined
+      }, { timeoutMs: 20_000, what: 'the source of the card to resolve' })).source
+      const truth = lane.fixture.labels.find((entry) => entry.label === 'home-card-edits')
+      expect(source !== null && truth !== undefined && source.file === truth.file && source.line === truth.line, `source ${JSON.stringify(source)}, labels.json says ${truth?.file}:${truth?.line}`)
+      const result = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '24px', { scope: 'all-instances' }))
+      const item = style(result.item)
+      const paddings = await computedAll(t, 'li[data-label^="home-card-"]', 'padding')
+      expect(ref.instanceCount === 3 && paddings.length === 3 && paddings.every((value) => value === '24px'), `instances ${ref.instanceCount}; paddings ${paddings.join(', ')}`)
+      expect(item.before.computed === '16px' && item.stylingSystem === 'css-modules' && item.origin?.via === 'rule', `item: ${JSON.stringify({ before: item.before, system: item.stylingSystem, origin: item.origin })}`)
+      const hidden = await (async () => {
+        await t.evaluate(() => window.__reglet_test!.select('[data-label="home-hero"]'))
+        const before = await rect(t, '[data-label="home-card-grid"]')
+        const hero = await rect(t, '[data-label="home-hero"]')
+        const outcome = await t.evaluate(() => window.__reglet_test!.hide())
+        const after = await rect(t, '[data-label="home-card-grid"]')
+        return { ok: outcome.ok, moved: before.y - after.y, hero: hero.h, effects: outcome.item?.sideEffects.length ?? 0 }
+      })()
+      expect(hidden.ok && hidden.moved > 0 && hidden.effects > 0, `hide: ${JSON.stringify(hidden)}`)
+      await t.evaluate(() => window.__reglet_test!.undo())
+      const prompt = await t.evaluate(() => window.__reglet_test!.send())
+      await page.dock.locator('[role="tab"]', { hasText: 'Verify' }).click()
+      await page.dock.locator('[role="tab"]', { hasText: 'Shifts' }).click()
+      await page.dock.locator('[role="tab"]', { hasText: 'Edits' }).click()
+      await sleep(200)
+      expect(prompt.includes('padding') && prompt.includes('24px') && prompt.includes(truth.file) && (await computedAll(t, 'li[data-label^="home-card-"]', 'padding')).every((value) => value === '16px'), `prompt "${prompt.slice(0, 200)}"`)
+      const problems = hygiene(page, lane)
+      expect(problems.length === 0, problems.join('; '))
+      return `policy "${policy.slice(0, 70)}...": 3 instances edited through one constructable stylesheet (16px -> 24px, css-modules), source ${source.file}:${source.line} (${source.level}) = labels.json, hide moved the grid up ${hidden.moved}px with ${hidden.effects} effects, undo, send, all three tabs opened; ${hygieneText(page, lane)}`
+    })
+  } finally {
+    await page.close()
+  }
+}
+
+async function staticEdits(browser: Browser, lane: Lane): Promise<void> {
+  const page = await openDock(browser, lane, '/')
+  const t = page.page
+  try {
+    await report.attempt('plain HTML and CSS: instances, a custom-property value, hide with its side effect, undo', async () => {
+      const ref = await t.evaluate(() => window.__reglet_test!.select('.card'))
+      const result = await t.evaluate(() => window.__reglet_test!.setStyle('border-radius', 'calc(var(--radius) * 2)', { scope: 'all-instances' }))
+      const item = style(result.item)
+      const radii = await computedAll(t, '.card', 'border-radius')
+      expect(ref.instanceCount === 3 && radii.every((value) => value === '16px') && item.stylingSystem === 'plain-css', `instances ${ref.instanceCount}; radii ${radii.join(', ')}; system ${item.stylingSystem}`)
+      expect(item.origin?.sheet?.endsWith('/css/site.css') === true, `origin: ${JSON.stringify(item.origin)}`)
+      const hero = await rect(t, '.hero')
+      const before = await rect(t, '.cards')
+      await t.evaluate(() => window.__reglet_test!.select('.hero'))
+      const hidden = await t.evaluate(() => window.__reglet_test!.hide())
+      const after = await rect(t, '.cards')
+      const effect = hidden.item?.sideEffects.find((entry) => entry.label.startsWith('section.cards'))
+      expect(before.y - after.y > 0 && effect !== undefined && near(effect.before.y - effect.after.y, before.y - after.y), `cards moved ${before.y - after.y}px; effect ${JSON.stringify(effect)}`)
+      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__reglet_test!.undo())
+      expect((await items(t)).length === 0 && (await marks(t)) === 0 && near((await rect(t, '.cards')).y, before.y), 'undo did not restore the page')
+      const problems = hygiene(page, lane)
+      expect(problems.length === 0, problems.join('; '))
+      return `3 cards at calc(var(--radius) * 2) = 16px (plain-css, site.css); hiding the ${hero.h}px hero moved section.cards up ${before.y - after.y}px, recorded with the same number; undo x2 restores everything`
+    })
+
+    await report.attempt('reglet is restarted and the page stays: the ONE socket reconnects, the same document says hello again, drafts are re-sent', async () => {
+      await t.evaluate(() => window.__reglet_test!.select('.hero-title'))
+      await t.evaluate(() => window.__reglet_test!.setStyle('font-size', '50px'))
+      await waitFor(() => lane.reglet.session.items().length === 1, { timeoutMs: 3000 })
+      const doc = lane.reglet.session.documents()[0]?.doc
+      const loads = page.record.documentRequests.length
+      await lane.reglet.close()
+      await waitFor(async () => !(await testState(t)).connected, { timeoutMs: 3000, what: 'the dock to notice the lost connection' })
+      await t.evaluate(() => window.__reglet_test!.setStyle('letter-spacing', '1px'))
+      await sleep(1200)
+      await restartReglet(lane)
+      await waitFor(async () => (await testState(t)).connected, { timeoutMs: 12_000, what: 'the reconnect' })
+      await waitFor(() => lane.reglet.session.items().length === 2, { timeoutMs: 3000, what: `the drafts to arrive (the new session has ${lane.reglet.session.items().length})` })
+      await waitFor(() => lane.reglet.detector.status().browsers === 1, { timeoutMs: 3000, what: 'the settle detector to know the document again' })
+      const again = lane.reglet.session.documents()
+      expect(again.length === 1 && again[0]?.doc === doc && page.record.documentRequests.length === loads, `document ${doc} -> ${again.map((entry) => entry.doc).join(', ')}; ${page.record.documentRequests.length - loads} reloads`)
+      expect((await computed(t, '.hero-title', 'font-size')) === '50px' && (await computed(t, '.hero-title', 'letter-spacing')) === '1px', 'the previews did not survive')
+      const refused = lane.logs.filter((line) => line.includes('did not match the protocol') || line.includes('before session:hello'))
+      expect(refused.length === 0, refused.join(' | '))
+      const sockets = page.record.webSockets.filter((url) => url.includes('/__reglet/')).length
+      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__reglet_test!.undo())
+      return `no reload; ${sockets} socket attempts in all (backoff while reglet was down); the same document id said hello to the new session, both drafts (one made while down) were stored again, the settle detector has its browser back, previews untouched`
+    })
+  } finally {
+    await page.close()
+  }
+}
+
+// ---------------------------------------------------------------------------
+// cls-corpus: the Shifts tab
+// ---------------------------------------------------------------------------
+
+const SHIFT_PAGE = '/injected-content/banner-innerhtml/'
+
+async function shiftsTab(browser: Browser, lane: Lane, bundles: Bundles): Promise<void> {
+  const page = await openDock(browser, lane, SHIFT_PAGE)
+  const t = page.page
+  try {
+    await report.attempt('the recording is sent by itself about 3 s after the page went quiet, and the tab shows the culprit', async () => {
+      await t.evaluate(() => window.__reglet_test!.openTab('shifts'))
+      const waiting = await page.dock.evaluate(() => document.querySelector('#panel')?.textContent ?? '')
+      const started = Date.now()
+      const row = await waitFor(() => page.dock.evaluate(() => {
+        const issue = document.querySelector('[data-issue]')
+        return issue === null ? undefined : { text: issue.textContent ?? '', who: issue.querySelector('.who')?.textContent ?? '', badge: issue.querySelector('.source')?.textContent ?? '', cls: document.querySelector('.cls .value')?.textContent ?? '' }
+      }), { timeoutMs: 9000, what: 'the shift report to appear in the dock' })
+      const seconds = (Date.now() - started) / 1000
+      const stored = lane.reglet.session.shifts()
+      expect(stored !== undefined && stored.report.status === 'ok', `the session holds: ${JSON.stringify(stored?.report.status)}`)
+      // expected.json of the corpus page: the culprit is written by the script at index.html:38.
+      expect(row.who === 'div#promo-banner' && row.text.includes('injected content') && row.badge.includes('index.html:38'), `row: ${JSON.stringify(row)}`)
+      expect(Math.abs(Number(row.cls) - 0.039) < 0.002, `CLS shown: ${row.cls}`)
+      expect(row.text.includes('header#site-header') && row.text.includes('down 96px'), `victims: ${row.text}`)
+      return `before the report: "${waiting.trim().slice(0, 60)}..."; ${seconds.toFixed(1)} s later, unprompted: CLS ${row.cls}, culprit ${row.who} (${row.badge.trim()}), "injected content", victims moved down 96px`
+    })
+
+    await report.attempt('shiftReport(): the attributed report names the expected culprit, and the dock added nothing to the recording', async () => {
+      const state = await t.evaluate(() => window.__reglet_test!.shiftReport())
+      const report_: ShiftReport = state.report
+      const top = report_.issues.find((issue) => issue.scored)
+      expect(report_.status === 'ok' && top?.culprit?.node.id === 'promo-banner' && top.cause === 'injected-content', `report: ${JSON.stringify({ status: report_.status, culprit: top?.culprit?.node.id, cause: top?.cause })}`)
+      const plain = await readPlainEntries(t)
+      const control = await newPage(browser)
+      let controlEntries: PlainEntry[]
+      try {
+        await control.page.goto(lane.control.url + SHIFT_PAGE, { waitUntil: 'load' })
+        await sleep(2500)
+        controlEntries = await readPlainEntries(control.page)
+      } finally {
+        await control.close()
+      }
+      const scoredIssues = report_.issues.filter((issue) => issue.scored).length
+      expect(scored(plain).length === scored(controlEntries).length && scoredIssues === 1, `with the dock ${describeEntries(plain)}, without ${describeEntries(controlEntries)}, ${scoredIssues} scored issues`)
+      expect(Math.abs((report_.cls ?? 0) - sum(scored(controlEntries).map((entry) => entry.value))) < 1e-6, `CLS ${report_.cls} vs the control's ${sum(scored(controlEntries).map((entry) => entry.value))}`)
+      return `status ok, CLS ${fixed(report_.cls ?? 0, 6)} = the page without reglet (${describeEntries(controlEntries)}), top culprit #promo-banner, cause injected-content, confidence ${top.confidence}`
+    })
+
+    await report.attempt('hovering an issue outlines the victims (before and after) and the culprit on the page', async () => {
+      const box = await page.dock.locator('[data-issue]').first().boundingBox()
+      expect(box !== null, 'the issue row has no box')
+      // Playwright reports the box of an element in a frame in page coordinates.
+      await t.mouse.move(box.x + 20, box.y + 12)
+      const boxes = await waitFor(() => t.evaluate(() => {
+        const shown = [...document.querySelector('reglet-root')!.shadowRoot!.querySelectorAll<HTMLElement>('.box')].filter((node) => getComputedStyle(node).display !== 'none')
+        const kinds = shown.map((node) => `${node.className.replace('box ', '')}@${Math.round(node.getBoundingClientRect().top)}`)
+        return kinds.some((kind) => kind.startsWith('culprit')) ? kinds : undefined
+      }))
+      expect(boxes.filter((kind) => kind.startsWith('previous')).length === 2 && boxes.filter((kind) => kind.startsWith('current')).length === 2 && boxes.includes('culprit@0'), `boxes: ${boxes.join(', ')}`)
+      expect(boxes.includes('previous@0') && boxes.includes('current@96'), `the header's rectangles are not at 0 and 96: ${boxes.join(', ')}`)
+      await t.mouse.move(5, 400)
+      await waitFor(() => t.evaluate(() => [...document.querySelector('reglet-root')!.shadowRoot!.querySelectorAll<HTMLElement>('.box')].every((node) => getComputedStyle(node).display === 'none')))
+      const entries = scored(await readPlainEntries(t)).length
+      expect(entries === 1, `drawing the outlines added layout-shift entries: ${entries}`)
+      return `on hover: ${boxes.join(', ')}; gone when the pointer leaves; still 1 layout-shift entry on the page`
+    })
+
+    await report.attempt('a report that could not measure is shown as such (tab_hidden), not as "no shifts" [fake session server]', async () => {
+      // The real attributor only says this for a tab that really was hidden; a fake server says it on demand.
+      const fake = await startFakeLane(lane.fixture, bundles)
+      const hidden = await openDock(browser, lane, SHIFT_PAGE, { origin: fake.proxy.url })
+      try {
+        await hidden.page.evaluate(() => window.__reglet_test!.openTab('shifts'))
+        fake.session.pushShiftReport({ status: 'tab_hidden', reason: 'the tab was hidden from 0 to 412 ms', cls: null, windows: [], issues: [], cachedResources: [], notes: [] })
+        const text = await waitFor(() => hidden.dock.evaluate(() => {
+          const alert = document.querySelector('[data-shift-status="tab_hidden"]')
+          return alert === null ? undefined : (document.querySelector('#panel')?.textContent ?? '')
+        }))
+        const badge = await hidden.dock.evaluate(() => document.querySelector('#tab-shifts .pill')?.textContent ?? '')
+        expect(text.includes('Not measured: the tab was in the background') && text.includes('hidden from 0 to 412 ms') && !/no layout shifts/i.test(text) && !text.includes('CLS of this load'), `Shifts tab: ${text.slice(0, 300)}`)
+        fake.session.pushShiftReport({ status: 'not_measurable', reason: 'no layout-shift entry type', cls: null, windows: [], issues: [], cachedResources: [], notes: [] })
+        const other = await waitFor(() => hidden.dock.evaluate(() => (document.querySelector('[data-shift-status="not_measurable"]') === null ? undefined : (document.querySelector('#panel')?.textContent ?? ''))))
+        expect(other.includes('cannot be measured') && !/no layout shifts/i.test(other), `not_measurable: ${other.slice(0, 200)}`)
+        expect(fake.session.invalid.length === 0, `messages the fake server could not parse: ${fake.session.invalid.join(' | ')}`)
+        return `tab_hidden -> "Not measured: the tab was in the background..." with the reason, tab badge "${badge}"; not_measurable -> "Layout shifts cannot be measured here..."; neither says "no layout shifts"`
+      } finally {
+        await hidden.close()
+        await fake.proxy.close()
+      }
+    })
+
+    await report.attempt('the dock\'s own updates (source badge, reports, tab switches without input) add no layout-shift entry', async () => {
+      const fresh = await openDock(browser, lane, SHIFT_PAGE)
+      try {
+        await sleep(1500)
+        const before = scored(await readPlainEntries(fresh.page)).length
+        // No user input in any of this: everything is driven through the handle and the socket.
+        await fresh.page.evaluate(() => window.__reglet_test!.select('#title'))
+        await waitFor(async () => (await testState(fresh.page)).source?.state === 'done')
+        await fresh.page.evaluate(() => window.__reglet_test!.setStyle('color', 'rgb(0, 0, 255)'))
+        await fresh.page.evaluate(() => window.__reglet_test!.openTab('shifts'))
+        await fresh.page.evaluate(() => window.__reglet_test!.shiftReport())
+        await fresh.page.evaluate(() => window.__reglet_test!.openTab('edits'))
+        await fresh.page.evaluate(() => window.__reglet_test!.collapse(true))
+        await sleep(200)
+        await fresh.page.evaluate(() => window.__reglet_test!.collapse(false))
+        await sleep(700)
+        const recording = await fresh.page.evaluate(() => window.__reglet!.recording())
+        const after = scored(await readPlainEntries(fresh.page)).length
+        const unmarked = recording.shifts.filter((entry) => entry.selfInduced === undefined && !entry.hadRecentInput).length
+        expect(before === 1 && after === 1 && unmarked === 1, `entries before ${before}, after ${after}; unmarked in the recording ${unmarked}`)
+        return `1 entry (the page's own) before and after: selecting, the badge resolving, a colour edit, two tab switches, a report arriving and collapsing/expanding the dock added none`
+      } finally {
+        await fresh.close()
+      }
+    })
+  } finally {
+    await page.close()
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Screenshots
+// ---------------------------------------------------------------------------
+
+async function screenshots(browser: Browser, vite: Lane, cls: Lane): Promise<void> {
+  mkdirSync(SHOTS, { recursive: true })
+  await report.attempt('screenshots of the dock, light and dark', async () => {
+    const files: string[] = []
+    for (const scheme of ['light', 'dark'] as const) {
+      const edits = await openDock(browser, vite, '/', { context: { colorScheme: scheme } })
+      try {
+        await edits.page.evaluate((selector) => window.__reglet_test!.select(selector), `${CARD}:nth-of-type(1)`)
+        await waitFor(async () => (await testState(edits.page)).source?.state === 'done')
+        await edits.page.evaluate(() => window.__reglet_test!.setStyle('padding', '28px'))
+        await edits.page.evaluate(() => window.__reglet_test!.setStyle('border-radius', '4px', { scope: 'all-instances' }))
+        await sleep(300)
+        files.push(`edits-${scheme}.png`)
+        await edits.page.screenshot({ path: join(SHOTS, `edits-${scheme}.png`) })
+        // The tray, with the side effects of the first item open.
+        await edits.dock.locator('.tray .item button.chip').first().click()
+        await edits.dock.locator('.tray').last().scrollIntoViewIfNeeded()
+        await edits.dock.evaluate(() => document.querySelector('#panel')?.scrollTo(0, 100000))
+        await edits.page.mouse.move(300, 450)
+        await sleep(200)
+        files.push(`tray-${scheme}.png`)
+        await edits.page.screenshot({ path: join(SHOTS, `tray-${scheme}.png`) })
+        if (scheme === 'light') {
+          await edits.page.evaluate(() => window.__reglet_test!.pick(true))
+          const target = await rect(edits.page, '[data-label="hero-cta-primary"]')
+          await edits.page.mouse.move(target.x + 10, target.y + 10)
+          await sleep(200)
+          files.push('pick-light.png')
+          await edits.page.screenshot({ path: join(SHOTS, 'pick-light.png') })
+          await edits.page.evaluate(() => window.__reglet_test!.pick(false))
+          await edits.page.evaluate(() => window.__reglet_test!.collapse(true))
+          await sleep(200)
+          files.push('collapsed-light.png')
+          await edits.page.screenshot({ path: join(SHOTS, 'collapsed-light.png') })
+        }
+      } finally {
+        await edits.close()
+      }
+      const shifts = await openDock(browser, cls, SHIFT_PAGE, { context: { colorScheme: scheme } })
+      try {
+        await shifts.page.evaluate(() => window.__reglet_test!.openTab('shifts'))
+        await shifts.page.evaluate(() => window.__reglet_test!.shiftReport())
+        await shifts.dock.locator('[data-issue] button', { hasText: 'Show on page' }).click()
+        await waitFor(() => shifts.dock.evaluate(() => (document.querySelector('[data-issue] .source')?.textContent ?? '').includes('index.html')), { timeoutMs: 5000 })
+        await shifts.page.mouse.move(300, 500)
+        await sleep(300)
+        files.push(`shifts-${scheme}.png`)
+        await shifts.page.screenshot({ path: join(SHOTS, `shifts-${scheme}.png`) })
+      } finally {
+        await shifts.close()
+      }
+    }
+    return `${files.length} files in .tmp/m1-overlay-shots/: ${files.join(', ')}`
+  })
+}
+
+// ---------------------------------------------------------------------------
+
+function bundleChecks(bundles: Bundles): void {
+  report.section('bundles')
+  const zod = [...bundles.hook.inputs, ...bundles.overlay.inputs].filter((file) => /node_modules\/(\.pnpm\/)?zod/.test(file))
+  report.check('no schema library in the injected bundles', zod.length === 0, zod.length === 0 ? `hook: ${bundles.hook.inputs.length} modules, overlay: ${bundles.overlay.inputs.length} modules, none from zod` : zod.join(', '))
+  // What this milestone can answer for: the M0 recorder and settle client are in the bundle as they were.
+  const added = bundles.hook.minified - bundles.parts.recorder - bundles.parts.settle
+  report.check(
+    `the socket, bus and loader add under ${HOOK_ADDED_BYTES} bytes to the head script`,
+    added < HOOK_ADDED_BYTES,
+    `head script ${bundles.hook.minified} bytes minified / ${bundles.hook.gzipped} gzipped = recorder ${bundles.parts.recorder} + settle client ${bundles.parts.settle} + ${added} added here`,
+  )
+  report.info(
+    `head script size against the ${HOOK_TARGET_BYTES / 1000} kB target: ${bundles.hook.minified} bytes minified (${bundles.hook.gzipped} gzipped) with stack capture, ` +
+      `${bundles.hookNoStacks.minified} (${bundles.hookNoStacks.gzipped} gzipped) without. ` +
+      `${bundles.hook.minified < HOOK_TARGET_BYTES ? 'Target met.' : 'TARGET NOT MET: the M0 recorder and settle client alone are ' + (bundles.parts.recorder + bundles.parts.settle) + ' bytes.'}`,
+  )
+  report.info(`dock bundle: ${bundles.overlay.minified} bytes minified, ${bundles.overlay.gzipped} gzipped`)
+}
+
+async function main(): Promise<void> {
+  const only = process.argv.slice(2)
+  const wants = (name: string): boolean => only.length === 0 || only.includes(name)
+  const bundles = await buildBundles()
+  bundleChecks(bundles)
+  const browser = await launchBrowser()
+
+  let vite: Lane | undefined
+  let cls: Lane | undefined
+  if (wants('vite')) {
+    report.section('vite-react-19')
+    vite = await startLane('vite-react-19')
+    report.info(`reglet built the bundles itself from packages/overlay/src/entry: hook.js ${vite.reglet.assets.hook.bytes} bytes (${vite.reglet.assets.hook.from}), overlay.js ${vite.reglet.assets.overlay.bytes} bytes`)
+    await mountChecks(browser, vite, '/', 1200)
+    await viteSelection(browser, vite)
+    await viteEdits(browser, vite)
+    await viteVerdictAndSend(browser, vite)
+    await viteHmr(browser, vite)
+    await viteMeasure(browser, vite)
+    await viteKeyboardAndConnection(browser, vite)
+    await viteBigPage(browser, vite)
+  }
+  if (wants('next')) {
+    report.section('next-16-turbopack')
+    const next = await startLane('next-16-turbopack')
+    // One unmeasured load: the dev server compiles the page on its first request.
+    await (await fetch(next.fixture.url + '/')).arrayBuffer()
+    await mountChecks(browser, next, '/', 2000)
+    await nextEdits(browser, next)
+    await next.reglet.close()
+    await next.fixture.stop()
+  }
+  if (wants('static')) {
+    report.section('static-html')
+    const fixture = await startLane('static-html')
+    await mountChecks(browser, fixture, '/', 1000)
+    await staticEdits(browser, fixture)
+  }
+  if (wants('cls')) {
+    report.section('cls-corpus injected-content/banner-innerhtml')
+    cls = await startLane('cls-corpus')
+    await mountChecks(browser, cls, SHIFT_PAGE, 2200)
+    await shiftsTab(browser, cls, bundles)
+  }
+  if (wants('shots')) {
+    report.section('screenshots')
+    vite ??= await startLane('vite-react-19')
+    cls ??= await startLane('cls-corpus')
+    await screenshots(browser, vite, cls)
+  }
+}
+
+try {
+  await main()
+} catch (error) {
+  report.check('the check ran to completion', false, error instanceof Error ? (error.stack ?? error.message) : String(error))
+} finally {
+  await runCleanups()
+  report.finish()
+}

@@ -1,0 +1,22 @@
+{
+  "page": "r2-font-swap-table/index.html",
+  "observeMs": 1800,
+  "positive": true,
+  "accept": [
+    {
+      "causes": [
+        "font-swap"
+      ],
+      "culprits": [
+        "#rota",
+        "#rota-head",
+        "#th-day",
+        "#th-morning",
+        "#th-evening",
+        "#th-notes",
+        "#rota > thead:nth-of-type(1)"
+      ]
+    }
+  ],
+  "notes": "Table headers set in the web font re-wrap when it arrives; the header row and with it the table grow. Any of the header cells, the row or the table is a correct culprit."
+}

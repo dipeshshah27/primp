@@ -1,0 +1,16 @@
+{
+  "page": "img-float/index.html",
+  "observeMs": 1800,
+  "positive": true,
+  "accept": [
+    {
+      "causes": [
+        "unsized-media"
+      ],
+      "culprits": [
+        "#thumb"
+      ]
+    }
+  ],
+  "notes": "A floated image without dimensions arrives late. It pushes no block down by its own height: the paragraphs beside it re-wrap and grow, and the later paragraphs move down by the extra lines. The victims do not move by the size of the culprit."
+}

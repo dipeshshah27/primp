@@ -1,0 +1,15 @@
+{
+  "page": "remove-banner/index.html",
+  "observeMs": 1800,
+  "positive": true,
+  "accept": [
+    {
+      "causes": [
+        "injected-content",
+        "unknown"
+      ],
+      "culprits": null
+    }
+  ],
+  "notes": "A notice that was painted is removed after a fetch and everything moves up. The taxonomy has no 'removed content' class: 'unknown' is acceptable, 'injected-content' (content changed by script) too. The removed node no longer exists, so no culprit element can be required. A confident unsized-media or font-swap verdict would be wrong."
+}

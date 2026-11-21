@@ -1,0 +1,18 @@
+{
+  "page": "r2-two-columns-same-time/index.html",
+  "observeMs": 1800,
+  "positive": true,
+  "accept": [
+    {
+      "causes": [
+        "unsized-media",
+        "injected-content"
+      ],
+      "culprits": [
+        "#photo",
+        "#ad"
+      ]
+    }
+  ],
+  "notes": "Two independent causes in two columns, in the same frame or in neighbouring ones: an unsized image in the article and an advert in the sidebar. Each explains only its own column. Naming either with its own cause is correct; a culprit paired with the wrong cause, or one culprit blamed for both columns with full confidence, is not."
+}

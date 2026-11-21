@@ -1,0 +1,17 @@
+{
+  "page": "r2-sticky-header-class/index.html",
+  "observeMs": 1800,
+  "positive": true,
+  "accept": [
+    {
+      "causes": [
+        "injected-content",
+        "unknown"
+      ],
+      "culprits": [
+        "#site-header"
+      ]
+    }
+  ],
+  "notes": "A script adds a class to the sticky header, which gains 56px of padding; everything below moves. Nothing is inserted and nothing appears: an existing box is restyled by a class change."
+}

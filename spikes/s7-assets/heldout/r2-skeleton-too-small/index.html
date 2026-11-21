@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>held-out 2 / r2-skeleton-too-small</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 Arial, Helvetica, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { padding: 0 24px; min-height: 56px; display: flex; align-items: center; gap: 16px; background: #111827; color: #fff; }
+  #main { max-width: 800px; margin: 0 auto; padding: 24px; }
+  h1 { margin: 0 0 16px; font-size: 32px; line-height: 40px; }
+  p { margin: 16px 0; }
+  #weather { min-height: 80px; margin: 0 0 16px; padding: 16px; background: #e0f2fe; }
+  #weather h2 { margin: 0 0 8px; font-size: 20px; line-height: 28px; }
+  #weather li { line-height: 28px; }
+  #weather ul { margin: 0; padding-left: 20px; }
+</style>
+</head>
+<body>
+<header id="site-header">Held-out Allotments</header>
+<main id="main">
+  <h1 id="title">Spring on the plots</h1>
+  <section id="weather"><span id="weather-loading">Loading the forecast...</span></section>
+  <div id="content">
+    <p id="p1">The allotment society meets on the second Thursday of each month in the pavilion. Tea is provided; biscuits are a matter for the members.</p>
+    <p id="p2">Plots are let by the year from the first of March. Half plots are offered first to people on the waiting list who have asked for one.</p>
+    <p id="p3">Water is turned on at the standpipes in April and off again at the first frost. Hoses may be used before nine and after six only.</p>
+    <p id="p4">Bonfires are allowed on the first Saturday of the month between October and March, when the wind is not towards the houses.</p>
+    <p id="p5">The shared shed holds two wheelbarrows, a strimmer and the scales for the autumn show. The key hangs inside the pavilion door.</p>
+    <p id="p6">Manure is delivered in February. Order it through the secretary by the end of January and pay when it arrives.</p>
+  </div>
+</main>
+<script>
+  fetch('/delay/600/assets/data/status.json').then(() => {
+    document.getElementById('weather').innerHTML = '<h2 id="weather-title">This week</h2><ul id="weather-list"><li>Monday: dry, light wind</li><li>Tuesday: showers after noon</li><li>Wednesday: frost before dawn</li><li>Thursday: dry</li><li>Friday: rain</li></ul>';
+  });
+</script>
+</body>
+</html>

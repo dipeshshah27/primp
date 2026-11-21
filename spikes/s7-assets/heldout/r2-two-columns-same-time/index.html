@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>held-out 2 / r2-two-columns-same-time</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 Arial, Helvetica, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { padding: 0 24px; min-height: 56px; display: flex; align-items: center; gap: 16px; background: #111827; color: #fff; }
+  #main { max-width: 800px; margin: 0 auto; padding: 24px; }
+  h1 { margin: 0 0 16px; font-size: 32px; line-height: 40px; }
+  p { margin: 16px 0; }
+  #layout { max-width: 1100px; margin: 0 auto; padding: 24px; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 32px; align-items: start; }
+  #photo { display: block; max-width: 100%; height: auto; }
+  #ad { box-sizing: border-box; height: 200px; margin: 0 0 16px; padding: 16px; background: #fef3c7; }
+  #links { margin: 0; padding: 0; list-style: none; }
+  #links li { padding: 12px 0; border-top: 1px solid #e5e7eb; }
+</style>
+</head>
+<body>
+<header id="site-header">Held-out Allotments</header>
+<div id="layout">
+  <article id="article">
+    <h1 id="title">Spring on the plots</h1>
+    <img id="photo" alt="">
+    <div id="content">
+    <p id="p1">The allotment society meets on the second Thursday of each month in the pavilion. Tea is provided; biscuits are a matter for the members.</p>
+    <p id="p2">Plots are let by the year from the first of March. Half plots are offered first to people on the waiting list who have asked for one.</p>
+    <p id="p3">Water is turned on at the standpipes in April and off again at the first frost. Hoses may be used before nine and after six only.</p>
+    <p id="p4">Bonfires are allowed on the first Saturday of the month between October and March, when the wind is not towards the houses.</p>
+    </div>
+  </article>
+  <aside id="sidebar">
+    <div id="ad-slot"></div>
+    <ul id="links"><li id="l1">Seed swap on Saturday</li><li id="l2">Tool sharpening day</li><li id="l3">New compost bays</li><li id="l4">Committee minutes</li></ul>
+  </aside>
+</div>
+<script>
+  // Two unrelated things happen in the same task: an unsized image (already downloaded) is attached
+  // in the main column and an advert is appended in the sidebar.
+  const preloaded = new Image();
+  preloaded.src = '/assets/img/card-600x400.png';
+  fetch('/delay/600/assets/data/promo.json').then((response) => response.json()).then(async (promo) => {
+    await preloaded.decode();
+    document.getElementById('photo').src = preloaded.src;
+    const ad = document.createElement('div');
+    ad.id = 'ad';
+    ad.textContent = promo.title;
+    document.getElementById('ad-slot').appendChild(ad);
+  });
+</script>
+</body>
+</html>

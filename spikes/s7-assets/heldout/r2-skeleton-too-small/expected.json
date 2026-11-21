@@ -1,0 +1,18 @@
+{
+  "page": "r2-skeleton-too-small/index.html",
+  "observeMs": 1800,
+  "positive": true,
+  "accept": [
+    {
+      "causes": [
+        "injected-content"
+      ],
+      "culprits": [
+        "#weather",
+        "#weather-list",
+        "#weather-title"
+      ]
+    }
+  ],
+  "notes": "A placeholder reserves 80px (min-height); the real content written with innerHTML needs about 210px. The container was there and had a box; it grows because its content was replaced."
+}

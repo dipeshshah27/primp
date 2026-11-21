@@ -1,0 +1,14 @@
+{
+  "page": "late-stylesheet/index.html",
+  "observeMs": 1800,
+  "positive": true,
+  "accept": [
+    {
+      "causes": [
+        "unknown"
+      ],
+      "culprits": null
+    }
+  ],
+  "notes": "The page's own stylesheet arrives 600 ms late and makes the header 64px taller. None of the three cause classes fits (late CSS is not in the taxonomy); the honest answer is 'unknown', ideally naming #site-header and the stylesheet in the evidence. A confident unsized-media, font-swap or injected-content verdict would be wrong."
+}

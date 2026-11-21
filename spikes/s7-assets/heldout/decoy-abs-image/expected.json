@@ -1,0 +1,16 @@
+{
+  "page": "decoy-abs-image/index.html",
+  "observeMs": 1800,
+  "positive": true,
+  "accept": [
+    {
+      "causes": [
+        "injected-content"
+      ],
+      "culprits": [
+        "#promo"
+      ]
+    }
+  ],
+  "notes": "A banner is inserted at the top while an absolutely positioned image without dimensions loads at the same time. The image grows from nothing but pushes nothing; only the banner is the culprit."
+}

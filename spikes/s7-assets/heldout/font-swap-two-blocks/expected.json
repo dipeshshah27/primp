@@ -1,0 +1,18 @@
+{
+  "page": "font-swap-two-blocks/index.html",
+  "observeMs": 1800,
+  "positive": true,
+  "accept": [
+    {
+      "causes": [
+        "font-swap"
+      ],
+      "culprits": [
+        "#h-a",
+        "#h-b",
+        "#main"
+      ]
+    }
+  ],
+  "notes": "Two headings set in the web font re-wrap in the same frame. Content after the first moves by its growth, content after the second by the sum. Either heading (or both) is a correct culprit."
+}

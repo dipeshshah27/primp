@@ -1,0 +1,15 @@
+{
+  "page": "dev-style-inject/index.html",
+  "observeMs": 1800,
+  "positive": false,
+  "devArtifact": true,
+  "accept": [
+    {
+      "causes": [
+        "dev-artifact"
+      ],
+      "culprits": null
+    }
+  ],
+  "notes": "A dev-server client injects a <style data-vite-dev-id> after first paint; #hero gains 96px of padding and the content moves down. A production build ships this CSS in the document, so this is a dev artifact and must not be scored."
+}

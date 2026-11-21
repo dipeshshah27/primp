@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>held-out / decoy-abs-image</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 Arial, Helvetica, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { padding: 0 24px; min-height: 56px; display: flex; align-items: center; gap: 16px; background: #111827; color: #fff; }
+  #main { max-width: 800px; margin: 0 auto; padding: 24px; }
+  h1 { margin: 0 0 16px; font-size: 32px; line-height: 40px; }
+  p { margin: 16px 0; }
+  #main { position: relative; }
+  #badge { position: absolute; top: 24px; right: 24px; }
+  #promo { padding: 20px 24px; background: #fef3c7; }
+</style>
+</head>
+<body>
+<div id="promo-slot"></div>
+<header id="site-header">Held-out Library</header>
+<main id="main">
+  <img id="badge" alt="">
+  <h1 id="title">Winter opening hours</h1>
+  <div id="content">
+    <p id="p1">The reading room opens an hour earlier from the first Monday of the month, and the returns desk moves to the ground floor beside the east door.</p>
+    <p id="p2">Members who reserved a desk for the autumn keep it until the end of January. New reservations open on the fifteenth and are handed out in the order they arrive.</p>
+    <p id="p3">The map collection stays on the second floor. Large sheets are brought down on request, usually within twenty minutes, and may be photographed without flash.</p>
+    <p id="p4">Lockers by the entrance take a one pound coin, which is returned. Coats and umbrellas are not allowed in the reading room after the incident with the atlas.</p>
+    <p id="p5">The courtyard cafe closes at four. Hot drinks with lids may be taken to the benches in the lobby but no further, and the staff do check.</p>
+    <p id="p6">Volunteers are needed on Saturday mornings to shelve returns. Training takes one hour and comes with a library tote bag and a quiet sense of purpose.</p>
+  </div>
+</main>
+<script>
+  fetch('/delay/600/assets/data/promo.json').then((response) => response.json()).then((promo) => {
+    // An unsized image that pushes nothing (absolutely positioned) is started at the same moment...
+    document.getElementById('badge').src = '/assets/img/thumb-320x240.png';
+    // ...as the banner that does move the page.
+    const banner = document.createElement('div');
+    banner.id = 'promo';
+    banner.textContent = promo.title + ': ' + promo.text;
+    document.getElementById('promo-slot').appendChild(banner);
+  });
+</script>
+</body>
+</html>

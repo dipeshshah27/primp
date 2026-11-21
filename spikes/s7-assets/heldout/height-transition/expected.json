@@ -1,0 +1,18 @@
+{
+  "page": "height-transition/index.html",
+  "observeMs": 1800,
+  "positive": true,
+  "maxIssues": 1,
+  "accept": [
+    {
+      "causes": [
+        "injected-content",
+        "unknown"
+      ],
+      "culprits": [
+        "#panel"
+      ]
+    }
+  ],
+  "notes": "A script adds a class and a panel animates from 0 to 200px in 300 ms: one layout-shift entry per frame, about 18 in a row. They belong together and must be reported as ONE issue with #panel as the culprit."
+}
