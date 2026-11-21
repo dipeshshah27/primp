@@ -1,7 +1,7 @@
 /**
- * `reglet demo`, played through as the README tells it:
+ * `primp demo`, played through as the README tells it:
  *
- *   reglet demo            -> a site appears in ./reglet-demo, reglet runs in front of it
+ *   primp demo            -> a site appears in ./primp-demo, primp runs in front of it
  *   the page               -> the dock is there; the Shifts tab has the seeded jump
  *   agent (MCP)            -> get_layout_shifts names the picture and its line in index.html
  *   agent edits index.html -> verify_layout_shift: pass
@@ -22,16 +22,16 @@ import { Client, type CallToolResult } from '@modelcontextprotocol/client'
 import { getDefaultEnvironment, StdioClientTransport } from '@modelcontextprotocol/client/stdio'
 import type { ChangeItem } from '../packages/protocol/src/change.ts'
 import type { LayoutShiftsResult, PendingChanges, ShiftVerificationResult, VerifyChangesResult } from '../packages/protocol/src/session.ts'
-import type { RegletTestHandle } from '../packages/overlay/src/test-handle.ts'
+import type { PrimpTestHandle } from '../packages/overlay/src/test-handle.ts'
 import { createReport, expect, launchBrowser, newPage, onCleanup, REPO_ROOT, runCleanups, sleep, TMP_ROOT, waitFor } from './lib/index.ts'
 
-const report = createReport('reglet demo: the seeded layout shift, found, fixed and verified')
+const report = createReport('primp demo: the seeded layout shift, found, fixed and verified')
 const WORK = join(TMP_ROOT, `demo-${process.pid}`)
-const SITE = join(WORK, 'reglet-demo')
+const SITE = join(WORK, 'primp-demo')
 const SESSIONS = join(WORK, 'sessions')
 const CLI = join(REPO_ROOT, 'packages/cli/src/index.ts')
 const TSX = pathToFileURL(createRequire(import.meta.url).resolve('tsx')).href
-const ENV = { REGLET_SESSION_DIR: SESSIONS, NO_COLOR: '1' }
+const ENV = { PRIMP_SESSION_DIR: SESSIONS, NO_COLOR: '1' }
 
 try {
   mkdirSync(SESSIONS, { recursive: true })
@@ -46,26 +46,26 @@ try {
   child.stdout.on('data', (chunk: Buffer) => (output += chunk.toString()))
   child.stderr.on('data', (chunk: Buffer) => (output += chunk.toString()))
   let url = ''
-  const started = await report.attempt('reglet demo creates the site, starts reglet in front of it and prints what to do', async () => {
-    await waitFor(() => output.includes('Fix the layout shift reglet found'), { what: 'the demo guide', timeoutMs: 30_000 }).catch((error: unknown) => {
+  const started = await report.attempt('primp demo creates the site, starts primp in front of it and prints what to do', async () => {
+    await waitFor(() => output.includes('Fix the layout shift primp found'), { what: 'the demo guide', timeoutMs: 30_000 }).catch((error: unknown) => {
       throw new Error(`${String(error)}\n${output}`)
     })
     url = /open\s+(http:\/\/localhost:\d+)/.exec(output)?.[1] ?? ''
     expect(url !== '', `no proxy URL in:\n${output}`)
     expect(existsSync(join(SITE, 'index.html')) && existsSync(join(SITE, 'css/site.css')) && existsSync(join(SITE, 'img/harbour.svg')), 'the demo site was not copied')
-    return `site in ${SITE.replace(REPO_ROOT, '.')}; reglet at ${url}; guide printed (${output.split('\n').length} lines)`
+    return `site in ${SITE.replace(REPO_ROOT, '.')}; primp at ${url}; guide printed (${output.split('\n').length} lines)`
   })
 
   if (started) {
     const browser = await launchBrowser()
     const { page, record } = await newPage(browser, { viewport: { width: 1280, height: 800 } })
-    const dock = <M extends keyof RegletTestHandle>(method: M, ...args: Parameters<RegletTestHandle[M]>): Promise<Awaited<ReturnType<RegletTestHandle[M]>>> =>
-      page.evaluate(([name, values]) => (window as unknown as { __reglet_test: Record<string, (...a: unknown[]) => unknown> }).__reglet_test[name as string]?.(...(values as unknown[])), [method, args] as const) as Promise<
-        Awaited<ReturnType<RegletTestHandle[M]>>
+    const dock = <M extends keyof PrimpTestHandle>(method: M, ...args: Parameters<PrimpTestHandle[M]>): Promise<Awaited<ReturnType<PrimpTestHandle[M]>>> =>
+      page.evaluate(([name, values]) => (window as unknown as { __primp_test: Record<string, (...a: unknown[]) => unknown> }).__primp_test[name as string]?.(...(values as unknown[])), [method, args] as const) as Promise<
+        Awaited<ReturnType<PrimpTestHandle[M]>>
       >
 
     const transport = new StdioClientTransport({ command: process.execPath, args: ['--import', TSX, CLI, 'mcp'], cwd: SITE, env: { ...getDefaultEnvironment(), ...ENV }, stderr: 'pipe' })
-    const client = new Client({ name: 'reglet-demo-check', version: '0.0.0' })
+    const client = new Client({ name: 'primp-demo-check', version: '0.0.0' })
     onCleanup(() => client.close().catch(() => undefined))
     const call = async <T>(name: string, args: Record<string, unknown> = {}): Promise<{ result: T; text: string }> => {
       const answer = (await client.callTool({ name, arguments: args }, { timeout: 120_000 })) as CallToolResult
@@ -78,7 +78,7 @@ try {
     let shiftId: string | undefined
     await report.attempt('the dock reports the jump; get_layout_shifts names the picture, its cause and its line in index.html', async () => {
       await page.goto(`${url}/`)
-      await page.waitForFunction(() => (window as unknown as { __reglet_test?: unknown }).__reglet_test !== undefined, undefined, { timeout: 15_000 })
+      await page.waitForFunction(() => (window as unknown as { __primp_test?: unknown }).__primp_test !== undefined, undefined, { timeout: 15_000 })
       await dock('ready')
       await client.connect(transport)
       const shown = await dock('shiftReport')
@@ -108,7 +108,7 @@ try {
     })
 
     report.section('An edit from the dock')
-    await report.attempt('button padding changed in the dock, implemented in css/site.css by the agent, verified (the page is reloaded by reglet: no hot reload here)', async () => {
+    await report.attempt('button padding changed in the dock, implemented in css/site.css by the agent, verified (the page is reloaded by primp: no hot reload here)', async () => {
       await dock('ready')
       await dock('select', '.btn-primary')
       const edit = await dock('setStyle', 'padding', '14px 26px', { media: null, scope: 'all-instances' })
@@ -141,7 +141,7 @@ try {
     })
 
     report.section('A reorder and a :hover change from the dock, in one batch')
-    await report.attempt('the third bean card moved to the front and a :hover background on the primary button, sent together; the agent edits index.html and css/site.css; both pass after reglet reloads the page', async () => {
+    await report.attempt('the third bean card moved to the front and a :hover background on the primary button, sent together; the agent edits index.html and css/site.css; both pass after primp reloads the page', async () => {
       const beanNames = (): Promise<string[]> => page.evaluate(() => [...document.querySelectorAll('.bean-grid > li h3')].map((element) => element.textContent?.trim() ?? ''))
       await dock('ready')
       const before = await beanNames()
@@ -185,7 +185,7 @@ try {
     })
 
     report.section('Stop')
-    await report.attempt('Ctrl+C stops reglet and the demo server; the site with the fixes stays', async () => {
+    await report.attempt('Ctrl+C stops primp and the demo server; the site with the fixes stays', async () => {
       await client.close()
       child.kill('SIGINT')
       await waitFor(() => child.exitCode !== null || child.signalCode !== null, { what: 'the CLI to exit', timeoutMs: 10_000 })

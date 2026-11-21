@@ -2,16 +2,16 @@ import { createRequire } from 'node:module'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 /**
- * How a coding agent is told about `reglet mcp`.
+ * How a coding agent is told about `primp mcp`.
  *
  * The commands are the ones spike S6 verified against the clients (see
  * `printRegistration` in spikes/s6-mcp.ts): each client's own `mcp add`
  * command for Claude Code and Codex, and a `.cursor/mcp.json` entry for
- * Cursor. reglet prints them, or (in `reglet setup`, after asking) runs the
+ * Cursor. primp prints them, or (in `primp setup`, after asking) runs the
  * client's command. It never edits a client's configuration file itself.
  */
 
-export const MCP_SERVER_NAME = 'reglet'
+export const MCP_SERVER_NAME = 'primp'
 
 /** The command line that starts the stdio shim. */
 export interface ShimCommand {
@@ -22,13 +22,13 @@ export interface ShimCommand {
 }
 
 /**
- * `npx -y reglet mcp` for the published package. From a checkout the package
+ * `npx -y primp mcp` for the published package. From a checkout the package
  * is not on npm, so the shim is started the way the CLI itself was: Node with
  * tsx's loader and the entry file, both as absolute paths so it works from any
  * working directory an agent host picks.
  */
 export function shimCommand(entryUrl: string = import.meta.url): ShimCommand {
-  if (!entryUrl.endsWith('.ts')) return { command: 'npx', args: ['-y', 'reglet', 'mcp'], fromSource: false }
+  if (!entryUrl.endsWith('.ts')) return { command: 'npx', args: ['-y', 'primp', 'mcp'], fromSource: false }
   const entry = fileURLToPath(new URL('./index.ts', entryUrl))
   let loader = 'tsx'
   try {
@@ -74,15 +74,15 @@ export function cursorConfig(shim: ShimCommand): string {
   )
 }
 
-/** The block the default command prints once reglet is running. */
+/** The block the default command prints once primp is running. */
 export function registrationText(shim: ShimCommand): string {
   const indent = (text: string, by: string): string => text.split('\n').map((line) => by + line).join('\n')
   return [
-    'Connect a coding agent (once per machine, or run `reglet setup`):',
+    'Connect a coding agent (once per machine, or run `primp setup`):',
     `  Claude Code   ${claudeRegistration(shim).line}`,
     `  Codex         ${codexRegistration(shim).line}`,
     '  Cursor        put this in .cursor/mcp.json in the project:',
     indent(cursorConfig(shim), '                  '),
-    ...(shim.fromSource ? ['  (running from a checkout: the published package registers as `npx -y reglet mcp`)'] : []),
+    ...(shim.fromSource ? ['  (running from a checkout: the published package registers as `npx -y primp mcp`)'] : []),
   ].join('\n')
 }

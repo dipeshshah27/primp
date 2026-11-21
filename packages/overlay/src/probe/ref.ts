@@ -6,13 +6,13 @@
  * module describes the candidates and adds one guard of its own (see `contradicts`).
  */
 
-import { MIN_CONFIDENCE, pickBest, scoreCandidate, textSimilarity } from '@reglet/engine/locator'
-import type { Locator, Rect, Ref, SourceLoc } from '@reglet/protocol/change'
+import { MIN_CONFIDENCE, pickBest, scoreCandidate, textSimilarity } from '@primp/engine/locator'
+import type { Locator, Rect, Ref, SourceLoc } from '@primp/protocol/change'
 import { composeSelector, type SelectorStep } from './selector.ts'
 import { OVERLAY_ROOT_ATTR } from './snapshot.ts'
 
 /** The attribute a previewed element carries; its value is the element's uid. */
-export const MARK_ATTR = 'data-reglet-id'
+export const MARK_ATTR = 'data-primp-id'
 
 const TEXT_MAX = 80
 

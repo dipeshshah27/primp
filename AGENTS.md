@@ -1,6 +1,6 @@
-# Working on reglet
+# Working on primp
 
-Instructions for coding agents (and people) changing this repository. What reglet is and does is in `README.md`; the legal rules are in `CONTRIBUTING.md` and apply to you too.
+Instructions for coding agents (and people) changing this repository. What primp is and does is in `README.md`; the legal rules are in `CONTRIBUTING.md` and apply to you too.
 
 ## Layout
 
@@ -10,7 +10,7 @@ packages/engine     PURE logic: side effects, shift attribution, prompts, expect
 packages/source     element -> file:line (browser collectors, node resolvers)
 packages/server     proxy, HMR tee, settle detection, session, verification, layout-shift tools, MCP control endpoint
 packages/overlay    browser code: the injected hook (src/hook, entry/hook.ts) and the dock (probe/, state/, ui/, entry/overlay.ts)
-packages/cli        the published `reglet` binary: run, demo, setup, doctor, mcp (stdio MCP shim)
+packages/cli        the published `primp` binary: run, demo, setup, doctor, mcp (stdio MCP shim)
 fixtures/           apps the checks run against; standalone, NOT in the pnpm workspace
 spikes/             end-to-end checks; each prints a table and exits 0 or 1
 ```
@@ -49,4 +49,4 @@ Fixtures have their own installs: `pnpm install --ignore-workspace` inside each 
 - tsx compiles with keep-names: a function passed to `page.evaluate` may reference `__name`; define `globalThis.__name = (fn) => fn` with `addInitScript` (see `spikes/m5-risks.ts`).
 - Wait for the HMR socket before editing a fixture file, or the update is missed.
 - The proxy sends every response `no-store` on purpose (cold loads, no stale stylesheet after an edit).
-- In the dock, change the forced state only through `holdState()` in `state/controller.ts`, and call `markSelf` before any DOM write so layout-shift attribution counts it as reglet's own.
+- In the dock, change the forced state only through `holdState()` in `state/controller.ts`, and call `markSelf` before any DOM write so layout-shift attribution counts it as primp's own.

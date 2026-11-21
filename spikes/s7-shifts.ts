@@ -1,7 +1,7 @@
 /**
  * Spike S7: layout-shift attribution, the headline feature.
  *
- *   browser -> reglet proxy (injects the hook) -> relay (request log, cache policy) -> corpus server
+ *   browser -> primp proxy (injects the hook) -> relay (request log, cache policy) -> corpus server
  *
  *   A. Cold loads without the DevTools protocol. Candidate mechanisms are tried
  *      against a warm tab and a warm disk cache; the origin-side request log
@@ -169,7 +169,7 @@ async function tryMechanism(browser: Browser, lane: Lane, page: CorpusPage, mech
  * product can check in the tab, where it has no request log. The hook script is the proxy's own.
  */
 const cacheHits = (recording: ShiftRecording): string[] =>
-  recording.resources.filter((resource) => resource.transferSize === 0 && !resource.url.startsWith('data:') && !resource.url.includes('/__reglet/')).map((resource) => resource.url.replace(/^https?:\/\/[^/]+/, ''))
+  recording.resources.filter((resource) => resource.transferSize === 0 && !resource.url.startsWith('data:') && !resource.url.includes('/__primp/')).map((resource) => resource.url.replace(/^https?:\/\/[^/]+/, ''))
 
 const isCold = (result: MechanismResult): boolean => result.loads.every((load) => load.missing.length === 0 && load.conditional === 0)
 
@@ -441,7 +441,7 @@ interface TabReading {
 async function readTab(chromium: RawChromium, tab: RawTab): Promise<TabReading> {
   const raw = await chromium.evaluate<{ recording: unknown; now: string; contentY: number }>(
     tab,
-    `({ recording: window.__reglet.recording(), now: document.visibilityState, contentY: document.querySelector('#content').getBoundingClientRect().y })`,
+    `({ recording: window.__primp.recording(), now: document.visibilityState, contentY: document.querySelector('#content').getBoundingClientRect().y })`,
   )
   const recording = ShiftRecordingSchema.parse(raw.recording)
   return { recording, report: attributeShifts(recording), now: raw.now, contentY: raw.contentY }
@@ -551,7 +551,7 @@ async function sectionD(browser: Browser, corpus: FixtureHandle): Promise<void> 
     await sleep(300)
     await first.reload()
     await sleep(1500)
-    const state = await first.evaluate(() => ({ state: document.visibilityState, focus: document.hasFocus(), shifts: window.__reglet?.recording().shifts.length ?? -1 }))
+    const state = await first.evaluate(() => ({ state: document.visibilityState, focus: document.hasFocus(), shifts: window.__primp?.recording().shifts.length ?? -1 }))
     report.info(
       `Method (a) with Playwright (page.bringToFront() on a second page, then reload the first), headless: the first page still says visibilityState=${state.state}, hasFocus=${state.focus}, ` +
         `and records ${state.shifts} shift(s). Playwright keeps every page it drives focused and visible, so this method cannot produce a hidden tab and is NOT conclusive. ` +

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Locator } from '@reglet/protocol/change'
+import type { Locator } from '@primp/protocol/change'
 import { MIN_CONFIDENCE, MIN_MARGIN, ancestorSimilarity, isEquivalentInstance, pathSimilarity, pickBest, scoreCandidate, textSimilarity } from '../src/locator.ts'
 
 const el = (tag: string, indexPath: number[], ancestors: string[], rest: Partial<Locator> = {}): Locator => ({ tag, indexPath, ancestors, ...rest })

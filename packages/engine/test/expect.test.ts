@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { Expectation } from '@reglet/protocol/change'
-import { ExpectationSchema } from '@reglet/protocol/change'
+import type { Expectation } from '@primp/protocol/change'
+import { ExpectationSchema } from '@primp/protocol/change'
 import { NO_MOVE_TOLERANCE_PX, deriveExpectations } from '../src/expect.ts'
 import { bystander, condition, locator, move, rect, ref, sibling, sideEffect, structure, style } from './change-fixtures.ts'
 

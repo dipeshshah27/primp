@@ -469,8 +469,8 @@ describe('8. host check and reserved prefix', () => {
       expect(response.status, host).toBe(403)
       expect(response.text, host).not.toContain('secret')
     }
-    // The same goes for reglet's own assets.
-    expect((await send(proxy.port, { path: '/__reglet/hook.js', headers: { host: 'evil.example' } })).status).toBe(403)
+    // The same goes for primp's own assets.
+    expect((await send(proxy.port, { path: '/__primp/hook.js', headers: { host: 'evil.example' } })).status).toBe(403)
     expect(upstream.seen).toHaveLength(0)
     for (const host of [`localhost:${proxy.port}`, `127.0.0.1:${proxy.port}`, `[::1]:${proxy.port}`]) {
       expect((await send(proxy.port, { headers: { host } })).text, host).toBe('secret')
@@ -506,40 +506,40 @@ describe('8. host check and reserved prefix', () => {
         return undefined
       },
     })
-    const hook = await send(proxy.port, { path: '/__reglet/hook.js?v=3' })
+    const hook = await send(proxy.port, { path: '/__primp/hook.js?v=3' })
     expect(hook.status).toBe(200)
     expect(hook.text).toBe(HOOK)
     expect(hook.headers['content-type']).toBe('text/javascript; charset=utf-8')
     expect(hook.headers['content-length']).toBe(String(HOOK.length))
     expect(hook.headers['x-content-type-options']).toBe('nosniff')
-    expect([...(await send(proxy.port, { path: '/__reglet/fonts/a.bin' })).body]).toEqual([0, 1, 2, 255])
-    expect((await send(proxy.port, { path: '/__reglet/hook.js', method: 'HEAD' })).body.length).toBe(0)
-    expect((await send(proxy.port, { path: '/__reglet/missing.js' })).status).toBe(404)
-    expect((await send(proxy.port, { path: '/__reglet/boom' })).status).toBe(500)
-    expect((await send(proxy.port, { path: '/__reglet/hook.js', method: 'POST', headers: { 'content-length': '0' } })).status).toBe(405)
-    expect((await send(proxy.port, { path: '/__reglet' })).status).toBe(404)
+    expect([...(await send(proxy.port, { path: '/__primp/fonts/a.bin' })).body]).toEqual([0, 1, 2, 255])
+    expect((await send(proxy.port, { path: '/__primp/hook.js', method: 'HEAD' })).body.length).toBe(0)
+    expect((await send(proxy.port, { path: '/__primp/missing.js' })).status).toBe(404)
+    expect((await send(proxy.port, { path: '/__primp/boom' })).status).toBe(500)
+    expect((await send(proxy.port, { path: '/__primp/hook.js', method: 'POST', headers: { 'content-length': '0' } })).status).toBe(405)
+    expect((await send(proxy.port, { path: '/__primp' })).status).toBe(404)
     expect(calls).toContain('missing.js')
     // Paths that could climb out of a directory never reach the resolver.
-    for (const path of ['/__reglet/../secret', '/__reglet/a/../../secret', '/__reglet/%2e%2e/secret', '/__reglet/a%2fb', '/__reglet/a\\b', '/__reglet/./hook.js', '/__reglet/']) {
+    for (const path of ['/__primp/../secret', '/__primp/a/../../secret', '/__primp/%2e%2e/secret', '/__primp/a%2fb', '/__primp/a\\b', '/__primp/./hook.js', '/__primp/']) {
       const before = calls.length
       expect((await send(proxy.port, { path })).status, path).toBe(404)
       expect(calls.length, path).toBe(before)
     }
     expect(upstream.seen).toHaveLength(0)
     // A path that merely resembles the prefix belongs to the app.
-    expect((await send(proxy.port, { path: '/__reglet-app/x' })).text).toBe('upstream')
+    expect((await send(proxy.port, { path: '/__primp-app/x' })).text).toBe('upstream')
   })
 
   it('honours a custom reserved prefix', async () => {
     const upstream = await startUpstream((req, res) => res.end(`upstream:${req.url}`))
     const proxy = await startProxy(upstream.port, { reservedPrefix: '/_tool/' })
     expect((await send(proxy.port, { path: '/_tool/hook.js' })).text).toBe(HOOK)
-    expect((await send(proxy.port, { path: '/__reglet/hook.js' })).text).toBe('upstream:/__reglet/hook.js')
+    expect((await send(proxy.port, { path: '/__primp/hook.js' })).text).toBe('upstream:/__primp/hook.js')
     const page = await startUpstream((_req, res) => {
       res.setHeader('content-type', 'text/html')
       res.end('<head></head>')
     })
     const second = await startProxy(page.port, { reservedPrefix: '/_tool/' })
-    expect((await send(second.port, { headers: NAVIGATE })).text).toBe('<head><script src="/_tool/hook.js" data-reglet></script></head>')
+    expect((await send(second.port, { headers: NAVIGATE })).text).toBe('<head><script src="/_tool/hook.js" data-primp></script></head>')
   })
 })

@@ -19,21 +19,21 @@ import { createVerifier, startAutoVerify } from './verify.ts'
 import { createSettleDetector, type JournalPosition, type SettleDetector, type SettleDetectorOptions } from './settle.ts'
 
 /**
- * The whole long-running reglet process as one function: proxy, HMR tee,
+ * The whole long-running primp process as one function: proxy, HMR tee,
  * settle detector, source resolver, session, control endpoint, session file.
  *
  *   browser ── proxy port ──┬─ everything else ────────────► dev server
  *                           ├─ upgrades (HMR socket) ──────► dev server, frames copied to the tee
- *                           ├─ /__reglet/hook.js, overlay.js   (assets.ts)
- *                           └─ /__reglet/ws   one socket per document, handed to BOTH
+ *                           ├─ /__primp/hook.js, overlay.js   (assets.ts)
+ *                           └─ /__primp/ws   one socket per document, handed to BOTH
  *                                             the settle detector (`settle:*`) and the session (`session:*`)
  *
- *   reglet mcp ── control port (loopback, bearer token from the session file) ──► session
+ *   primp mcp ── control port (loopback, bearer token from the session file) ──► session
  */
 
-export type RegletLogger = (level: ProxyLogLevel, message: string, detail?: unknown) => void
+export type PrimpLogger = (level: ProxyLogLevel, message: string, detail?: unknown) => void
 
-export interface StartRegletOptions {
+export interface StartPrimpOptions {
   /** Directory of the project whose dev server is running. Watched for file changes. */
   projectRoot: string
   /** The dev server: a port, `host:port`, a URL, or an already parsed target. Loopback hosts become `localhost`. */
@@ -43,14 +43,14 @@ export interface StartRegletOptions {
    * port + 1, or the next free port after it.
    */
   port?: number
-  log?: RegletLogger
+  log?: PrimpLogger
   /** Overrides detection from package.json. */
   framework?: string
   /** Reported in `SessionInfo.version`. */
   version?: string
   /** Where the browser bundles come from (entry files or a prebuilt directory), or bundles that are already built. */
   assets?: OverlayAssetsOptions | OverlayAssets
-  /** Directory for the session file. Default: `~/.cache/reglet/sessions` (or `REGLET_SESSION_DIR`). */
+  /** Directory for the session file. Default: `~/.cache/primp/sessions` (or `PRIMP_SESSION_DIR`). */
   sessionDir?: string
   /** Close on SIGINT and SIGTERM, then exit. Default true; pass false when the caller has its own signal handling. */
   handleSignals?: boolean
@@ -59,12 +59,12 @@ export interface StartRegletOptions {
   settle?: Pick<SettleDetectorOptions, 'timings' | 'polling' | 'ignored'>
 }
 
-export interface RegletHandle {
+export interface PrimpHandle {
   /** What the developer opens: `http://localhost:<port>`. */
   url: string
   /** The proxy's port. */
   port: number
-  /** Loopback port of the control endpoint (`reglet mcp` talks to it). */
+  /** Loopback port of the control endpoint (`primp mcp` talks to it). */
   controlPort: number
   /** Origin of the dev server, for example `http://localhost:5173`. */
   target: string
@@ -112,8 +112,8 @@ function isBuilt(assets: OverlayAssetsOptions | OverlayAssets | undefined): asse
   return assets !== undefined && 'headScripts' in assets
 }
 
-export async function startReglet(options: StartRegletOptions): Promise<RegletHandle> {
-  const log: RegletLogger = options.log ?? (() => {})
+export async function startPrimp(options: StartPrimpOptions): Promise<PrimpHandle> {
+  const log: PrimpLogger = options.log ?? (() => {})
   const projectRoot = resolve(options.projectRoot)
   let isDirectory = false
   try {
@@ -199,7 +199,7 @@ export async function startReglet(options: StartRegletOptions): Promise<RegletHa
         assets: assets.assets,
         headScripts: assets.headScripts,
         cspMode: options.cspMode,
-        // Always: every load through reglet is a first visit, and no edit is hidden by a cached copy.
+        // Always: every load through primp is a first visit, and no edit is hidden by a cached copy.
         cold: () => true,
         // During a layout-shift replay, and for the first page of the session (leftovers of an earlier run on this port).
         clearCache: () => {
@@ -211,7 +211,7 @@ export async function startReglet(options: StartRegletOptions): Promise<RegletHa
         onUpgradeFrame: (direction, tunnel, message) => hmr.onFrame(direction, tunnel, message),
         onWebSocket(socket, request) {
           if ((request.url ?? '').split('?', 1)[0] !== OVERLAY_SOCKET_PATH) {
-            socket.close(1008, 'unknown reglet socket')
+            socket.close(1008, 'unknown primp socket')
             return
           }
           // One socket, two readers: each takes the messages of its own family.

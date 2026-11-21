@@ -1,8 +1,8 @@
 {
-  "name": "reglet-fixture-next-16-turbopack",
+  "name": "primp-fixture-next-16-turbopack",
   "version": "0.0.0",
   "private": true,
-  "description": "reglet test fixture: Next.js 16 App Router on Turbopack with a nonce CSP, cookie auth, a Server Action and a streaming page.",
+  "description": "primp test fixture: Next.js 16 App Router on Turbopack with a nonce CSP, cookie auth, a Server Action and a streaming page.",
   "license": "MIT",
   "scripts": {
     "dev": "next dev --hostname localhost",

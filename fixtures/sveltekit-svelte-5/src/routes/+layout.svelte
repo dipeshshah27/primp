@@ -8,7 +8,7 @@
 </script>
 
 <svelte:head>
-	<meta name="description" content="reglet fixture: SvelteKit 3 with Svelte 5 runes" />
+	<meta name="description" content="primp fixture: SvelteKit 3 with Svelte 5 runes" />
 </svelte:head>
 
 <SiteHeader user={data.user} />

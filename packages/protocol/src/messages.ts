@@ -13,13 +13,13 @@ import { ShiftRecordingSchema, ShiftReportSchema } from './shift.ts'
  * Requests carry a `reqId` chosen by the sender; the answer repeats it.
  */
 
-/** Everything reglet serves lives under this prefix on the proxy origin. */
-export const RESERVED_PREFIX = '/__reglet/'
-export const OVERLAY_SOCKET_PATH = '/__reglet/ws'
+/** Everything primp serves lives under this prefix on the proxy origin. */
+export const RESERVED_PREFIX = '/__primp/'
+export const OVERLAY_SOCKET_PATH = '/__primp/ws'
 /** Synchronous head script: layout-shift hook, settle client, socket; then loads the overlay. */
-export const HOOK_ASSET_PATH = '/__reglet/hook.js'
+export const HOOK_ASSET_PATH = '/__primp/hook.js'
 /** The dock (probe + UI), loaded by the hook after DOMContentLoaded. */
-export const OVERLAY_ASSET_PATH = '/__reglet/overlay.js'
+export const OVERLAY_ASSET_PATH = '/__primp/overlay.js'
 
 export const SessionInfoSchema = z.object({
   /** Origin of the dev server behind the proxy. */
@@ -44,7 +44,7 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
     viewport: z.object({ w: z.number(), h: z.number(), dpr: z.number() }),
     visible: z.boolean(),
   }),
-  /** Ask where an element comes from. `evidence` is what @reglet/source's collectEvidence returned. */
+  /** Ask where an element comes from. `evidence` is what @primp/source's collectEvidence returned. */
   z.object({ type: z.literal('session:resolve'), reqId: z.string(), evidence: z.unknown() }),
   /** Create or replace a draft item (the dock is the only writer of drafts). */
   z.object({ type: z.literal('session:upsert'), item: ChangeItemSchema }),

@@ -1,4 +1,4 @@
-import type { ChangeItem, Expectation, SiblingAnchor, SideEffect as RecordedSideEffect, StructuralChange, StyleChange } from '@reglet/protocol/change'
+import type { ChangeItem, Expectation, SiblingAnchor, SideEffect as RecordedSideEffect, StructuralChange, StyleChange } from '@primp/protocol/change'
 import { normalizeValue } from './units.ts'
 
 /** `Omit` that keeps the members of a union apart, so `kind` still narrows. */

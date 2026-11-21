@@ -28,9 +28,9 @@ import { refuseUpgrade, tunnelUpgrade, type UpgradeFrameHandler } from './tunnel
 import { Upstream } from './upstream.ts'
 
 /**
- * The reglet proxy: a reverse proxy in front of the developer's dev server.
+ * The primp proxy: a reverse proxy in front of the developer's dev server.
  *
- *   - Everything under `reservedPrefix` is answered by reglet itself (overlay
+ *   - Everything under `reservedPrefix` is answered by primp itself (overlay
  *     assets, the overlay WebSocket) and never reaches the dev server.
  *   - Document navigations get the `headScripts` injected as the first thing
  *     in `<head>`, while the document keeps streaming (`html-inject.ts`).
@@ -46,7 +46,7 @@ export interface ProxyAsset {
   contentType: string
 }
 
-/** Assets by path below the reserved prefix (`hook.js` for `/__reglet/hook.js`). */
+/** Assets by path below the reserved prefix (`hook.js` for `/__primp/hook.js`). */
 export type ProxyAssets =
   | ReadonlyMap<string, ProxyAsset>
   | ((path: string) => ProxyAsset | undefined | Promise<ProxyAsset | undefined>)
@@ -62,7 +62,7 @@ export interface ProxyOptions {
    * `::1`; port 0 (the default) lets the OS choose.
    */
   listen?: { host?: string; port?: number }
-  /** Path prefix owned by reglet. Default `/__reglet/`. */
+  /** Path prefix owned by primp. Default `/__primp/`. */
   reservedPrefix?: string
   assets?: ProxyAssets
   /**
@@ -77,7 +77,7 @@ export interface ProxyOptions {
    * conditional request headers are not forwarded, and every response is sent
    * `Cache-Control: no-store` without validators.
    *
-   * reglet runs with this on all the time. A page load is then always a first visit, which is the
+   * primp runs with this on all the time. A page load is then always a first visit, which is the
    * load whose layout shifts matter, and a reload after a source edit never shows a stale stylesheet
    * or image. Switching it on only for a replay is not enough: what the browser cached before stays
    * fresh, and `location.reload()` does not revalidate fresh subresources (spike S7, and the demo
@@ -158,7 +158,7 @@ function createDecoder(encoding: string): Transform | undefined {
 }
 
 export async function createProxy(options: ProxyOptions): Promise<ProxyServer> {
-  const reservedPrefix = options.reservedPrefix ?? '/__reglet/'
+  const reservedPrefix = options.reservedPrefix ?? '/__primp/'
   if (!reservedPrefix.startsWith('/') || !reservedPrefix.endsWith('/')) {
     throw new TypeError('reservedPrefix must start and end with "/"')
   }
@@ -189,7 +189,7 @@ export async function createProxy(options: ProxyOptions): Promise<ProxyServer> {
     return headScripts
       .map((path) => {
         const src = path.startsWith('/') ? path : reservedPrefix + path
-        return `<script src="${escapeHtml(src)}"${attribute} data-reglet></script>`
+        return `<script src="${escapeHtml(src)}"${attribute} data-primp></script>`
       })
       .join('')
   }
@@ -234,7 +234,7 @@ export async function createProxy(options: ProxyOptions): Promise<ProxyServer> {
     const wantsPage =
       first(req.headers['sec-fetch-dest']) === 'document' || /text\/html/i.test(first(req.headers.accept))
     if (!wantsPage) {
-      return sendText(res, 502, `reglet could not reach the dev server at ${upstream.origin} (${reason})\n`)
+      return sendText(res, 502, `primp could not reach the dev server at ${upstream.origin} (${reason})\n`)
     }
     const body =
       `<!doctype html><html lang="en"><head>${scriptTags(undefined)}<meta charset="utf-8">` +
@@ -244,7 +244,7 @@ export async function createProxy(options: ProxyOptions): Promise<ProxyServer> {
       'color:#1c1c1c;background:#fafafa}code{font-family:ui-monospace,monospace}' +
       '@media(prefers-color-scheme:dark){body{color:#e8e8e8;background:#161616}}</style></head>' +
       '<body><h1>Dev server not reachable</h1>' +
-      `<p>reglet could not reach <code>${escapeHtml(upstream.origin)}</code> (<code>${escapeHtml(reason)}</code>).</p>` +
+      `<p>primp could not reach <code>${escapeHtml(upstream.origin)}</code> (<code>${escapeHtml(reason)}</code>).</p>` +
       '<p>Start or restart your dev server. This page retries every 2 seconds.</p></body></html>\n'
     res.writeHead(502, {
       'content-type': 'text/html; charset=utf-8',
@@ -374,7 +374,7 @@ export async function createProxy(options: ProxyOptions): Promise<ProxyServer> {
     } catch (error) {
       log('warn', `${req.method} ${req.url}: response headers were rejected`, error)
       proxyRes.destroy()
-      if (!res.headersSent) sendText(res, 502, 'reglet could not relay the response headers\n')
+      if (!res.headersSent) sendText(res, 502, 'primp could not relay the response headers\n')
       return
     }
     // Send the headers now: a streamed page or an event stream may not produce a body for a while.

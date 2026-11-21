@@ -1,7 +1,7 @@
 /**
  * M4: layout shifts, end to end.
  *
- *   the page loads through reglet        -> the dock reports its layout shifts
+ *   the page loads through primp        -> the dock reports its layout shifts
  *   agent: get_layout_shifts             -> culprit, cause, source line, instructions
  *   agent: verify_layout_shift (no fix)  -> fail, measured over three cold reloads
  *   tab in the background                -> tab_hidden, never pass
@@ -21,7 +21,7 @@ import { Client, type CallToolResult } from '@modelcontextprotocol/client'
 import { getDefaultEnvironment, StdioClientTransport } from '@modelcontextprotocol/client/stdio'
 import type { Page } from '@playwright/test'
 import type { LayoutShiftsResult, ShiftVerificationResult } from '../packages/protocol/src/session.ts'
-import { startReglet } from '../packages/server/src/app.ts'
+import { startPrimp } from '../packages/server/src/app.ts'
 import { SESSION_DIR_ENV } from '../packages/server/src/session-file.ts'
 import { createReport, editFile, expect, launchBrowser, newPage, onCleanup, REPO_ROOT, replaceOnce, runCleanups, sleep, startFixture, TMP_ROOT, waitFor } from './lib/index.ts'
 import { launchRawChromium } from './s7-assets/raw-chromium.ts'
@@ -44,8 +44,8 @@ try {
   const fixture = await startFixture('cls-corpus')
   const expected = JSON.parse(readFileSync(join(fixture.dir, PAGE, 'expected.json'), 'utf8')) as Expected
   const want = expected.shifts[0] as Expected['shifts'][number]
-  const reglet = await startReglet({ projectRoot: fixture.dir, target: fixture.port, handleSignals: false, sessionDir: SESSION_DIR })
-  onCleanup(() => reglet.close())
+  const primp = await startPrimp({ projectRoot: fixture.dir, target: fixture.port, handleSignals: false, sessionDir: SESSION_DIR })
+  onCleanup(() => primp.close())
   const browser = await launchBrowser()
   const { page, record } = await newPage(browser, { viewport: { width: 1280, height: 800 } })
 
@@ -56,7 +56,7 @@ try {
     env: { ...getDefaultEnvironment(), [SESSION_DIR_ENV]: SESSION_DIR },
     stderr: 'pipe',
   })
-  const client = new Client({ name: 'reglet-spike-m4', version: '0.0.0' })
+  const client = new Client({ name: 'primp-spike-m4', version: '0.0.0' })
   onCleanup(() => client.close().catch(() => undefined))
   const call = async <T>(name: string, args: Record<string, unknown> = {}): Promise<{ result: T; text: string }> => {
     const answer = (await client.callTool({ name, arguments: args }, { timeout: 120_000 })) as CallToolResult
@@ -69,9 +69,9 @@ try {
 
   /** Loads a corpus page and waits until the dock has reported its shifts for this load. */
   const open = async (target: Page, path: string): Promise<void> => {
-    const before = reglet.session.shifts()?.at ?? 0
-    await target.goto(`${reglet.url}/${path}/`)
-    await waitFor(() => (reglet.session.shifts()?.at ?? 0) > before && reglet.session.shifts()?.recording.url.includes(path), { what: `the shift report of ${path}`, timeoutMs: 20_000 })
+    const before = primp.session.shifts()?.at ?? 0
+    await target.goto(`${primp.url}/${path}/`)
+    await waitFor(() => (primp.session.shifts()?.at ?? 0) > before && primp.session.shifts()?.recording.url.includes(path), { what: `the shift report of ${path}`, timeoutMs: 20_000 })
   }
 
   report.section('A. The page reports, the agent reads')
@@ -112,9 +112,9 @@ try {
       await page.goto('about:blank')
       const raw = await launchRawChromium()
       try {
-        const before = reglet.session.shifts()?.at ?? 0
-        const tab = await raw.open(`${reglet.url}/${PAGE}/`)
-        await waitFor(() => (reglet.session.shifts()?.at ?? 0) > before, { what: 'the shift report of the raw Chromium tab', timeoutMs: 20_000 })
+        const before = primp.session.shifts()?.at ?? 0
+        const tab = await raw.open(`${primp.url}/${PAGE}/`)
+        await waitFor(() => (primp.session.shifts()?.at ?? 0) > before, { what: 'the shift report of the raw Chromium tab', timeoutMs: 20_000 })
         const front = await raw.evaluate<string>(tab, 'document.visibilityState')
         await raw.open('about:blank')
         await sleep(400)

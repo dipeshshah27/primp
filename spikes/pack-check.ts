@@ -2,8 +2,8 @@
  * Packaging check: what `npm pack` produces must work installed, with nothing else from this repo.
  *
  *   build -> npm pack -> install the tarball into an empty project (offline: it has no dependencies)
- *   -> run the installed `reglet` in front of a fixture -> the page gets the dock
- *   -> the installed `reglet mcp` answers an MCP client -> Ctrl+C cleans up.
+ *   -> run the installed `primp` in front of a fixture -> the page gets the dock
+ *   -> the installed `primp mcp` answers an MCP client -> Ctrl+C cleans up.
  *
  *   pnpm spike:pack
  */
@@ -19,7 +19,7 @@ const report = createReport('Packaging: the npm tarball works installed on its o
 const WORK = join(TMP_ROOT, `pack-${process.pid}`)
 const APP = join(WORK, 'app')
 const SESSIONS = join(WORK, 'sessions')
-const SESSION_DIR_ENV = 'REGLET_SESSION_DIR'
+const SESSION_DIR_ENV = 'PRIMP_SESSION_DIR'
 
 try {
   mkdirSync(APP, { recursive: true })
@@ -44,16 +44,16 @@ try {
   })
 
   report.section('Install into an empty project')
-  const bin = join(APP, 'node_modules/.bin/reglet')
-  await report.attempt('npm install <tarball> works offline and adds nothing but reglet', async () => {
+  const bin = join(APP, 'node_modules/.bin/primp')
+  await report.attempt('npm install <tarball> works offline and adds nothing but primp', async () => {
     writeFileSync(join(APP, 'package.json'), JSON.stringify({ name: 'pack-check-app', private: true, version: '0.0.0' }))
     execFileSync('npm', ['install', tarball, '--offline', '--no-audit', '--no-fund', '--ignore-scripts'], { cwd: APP, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
-    expect(existsSync(bin), 'node_modules/.bin/reglet is missing')
+    expect(existsSync(bin), 'node_modules/.bin/primp is missing')
     const installed = readdirSync(join(APP, 'node_modules')).filter((name) => !name.startsWith('.'))
-    expect(installed.length === 1 && installed[0] === 'reglet', `node_modules holds: ${installed.join(', ')}`)
+    expect(installed.length === 1 && installed[0] === 'primp', `node_modules holds: ${installed.join(', ')}`)
     const help = execFileSync(bin, ['--help'], { cwd: APP, encoding: 'utf8' })
     expect(help.includes('mcp') && help.includes('doctor') && help.includes('--target'), 'the help text is not the CLI\'s')
-    return `installed: ${installed.join(', ')}; reglet --help lists mcp, setup, doctor`
+    return `installed: ${installed.join(', ')}; primp --help lists mcp, setup, doctor`
   })
 
   report.section('Run the installed CLI in front of a fixture')
@@ -61,7 +61,7 @@ try {
   let child: ChildProcess | undefined
   let output = ''
   let proxyUrl = ''
-  const started = await report.attempt('reglet --target <port> starts, reports prebuilt page scripts, and prints the npx registration command', async () => {
+  const started = await report.attempt('primp --target <port> starts, reports prebuilt page scripts, and prints the npx registration command', async () => {
     child = spawn(bin, ['--target', String(fixture.port), '--project', fixture.dir, '--no-open'], { cwd: fixture.dir, env: { ...process.env, [SESSION_DIR_ENV]: SESSIONS, NO_COLOR: '1' }, stdio: ['ignore', 'pipe', 'pipe'] })
     const proc = child
     onCleanup(() => {
@@ -72,7 +72,7 @@ try {
     await waitFor(() => /open\s+(http:\/\/localhost:\d+)/.exec(output)?.[1], { what: 'the line with the proxy URL', timeoutMs: 15_000 })
     proxyUrl = /open\s+(http:\/\/localhost:\d+)/.exec(output)?.[1] ?? ''
     await waitFor(() => output.includes('Ctrl+C'), { timeoutMs: 5000, what: 'the end of the start-up text' })
-    expect(output.includes('npx -y reglet mcp'), `the registration text does not use the published command:\n${output}`)
+    expect(output.includes('npx -y primp mcp'), `the registration text does not use the published command:\n${output}`)
     expect(!output.includes('tsx'), 'the installed CLI mentions tsx')
     const doctor = execFileSync(bin, ['doctor', '--project', fixture.dir], { cwd: fixture.dir, encoding: 'utf8', env: { ...process.env, [SESSION_DIR_ENV]: SESSIONS, NO_COLOR: '1' } })
     expect(/hook\.js .*\(prebuilt\)/.test(doctor) && /overlay\.js .*\(prebuilt\)/.test(doctor), `doctor does not report prebuilt bundles:\n${doctor}`)
@@ -83,25 +83,25 @@ try {
   if (started) {
     await report.attempt('the page comes through with the hook, both scripts are served, and the dock mounts in a browser', async () => {
       const page = await rawNavigate(`${proxyUrl}/`)
-      expect(page.status === 200 && page.text.includes('/__reglet/hook.js'), `GET / gave ${page.status}; hook tag ${page.text.includes('/__reglet/hook.js')}`)
-      const hook = await rawRequest(`${proxyUrl}/__reglet/hook.js`)
-      const overlay = await rawRequest(`${proxyUrl}/__reglet/overlay.js`)
+      expect(page.status === 200 && page.text.includes('/__primp/hook.js'), `GET / gave ${page.status}; hook tag ${page.text.includes('/__primp/hook.js')}`)
+      const hook = await rawRequest(`${proxyUrl}/__primp/hook.js`)
+      const overlay = await rawRequest(`${proxyUrl}/__primp/overlay.js`)
       expect(hook.status === 200 && overlay.status === 200, `hook.js ${hook.status}, overlay.js ${overlay.status}`)
       const browser = await launchBrowser()
       const { page: tab, record } = await newPage(browser)
       await tab.goto(`${proxyUrl}/`)
-      await tab.waitForFunction(() => (window as unknown as { __reglet_test?: unknown }).__reglet_test !== undefined, undefined, { timeout: 15_000 })
-      await tab.evaluate(() => (window as unknown as { __reglet_test: { ready(): Promise<void> } }).__reglet_test.ready())
-      const mounted = await tab.evaluate(() => document.querySelector('reglet-root') !== null)
-      expect(mounted, 'no <reglet-root> in the page')
+      await tab.waitForFunction(() => (window as unknown as { __primp_test?: unknown }).__primp_test !== undefined, undefined, { timeout: 15_000 })
+      await tab.evaluate(() => (window as unknown as { __primp_test: { ready(): Promise<void> } }).__primp_test.ready())
+      const mounted = await tab.evaluate(() => document.querySelector('primp-root') !== null)
+      expect(mounted, 'no <primp-root> in the page')
       const errors = record.consoleErrors().map((entry) => entry.text)
       expect(errors.length === 0, `console errors: ${errors.slice(0, 3).join(' | ')}`)
       return `hook.js ${hook.body.length} B, overlay.js ${overlay.body.length} B; dock mounted; 0 console errors`
     })
 
-    await report.attempt('the installed `reglet mcp` answers an MCP client with six tools and a live session', async () => {
+    await report.attempt('the installed `primp mcp` answers an MCP client with six tools and a live session', async () => {
       const transport = new StdioClientTransport({ command: bin, args: ['mcp'], cwd: fixture.dir, env: { ...getDefaultEnvironment(), [SESSION_DIR_ENV]: SESSIONS }, stderr: 'pipe' })
-      const client = new Client({ name: 'reglet-pack-check', version: '0.0.0' })
+      const client = new Client({ name: 'primp-pack-check', version: '0.0.0' })
       onCleanup(() => client.close().catch(() => undefined))
       await client.connect(transport)
       const names = (await client.listTools()).tools.map((tool) => tool.name)

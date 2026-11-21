@@ -32,8 +32,8 @@ describe('2. HTML injection', () => {
     const proxy = await startProxy(upstream.port, { headScripts: ['hook.js', 'probe.js', '/vendor/abs.js'] })
     const response = await send(proxy.port, { headers: NAVIGATE })
     expect(response.text).toContain(
-      '<head><script src="/__reglet/hook.js" data-reglet></script><script src="/__reglet/probe.js" data-reglet></script>' +
-        '<script src="/vendor/abs.js" data-reglet></script><meta charset="utf-8">',
+      '<head><script src="/__primp/hook.js" data-primp></script><script src="/__primp/probe.js" data-primp></script>' +
+        '<script src="/vendor/abs.js" data-primp></script><meta charset="utf-8">',
     )
   })
 
@@ -219,7 +219,7 @@ describe('2. HTML injection', () => {
     expect(first.headers['last-modified']).toBeUndefined()
     expect(first.headers['accept-ranges']).toBeUndefined()
     expect(first.headers['cache-control']).toBe('max-age=0')
-    // ... and if it sends validators anyway (a copy cached before reglet ran), it still gets the full page.
+    // ... and if it sends validators anyway (a copy cached before primp ran), it still gets the full page.
     const again = await send(proxy.port, { headers: { ...NAVIGATE, 'if-none-match': '"page-v1"', 'if-modified-since': modified } })
     expect(again.status).toBe(200)
     expect(again.text).toBe(INJECTED)
@@ -344,7 +344,7 @@ describe('6. Content-Security-Policy', () => {
     for (const nonce of ['req1Zm9v', 'req2Zm9v']) {
       const response = await send(proxy.port, { headers: NAVIGATE })
       expect(response.text).toBe(
-        `<!doctype html><html><head><script src="/__reglet/hook.js" nonce="${nonce}" data-reglet></script><script nonce="${nonce}">1</script></head><body></body></html>`,
+        `<!doctype html><html><head><script src="/__primp/hook.js" nonce="${nonce}" data-primp></script><script nonce="${nonce}">1</script></head><body></body></html>`,
       )
       expect(rawValues(response.rawHeaders, 'Content-Security-Policy')).toEqual([nextStyle(nonce)])
     }
@@ -357,7 +357,7 @@ describe('6. Content-Security-Policy', () => {
     const proxy = await startProxy(upstream.port)
     const response = await send(proxy.port, { headers: NAVIGATE })
     expect(response.headers['content-security-policy']).toBe(`${policy}; connect-src 'self' ws://localhost:${proxy.port}`)
-    expect(response.text).toContain('<script src="/__reglet/hook.js" nonce="abc" data-reglet></script>')
+    expect(response.text).toContain('<script src="/__primp/hook.js" nonce="abc" data-primp></script>')
   })
 
   it("nonce mode: uses 'self' when there is no nonce", async () => {
@@ -385,7 +385,7 @@ describe('6. Content-Security-Policy', () => {
     const upstream = await startUpstream(html(PAGE, { 'content-security-policy': "script-src 'sha256-abc=' 'strict-dynamic'" }))
     const proxy = await startProxy(upstream.port)
     const response = await send(proxy.port, { headers: NAVIGATE })
-    const nonce = /<script src="\/__reglet\/hook\.js" nonce="([^"]+)" data-reglet>/.exec(response.text)?.[1]
+    const nonce = /<script src="\/__primp\/hook\.js" nonce="([^"]+)" data-primp>/.exec(response.text)?.[1]
     expect(nonce).toMatch(/^[A-Za-z0-9+/]{22}==$/)
     expect(response.headers['content-security-policy']).toBe(`script-src 'sha256-abc=' 'strict-dynamic' 'nonce-${nonce}'`)
     // A fresh nonce per response.
@@ -405,7 +405,7 @@ describe('6. Content-Security-Policy', () => {
     })
     const proxy = await startProxy(upstream.port)
     const response = await send(proxy.port, { headers: NAVIGATE })
-    expect(response.text).toContain('<script src="/__reglet/hook.js" nonce="n1" data-reglet></script>')
+    expect(response.text).toContain('<script src="/__primp/hook.js" nonce="n1" data-primp></script>')
     expect(response.headers['content-security-policy']).toBe("script-src 'nonce-n1' 'strict-dynamic'")
     expect(response.headers['content-security-policy-report-only']).toBe("script-src 'nonce-n1'; report-uri /csp")
     expect(response.headers['x-frame-options']).toBe('DENY')

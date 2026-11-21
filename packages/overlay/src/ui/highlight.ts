@@ -1,5 +1,5 @@
 /**
- * The boxes reglet draws over the page: the element under the pointer in pick mode, the
+ * The boxes primp draws over the page: the element under the pointer in pick mode, the
  * selected element, and rectangles the dock points at (shift victims, side effects).
  *
  * They live in the overlay layer (the dock host's shadow root), never in the page. A box is

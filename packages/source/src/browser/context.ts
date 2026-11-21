@@ -51,12 +51,12 @@ function subtreeText(element: Element): string {
   return collapse(text).slice(0, TEXT_LIMIT)
 }
 
-/** Nodes reglet itself added to the page; they are not in anybody's source and must not shift sibling positions. */
+/** Nodes primp itself added to the page; they are not in anybody's source and must not shift sibling positions. */
 function isOwnNode(node: Element): boolean {
-  if (node.hasAttribute('data-reglet-root')) return true
+  if (node.hasAttribute('data-primp-root')) return true
   if (node.localName !== 'script') return false
   const src = node.getAttribute('src') ?? ''
-  return src.startsWith('/__reglet/') || src.includes('://') && src.includes('/__reglet/')
+  return src.startsWith('/__primp/') || src.includes('://') && src.includes('/__primp/')
 }
 
 function pathOf(element: Element): PathStep[] {

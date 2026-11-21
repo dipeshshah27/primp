@@ -1,6 +1,6 @@
 # vite-react-19 fixture
 
-A small marketing page ("Lumen", invented content) used by reglet's spikes and tests for visual editing, source mapping, side-effect detection and verification.
+A small marketing page ("Lumen", invented content) used by primp's spikes and tests for visual editing, source mapping, side-effect detection and verification.
 
 Stack: Vite 8, React 19.3, `@vitejs/plugin-react` 6, Tailwind CSS v4 through `@tailwindcss/vite`, TypeScript. Everything renders in the browser; there is no SSR and no router.
 
@@ -106,11 +106,11 @@ node scripts/verify.mjs --http-only
 
 The script starts `pnpm dev` on a free port, checks the served pages and modules, then drives Chromium to compare the DOM with `labels.json`, check that each styling system applies, exercise the login and the banner, and measure the owner stacks on `/big`. It stops the server when it finishes or fails, and exits 1 if any check failed.
 
-The browser checks need `@playwright/test`, which this fixture does not depend on. It is resolved from the reglet repo root, so the browser checks run while the fixture is inside the repo and are reported as skipped when it has been copied outside it.
+The browser checks need `@playwright/test`, which this fixture does not depend on. It is resolved from the primp repo root, so the browser checks run while the fixture is inside the repo and are reported as skipped when it has been copied outside it.
 
 ## Running a copy
 
 Tests copy this directory to a temp directory and symlink `node_modules` back to the checked-in one. That works, with two things to know:
 
-- Vite stores pre-bundled dependencies in `node_modules/.vite`, so every copy shares the checked-in cache and rewrites it on start because the project root differs. Set `REGLET_FIXTURE_CACHE_DIR` (for example `.vite`) to give a copy its own cache. Dependency URLs then change from `/node_modules/.vite/deps/react.js` to `/.vite/deps/react.js`.
+- Vite stores pre-bundled dependencies in `node_modules/.vite`, so every copy shares the checked-in cache and rewrites it on start because the project root differs. Set `PRIMP_FIXTURE_CACHE_DIR` (for example `.vite`) to give a copy its own cache. Dependency URLs then change from `/node_modules/.vite/deps/react.js` to `/.vite/deps/react.js`.
 - On macOS `localhost` resolved to `::1` only when this was written: the server answered on `http://localhost:PORT` and `http://[::1]:PORT`, and refused `http://127.0.0.1:PORT`. Connect to `localhost`, not to `127.0.0.1`.

@@ -2,7 +2,7 @@
 
 ## Provenance rule (clean room)
 
-reglet is MIT licensed. Some neighbouring tools are published under non-compete licences (PolyForm Shield and similar), which forbid using their code in a competing product.
+primp is MIT licensed. Some neighbouring tools are published under non-compete licences (PolyForm Shield and similar), which forbid using their code in a competing product.
 
 - Do not copy code, prompt text, tool descriptions or schemas from any project under such a licence. Do not add one as a dependency, devDependency or test fixture. Check a project's licence before reading its source for ideas.
 - Briefs given to coding agents describe behaviour only. They must not contain source excerpts from those projects.

@@ -171,17 +171,17 @@ describe('createCulpritResolver', () => {
     expect(requested).toEqual(['http://localhost:5173/consent.js'])
   })
 
-  it('stack route: skips reglet\'s own frames and frames from other hosts, and reads inline scripts as the page file', async () => {
+  it('stack route: skips primp\'s own frames and frames from other hosts, and reads inline scripts as the page file', async () => {
     const { fetch, requested } = serveProject()
     const resolve = createCulpritResolver({ projectRoot: root, target: 'http://localhost:5173', fetch })
     const stack = [
-      '    at HTMLBodyElement.append (http://localhost:5174/__reglet/hook.js?v=abc:1:2000)',
+      '    at HTMLBodyElement.append (http://localhost:5174/__primp/hook.js?v=abc:1:2000)',
       '    at inject (https://cdn.example.com/widget.js:3:9)',
       '    at http://localhost:5174/docs/:1:60',
     ].join('\n')
     const loc = await resolve(issue(node({ tag: 'aside', path: [1, 2] }), stack), recording('http://localhost:5174/docs/'))
     expect(loc).toMatchObject({ file: 'docs/index.html', line: 1, col: 60, via: 'shift-stack' })
-    expect(requested.some((url) => url.includes('cdn.example.com') || url.includes('__reglet'))).toBe(false)
+    expect(requested.some((url) => url.includes('cdn.example.com') || url.includes('__primp'))).toBe(false)
   })
 
   it('stack route: goes through the source map of a transformed module', async () => {

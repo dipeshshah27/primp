@@ -3,12 +3,12 @@ import { detectDevServer, probeHttp, type DetectedFramework, type DevServerDetec
 import type { ProxyTarget } from '../../server/src/headers.ts'
 
 /**
- * `--exec "<command>"`: reglet starts the dev server itself.
+ * `--exec "<command>"`: primp starts the dev server itself.
  *
  * The command runs through the shell in the project directory, in a process
  * group of its own (package managers start the real server as a grandchild;
  * killing only the child would leave it running). Its output is passed on
- * line by line with a prefix, and the whole group is stopped when reglet exits.
+ * line by line with a prefix, and the whole group is stopped when primp exits.
  */
 
 export interface DevServerProcess {
@@ -54,7 +54,7 @@ export function startDevServer(command: string, options: StartDevServerOptions):
     // POSIX: a new process group, so the group can be signalled as one.
     detached: !windows,
     stdio: ['ignore', 'pipe', 'pipe'],
-    // The page is opened through the proxy by reglet; dev servers that honour BROWSER must not open their own port.
+    // The page is opened through the proxy by primp; dev servers that honour BROWSER must not open their own port.
     env: { ...process.env, BROWSER: 'none', ...options.env },
   })
 
@@ -133,7 +133,7 @@ export interface WaitForDevServerOptions {
   /** Given with `--target`: wait for exactly this address. */
   target?: ProxyTarget
   framework?: DetectedFramework
-  /** The command reglet started, when it did. Waiting stops when it exits. */
+  /** The command primp started, when it did. Waiting stops when it exits. */
   child?: DevServerProcess
   excludePorts?: readonly number[]
   excludePids?: readonly number[]

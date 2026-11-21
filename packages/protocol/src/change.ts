@@ -16,7 +16,7 @@ export type Rect = z.infer<typeof RectSchema>
 // Where an element is in the source
 // ---------------------------------------------------------------------------
 
-/** Mirrors `SourceResult` of @reglet/source, minus timing; see that package for the meaning of each level. */
+/** Mirrors `SourceResult` of @primp/source, minus timing; see that package for the meaning of each level. */
 export const SourceLocSchema = z.object({
   file: z.string().optional(),
   line: z.number().int().positive().optional(),
@@ -66,7 +66,7 @@ export const LocatorSchema = z.object({
 export type Locator = z.infer<typeof LocatorSchema>
 
 export const RefSchema = z.object({
-  /** Session-unique id of the element as selected (`data-reglet-id` while a preview is on it). */
+  /** Session-unique id of the element as selected (`data-primp-id` while a preview is on it). */
   uid: z.string(),
   /** A CSS selector that matched exactly this element when it was recorded. For humans and agents; not used to re-find it. */
   selector: z.string(),

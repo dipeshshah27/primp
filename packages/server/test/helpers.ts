@@ -62,8 +62,8 @@ export interface TestProxy extends ProxyServer {
   logs: LogEntry[]
 }
 
-export const HOOK = 'window.__regletHook = true'
-export const HOOK_TAG = '<script src="/__reglet/hook.js" data-reglet></script>'
+export const HOOK = 'window.__primpHook = true'
+export const HOOK_TAG = '<script src="/__primp/hook.js" data-primp></script>'
 
 export async function startProxy(targetPort: number, overrides: Partial<ProxyOptions> = {}): Promise<TestProxy> {
   const logs: LogEntry[] = []

@@ -51,7 +51,7 @@
  * found there.
  */
 
-import type { Locator } from '@reglet/protocol/change'
+import type { Locator } from '@primp/protocol/change'
 
 /** An element of the current page, described the way locators are recorded. */
 export type LocatorCandidate = Locator

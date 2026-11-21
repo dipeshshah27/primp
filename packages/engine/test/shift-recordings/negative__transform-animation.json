@@ -60,7 +60,7 @@
  "media": [],
  "resources": [
   {
-   "url": "http://localhost:4310/__reglet/hook.js",
+   "url": "http://localhost:4310/__primp/hook.js",
    "initiator": "script",
    "start": 11.3,
    "end": 12.3,

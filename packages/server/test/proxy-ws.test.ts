@@ -373,12 +373,12 @@ describe('8. the overlay socket under the reserved prefix', () => {
   it('hands a same-origin connection to onWebSocket and never to the upstream', async () => {
     const { proxy, echo, paths, tapped } = await setup()
     for (const host of [`localhost:${proxy.port}`, `127.0.0.1:${proxy.port}`]) {
-      const socket = connect(`ws://${host}/__reglet/ws?session=1`, { origin: `http://${host}` })
+      const socket = connect(`ws://${host}/__primp/ws?session=1`, { origin: `http://${host}` })
       await opened(socket)
       socket.send('hello')
       expect((await nextMessage(socket)).data.toString()).toBe('overlay:hello')
     }
-    expect(paths).toEqual(['/__reglet/ws?session=1', '/__reglet/ws?session=1'])
+    expect(paths).toEqual(['/__primp/ws?session=1', '/__primp/ws?session=1'])
     // Not forwarded, and not reported as an app socket either.
     expect(echo.upgrades).toHaveLength(0)
     expect(tapped).toEqual([])
@@ -386,7 +386,7 @@ describe('8. the overlay socket under the reserved prefix', () => {
 
   it('refuses a missing, foreign or mismatched Origin', async () => {
     const { proxy, paths } = await setup()
-    const url = `ws://localhost:${proxy.port}/__reglet/ws`
+    const url = `ws://localhost:${proxy.port}/__primp/ws`
     await expect(opened(connect(url))).rejects.toThrow('HTTP 403')
     await expect(opened(connect(url, { origin: 'http://evil.example' }))).rejects.toThrow('HTTP 403')
     await expect(opened(connect(url, { origin: `https://localhost:${proxy.port}` }))).rejects.toThrow('HTTP 403')
@@ -400,14 +400,14 @@ describe('8. the overlay socket under the reserved prefix', () => {
   it('refuses a rebound Host even when Origin matches it', async () => {
     const { proxy, paths } = await setup()
     const host = `evil.example:${proxy.port}`
-    const socket = connect(`ws://localhost:${proxy.port}/__reglet/ws`, { origin: `http://${host}`, headers: { host } })
+    const socket = connect(`ws://localhost:${proxy.port}/__primp/ws`, { origin: `http://${host}`, headers: { host } })
     await expect(opened(socket)).rejects.toThrow('HTTP 403')
     expect(paths).toEqual([])
   })
 
   it('answers 404 when no handler is configured', async () => {
     const { proxy, echo } = await setup(false)
-    const socket = connect(`ws://localhost:${proxy.port}/__reglet/ws`, { origin: `http://localhost:${proxy.port}` })
+    const socket = connect(`ws://localhost:${proxy.port}/__primp/ws`, { origin: `http://localhost:${proxy.port}` })
     await expect(opened(socket)).rejects.toThrow('HTTP 404')
     expect(echo.upgrades).toHaveLength(0)
   })
@@ -422,16 +422,16 @@ describe('8. the overlay socket under the reserved prefix', () => {
       },
     })
     const options = { origin: `http://localhost:${proxy.port}` }
-    const first = connect(`ws://localhost:${proxy.port}/__reglet/ws`, options)
+    const first = connect(`ws://localhost:${proxy.port}/__primp/ws`, options)
     expect(await closed(first)).toBe(1006)
     expect(proxy.logs.some((entry) => entry.level === 'error' && entry.message.includes('onWebSocket'))).toBe(true)
-    const second = connect(`ws://localhost:${proxy.port}/__reglet/ws`, options)
+    const second = connect(`ws://localhost:${proxy.port}/__primp/ws`, options)
     expect((await nextMessage(second)).data.toString()).toBe('second time lucky')
   })
 
   it('close() ends overlay sockets', async () => {
     const { proxy } = await setup()
-    const socket = connect(`ws://localhost:${proxy.port}/__reglet/ws`, { origin: `http://localhost:${proxy.port}` })
+    const socket = connect(`ws://localhost:${proxy.port}/__primp/ws`, { origin: `http://localhost:${proxy.port}` })
     await opened(socket)
     const clientClosed = closed(socket)
     await proxy.close()

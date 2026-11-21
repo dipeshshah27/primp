@@ -4,7 +4,7 @@
  * server; this tab only shows it.
  */
 
-import type { ChangeItem, CheckResult, ItemStatus, VerificationStatus } from '@reglet/protocol/change'
+import type { ChangeItem, CheckResult, ItemStatus, VerificationStatus } from '@primp/protocol/change'
 import type { Controller } from '../state/controller.ts'
 import { ChangeLine, ScopeChips, SourceBadge } from './parts.tsx'
 
@@ -117,7 +117,7 @@ function VerifyItem({ c, item }: { c: Controller; item: ChangeItem }) {
 export function VerifyTab({ c }: { c: Controller }) {
   const items = c.store.items.value.filter((item) => item.status !== 'draft')
   if (items.length === 0) {
-    return <p class="empty">Nothing sent yet. After you send changes, each one is listed here; once your agent has edited the source, reglet re-measures the page and shows the result per change.</p>
+    return <p class="empty">Nothing sent yet. After you send changes, each one is listed here; once your agent has edited the source, primp re-measures the page and shows the result per change.</p>
   }
   return (
     <ul class="stack" aria-label="Sent changes">

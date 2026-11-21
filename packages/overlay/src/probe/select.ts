@@ -35,7 +35,7 @@ export interface Picker {
 }
 
 /**
- * The events the page must not get while reglet holds the pointer: in pick mode, and during a
+ * The events the page must not get while primp holds the pointer: in pick mode, and during a
  * drag of a handle on the selection (ui/handles.ts). Stopped at the window in the capture phase.
  */
 export const SWALLOWED = [
@@ -78,7 +78,7 @@ function targetOf(event: Event, doc: Document): Element | null {
   return null
 }
 
-/** The neighbour an arrow key leads to, skipping reglet's own nodes and elements without a box. */
+/** The neighbour an arrow key leads to, skipping primp's own nodes and elements without a box. */
 export function neighbour(element: Element, key: string): Element | null {
   const step = (from: Element | null, next: (el: Element) => Element | null): Element | null => {
     for (let el = from; el !== null; el = next(el)) if (pickable(el)) return el

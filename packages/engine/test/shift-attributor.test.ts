@@ -6,7 +6,7 @@ import { attributeShifts, cachedResourcesOf, CONFIDENT, isAncestorPath, isFontRe
 /**
  * The recordings in `shift-recordings/` were made by the injected hook in
  * Chromium 159 (headless, 1280x800) on the pages of `fixtures/cls-corpus` and
- * `spikes/s7-assets/heldout`, through the reglet proxy. Regenerate them with
+ * `spikes/s7-assets/heldout`, through the primp proxy. Regenerate them with
  * `pnpm spike:s7 -- --record`.
  *
  * The expectations below are the pages' labels (their `expected.json`), written
@@ -324,7 +324,7 @@ describe('attributeShifts on the first held-out set', () => {
   it('a page\'s own insertAdjacentHTML is the page\'s, with or without the hook\'s wrapper frame on its stack', () => {
     const old = load('cls-heldout-old-hook__pricing-ledgerly')
     const stack = old.mutations.find((mutation) => mutation.kind === 'add' && mutation.node.id === 'promo-strip')?.stack ?? ''
-    expect(stack.split('\n')[0]).toMatch(/\[as insertAdjacentHTML\] \(http:\/\/localhost:4310\/__reglet\/hook\.js/)
+    expect(stack.split('\n')[0]).toMatch(/\[as insertAdjacentHTML\] \(http:\/\/localhost:4310\/__primp\/hook\.js/)
     for (const recording of [old, load('cls-heldout__pricing-ledgerly')]) {
       const report = attributeShifts(recording)
       expect(report.cls).toBeGreaterThan(0.03)
@@ -333,7 +333,7 @@ describe('attributeShifts on the first held-out set', () => {
       expect(top(recording)?.trigger?.stack?.split('\n')[0]).toMatch(/^\s+at http:\/\/localhost:4310\/pricing-ledgerly\/:205:14$/)
     }
     // The current hook leaves none of its frames on the stack.
-    expect(JSON.stringify(load('cls-heldout__pricing-ledgerly').mutations)).not.toContain('/__reglet/')
+    expect(JSON.stringify(load('cls-heldout__pricing-ledgerly').mutations)).not.toContain('/__primp/')
   })
 
   it('a victim pushed below the fold: the measured distance where the hook recorded the box, a least distance where it did not', () => {
@@ -457,7 +457,7 @@ describe('measurement validity in the report', () => {
   it('does not count the proxy\'s own script or other origins as cache hits', () => {
     const recording = clone(load('unsized-media__img-block'))
     recording.resources.push(
-      { url: 'http://localhost:4310/__reglet/hook.js', initiator: 'script', start: 1, end: 2, transferSize: 0 },
+      { url: 'http://localhost:4310/__primp/hook.js', initiator: 'script', start: 1, end: 2, transferSize: 0 },
       { url: 'https://fonts.example/font.woff2', initiator: 'css', start: 1, end: 2, transferSize: 0 },
     )
     expect(cachedResourcesOf(recording)).toEqual([])

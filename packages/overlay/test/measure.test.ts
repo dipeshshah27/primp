@@ -1,6 +1,6 @@
-import type { Expectation } from '@reglet/protocol/change'
+import type { Expectation } from '@primp/protocol/change'
 import { describe, expect, it } from 'vitest'
-import { isNeighboursLost, judgeCheck, ORDER_NEIGHBOURS_LOST, ORDER_NOT_AS_LABELLED } from '@reglet/engine/judge'
+import { isNeighboursLost, judgeCheck, ORDER_NEIGHBOURS_LOST, ORDER_NOT_AS_LABELLED } from '@primp/engine/judge'
 import { toMeasured } from '../../server/src/verify.ts'
 import { emulatedNote, STATE_NOT_EMULATED, toCheck, type Measured } from '../src/probe/measure.ts'
 

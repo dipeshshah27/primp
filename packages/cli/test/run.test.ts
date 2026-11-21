@@ -7,10 +7,10 @@ import { fileURLToPath } from 'node:url'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { probeHttp } from '../../server/src/detect.ts'
 import { freeLowPort, removeDir, tempDir } from '../../server/test/session-helpers.ts'
-import { CliError, openInBrowser, runReglet, type RunHandle, type RunOptions } from '../src/run.ts'
+import { CliError, openInBrowser, runPrimp, type RunHandle, type RunOptions } from '../src/run.ts'
 
 /**
- * The default command: in-process through `runReglet` (what it prints, what it
+ * The default command: in-process through `runPrimp` (what it prints, what it
  * starts and stops), and as the real binary for argument parsing and signals.
  * Stub bundles stand in for the dock.
  */
@@ -61,7 +61,7 @@ afterAll(() => removeDir(work))
 async function devServer(): Promise<number> {
   const server = http.createServer((_, res) => res.writeHead(200, { 'content-type': 'text/html' }).end(PAGE))
   servers.push(server)
-  // Not an OS-assigned port: reglet takes the port after it (see freeLowPort).
+  // Not an OS-assigned port: primp takes the port after it (see freeLowPort).
   const port = await freeLowPort()
   await new Promise<void>((resolve) => server.listen(port, '::1', () => resolve()))
   return (server.address() as AddressInfo).port
@@ -70,7 +70,7 @@ async function devServer(): Promise<number> {
 async function run(options: Partial<RunOptions>): Promise<RunHandle & { printed: string[]; opened: string[] }> {
   const printed: string[] = []
   const opened: string[] = []
-  const handle = await runReglet({
+  const handle = await runPrimp({
     project,
     version: '1.2.3',
     assets: { hookEntry, overlayEntry },
@@ -95,26 +95,26 @@ async function until<T>(read: () => T | undefined | false | Promise<T | undefine
   throw new Error(`${what} not met within ${ms} ms`)
 }
 
-describe('runReglet', () => {
+describe('runPrimp', () => {
   it('with --target: starts the proxy on the next port and prints the URL, the target and the three registrations', async () => {
     const target = await devServer()
     const running = await run({ target: String(target) })
-    expect(running.reglet.target).toBe(`http://localhost:${target}`)
-    expect(running.reglet.port).toBeGreaterThan(target)
-    expect(running.reglet.framework).toBe('vite')
+    expect(running.primp.target).toBe(`http://localhost:${target}`)
+    expect(running.primp.port).toBeGreaterThan(target)
+    expect(running.primp.framework).toBe('vite')
     const out = running.printed.join('\n')
-    expect(out).toContain('reglet 1.2.3')
-    expect(out).toContain(`open      ${running.reglet.url}`)
+    expect(out).toContain('primp 1.2.3')
+    expect(out).toContain(`open      ${running.primp.url}`)
     expect(out).toContain(`target    http://localhost:${target}    (vite)`)
-    expect(out).toMatch(/Claude Code {3}claude mcp add reglet -- /)
-    expect(out).toMatch(/Codex {9}codex mcp add reglet -- /)
+    expect(out).toMatch(/Claude Code {3}claude mcp add primp -- /)
+    expect(out).toMatch(/Codex {9}codex mcp add primp -- /)
     expect(out).toContain('.cursor/mcp.json')
     expect(out).toContain('"--project"')
     expect(out).toContain('Press Ctrl+C to stop.')
     // The app answers through the proxy, with the hook injected.
-    const page = await (await fetch(`${running.reglet.url}/`, { headers: { accept: 'text/html', 'sec-fetch-dest': 'document', 'sec-fetch-mode': 'navigate' } })).text()
+    const page = await (await fetch(`${running.primp.url}/`, { headers: { accept: 'text/html', 'sec-fetch-dest': 'document', 'sec-fetch-mode': 'navigate' } })).text()
     expect(page).toContain('<h1>dev</h1>')
-    expect(page).toContain('/__reglet/hook.js?v=')
+    expect(page).toContain('/__primp/hook.js?v=')
     expect(sessionFiles()).toHaveLength(1)
     await running.close()
     await running.close()
@@ -127,7 +127,7 @@ describe('runReglet', () => {
     expect(piped.opened).toEqual([])
     await piped.close()
     const person = await run({ target: String(target), interactive: true })
-    expect(person.opened).toEqual([person.reglet.url])
+    expect(person.opened).toEqual([person.primp.url])
     await person.close()
     const declined = await run({ target: String(target), interactive: true, open: false })
     expect(declined.opened).toEqual([])
@@ -137,8 +137,8 @@ describe('runReglet', () => {
     const target = await devServer()
     const free = await freeLowPort()
     const running = await run({ target: `http://127.0.0.1:${target}/some/path`, port: String(free) })
-    expect(running.reglet.port).toBe(free)
-    expect(running.reglet.target).toBe(`http://localhost:${target}`)
+    expect(running.primp.port).toBe(free)
+    expect(running.primp.target).toBe(`http://localhost:${target}`)
   })
 
   it.skipIf(process.platform === 'win32')('with --exec: starts the dev server, finds its port, and stops it again on close', async () => {
@@ -150,10 +150,10 @@ describe('runReglet', () => {
     expect(running.printed[0]).toContain('starting the dev server')
     expect(running.printed.join('\n')).toMatch(/target {4}http:\/\/localhost:\d+ {4}\(vite; (announced by the dev server|found: node pid \d+ listens there)\)/)
     expect((await probeHttp(port)).html).toBe(true)
-    expect((await probeHttp(running.reglet.port)).html).toBe(true)
+    expect((await probeHttp(running.primp.port)).html).toBe(true)
     await running.close()
     expect((await probeHttp(port)).answered).toBe(false)
-    expect((await probeHttp(running.reglet.port)).answered).toBe(false)
+    expect((await probeHttp(running.primp.port)).answered).toBe(false)
     expect(sessionFiles()).toEqual([])
   })
 
@@ -161,7 +161,7 @@ describe('runReglet', () => {
     writeFileSync(join(project, 'short.mjs'), `${DEV_SERVER}\nsetTimeout(() => process.exit(7), 700)\n`)
     const running = await run({ exec: `PORT=${await freeLowPort()} "${process.execPath}" short.mjs` })
     expect(await running.devServerExit).toBe(7)
-    expect(running.printed.at(-1)).toBe('reglet: the dev server ended (exit code 7)')
+    expect(running.printed.at(-1)).toBe('primp: the dev server ended (exit code 7)')
   })
 
   it.skipIf(process.platform === 'win32')('without --target or --exec: finds the dev server of this project by its process', async (context) => {
@@ -182,15 +182,15 @@ describe('runReglet', () => {
     expect(running.printed.join('\n')).toContain(`target    http://localhost:${devPort}    (vite; found: node pid ${dev.pid} listens there)`)
     expect(running.devServer).toBeUndefined()
     await running.close()
-    // Not reglet's to stop.
+    // Not primp's to stop.
     expect((await probeHttp(devPort)).html).toBe(true)
   })
 
   it('starts anyway, with a warning, when a named target does not answer yet', async () => {
     const target = await freeLowPort()
     const running = await run({ target: String(target) })
-    expect(running.printed[0]).toBe(`reglet: nothing answers at http://localhost:${target} yet; starting anyway, the page retries until the dev server is up`)
-    const page = await fetch(`${running.reglet.url}/`, { headers: { accept: 'text/html' } })
+    expect(running.printed[0]).toBe(`primp: nothing answers at http://localhost:${target} yet; starting anyway, the page retries until the dev server is up`)
+    const page = await fetch(`${running.primp.url}/`, { headers: { accept: 'text/html' } })
     expect(page.status).toBe(502)
   })
 
@@ -201,7 +201,7 @@ describe('runReglet', () => {
       [{ target: String(target), port: 'eighty' }, /--port must be a number from 1 to 65535, not "eighty"/],
       [{ target: String(target), port: '70000' }, /--port must be a number/],
       [{ target: 'ftp://x' }, /--target: cannot read "ftp:\/\/x" as a dev server address/],
-      [{ target: String(target), assets: { hookEntry: join(work, 'missing.ts'), overlayEntry } }, /reglet could not start: could not build hook\.js/],
+      [{ target: String(target), assets: { hookEntry: join(work, 'missing.ts'), overlayEntry } }, /primp could not start: could not build hook\.js/],
     ]
     for (const [options, message] of failing) {
       const error = await run(options).catch((caught: unknown) => caught)
@@ -228,11 +228,11 @@ describe('openInBrowser', () => {
   })
 })
 
-describe.skipIf(process.platform === 'win32')('the reglet binary', () => {
+describe.skipIf(process.platform === 'win32')('the primp binary', () => {
   function cli(args: string[]): { child: ChildProcess; out: () => string; err: () => string; exit: Promise<number | null> } {
     const child = spawn(process.execPath, ['--import', 'tsx', CLI, ...args], {
       cwd: fileURLToPath(new URL('../../../', import.meta.url)),
-      env: { ...process.env, REGLET_SESSION_DIR: sessionDir, REGLET_HOOK_ENTRY: hookEntry, REGLET_OVERLAY_ENTRY: overlayEntry, NO_COLOR: '1' },
+      env: { ...process.env, PRIMP_SESSION_DIR: sessionDir, PRIMP_HOOK_ENTRY: hookEntry, PRIMP_OVERLAY_ENTRY: overlayEntry, NO_COLOR: '1' },
       stdio: ['ignore', 'pipe', 'pipe'],
     })
     children.push(child)

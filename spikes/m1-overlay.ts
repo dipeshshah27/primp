@@ -1,10 +1,10 @@
 /**
  * M1/M2 integration check of the browser side: the head script, the dock, the probe.
  *
- * Everything is real: the fixtures' dev servers, reglet itself (`startReglet`: proxy, session
+ * Everything is real: the fixtures' dev servers, primp itself (`startPrimp`: proxy, session
  * server, settle detector, source resolver, shift attributor, verifier) bundling the entries of
  * packages/overlay the way the product does, and headless Chromium. The dock is driven through
- * `window.__reglet_test` and, where the point is the UI, with real mouse and keyboard input.
+ * `window.__primp_test` and, where the point is the UI, with real mouse and keyboard input.
  *
  * One thing the real server cannot be made to say on demand is a shift report for a tab that
  * was hidden; for that single check the same bundles run against a small fake session server
@@ -30,10 +30,10 @@ import type { Browser } from '@playwright/test'
 import type { ChangeItem, Expectation, StructuralChange, StyleChange } from '../packages/protocol/src/change.ts'
 import type { ShiftReport } from '../packages/protocol/src/shift.ts'
 import { createReport, editFile, expect, launchBrowser, newPage, onCleanup, replaceOnce, runCleanups, sleep, TMP_ROOT, waitFor } from './lib/index.ts'
-import { buildBundles, computed, computedAll, items, marks, openDock, px, rect, restartReglet, startFakeLane, startLane, testState, type Bundles, type DockPage, type Lane } from './m1-overlay-assets/harness.ts'
+import { buildBundles, computed, computedAll, items, marks, openDock, px, rect, restartPrimp, startFakeLane, startLane, testState, type Bundles, type DockPage, type Lane } from './m1-overlay-assets/harness.ts'
 import { fixed, readPlainEntries, sum, type PlainEntry } from './s7-assets/measure.ts'
 
-const report = createReport('M1 overlay: head script, dock and probe against the real reglet server')
+const report = createReport('M1 overlay: head script, dock and probe against the real primp server')
 const SHOTS = join(TMP_ROOT, 'm1-overlay-shots')
 const HOOK_TARGET_BYTES = 12_000
 /** Budget for what this milestone adds to the head script on top of the M0 recorder and settle client. */
@@ -51,7 +51,7 @@ const style = (item: ChangeItem | null | undefined): StyleChange => {
 }
 
 /**
- * What the fixture logs and violates by itself, read from the same page WITHOUT reglet. Next's
+ * What the fixture logs and violates by itself, read from the same page WITHOUT primp. Next's
  * dev tools, for one, insert unnonced <style> elements that its own strict policy blocks; that
  * is the fixture's doing and happens with or without the dock.
  */
@@ -86,15 +86,15 @@ function hygiene(page: DockPage, lane: Lane): string[] {
   const problems: string[] = []
   const errors = page.record.consoleErrors().filter((entry) => baseline?.errors.has(normal(entry.text)) !== true)
   if (errors.length > 0) problems.push(`console errors: ${errors.map((entry) => entry.text).slice(0, 3).join(' | ')}`)
-  const warnings = page.record.console.filter((entry) => entry.text.includes('[reglet]'))
-  if (warnings.length > 0) problems.push(`reglet logged: ${warnings.map((entry) => entry.text).slice(0, 3).join(' | ')}`)
+  const warnings = page.record.console.filter((entry) => entry.text.includes('[primp]'))
+  if (warnings.length > 0) problems.push(`primp logged: ${warnings.map((entry) => entry.text).slice(0, 3).join(' | ')}`)
   if (page.record.pageErrors.length > 0) problems.push(`page errors: ${page.record.pageErrors.slice(0, 2).join(' | ')}`)
-  // A violation counts against reglet unless the same one happens on the page without it; anything
-  // on reglet's own host or in the dock's document counts in any case. (The source file is no
+  // A violation counts against primp unless the same one happens on the page without it; anything
+  // on primp's own host or in the dock's document counts in any case. (The source file is no
   // guide: with stack capture on, the page's own DOM insertions run through a wrapper in hook.js,
   // and the browser then names hook.js for a <style> that Next's dev tools inserted.)
   const violations = page.record.cspViolations.filter(
-    (violation) => baseline?.violations.has(violationKey(violation)) !== true || violation.target === 'reglet-root' || violation.documentURI === 'about:blank',
+    (violation) => baseline?.violations.has(violationKey(violation)) !== true || violation.target === 'primp-root' || violation.documentURI === 'about:blank',
   )
   if (violations.length > 0) {
     problems.push(`CSP violations: ${violations.map((violation) => `${violationKey(violation)} in ${violation.documentURI}`).slice(0, 4).join(' | ')}`)
@@ -109,8 +109,8 @@ function hygiene(page: DockPage, lane: Lane): string[] {
 function hygieneText(page: DockPage, lane: Lane): string {
   const own = { errors: page.record.consoleErrors().length, violations: page.record.cspViolations.length }
   const without = baselines.get(lane)?.counts
-  const fixture = own.errors + own.violations === 0 ? '' : ` (the page's own, of the kinds it has without reglet: ${own.violations} CSP violations and ${own.errors} console errors here, ${without?.violations} and ${without?.errors} on one load without reglet)`
-  return `0 console errors, 0 CSP violations, 0 page errors from reglet${fixture}`
+  const fixture = own.errors + own.violations === 0 ? '' : ` (the page's own, of the kinds it has without primp: ${own.violations} CSP violations and ${own.errors} console errors here, ${without?.violations} and ${without?.errors} on one load without primp)`
+  return `0 console errors, 0 CSP violations, 0 page errors from primp${fixture}`
 }
 
 // ---------------------------------------------------------------------------
@@ -120,28 +120,28 @@ function hygieneText(page: DockPage, lane: Lane): string {
 async function mountChecks(browser: Browser, lane: Lane, path: string, observeMs: number): Promise<void> {
   const baseline = await readBaseline(browser, lane, path, observeMs)
   if (baseline.errors.size + baseline.violations.size > 0) {
-    report.info(`without reglet this page already has ${baseline.violations.size} kind(s) of CSP violation (${[...baseline.violations].join('; ')}) and ${baseline.errors.size} console error(s); only what comes on top counts against the dock`)
+    report.info(`without primp this page already has ${baseline.violations.size} kind(s) of CSP violation (${[...baseline.violations].join('; ')}) and ${baseline.errors.size} console error(s); only what comes on top counts against the dock`)
   }
   await report.attempt('the dock mounts: one host in the top layer, its own document, session state received', async () => {
     const page = await openDock(browser, lane, path)
     try {
       const facts = await page.page.evaluate(() => {
-        const hosts = document.querySelectorAll('reglet-root')
+        const hosts = document.querySelectorAll('primp-root')
         const host = hosts[0]
         const frame = host?.shadowRoot?.querySelector('iframe')
         const box = frame?.getBoundingClientRect()
         return {
           hosts: hosts.length,
-          marked: host?.hasAttribute('data-reglet-root') ?? false,
+          marked: host?.hasAttribute('data-primp-root') ?? false,
           parent: host?.parentElement?.localName,
           topLayer: host?.matches(':popover-open') ?? false,
           position: host === undefined ? '' : getComputedStyle(host).position,
           hostBox: host === undefined ? '' : `${host.getBoundingClientRect().width}x${host.getBoundingClientRect().height}`,
           frame: box === undefined ? undefined : { w: Math.round(box.width), h: Math.round(box.height), inView: box.left >= 0 && box.top >= 0 && box.right <= innerWidth && box.bottom <= innerHeight },
-          leftoverScript: document.querySelectorAll('script[data-reglet-root]').length,
-          focusStolen: document.activeElement !== document.body && document.activeElement !== null && document.activeElement.localName === 'reglet-root',
-          hook: typeof window.__reglet?.recording === 'function',
-          bus: typeof window.__reglet_bus?.send === 'function',
+          leftoverScript: document.querySelectorAll('script[data-primp-root]').length,
+          focusStolen: document.activeElement !== document.body && document.activeElement !== null && document.activeElement.localName === 'primp-root',
+          hook: typeof window.__primp?.recording === 'function',
+          bus: typeof window.__primp_bus?.send === 'function',
         }
       })
       const state = await testState(page.page)
@@ -149,17 +149,17 @@ async function mountChecks(browser: Browser, lane: Lane, path: string, observeMs
       expect(facts.hosts === 1 && facts.marked && facts.parent === 'html', `host: ${JSON.stringify(facts)}`)
       expect(facts.topLayer && facts.position === 'fixed' && facts.hostBox === '0x0', `host is not a 0x0 fixed box in the top layer: ${JSON.stringify(facts)}`)
       expect(facts.frame !== undefined && facts.frame.w >= 240 && facts.frame.h >= 200 && facts.frame.inView, `dock frame: ${JSON.stringify(facts.frame)}`)
-      expect(facts.hook && facts.bus, 'window.__reglet or window.__reglet_bus is missing')
+      expect(facts.hook && facts.bus, 'window.__primp or window.__primp_bus is missing')
       expect(facts.leftoverScript === 0, 'the loader script element was left in the document')
       expect(!facts.focusStolen, 'the dock took focus on load')
       expect(state.connected && state.ready && state.mounted, `state: ${JSON.stringify(state)}`)
-      expect(dockText.tabs === 3 && dockText.text.includes('reglet') && dockText.text.includes(lane.name), `dock content: ${JSON.stringify(dockText).slice(0, 200)}`)
-      const documents = lane.reglet.session.documents()
-      await waitFor(() => lane.reglet.detector.status().browsers === 1, { timeoutMs: 3000, what: 'the settle detector to count the document' })
+      expect(dockText.tabs === 3 && dockText.text.includes('primp') && dockText.text.includes(lane.name), `dock content: ${JSON.stringify(dockText).slice(0, 200)}`)
+      const documents = lane.primp.session.documents()
+      await waitFor(() => lane.primp.detector.status().browsers === 1, { timeoutMs: 3000, what: 'the settle detector to count the document' })
       expect(documents.length === 1 && documents[0]?.url.endsWith(path) === true, `the session knows ${documents.length} document(s): ${JSON.stringify(documents).slice(0, 200)}`)
       const problems = hygiene(page, lane)
       expect(problems.length === 0, problems.join('; '))
-      const sockets = page.record.webSockets.filter((url) => url.includes('/__reglet/'))
+      const sockets = page.record.webSockets.filter((url) => url.includes('/__primp/'))
       expect(sockets.length === 1, `expected ONE overlay socket, the page opened ${sockets.length}: ${sockets.join(', ')}`)
       return `host 0x0 fixed in the top layer, dock ${facts.frame.w}x${facts.frame.h}, project "${lane.name}" shown, 1 overlay socket serving the session (1 document) and the settle detector (1 browser), ${hygieneText(page, lane)}`
     } finally {
@@ -182,8 +182,8 @@ async function mountChecks(browser: Browser, lane: Lane, path: string, observeMs
       try {
         await handle.page.goto(lane.control.url + path, { waitUntil: 'load' })
         await sleep(observeMs)
-        const clean = await handle.page.evaluate(() => window.__reglet === undefined && document.querySelector('reglet-root') === null)
-        expect(clean, 'the control page has reglet in it')
+        const clean = await handle.page.evaluate(() => window.__primp === undefined && document.querySelector('primp-root') === null)
+        expect(clean, 'the control page has primp in it')
         return await readPlainEntries(handle.page)
       } finally {
         await handle.close()
@@ -211,7 +211,7 @@ async function viteSelection(browser: Browser, lane: Lane): Promise<void> {
   const page = await openDock(browser, lane, '/')
   try {
     await report.attempt('select through the test handle: Ref, unique selector, instances, source badge', async () => {
-      const ref = await page.page.evaluate((selector) => window.__reglet_test!.select(selector), CARD)
+      const ref = await page.page.evaluate((selector) => window.__primp_test!.select(selector), CARD)
       const matches = await page.page.evaluate((selector) => document.querySelectorAll(selector).length, ref.selector)
       expect(matches === 1, `selector ${ref.selector} matches ${matches} elements`)
       expect(ref.label.startsWith('article.card "'), `label is ${ref.label}`)
@@ -240,7 +240,7 @@ async function viteSelection(browser: Browser, lane: Lane): Promise<void> {
       await page.page.mouse.move(x, y)
       const hover = await waitFor(() =>
         page.page.evaluate(() => {
-          const box = document.querySelector('reglet-root')?.shadowRoot?.querySelector<HTMLElement>('.box.hover')
+          const box = document.querySelector('primp-root')?.shadowRoot?.querySelector<HTMLElement>('.box.hover')
           if (box === null || box === undefined || getComputedStyle(box).display === 'none') return undefined
           const r = box.getBoundingClientRect()
           return { x: r.left, y: r.top, w: r.width, h: r.height, label: box.textContent ?? '' }
@@ -248,17 +248,17 @@ async function viteSelection(browser: Browser, lane: Lane): Promise<void> {
       )
       expect(Math.abs(hover.x - dismiss.x) <= 1 && Math.abs(hover.y - dismiss.y) <= 1 && Math.abs(hover.w - dismiss.w) <= 1, `hover box ${JSON.stringify(hover)} is not on the button ${JSON.stringify(dismiss)}`)
       await page.page.mouse.click(x, y)
-      const afterPick = await page.page.evaluate(() => ({ selected: window.__reglet_test!.selection()?.label, banner: document.querySelector('[data-label="banner"]') !== null, pick: window.__reglet_test!.state().pickMode }))
+      const afterPick = await page.page.evaluate(() => ({ selected: window.__primp_test!.selection()?.label, banner: document.querySelector('[data-label="banner"]') !== null, pick: window.__primp_test!.state().pickMode }))
       expect(afterPick.selected?.startsWith('button.banner__dismiss') === true, `selected ${afterPick.selected}`)
       expect(afterPick.banner, 'the Dismiss handler of the app ran: the banner is gone')
       expect(!afterPick.pick, 'pick mode stayed on after the click')
       // A link is not followed either.
-      await page.page.evaluate(() => window.__reglet_test!.pick(true))
+      await page.page.evaluate(() => window.__primp_test!.pick(true))
       const link = await rect(page.page, '[data-label="nav-big"]')
       await page.page.mouse.click(link.x + link.w / 2, link.y + link.h / 2)
       await sleep(150)
       expect(page.record.documentRequests.length === documents && new URL(page.page.url()).pathname === '/', `the link was followed: ${page.page.url()}`)
-      expect((await page.page.evaluate(() => window.__reglet_test!.selection()?.tag)) === 'a', 'the link was not selected')
+      expect((await page.page.evaluate(() => window.__primp_test!.selection()?.tag)) === 'a', 'the link was not selected')
       // With pick mode off the same click reaches the app.
       await page.page.mouse.click(x, y)
       const dismissed = await waitFor(() => page.page.evaluate(() => document.querySelector('[data-label="banner"]') === null))
@@ -267,15 +267,15 @@ async function viteSelection(browser: Browser, lane: Lane): Promise<void> {
     })
 
     await report.attempt('keyboard in pick mode: arrows walk parent / child / siblings, Escape leaves (from the page and from the dock)', async () => {
-      await page.page.evaluate((selector) => window.__reglet_test!.select(`${selector}:nth-of-type(2)`), CARD)
-      await page.page.evaluate(() => window.__reglet_test!.pick(true))
+      await page.page.evaluate((selector) => window.__primp_test!.select(`${selector}:nth-of-type(2)`), CARD)
+      await page.page.evaluate(() => window.__primp_test!.pick(true))
       await page.page.locator('body').focus()
-      const label = (): Promise<string | undefined> => page.page.evaluate(() => window.__reglet_test!.selection()?.label)
+      const label = (): Promise<string | undefined> => page.page.evaluate(() => window.__primp_test!.selection()?.label)
       await page.page.keyboard.press('ArrowRight')
       const next = await label()
       await page.page.keyboard.press('ArrowLeft')
       await page.page.keyboard.press('ArrowUp')
-      const parent = await page.page.evaluate(() => window.__reglet_test!.selection()?.locator.testId ?? window.__reglet_test!.selection()?.tag)
+      const parent = await page.page.evaluate(() => window.__primp_test!.selection()?.locator.testId ?? window.__primp_test!.selection()?.tag)
       await page.page.keyboard.press('ArrowDown')
       const child = await label()
       expect(next?.includes('03') === true && parent === 'div' && child?.includes('01') === true, `right -> ${next}; up -> ${parent}; down -> ${child}`)
@@ -297,14 +297,14 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
   const t = page.page
   const first = `${CARD}:nth-of-type(1)`
   try {
-    await t.evaluate((selector) => window.__reglet_test!.select(selector), first)
+    await t.evaluate((selector) => window.__primp_test!.select(selector), first)
     await waitFor(async () => (await testState(t)).source?.state === 'done')
 
     let itemId = ''
     await report.attempt('padding on a card: computed style, before/after, longhands, origin, and a side-effect summary that matches an independent measurement', async () => {
       const pricingBefore = await rect(t, '#pricing')
       const neighbourBefore = await rect(t, `${CARD}:nth-of-type(2)`)
-      const result = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '28px'))
+      const result = await t.evaluate(() => window.__primp_test!.setStyle('padding', '28px'))
       expect(result.ok, `rejected: ${result.error}`)
       const item = style(result.item)
       itemId = item.id
@@ -337,16 +337,16 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
       const neighbour = item.sideEffects.find((effect) => effect.selector.endsWith('article:nth-of-type(2)'))
       expect(neighbour?.type === 'resized' && near(neighbour.after.h - neighbour.before.h, dh), `neighbour effect: ${JSON.stringify(neighbour)}`)
       expect(!item.sideEffects.some((effect) => effect.selector === item.target.selector), 'the edited element is listed as its own side effect')
-      const summary = await t.evaluate((id) => window.__reglet_test!.summary(id), item.id)
+      const summary = await t.evaluate((id) => window.__primp_test!.summary(id), item.id)
       expect(summary.includes(`moved down ${px(dy)}`) && summary.includes(`${px(dh)} taller`), `summary "${summary}" does not say "moved down ${px(dy)}" and "${px(dh)} taller"`)
       const cost = (await testState(t)).lastEffects
-      const stored = await waitFor(() => lane.reglet.session.item(item.id), { timeoutMs: 3000, what: 'the server to store the item' })
+      const stored = await waitFor(() => lane.primp.session.item(item.id), { timeoutMs: 3000, what: 'the server to store the item' })
       expect(stored.kind === 'style' && stored.after.authored === '28px' && stored.status === 'draft', `the server stored ${JSON.stringify(stored).slice(0, 160)}`)
       return `card padding 20px -> 28px (others unchanged); longhands 4/4; origin ${item.origin.selector} in ${item.origin.sheet.split('/').pop()}; #pricing measured ${pricingBefore.y} -> ${pricingAfter.y} = recorded effect; neighbour +${dh}px = recorded; summary "${summary}"; ${item.sideEffects.length} effects in ${cost?.ms.toFixed(1)} ms over ${cost?.elements} elements`
     })
 
     await report.attempt('editing the same property again keeps ONE item with the original before value', async () => {
-      const result = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '32px'))
+      const result = await t.evaluate(() => window.__primp_test!.setStyle('padding', '32px'))
       const item = style(result.item)
       const all = await items(t)
       expect(all.length === 1 && item.id === itemId, `${all.length} items; id ${item.id} vs ${itemId}`)
@@ -365,27 +365,27 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
       expect(sharedLine.text === `rule ${item.origin?.selector} also styles 5 other elements`, `the tray says "${sharedLine.text}"`)
       expect(bystanders.every((entry) => sharedLine.title.includes(entry.label)) && sharedLine.title.includes('and 2 more'), `tooltip: ${sharedLine.title}`)
       await waitFor(() => {
-        const stored = lane.reglet.session.item(itemId)
+        const stored = lane.primp.session.item(itemId)
         return stored?.kind === 'style' && stored.after.authored === '32px' && stored.before.computed === '20px'
       }, { timeoutMs: 3000, what: 'the server to hold the updated item' })
-      expect(lane.reglet.session.items().length === 1, `the server holds ${lane.reglet.session.items().length} items`)
+      expect(lane.primp.session.items().length === 1, `the server holds ${lane.primp.session.items().length} items`)
       return `1 item, same id; before 20px (authored and computed), after 32px; side effects re-measured against the original (#pricing +24px); 3 bystanders still at their original 20px; the tray says "${sharedLine.text}"`
     })
 
     await report.attempt('setting the property back to its original value deletes the item', async () => {
-      const result = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '20px'))
+      const result = await t.evaluate(() => window.__primp_test!.setStyle('padding', '20px'))
       expect(result.ok && result.item === null, `result: ${JSON.stringify(result).slice(0, 200)}`)
       const state = await testState(t)
       expect((await items(t)).length === 0 && state.previewCss === '' && (await marks(t)) === 0, `items ${(await items(t)).length}, preview css "${state.previewCss}", marks ${await marks(t)}`)
       expect((await computed(t, first, 'padding')) === '20px', 'the page is not back at 20px')
-      await waitFor(() => lane.reglet.session.items().length === 0, { timeoutMs: 3000, what: 'the server to drop the item' })
+      await waitFor(() => lane.primp.session.items().length === 0, { timeoutMs: 3000, what: 'the server to drop the item' })
       return '0 items, empty preview stylesheet, no mark left on the page, session:delete sent'
     })
 
     await report.attempt('an invalid value or an unknown property is rejected with a message, and nothing is recorded', async () => {
-      const bad = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '12pxx'))
-      const unknown = await t.evaluate(() => window.__reglet_test!.setStyle('paddding', '12px'))
-      const important = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '12px !important'))
+      const bad = await t.evaluate(() => window.__primp_test!.setStyle('padding', '12pxx'))
+      const unknown = await t.evaluate(() => window.__primp_test!.setStyle('paddding', '12px'))
+      const important = await t.evaluate(() => window.__primp_test!.setStyle('padding', '12px !important'))
       expect(!bad.ok && bad.error?.includes('not a valid value for padding') === true, `12pxx: ${JSON.stringify(bad)}`)
       expect(!unknown.ok && unknown.error?.includes('not a CSS property') === true, `paddding: ${JSON.stringify(unknown)}`)
       expect(!important.ok, '"12px !important" was accepted')
@@ -414,15 +414,15 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
       await input.press('ArrowDown')
       // The item is committed a frame after the preview shows.
       await waitFor(async () => (await computed(t, first, 'padding')) === '34px' && style((await items(t))[0]).after.authored === '34px')
-      await t.evaluate(() => window.__reglet_overlay!.controller.idle())
+      await t.evaluate(() => window.__primp_overlay!.controller.idle())
       const all = await items(t)
       expect(all.length === 1 && style(all[0]).before.computed === '20px' && style(all[0]).after.authored === '34px', `items: ${JSON.stringify(all.map((item) => (item.kind === 'style' ? [item.before.computed, item.after.authored] : item.op)))}`)
       const tray = await page.dock.evaluate(() => document.querySelector('.tray .item .change')?.textContent ?? '')
       expect(tray.includes('padding') && tray.includes('20px') && tray.includes('34px'), `tray line: "${tray}"`)
-      await t.evaluate(() => window.__reglet_test!.undo())
-      await t.evaluate(() => window.__reglet_test!.undo())
-      await t.evaluate(() => window.__reglet_test!.undo())
-      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
       expect((await items(t)).length === 0, 'four undos did not clear the four steps')
       return `24px (Enter) -> 25px (ArrowUp) -> 35px (Shift+ArrowUp) -> 34px (ArrowDown): one item, before 20px; the tray reads "${tray.trim()}"`
     })
@@ -437,44 +437,44 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
         css: (await testState(t)).previewCss,
       })
       const s0 = await snapshot()
-      await t.evaluate(() => window.__reglet_test!.setStyle('padding', '28px'))
+      await t.evaluate(() => window.__primp_test!.setStyle('padding', '28px'))
       const s1 = await snapshot()
-      await t.evaluate(() => window.__reglet_test!.setStyle('gap', '2px'))
+      await t.evaluate(() => window.__primp_test!.setStyle('gap', '2px'))
       const s2 = await snapshot()
       expect(s2.padding === '28px' && s2.gap === '2px' && JSON.parse(s2.items).length === 2, `after two edits: ${s2.padding}, ${s2.gap}, ${JSON.parse(s2.items).length} items`)
-      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
       const u1 = await snapshot()
       expect(JSON.stringify(u1) === JSON.stringify(s1), `after one undo the state differs from the state after the first edit:\n${JSON.stringify(u1).slice(0, 300)}\n${JSON.stringify(s1).slice(0, 300)}`)
       // The second undo with the keyboard, in pick mode.
-      await t.evaluate(() => window.__reglet_test!.pick(true))
+      await t.evaluate(() => window.__primp_test!.pick(true))
       await t.locator('body').focus()
       await t.keyboard.press('Control+z')
       const u0 = await snapshot()
       expect(JSON.stringify(u0) === JSON.stringify(s0), `after two undos the state differs from the start: ${JSON.stringify(u0).slice(0, 300)}`)
       await t.keyboard.press('Control+Shift+z')
-      await t.evaluate(() => window.__reglet_test!.pick(false))
+      await t.evaluate(() => window.__primp_test!.pick(false))
       const r1 = await snapshot()
       expect(JSON.stringify(r1) === JSON.stringify(s1), 'after redo the state differs from the state after the first edit')
-      await t.evaluate(() => window.__reglet_test!.redo())
+      await t.evaluate(() => window.__primp_test!.redo())
       const r2 = await snapshot()
       expect(JSON.stringify(r2) === JSON.stringify(s2), 'after the second redo the state differs from the state after both edits')
       const state = await testState(t)
       expect(state.canUndo && !state.canRedo, `canUndo ${state.canUndo}, canRedo ${state.canRedo}`)
-      await waitFor(() => lane.reglet.session.items().length === 2, { timeoutMs: 3000 })
-      await t.evaluate(() => window.__reglet_test!.undo())
-      await t.evaluate(() => window.__reglet_test!.undo())
-      await waitFor(() => lane.reglet.session.items().length === 0, { timeoutMs: 3000 })
+      await waitFor(() => lane.primp.session.items().length === 2, { timeoutMs: 3000 })
+      await t.evaluate(() => window.__primp_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
+      await waitFor(() => lane.primp.session.items().length === 0, { timeoutMs: 3000 })
       return 'two edits; undo, undo (Ctrl+Z in pick mode), redo (Ctrl+Shift+Z), redo: items JSON, computed styles, marks and preview stylesheet identical at every step; the server followed (2 items, then 0)'
     })
 
     await report.attempt('scope "all instances" changes all 6 cards', async () => {
-      const result = await t.evaluate(() => window.__reglet_test!.setStyle('border-radius', '2px', { scope: 'all-instances' }))
+      const result = await t.evaluate(() => window.__primp_test!.setStyle('border-radius', '2px', { scope: 'all-instances' }))
       const item = style(result.item)
       const radii = await computedAll(t, CARD, 'border-radius')
       expect(radii.length === 6 && radii.every((value) => value === '2px'), `border-radius of the cards: ${radii.join(', ')}`)
       expect(item.scope === 'all-instances' && item.target.instanceCount === 6 && (await marks(t)) === 6, `scope ${item.scope}, instanceCount ${item.target.instanceCount}, marks ${await marks(t)}`)
       const label = await page.dock.evaluate(() => [...document.querySelectorAll('.seg button')].map((button) => button.textContent).join(' | '))
-      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
       const back = await computedAll(t, CARD, 'border-radius')
       expect(back.every((value) => value === '12px') && (await marks(t)) === 0, `after undo: ${back.join(', ')}, marks ${await marks(t)}`)
       return `6 of 6 cards at 2px with 6 marks; the scope control reads "${label}"; undo restores 12px and removes every mark`
@@ -482,11 +482,11 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
 
     await report.attempt('an edit scoped to a matching @media query applies, and stops applying outside the query', async () => {
       const featured = '.plan--featured'
-      await t.evaluate((selector) => window.__reglet_test!.select(selector), featured)
+      await t.evaluate((selector) => window.__primp_test!.select(selector), featured)
       const options = await page.dock.evaluate(() => [...document.querySelectorAll('select option')].map((option) => option.textContent ?? ''))
       expect(options.some((option) => option.includes('(min-width: 768px)')) && options[0] === 'No media query', `media control offers: ${options.join(' | ')}`)
       const before = await computed(t, featured, 'padding-top')
-      const result = await t.evaluate(() => window.__reglet_test!.setStyle('padding-top', '40px', { media: '(min-width: 768px)' }))
+      const result = await t.evaluate(() => window.__primp_test!.setStyle('padding-top', '40px', { media: '(min-width: 768px)' }))
       const item = style(result.item)
       const state = await testState(t)
       expect(item.condition.media === '(min-width: 768px)' && item.before.computed === '32px' && item.after.computed === '40px', `item: ${JSON.stringify({ condition: item.condition, before: item.before, after: item.after })}`)
@@ -496,21 +496,21 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
       const wide = await computed(t, featured, 'padding-top')
       await t.setViewportSize({ width: 600, height: 800 })
       const narrow = await computed(t, featured, 'padding-top')
-      const refused = await t.evaluate(() => window.__reglet_test!.setStyle('padding-bottom', '40px', { media: '(min-width: 768px)' }))
+      const refused = await t.evaluate(() => window.__primp_test!.setStyle('padding-bottom', '40px', { media: '(min-width: 768px)' }))
       await t.setViewportSize({ width: 1280, height: 800 })
       const again = await computed(t, featured, 'padding-top')
       expect(before === '32px' && wide === '40px' && narrow === '24px' && again === '40px', `padding-top: ${before} before, ${wide} at 1280, ${narrow} at 600, ${again} back at 1280`)
       expect(!refused.ok && refused.error?.includes('does not match') === true, `an edit under a query that does not match was accepted: ${JSON.stringify(refused).slice(0, 160)}`)
-      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
       return `padding-top 32px -> 40px inside @media (min-width: 768px) at 1280px; 24px (the unscoped rule) at 600px; 40px again at 1280px; editing under the query at 600px is refused`
     })
 
     await report.attempt('styling systems are told apart', async () => {
       const system = async (selector: string, property: string, value: string): Promise<string> => {
-        await t.evaluate((sel) => window.__reglet_test!.select(sel), selector)
-        const result = await t.evaluate(([prop, val]) => window.__reglet_test!.setStyle(prop, val), [property, value] as const)
+        await t.evaluate((sel) => window.__primp_test!.select(sel), selector)
+        const result = await t.evaluate(([prop, val]) => window.__primp_test!.setStyle(prop, val), [property, value] as const)
         const item = style(result.item)
-        await t.evaluate(() => window.__reglet_test!.undo())
+        await t.evaluate(() => window.__primp_test!.undo())
         return `${item.stylingSystem} (${item.origin?.via}${item.origin?.selector === undefined ? '' : ` ${item.origin.selector}`})`
       }
       const card = await system(first, 'gap', '4px')
@@ -523,19 +523,19 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
     await report.attempt('hide and remove preview as display:none, the node stays, and the content below is reported as moving up by the element\'s height', async () => {
       const banner = await rect(t, BANNER)
       const mainBefore = await rect(t, '[data-label="main"]')
-      await t.evaluate((selector) => window.__reglet_test!.select(selector), BANNER)
-      const hidden = await t.evaluate(() => window.__reglet_test!.hide())
+      await t.evaluate((selector) => window.__primp_test!.select(selector), BANNER)
+      const hidden = await t.evaluate(() => window.__primp_test!.hide())
       expect(hidden.ok && hidden.item?.kind === 'structure' && hidden.item.op === 'hide', `hide: ${JSON.stringify(hidden).slice(0, 160)}`)
       const mainAfter = await rect(t, '[data-label="main"]')
       const up = mainBefore.y - mainAfter.y
       expect((await computed(t, BANNER, 'display')) === 'none' && near(up, banner.h) && banner.h > 20, `display ${await computed(t, BANNER, 'display')}; main moved up ${up}px, banner height ${banner.h}px`)
       const effect = hidden.item.sideEffects.find((entry) => entry.selector === 'main' || entry.label.startsWith('main'))
       expect(effect?.type === 'moved' && near(effect.before.y - effect.after.y, up), `effect for <main>: ${JSON.stringify(effect)}; measured ${up}px`)
-      const summary = await t.evaluate((id) => window.__reglet_test!.summary(id), hidden.item.id)
+      const summary = await t.evaluate((id) => window.__primp_test!.summary(id), hidden.item.id)
       expect(summary.includes(`moved up ${px(up)}`), `summary "${summary}" does not say "moved up ${px(up)}"`)
       expect(JSON.stringify(hidden.item.expect) === JSON.stringify([{ type: 'hidden' }]), `expect: ${JSON.stringify(hidden.item.expect)}`)
 
-      const removed = await t.evaluate(() => window.__reglet_test!.remove())
+      const removed = await t.evaluate(() => window.__primp_test!.remove())
       const afterRemove = await items(t)
       expect(removed.ok && removed.item?.kind === 'structure' && removed.item.op === 'remove' && afterRemove.length === 1, `remove: ${JSON.stringify(removed).slice(0, 120)}; ${afterRemove.length} items`)
       expect(JSON.stringify(removed.item.expect) === JSON.stringify([{ type: 'absent' }]), `expect: ${JSON.stringify(removed.item.expect)}`)
@@ -544,22 +544,22 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
       const still = await t.evaluate((selector) => document.querySelector(selector)?.isConnected === true, BANNER)
       expect(still && (await computed(t, BANNER, 'display')) === 'none', 'the banner node was taken out of the DOM')
 
-      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
       const undone = await items(t)
       expect(undone.length === 1 && undone[0]?.kind === 'structure' && undone[0].op === 'hide' && (await computed(t, BANNER, 'display')) === 'none', 'undo did not bring the hide back')
-      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
       const restored = await rect(t, '[data-label="main"]')
       expect((await items(t)).length === 0 && (await computed(t, BANNER, 'display')) === 'flex' && near(restored.y, mainBefore.y), `after undo: display ${await computed(t, BANNER, 'display')}, main at ${restored.y} (was ${mainBefore.y})`)
       return `banner ${banner.h}px high: hide -> display none, <main> measured ${mainBefore.y} -> ${mainAfter.y}, effect recorded with the same numbers, summary "${summary}"; remove replaces hide (expect absent), node still in the DOM; two undos restore the page`
     })
 
     await report.attempt('add-property autocomplete: every supported property, shorthands included', async () => {
-      const names = await t.evaluate(() => window.__reglet_test!.properties())
+      const names = await t.evaluate(() => window.__primp_test!.properties())
       const wanted = ['padding', 'margin', 'border', 'gap', 'inset', 'background', 'font', 'flex', 'grid-template-columns', 'transition']
       const missing = wanted.filter((name) => !names.includes(name))
       expect(names.length >= 300 && missing.length === 0, `${names.length} properties; missing: ${missing.join(', ')}`)
       expect(names.every((name) => name === name.toLowerCase() || name.startsWith('--')) && new Set(names).size === names.length && !names.includes('cssText') && !names.includes('css-text'), 'the list has names that are not kebab-case properties, or duplicates')
-      await t.evaluate((selector) => window.__reglet_test!.select(selector), first)
+      await t.evaluate((selector) => window.__primp_test!.select(selector), first)
       const input = page.dock.locator('input[aria-label="Property to add"]')
       await input.fill('pad')
       const options = await waitFor(() => page.dock.evaluate(() => {
@@ -574,7 +574,7 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
       await waitFor(async () => (await computed(t, first, 'opacity')) === '0.5' && (await items(t)).length === 1)
       const added = style((await items(t))[0])
       expect(added.property === 'opacity' && added.before.computed === '1' && added.origin?.via === 'default', `added: ${JSON.stringify({ property: added.property, before: added.before, origin: added.origin })}`)
-      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
       return `${names.length} properties, all of ${wanted.join(', ')} present; typing "pad" suggests ${options.slice(0, 4).join(', ')}...; "opacity: 0.5" added through the row (before 1, origin default)`
     })
   } finally {
@@ -589,9 +589,9 @@ async function viteVerdictAndSend(browser: Browser, lane: Lane): Promise<void> {
   try {
     const resolved = (): Promise<unknown> => waitFor(async () => (await testState(t)).source?.state === 'done', { timeoutMs: 20_000, what: 'the source position to resolve' })
     await report.attempt('marking a side effect unwanted sets the verdict and derives a must-not-move expectation', async () => {
-      await t.evaluate((selector) => window.__reglet_test!.select(selector), first)
+      await t.evaluate((selector) => window.__primp_test!.select(selector), first)
       await resolved()
-      const result = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '28px'))
+      const result = await t.evaluate(() => window.__primp_test!.setStyle('padding', '28px'))
       const item = style(result.item)
       const index = item.sideEffects.findIndex((effect) => effect.selector === '#pricing')
       expect(index >= 0, 'no #pricing side effect')
@@ -604,21 +604,21 @@ async function viteVerdictAndSend(browser: Browser, lane: Lane): Promise<void> {
       })
       const noMove = updated.expect.find((entry): entry is Extract<Expectation, { type: 'no-move' }> => entry.type === 'no-move')
       expect(noMove !== undefined && noMove.rect.y === item.sideEffects[index]!.before.y && noMove.locator.id === 'pricing' && noMove.tolerancePx > 0, `expect: ${JSON.stringify(updated.expect).slice(0, 300)}`)
-      const back = await t.evaluate(([id, at]) => window.__reglet_test!.setVerdict(id, at, 'unreviewed'), [item.id, index] as const)
+      const back = await t.evaluate(([id, at]) => window.__primp_test!.setVerdict(id, at, 'unreviewed'), [item.id, index] as const)
       expect(back?.expect.every((entry) => entry.type !== 'no-move') === true, 'clearing the verdict left the constraint')
-      await t.evaluate(([id, at]) => window.__reglet_test!.setVerdict(id, at, 'unwanted'), [item.id, index] as const)
+      await t.evaluate(([id, at]) => window.__primp_test!.setVerdict(id, at, 'unwanted'), [item.id, index] as const)
       await waitFor(() => {
-        const stored = lane.reglet.session.item(item.id)
+        const stored = lane.primp.session.item(item.id)
         return stored?.sideEffects[index]?.verdict === 'unwanted' && stored.expect.some((entry) => entry.type === 'no-move')
       }, { timeoutMs: 3000, what: 'the server to hold the verdict' })
       return `ticking "unwanted" for #pricing in the dock: verdict unwanted, expectation no-move at y=${noMove.rect.y} (the BEFORE rectangle), sent to the server; unticking removes it`
     })
 
     await report.attempt('Send (clicked in the dock): prompt on the clipboard, previews off, items queued, the message shown', async () => {
-      await t.evaluate((selector) => window.__reglet_test!.select(selector), BANNER)
+      await t.evaluate((selector) => window.__primp_test!.select(selector), BANNER)
       await resolved()
-      await t.evaluate(() => window.__reglet_test!.hide())
-      await t.evaluate((id) => window.__reglet_test!.setNote(id, 'Keep the pricing section where it is.'), (await items(t))[0]!.id)
+      await t.evaluate(() => window.__primp_test!.hide())
+      await t.evaluate((id) => window.__primp_test!.setNote(id, 'Keep the pricing section where it is.'), (await items(t))[0]!.id)
       expect((await computed(t, first, 'padding')) === '28px' && (await computed(t, BANNER, 'display')) === 'none', 'the two previews are not applied before sending')
       const button = page.dock.locator('.foot button.primary')
       const label = (await button.textContent()) ?? ''
@@ -627,7 +627,7 @@ async function viteVerdictAndSend(browser: Browser, lane: Lane): Promise<void> {
       const notice = await waitFor(() => page.dock.evaluate(() => document.querySelector('.notice')?.textContent ?? undefined), { timeoutMs: 5000 })
       expect(notice.includes(SENT_TEXT), `the dock says "${notice}"`)
       const clipboard = await t.evaluate(() => navigator.clipboard.readText())
-      const batches = lane.reglet.session.batches()
+      const batches = lane.primp.session.batches()
       expect(batches.length === 1 && batches[0]?.itemIds.length === 2, `batches on the server: ${JSON.stringify(batches).slice(0, 200)}`)
       // The prompt is the engine's; it must carry what was recorded here.
       const wanted = ['src/components/Card.tsx', 'padding', '20px', '28px', 'src/components/Banner.tsx', 'Keep the pricing section where it is.', '#pricing']
@@ -639,7 +639,7 @@ async function viteVerdictAndSend(browser: Browser, lane: Lane): Promise<void> {
       expect(all.length === 2 && all.every((item) => item.status === 'queued' && item.batchId !== undefined), `items: ${all.map((item) => item.status).join(', ')}`)
       expect(all[0]?.note === 'Keep the pricing section where it is.', `note: ${all[0]?.note}`)
       expect(!state.canUndo && state.sent?.copied === true && state.sent.count === 2, `state: ${JSON.stringify({ canUndo: state.canUndo, sent: state.sent })}`)
-      await t.evaluate(() => window.__reglet_test!.openTab('verify'))
+      await t.evaluate(() => window.__primp_test!.openTab('verify'))
       const verify = await waitFor(() => page.dock.evaluate(() => {
         const rows = [...document.querySelectorAll('[data-item] [data-status]')].map((chip) => chip.getAttribute('data-status'))
         return rows.length === 2 ? rows : undefined
@@ -652,7 +652,7 @@ async function viteVerdictAndSend(browser: Browser, lane: Lane): Promise<void> {
       const [a, b] = await items(t)
       expect(a !== undefined && b !== undefined && a.kind === 'style', 'expected two sent items')
       const check = a.expect[0]!
-      lane.reglet.session.patchItem(a.id, {
+      lane.primp.session.patchItem(a.id, {
         status: 'failed',
         verification: {
           itemId: a.id,
@@ -664,7 +664,7 @@ async function viteVerdictAndSend(browser: Browser, lane: Lane): Promise<void> {
           hint: 'padding-top is 24px, expected 28px.',
         },
       })
-      lane.reglet.session.patchItem(b.id, { status: 'verified' })
+      lane.primp.session.patchItem(b.id, { status: 'verified' })
       const text = await waitFor(() => page.dock.evaluate(() => {
         const body = document.querySelector('#panel')?.textContent ?? ''
         return body.includes('expected 28px') ? body : undefined
@@ -672,15 +672,15 @@ async function viteVerdictAndSend(browser: Browser, lane: Lane): Promise<void> {
       const statuses = await page.dock.evaluate(() => [...document.querySelectorAll('[data-item] [data-status]')].map((chip) => chip.getAttribute('data-status')))
       expect(statuses.includes('failed') && statuses.includes('verified'), `statuses: ${statuses.join(', ')}`)
       expect(text.includes('got 24px') && text.includes('padding-top is 24px, expected 28px.') && text.includes('settled by hmr'), `Verify tab text: ${text.slice(0, 300)}`)
-      await t.evaluate(() => window.__reglet_test!.openTab('edits'))
+      await t.evaluate(() => window.__primp_test!.openTab('edits'))
       return 'a failed item shows "fail", the check (expected 28px, got 24px, off by 4), the hint and the settle signal; the other shows "verified"'
     })
 
     await report.attempt('send() through the test handle returns the prompt; without clipboard access the prompt is shown for manual copying', async () => {
       const denied = await openDock(browser, lane, '/', { keepSession: true })
       try {
-        await denied.page.evaluate((selector) => window.__reglet_test!.select(selector), first)
-        await denied.page.evaluate(() => window.__reglet_test!.setStyle('gap', '2px'))
+        await denied.page.evaluate((selector) => window.__primp_test!.select(selector), first)
+        await denied.page.evaluate(() => window.__primp_test!.setStyle('gap', '2px'))
         // Make the clipboard refuse, as it does without focus or permission.
         await denied.dock.evaluate(() => {
           Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new DOMException('denied', 'NotAllowedError')) } })
@@ -688,7 +688,7 @@ async function viteVerdictAndSend(browser: Browser, lane: Lane): Promise<void> {
         await denied.page.evaluate(() => {
           Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new DOMException('denied', 'NotAllowedError')) } })
         })
-        const prompt = await denied.page.evaluate(() => window.__reglet_test!.send())
+        const prompt = await denied.page.evaluate(() => window.__primp_test!.send())
         const state = await testState(denied.page)
         const shown = await waitFor(() => denied.dock.evaluate(() => (document.querySelector('textarea.prompt') as HTMLTextAreaElement | null)?.value ?? undefined))
         expect(prompt.includes('gap') && prompt.includes('2px') && prompt.includes('Card.tsx') && shown === prompt && state.sent?.copied === false, `shown ${shown === prompt}, copied ${state.sent?.copied}, prompt:\n${prompt}`)
@@ -709,9 +709,9 @@ async function viteHmr(browser: Browser, lane: Lane): Promise<void> {
   const third = `${CARD}:nth-of-type(3)`
   const RED = 'rgb(255, 0, 0)'
   try {
-    await waitFor(() => page.record.webSockets.some((url) => !url.includes('/__reglet/')) && lane.reglet.hmr.status().live, { what: 'the HMR socket' })
-    await t.evaluate((selector) => window.__reglet_test!.select(selector), third)
-    const result = await t.evaluate((value) => window.__reglet_test!.setStyle('background-color', value), RED)
+    await waitFor(() => page.record.webSockets.some((url) => !url.includes('/__primp/')) && lane.primp.hmr.status().live, { what: 'the HMR socket' })
+    await t.evaluate((selector) => window.__primp_test!.select(selector), third)
+    const result = await t.evaluate((value) => window.__primp_test!.setStyle('background-color', value), RED)
     const item = style(result.item)
     expect((await computed(t, third, 'background-color')) === RED, 'the preview was not applied')
 
@@ -733,7 +733,7 @@ async function viteHmr(browser: Browser, lane: Lane): Promise<void> {
       reverts.push(editFile(lane.fixture, 'src/components/Features.tsx', replaceOnce('key={card.id}', "key={card.id + '-remounted'}")).revert)
       await waitFor(() => t.evaluate(() => (window as unknown as { __old: Element | null }).__old?.isConnected === false), { what: 'React to replace the card nodes' })
       const followed = await waitFor(async () => ((await computed(t, third, 'background-color')) === RED ? true : undefined), { timeoutMs: 3000, what: 'the preview to be applied to the new node' })
-      const facts = await t.evaluate(([selector, uid]) => ({ mark: document.querySelector(selector)?.getAttribute('data-reglet-id'), marks: document.querySelectorAll('[data-reglet-id]').length, uid }), [third, item.target.uid] as const)
+      const facts = await t.evaluate(([selector, uid]) => ({ mark: document.querySelector(selector)?.getAttribute('data-primp-id'), marks: document.querySelectorAll('[data-primp-id]').length, uid }), [third, item.target.uid] as const)
       const state = await testState(t)
       expect(followed && facts.mark === item.target.uid && facts.marks === 1 && state.detached.length === 0, `mark ${facts.mark} (want ${facts.uid}), ${facts.marks} marks, detached ${state.detached.join(',')}`)
       expect((await items(t)).length === 1, 'the item was lost')
@@ -750,7 +750,7 @@ async function viteHmr(browser: Browser, lane: Lane): Promise<void> {
       const chip = await page.dock.evaluate(() => document.querySelector('.tray .item.detached .chip.warn')?.textContent ?? '')
       const all = await items(t)
       expect(all.length === 1 && all[0]?.id === item.id && chip.includes('not found'), `${all.length} items; chip "${chip}"; detached ${detached.detached.join(',')}`)
-      const wrongly = await t.evaluate(() => document.querySelectorAll('[data-reglet-id]').length)
+      const wrongly = await t.evaluate(() => document.querySelectorAll('[data-primp-id]').length)
       expect(wrongly === 0, `${wrongly} element(s) carry the mark although the target is gone`)
       toSection.revert()
       await waitFor(() => t.evaluate(() => document.querySelectorAll('article[data-label="card"]').length === 6), { what: 'the cards to be <article> again' })
@@ -778,12 +778,12 @@ async function viteMeasure(browser: Browser, lane: Lane): Promise<void> {
     }, [first, padding] as const)
   let revert: (() => void) | undefined
   try {
-    await waitFor(() => page.record.webSockets.some((url) => !url.includes('/__reglet/')) && lane.reglet.hmr.status().live, { what: 'the HMR socket' })
-    await t.evaluate((selector) => window.__reglet_test!.select(selector), first)
-    const result = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '28px', { scope: 'all-instances' }))
+    await waitFor(() => page.record.webSockets.some((url) => !url.includes('/__primp/')) && lane.primp.hmr.status().live, { what: 'the HMR socket' })
+    await t.evaluate((selector) => window.__primp_test!.select(selector), first)
+    const result = await t.evaluate(() => window.__primp_test!.setStyle('padding', '28px', { scope: 'all-instances' }))
     const item = style(result.item)
     const ask = async () => {
-      const outcome = await lane.reglet.session.measure([item], 5000)
+      const outcome = await lane.primp.session.measure([item], 5000)
       if (outcome.status !== 'measured') throw new Error(`session.measure: ${outcome.status}`)
       return outcome
     }
@@ -814,7 +814,7 @@ async function viteMeasure(browser: Browser, lane: Lane): Promise<void> {
       const now = await rect(t, first)
       const answer = await t.evaluate(
         ([loc, cond, box]) =>
-          window.__reglet_test!.measure([
+          window.__primp_test!.measure([
             {
               itemId: 'probe',
               locator: loc,
@@ -849,9 +849,9 @@ async function viteMeasure(browser: Browser, lane: Lane): Promise<void> {
     })
 
     await report.attempt('a media-scoped expectation outside its viewport is not_measurable, never pass', async () => {
-      const featured = await t.evaluate(() => window.__reglet_test!.select('.plan--featured'))
+      const featured = await t.evaluate(() => window.__primp_test!.select('.plan--featured'))
       const expectation: Expectation = { type: 'computed', property: 'padding-top', value: '32px', condition: { media: '(min-width: 768px)', viewport: { w: 1280, h: 800, dpr: 1 }, colorScheme: 'light' } }
-      const measureNow = () => t.evaluate(([loc, exp]) => window.__reglet_test!.measure([{ itemId: 'media', locator: loc, expect: [exp] }]), [featured.locator, expectation] as const)
+      const measureNow = () => t.evaluate(([loc, exp]) => window.__primp_test!.measure([{ itemId: 'media', locator: loc, expect: [exp] }]), [featured.locator, expectation] as const)
       const wide = (await measureNow()).results[0]!.checks[0]!
       await t.setViewportSize({ width: 600, height: 800 })
       const narrow = (await measureNow()).results[0]!.checks[0]!
@@ -862,12 +862,12 @@ async function viteMeasure(browser: Browser, lane: Lane): Promise<void> {
     })
 
     await report.attempt('end to end with the real verifier: send, the source already matches, "Check again" in the dock -> verified', async () => {
-      await t.evaluate(() => window.__reglet_test!.send())
-      expect(lane.reglet.session.item(item.id)?.status === 'queued', `status on the server: ${lane.reglet.session.item(item.id)?.status}`)
-      await t.evaluate(() => window.__reglet_test!.openTab('verify'))
+      await t.evaluate(() => window.__primp_test!.send())
+      expect(lane.primp.session.item(item.id)?.status === 'queued', `status on the server: ${lane.primp.session.item(item.id)?.status}`)
+      await t.evaluate(() => window.__primp_test!.openTab('verify'))
       await page.dock.locator('[data-item] button', { hasText: 'Check again' }).click()
       const verified = await waitFor(() => {
-        const stored = lane.reglet.session.item(item.id)
+        const stored = lane.primp.session.item(item.id)
         return stored?.verification !== undefined ? stored : undefined
       }, { timeoutMs: 15_000, what: 'the server to verify the item' })
       const shown = await waitFor(() => page.dock.evaluate(() => {
@@ -891,9 +891,9 @@ async function viteKeyboardAndConnection(browser: Browser, lane: Lane): Promise<
   const t = page.page
   const first = `${CARD}:nth-of-type(1)`
   try {
-    await t.evaluate((selector) => window.__reglet_test!.select(selector), first)
-    await t.evaluate(() => window.__reglet_test!.setStyle('padding', '30px'))
-    await t.evaluate(() => window.__reglet_test!.setStyle('gap', '2px'))
+    await t.evaluate((selector) => window.__primp_test!.select(selector), first)
+    await t.evaluate(() => window.__primp_test!.setStyle('padding', '30px'))
+    await t.evaluate(() => window.__primp_test!.setStyle('gap', '2px'))
 
     await report.attempt('keyboard: Tab reaches every control of the dock, in order', async () => {
       const total = await page.dock.evaluate(() => {
@@ -935,10 +935,10 @@ async function viteKeyboardAndConnection(browser: Browser, lane: Lane): Promise<
     })
 
     await report.attempt('collapse to a button and back, move to another corner', async () => {
-      await page.dock.locator('button[aria-label="Collapse reglet"]').click()
+      await page.dock.locator('button[aria-label="Collapse primp"]').click()
       await sleep(350)
       const small = await t.evaluate(() => {
-        const frame = document.querySelector('reglet-root')!.shadowRoot!.querySelector('iframe')!
+        const frame = document.querySelector('primp-root')!.shadowRoot!.querySelector('iframe')!
         const r = frame.getBoundingClientRect()
         return { w: r.width, h: r.height, right: innerWidth - r.right, bottom: innerHeight - r.bottom }
       })
@@ -949,45 +949,45 @@ async function viteKeyboardAndConnection(browser: Browser, lane: Lane): Promise<
       await page.dock.locator('button[aria-label="Move the dock to the next corner"]').click()
       await sleep(400)
       const moved = await t.evaluate(() => {
-        const r = document.querySelector('reglet-root')!.shadowRoot!.querySelector('iframe')!.getBoundingClientRect()
+        const r = document.querySelector('primp-root')!.shadowRoot!.querySelector('iframe')!.getBoundingClientRect()
         return { left: Math.round(r.left), bottom: Math.round(innerHeight - r.bottom), w: Math.round(r.width) }
       })
       expect(moved.left === 12 && moved.bottom === 12 && moved.w > 300, `after moving: ${JSON.stringify(moved)}`)
       return `collapsed to 44x44 in the corner (label "${launcher.label}", focus kept on it), reopened with Enter, moved to the bottom-left corner with the move button`
     })
 
-    await report.attempt('reglet is restarted under a Vite app (whose own client then reloads the page): no draft is lost', async () => {
+    await report.attempt('primp is restarted under a Vite app (whose own client then reloads the page): no draft is lost', async () => {
       const loads = page.record.documentRequests.length
-      const closing = lane.reglet.close()
+      const closing = lane.primp.close()
       await waitFor(async () => !(await testState(t)).connected, { timeoutMs: 3000, what: 'the dock to notice the lost connection' })
       const indicator = await waitFor(() => page.dock.evaluate(() => (document.querySelector('.conn')?.getAttribute('aria-label') === 'Reconnecting' ? 'Reconnecting' : undefined)), { timeoutMs: 1500, what: 'the indicator to say Reconnecting' })
       const header = await page.dock.evaluate(() => document.querySelector('.project')?.textContent ?? '')
-      // An edit made while reglet is down is kept too.
-      const offline = await t.evaluate(() => window.__reglet_test!.setStyle('border-radius', '6px'))
+      // An edit made while primp is down is kept too.
+      const offline = await t.evaluate(() => window.__primp_test!.setStyle('border-radius', '6px'))
       expect(offline.ok && indicator === 'Reconnecting' && header.includes('reconnecting'), `edit while down: ${JSON.stringify(offline).slice(0, 100)}; indicator "${indicator}", header "${header}"`)
       await closing
       await sleep(500)
-      await restartReglet(lane)
-      await waitFor(() => lane.reglet.session.items().length === 3, { timeoutMs: 20_000, what: `the three drafts to arrive at the new, empty session (it has ${lane.reglet.session.items().length})` })
-      await waitFor(() => t.evaluate(() => window.__reglet_test?.state().connected === true).catch(() => false), { timeoutMs: 5000, what: 'the dock to be connected' })
+      await restartPrimp(lane)
+      await waitFor(() => lane.primp.session.items().length === 3, { timeoutMs: 20_000, what: `the three drafts to arrive at the new, empty session (it has ${lane.primp.session.items().length})` })
+      await waitFor(() => t.evaluate(() => window.__primp_test?.state().connected === true).catch(() => false), { timeoutMs: 5000, what: 'the dock to be connected' })
       const reloaded = page.record.documentRequests.length - loads
       await waitFor(async () => (await computed(t, first, 'padding')) === '30px' && (await computed(t, first, 'gap')) === '2px' && (await computed(t, first, 'border-radius')) === '6px', { timeoutMs: 5000, what: 'the previews to be on the page' })
       const all = await items(t)
       expect(all.length === 3 && all.every((item) => item.status === 'draft') && (await testState(t)).detached.length === 0, `${all.length} items after the restart`)
-      return `reglet stopped: indicator "Reconnecting", an edit made meanwhile accepted; reglet started again with an empty session: ${reloaded === 0 ? 'the same document reconnected' : `Vite's client reloaded the page (${reloaded} load)`}, the tab's 3 drafts were sent to the new session and all three previews are on the page`
+      return `primp stopped: indicator "Reconnecting", an edit made meanwhile accepted; primp started again with an empty session: ${reloaded === 0 ? 'the same document reconnected' : `Vite's client reloaded the page (${reloaded} load)`}, the tab's 3 drafts were sent to the new session and all three previews are on the page`
     })
 
     await report.attempt('after a page reload the drafts of this page come back from the server with their previews', async () => {
       // Without the tab's own copy, so that this is the server's state alone.
-      await t.evaluate(() => sessionStorage.removeItem('reglet:drafts'))
+      await t.evaluate(() => sessionStorage.removeItem('primp:drafts'))
       await t.reload({ waitUntil: 'load' })
-      await t.waitForFunction(() => window.__reglet_test !== undefined)
-      await t.evaluate(() => window.__reglet_test!.ready())
+      await t.waitForFunction(() => window.__primp_test !== undefined)
+      await t.evaluate(() => window.__primp_test!.ready())
       const restored = await waitFor(async () => ((await computed(t, first, 'padding')) === '30px' && (await computed(t, first, 'gap')) === '2px' && (await computed(t, first, 'border-radius')) === '6px' ? true : undefined), { timeoutMs: 4000, what: 'the previews to be restored' })
       const all = await items(t)
       const state = await testState(t)
       expect(restored && all.length === 3 && all.every((item) => item.status === 'draft') && state.detached.length === 0, `${all.length} items, detached ${state.detached.join(',')}`)
-      const left = await t.evaluate(() => Math.round(document.querySelector('reglet-root')!.shadowRoot!.querySelector('iframe')!.getBoundingClientRect().left))
+      const left = await t.evaluate(() => Math.round(document.querySelector('primp-root')!.shadowRoot!.querySelector('iframe')!.getBoundingClientRect().left))
       expect(left === 12, `the dock did not keep its corner over the reload: left ${left}`)
       return 'reload: 3 drafts adopted from session:state, all three previews applied again to the re-found card, the dock is still in the corner it was moved to'
     })
@@ -1004,7 +1004,7 @@ async function viteBigPage(browser: Browser, lane: Lane): Promise<void> {
     const runs: number[] = []
     let last: StyleChange | undefined
     for (const value of ['12px', '14px', '16px', '18px', '20px', '22px']) {
-      const result = await t.evaluate((next) => window.__reglet_test!.setStyle('padding-top', next), value)
+      const result = await t.evaluate((next) => window.__primp_test!.setStyle('padding-top', next), value)
       last = style(result.item)
       runs.push((await testState(t)).lastEffects?.ms ?? Infinity)
     }
@@ -1017,15 +1017,15 @@ async function viteBigPage(browser: Browser, lane: Lane): Promise<void> {
     await report.attempt('a page with 13,000 elements: the side-effect check looks at 2,500 of them and says so', async () => {
       const elements = await t.evaluate(() => document.querySelectorAll('body *').length)
       const started = Date.now()
-      const ref = await t.evaluate((selector) => window.__reglet_test!.select(selector), cell)
+      const ref = await t.evaluate((selector) => window.__primp_test!.select(selector), cell)
       const selectMs = Date.now() - started
       const { runs, parts, last, elements: checked, partial } = await edits()
       expect(elements > 10_000 && checked === 2500 && partial && last.sideEffectsPartial === true, `${elements} elements; checked ${checked}; partial ${partial}; flag on the item ${last.sideEffectsPartial}`)
-      const summary = await t.evaluate((id) => window.__reglet_test!.summary(id), last.id)
+      const summary = await t.evaluate((id) => window.__primp_test!.summary(id), last.id)
       expect(last.sideEffects.length > 0 && summary.includes('checked 2500 of'), `summary: ${summary}`)
       const chip = await page.dock.evaluate(() => document.querySelector('.tray .item .chip')?.textContent ?? '')
       expect(chip.includes('partly checked'), `the tray chip does not say that the check was partial: "${chip}"`)
-      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
       report.info(`13,000-element page: the snapshot reads every element's box before it applies the cap, so the cost follows the page, not the cap: ${runs.map((ms) => ms.toFixed(1)).join(', ')} ms per edit (last: ${parts}). Selecting a cell with ${ref.instanceCount} instances took ${selectMs} ms.`)
       return `${elements} elements, 2,500 checked, sideEffectsPartial set, summary "${summary}", the tray says "partly checked"`
     })
@@ -1037,7 +1037,7 @@ async function viteBigPage(browser: Browser, lane: Lane): Promise<void> {
         for (const row of rows.slice(497)) row.remove()
         return document.querySelectorAll('body *').length
       })
-      await t.evaluate((selector) => window.__reglet_test!.select(selector), cell)
+      await t.evaluate((selector) => window.__primp_test!.select(selector), cell)
       const { runs, parts, last, elements: checked, partial } = await edits()
       const sorted = [...runs].sort((a, b) => a - b)
       const worst = sorted[sorted.length - 1] ?? Infinity
@@ -1060,13 +1060,13 @@ const SLATE_800 = 'rgb(30, 41, 59)' // .plan__cta:hover, #1e293b
 const BLUE = 'rgb(37, 99, 235)' // #2563eb
 const VIOLET = 'rgb(124, 58, 237)' // #7c3aed
 
-/** What reglet's forcing left on the page: marked elements and page rules that carry the marker selector. */
+/** What primp's forcing left on the page: marked elements and page rules that carry the marker selector. */
 function forceMarks(page: DockPage['page']): Promise<{ elements: number; rules: number }> {
   return page.evaluate(() => {
     let rules = 0
     const visit = (list: CSSRuleList): void => {
       for (const rule of list) {
-        if ((rule as CSSStyleRule).selectorText?.includes('data-reglet-force') === true) rules++
+        if ((rule as CSSStyleRule).selectorText?.includes('data-primp-force') === true) rules++
         const inner = (rule as CSSGroupingRule).cssRules
         if (inner !== undefined) visit(inner)
       }
@@ -1078,13 +1078,13 @@ function forceMarks(page: DockPage['page']): Promise<{ elements: number; rules: 
         // Another origin.
       }
     }
-    return { elements: document.querySelectorAll('[data-reglet-force]').length, rules }
+    return { elements: document.querySelectorAll('[data-primp-force]').length, rules }
   })
 }
 
-/** Layout-shift entries of the page's recording that are neither the user's nor tagged as reglet's own. */
+/** Layout-shift entries of the page's recording that are neither the user's nor tagged as primp's own. */
 async function unmarkedShifts(page: DockPage['page']): Promise<{ unmarked: number; own: number }> {
-  const recording = await page.evaluate(() => window.__reglet!.recording())
+  const recording = await page.evaluate(() => window.__primp!.recording())
   return {
     unmarked: recording.shifts.filter((entry) => entry.selfInduced === undefined && !entry.hadRecentInput).length,
     own: recording.shifts.filter((entry) => entry.selfInduced !== undefined).length,
@@ -1100,10 +1100,10 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
   }
   let revert: (() => void) | undefined
   try {
-    await waitFor(() => page.record.webSockets.some((url) => !url.includes('/__reglet/')) && lane.reglet.hmr.status().live, { what: 'the HMR socket' })
+    await waitFor(() => page.record.webSockets.some((url) => !url.includes('/__primp/')) && lane.primp.hmr.status().live, { what: 'the HMR socket' })
     await t.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), PLAN_CTA)
     await away()
-    await t.evaluate((selector) => window.__reglet_test!.select(selector), PLAN_CTA)
+    await t.evaluate((selector) => window.__primp_test!.select(selector), PLAN_CTA)
     await waitFor(async () => (await testState(t)).source?.state === 'done', { timeoutMs: 20_000, what: 'the source of the button to resolve' })
 
     type Snapshot = { items: string; css: string; marks: number; background: string; force: { elements: number; rules: number } }
@@ -1128,7 +1128,7 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
       await page.dock.locator('.seg.states button[data-state="hover"]').click()
       await away()
       const shown = await waitFor(async () => ((await computed(t, PLAN_CTA, 'background-color')) === SLATE_800 ? true : undefined), { timeoutMs: 3000, what: 'the hover background' })
-      const facts = await t.evaluate((selector) => ({ hovered: document.querySelector(selector)!.matches(':hover'), marker: document.querySelector(selector)!.getAttribute('data-reglet-force') }), PLAN_CTA)
+      const facts = await t.evaluate((selector) => ({ hovered: document.querySelector(selector)!.matches(':hover'), marker: document.querySelector(selector)!.getAttribute('data-primp-force') }), PLAN_CTA)
       const state1 = await testState(t)
       expect(shown && !facts.hovered && facts.marker === 'hover', `the button is ${facts.hovered ? '' : 'not '}under the pointer, marker "${facts.marker}"`)
       expect(state1.activeState === 'hover' && state1.forced?.state === 'hover' && state1.forced.rules > 0 && state1.forced.unreadable === 0, `state: ${JSON.stringify({ active: state1.activeState, forced: state1.forced })}`)
@@ -1148,14 +1148,14 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
         { timeoutMs: 3000, what: 'the dock to list background-color from .plan__cta:hover' },
       )
       expect(dock.value === SLATE_800 && dock.pressed.startsWith(':hover') && dock.showing === 'showing :hover', `dock: ${JSON.stringify(dock)}`)
-      const label = await t.evaluate(() => [...document.querySelector('reglet-root')!.shadowRoot!.querySelectorAll<HTMLElement>('.box.selected')].map((box) => box.textContent?.trim() ?? '').join('|'))
+      const label = await t.evaluate(() => [...document.querySelector('primp-root')!.shadowRoot!.querySelectorAll<HTMLElement>('.box.selected')].map((box) => box.textContent?.trim() ?? '').join('|'))
       expect(label === ':hover', `the selection outline on the page is labelled "${label}"`)
       s0 = await snapshot()
       return `at rest ${rest}; control "${dots.join(' ')}" (* = has rules); clicked :hover: ${SLATE_800} with the pointer elsewhere (matches(':hover') false), ${state1.forced.rules} page rules given the marker; the dock lists background-color ${dock.value} under "${dock.groups}", says "${dock.showing}", outline label ":hover"`
     })
 
     await report.attempt('an edit under :hover records condition.state, the hover colour as before, no bystanders, and the tray says :hover', async () => {
-      const result = await t.evaluate((value) => window.__reglet_test!.setStyle('background-color', value), '#2563eb')
+      const result = await t.evaluate((value) => window.__primp_test!.setStyle('background-color', value), '#2563eb')
       expect(result.ok, `rejected: ${result.error}`)
       const item = style(result.item)
       hoverItem = item
@@ -1169,7 +1169,7 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
         return row === null ? undefined : { chip: row.querySelector('.chip.state')?.textContent ?? '', line: row.querySelector('.change')?.textContent ?? '' }
       }))
       expect(tray.chip === ':hover' && tray.line.startsWith(`background-color on :hover: ${SLATE_800}`) && tray.line.includes('#2563eb'), `tray: ${JSON.stringify(tray)}`)
-      const stored = await waitFor(() => lane.reglet.session.item(item.id), { timeoutMs: 3000, what: 'the server to store the item' })
+      const stored = await waitFor(() => lane.primp.session.item(item.id), { timeoutMs: 3000, what: 'the server to store the item' })
       expect(stored.kind === 'style' && stored.condition.state === 'hover', `the server stored ${JSON.stringify(stored).slice(0, 200)}`)
       const problems = hygiene(page, lane)
       expect(problems.length === 0, problems.join('; '))
@@ -1194,7 +1194,7 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
     })
 
     await report.attempt('a resting edit of the same property afterwards is a second item and does not alter the hover item', async () => {
-      const result = await t.evaluate((value) => window.__reglet_test!.setStyle('background-color', value), '#7c3aed')
+      const result = await t.evaluate((value) => window.__primp_test!.setStyle('background-color', value), '#7c3aed')
       const resting = style(result.item)
       const all = await items(t)
       const hover = all.find((item) => item.id === hoverItem?.id)
@@ -1211,7 +1211,7 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
         return value === BLUE ? value : undefined
       }, { timeoutMs: 2000, what: 'the hover preview to win under a real hover' })
       await away()
-      await t.evaluate(() => window.__reglet_test!.setState('hover'))
+      await t.evaluate(() => window.__primp_test!.setState('hover'))
       const forced = await computed(t, PLAN_CTA, 'background-color')
       const rows = await waitFor(() => page.dock.evaluate(() => {
         const value = document.querySelector<HTMLInputElement>('#v-background-color')?.value
@@ -1229,13 +1229,13 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
         expect(JSON.stringify(a) === JSON.stringify(b), `${what}:\n${JSON.stringify(a).slice(0, 400)}\n${JSON.stringify(b).slice(0, 400)}`)
         steps.push(`${what}: ${a.background}`)
       }
-      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
       same(await snapshot(), s1, 'undo')
-      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
       same(await snapshot(), s0, 'undo')
-      await t.evaluate(() => window.__reglet_test!.redo())
+      await t.evaluate(() => window.__primp_test!.redo())
       same(await snapshot(), s1, 'redo')
-      await t.evaluate(() => window.__reglet_test!.redo())
+      await t.evaluate(() => window.__primp_test!.redo())
       same(await snapshot(), s2, 'redo')
       return `with :hover held throughout: ${steps.join(', ')}; items JSON, preview stylesheet, marks, colour and the marker selectors (${s2.force.rules} rules, ${s2.force.elements} elements) identical at every step`
     })
@@ -1244,7 +1244,7 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
       if (hoverItem === undefined) throw new Error('no hover item')
       const item = hoverItem
       const ask = async () => {
-        const outcome = await lane.reglet.session.measure([item], 5000)
+        const outcome = await lane.primp.session.measure([item], 5000)
         if (outcome.status !== 'measured') throw new Error(`session.measure: ${outcome.status}`)
         return outcome.results[0]?.checks[0]
       }
@@ -1262,9 +1262,9 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
       return `before: ${before.status} (expected ${before.expected}, actual ${before.actual}, "${before.note}"); site.css edited so .plan__cta:hover is #2563eb, applied by HMR: ${after.status} (actual ${after.actual}, "${after.note}"); the dock's :hover is held again afterwards`
     })
 
-    await report.attempt('Send: the State control goes back to Rest, no [data-reglet-force] remains and every selector is restored', async () => {
+    await report.attempt('Send: the State control goes back to Rest, no [data-primp-force] remains and every selector is restored', async () => {
       const held = await forceMarks(t)
-      const prompt = await t.evaluate(() => window.__reglet_test!.send())
+      const prompt = await t.evaluate(() => window.__primp_test!.send())
       const state = await testState(t)
       const left = await forceMarks(t)
       await away()
@@ -1291,51 +1291,51 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
     await report.attempt('a resting edit alone leaves the page\'s own :hover value in place, forced and real, as the source edit would', async () => {
       await q.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), PLAN_CTA)
       await q.mouse.move(2, 2)
-      await q.evaluate((selector) => window.__reglet_test!.select(selector), PLAN_CTA)
-      const result = await q.evaluate((value) => window.__reglet_test!.setStyle('background-color', value), '#7c3aed')
+      await q.evaluate((selector) => window.__primp_test!.select(selector), PLAN_CTA)
+      const result = await q.evaluate((value) => window.__primp_test!.setStyle('background-color', value), '#7c3aed')
       const item = style(result.item)
       const rest = await computed(q, PLAN_CTA, 'background-color')
-      await q.evaluate(() => window.__reglet_test!.setState('hover'))
+      await q.evaluate(() => window.__primp_test!.setState('hover'))
       const forced = await computed(q, PLAN_CTA, 'background-color')
       const row = await waitFor(() => quiet.dock.evaluate(() => document.querySelector<HTMLInputElement>('#v-background-color')?.value))
-      await q.evaluate(() => window.__reglet_test!.setState(null))
+      await q.evaluate(() => window.__primp_test!.setState(null))
       await q.locator(PLAN_CTA).first().hover()
       const real = await computed(q, PLAN_CTA, 'background-color')
       await q.mouse.move(2, 2)
       const css = (await testState(q)).previewCss
       expect(item.condition.state === undefined && rest === VIOLET, `resting edit: ${JSON.stringify(item.condition)}, at rest ${rest}`)
       expect(forced === SLATE_800 && real === SLATE_800 && row === SLATE_800, `under :hover: forced ${forced}, real ${real}, the dock row ${row}`)
-      expect(css.includes(':not(:where(:hover, [data-reglet-force~="hover"]'), `preview rule: ${css}`)
-      await q.evaluate(() => window.__reglet_test!.undo())
+      expect(css.includes(':not(:where(:hover, [data-primp-force~="hover"]'), `preview rule: ${css}`)
+      await q.evaluate(() => window.__primp_test!.undo())
       return `resting background-color #7c3aed: at rest ${rest}; under the forced :hover ${forced} and under a real hover ${real} (the page's .plan__cta:hover), and the dock row says ${row}; preview rule "${css.slice(0, 140)}"`
     })
 
     await report.attempt('forcing a state that changes the layout adds no untagged layout-shift entry and is no page update for the settle detector', async () => {
       await q.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), PLAN_CTA)
       await q.mouse.move(2, 2)
-      await q.evaluate((selector) => window.__reglet_test!.select(selector), PLAN_CTA)
+      await q.evaluate((selector) => window.__primp_test!.select(selector), PLAN_CTA)
       // A :hover edit that makes the button taller: forcing :hover now moves what is below it.
-      const edit = await q.evaluate(() => window.__reglet_test!.setStyle('padding', '24px 16px', { state: 'hover' }))
+      const edit = await q.evaluate(() => window.__primp_test!.setStyle('padding', '24px 16px', { state: 'hover' }))
       expect(edit.ok && edit.item?.kind === 'style' && edit.item.condition.state === 'hover', `edit: ${JSON.stringify(edit).slice(0, 200)}`)
       await sleep(700)
       const before = await unmarkedShifts(q)
-      const mark = lane.reglet.detector.journal().length
+      const mark = lane.primp.detector.journal().length
       const heights: number[] = []
       for (let i = 0; i < 3; i++) {
-        await q.evaluate(() => window.__reglet_test!.setState('hover'))
+        await q.evaluate(() => window.__primp_test!.setState('hover'))
         await sleep(150)
         heights.push(Math.round((await rect(q, PLAN_CTA)).h))
-        await q.evaluate(() => window.__reglet_test!.setState(null))
+        await q.evaluate(() => window.__primp_test!.setState(null))
         await sleep(150)
         heights.push(Math.round((await rect(q, PLAN_CTA)).h))
       }
       await sleep(700)
       const after = await unmarkedShifts(q)
-      const updates = lane.reglet.detector.journal().slice(mark).filter((entry) => entry.source === 'browser' && (entry.name === 'mutation' || entry.name === 'sheet-loaded'))
+      const updates = lane.primp.detector.journal().slice(mark).filter((entry) => entry.source === 'browser' && (entry.name === 'mutation' || entry.name === 'sheet-loaded'))
       expect(new Set(heights).size === 2, `the forced state did not change the layout: heights ${heights.join(', ')}`)
       expect(after.unmarked === before.unmarked, `untagged layout-shift entries: ${before.unmarked} before, ${after.unmarked} after (tagged: ${before.own} -> ${after.own})`)
       expect(updates.length === 0, `the settle detector saw ${updates.length} page change(s): ${JSON.stringify(updates).slice(0, 300)}`)
-      return `button height ${heights.join(' / ')} px over three :hover/Rest toggles; untagged shift entries ${before.unmarked} -> ${after.unmarked}, tagged as reglet's ${before.own} -> ${after.own}; 0 browser mutation notices in the settle journal`
+      return `button height ${heights.join(' / ')} px over three :hover/Rest toggles; untagged shift entries ${before.unmarked} -> ${after.unmarked}, tagged as primp's ${before.own} -> ${after.own}; 0 browser mutation notices in the settle journal`
     })
   } finally {
     await quiet.close()
@@ -1374,7 +1374,7 @@ function countAppEvents(page: DockPage['page'], selector: string): Promise<void>
   }, selector)
 }
 
-/** Forgets what was counted (the pointer travelling to a handle passes over the page, as it does without reglet). */
+/** Forgets what was counted (the pointer travelling to a handle passes over the page, as it does without primp). */
 const resetAppEvents = (page: DockPage['page']): Promise<void> =>
   page.evaluate(() => {
     const counts = (window as unknown as { __appEvents: Record<string, number> }).__appEvents
@@ -1392,24 +1392,24 @@ async function viteReorder(browser: Browser, lane: Lane): Promise<void> {
   const reverts: (() => void)[] = []
   let itemId = ''
   try {
-    await waitFor(() => page.record.webSockets.some((url) => !url.includes('/__reglet/')) && lane.reglet.hmr.status().live, { what: 'the HMR socket' })
+    await waitFor(() => page.record.webSockets.some((url) => !url.includes('/__primp/')) && lane.primp.hmr.status().live, { what: 'the HMR socket' })
     await t.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), PLAN)
     await sleep(100)
     const shiftsBefore = await unmarkedShifts(t)
 
     await report.attempt('reorder refusals: the first cannot move earlier, a position out of range, an only child, an element hidden by a recorded change', async () => {
-      await t.evaluate((selector) => window.__reglet_test!.select(selector), first)
-      const earlier = await t.evaluate(() => window.__reglet_test!.move(-1))
-      const outside = await t.evaluate(() => window.__reglet_test!.reorder(3))
+      await t.evaluate((selector) => window.__primp_test!.select(selector), first)
+      const earlier = await t.evaluate(() => window.__primp_test!.move(-1))
+      const outside = await t.evaluate(() => window.__primp_test!.reorder(3))
       const buttons = await page.dock.evaluate(() => [...document.querySelectorAll('[aria-label="Move among siblings"] button')].map((button) => ({ text: button.textContent, disabled: (button as HTMLButtonElement).disabled })))
-      await t.evaluate(() => window.__reglet_test!.select('.plan__period'))
-      const only = await t.evaluate(() => window.__reglet_test!.move(1))
+      await t.evaluate(() => window.__primp_test!.select('.plan__period'))
+      const only = await t.evaluate(() => window.__primp_test!.move(1))
       const onlyButtons = await page.dock.evaluate(() => [...document.querySelectorAll('[aria-label="Move among siblings"] button')].every((button) => (button as HTMLButtonElement).disabled))
-      const onlyHandles = await t.evaluate(() => window.__reglet_test!.handles())
-      await t.evaluate(() => window.__reglet_test!.select('[data-label="plan-features"] li'))
-      await t.evaluate(() => window.__reglet_test!.hide())
-      const hidden = await t.evaluate(() => window.__reglet_test!.move(1))
-      await t.evaluate(() => window.__reglet_test!.undo())
+      const onlyHandles = await t.evaluate(() => window.__primp_test!.handles())
+      await t.evaluate(() => window.__primp_test!.select('[data-label="plan-features"] li'))
+      await t.evaluate(() => window.__primp_test!.hide())
+      const hidden = await t.evaluate(() => window.__primp_test!.move(1))
+      await t.evaluate(() => window.__primp_test!.undo())
       expect(!earlier.ok && earlier.error?.includes('already the first') === true, `move(-1) on the first plan: ${JSON.stringify(earlier)}`)
       expect(!outside.ok && outside.error?.includes('positions 1 to 3') === true, `reorder(3): ${JSON.stringify(outside)}`)
       expect(buttons.length === 2 && buttons[0]?.disabled === true && buttons[1]?.disabled === false, `buttons on the first plan: ${JSON.stringify(buttons)}`)
@@ -1420,9 +1420,9 @@ async function viteReorder(browser: Browser, lane: Lane): Promise<void> {
     })
 
     await report.attempt('Move later on the first pricing plan: a reorder item with indexes, anchors and an order check; the DOM order changes; the tray says where', async () => {
-      await t.evaluate((selector) => window.__reglet_test!.select(selector), first)
+      await t.evaluate((selector) => window.__primp_test!.select(selector), first)
       await waitFor(async () => (await testState(t)).source?.state === 'done', { timeoutMs: 5000 })
-      const result = await t.evaluate(() => window.__reglet_test!.move(1))
+      const result = await t.evaluate(() => window.__primp_test!.move(1))
       expect(result.ok, `refused: ${result.error}`)
       const item = structure(result.item)
       itemId = item.id
@@ -1441,7 +1441,7 @@ async function viteReorder(browser: Browser, lane: Lane): Promise<void> {
       expect(siblingEffects.length === 0, `siblings listed as side effects: ${siblingEffects.map((effect) => effect.label).join(', ')}`)
       const line = await waitFor(() => page.dock.evaluate(() => document.querySelector('.tray .item .change')?.textContent ?? undefined), { timeoutMs: 3000, what: 'the tray line' })
       expect(line.startsWith('Moved: position 2 of 3 in div.pricing-grid (was 1), now after div.plan "Team'), `tray: "${line}"`)
-      const stored = await waitFor(() => lane.reglet.session.item(item.id), { timeoutMs: 3000, what: 'the server to store the item' })
+      const stored = await waitFor(() => lane.primp.session.item(item.id), { timeoutMs: 3000, what: 'the server to store the item' })
       expect(stored.kind === 'structure' && stored.op === 'reorder' && stored.move?.toIndex === 1, `stored: ${JSON.stringify(stored).slice(0, 200)}`)
       const css = (await testState(t)).previewCss
       expect(css === '' && (await marks(t)) === 1, `preview css "${css}", ${await marks(t)} marks`)
@@ -1449,31 +1449,31 @@ async function viteReorder(browser: Browser, lane: Lane): Promise<void> {
     })
 
     await report.attempt('reorder: undo puts the plan back, redo moves it again; a second move is one item that keeps where it started; back at the start there is no item', async () => {
-      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
       const undone = await planOrder(t)
       const afterUndo = await items(t)
       const marksUndone = await marks(t)
-      await t.evaluate(() => window.__reglet_test!.redo())
+      await t.evaluate(() => window.__primp_test!.redo())
       const redone = await planOrder(t)
       expect(JSON.stringify(undone) === JSON.stringify(PLAN_NAMES) && afterUndo.length === 0 && marksUndone === 0, `after undo: ${undone.join(', ')}, ${afterUndo.length} items, ${marksUndone} marks`)
       expect(JSON.stringify(redone) === JSON.stringify(['Team', 'Starter', 'Scale']) && (await items(t)).length === 1, `after redo: ${redone.join(', ')}`)
-      const second = structure((await t.evaluate(() => window.__reglet_test!.reorder(2))).item)
+      const second = structure((await t.evaluate(() => window.__primp_test!.reorder(2))).item)
       const secondOrder = await planOrder(t)
       expect(second.id === itemId && second.move?.fromIndex === 0 && second.move.toIndex === 2 && second.move.was.next?.label.includes('Team') === true && second.move.now.prev?.label.includes('Scale') === true, `second move: ${JSON.stringify(second.move).slice(0, 300)}`)
       expect(JSON.stringify(secondOrder) === JSON.stringify(['Team', 'Scale', 'Starter']) && (await items(t)).length === 1, `after reorder(2): ${secondOrder.join(', ')}`)
-      const back = await t.evaluate(() => window.__reglet_test!.reorder(0))
+      const back = await t.evaluate(() => window.__primp_test!.reorder(0))
       const backOrder = await planOrder(t)
       expect(back.ok && back.item === null && (await items(t)).length === 0 && JSON.stringify(backOrder) === JSON.stringify(PLAN_NAMES) && (await marks(t)) === 0, `moved back: ${JSON.stringify(back).slice(0, 200)}, ${backOrder.join(', ')}`)
-      await waitFor(() => lane.reglet.session.items().length === 0, { timeoutMs: 3000, what: 'the server to drop the item' })
+      await waitFor(() => lane.primp.session.items().length === 0, { timeoutMs: 3000, what: 'the server to drop the item' })
       // Again, for the checks that follow.
-      itemId = structure((await t.evaluate(() => window.__reglet_test!.move(1))).item).id
+      itemId = structure((await t.evaluate(() => window.__primp_test!.move(1))).item).id
       return `undo: ${undone.join(', ')} (0 items, no mark); redo: ${redone.join(', ')}; reorder(2): one item, fromIndex still 0, ${secondOrder.join(', ')}; reorder(0): item deleted, ${backOrder.join(', ')}`
     })
 
-    await report.attempt('moving, undoing, redoing and moving back added no layout-shift entry that is not tagged as reglet\'s own', async () => {
+    await report.attempt('moving, undoing, redoing and moving back added no layout-shift entry that is not tagged as primp\'s own', async () => {
       const after = await unmarkedShifts(t)
       expect(after.unmarked === shiftsBefore.unmarked, `untagged entries: ${shiftsBefore.unmarked} before, ${after.unmarked} after`)
-      return `${after.unmarked - shiftsBefore.unmarked} untagged entries added; ${after.own - shiftsBefore.own} tagged as reglet's own`
+      return `${after.unmarked - shiftsBefore.unmarked} untagged entries added; ${after.own - shiftsBefore.own} tagged as primp's own`
     })
     await report.attempt('reorder: hot updates of PricingTable.tsx do not throw; the move preview stays applied, and follows nodes React replaces', async () => {
       const errorsBefore = page.record.pageErrors.length
@@ -1508,7 +1508,7 @@ async function viteReorder(browser: Browser, lane: Lane): Promise<void> {
     await report.attempt('measure an order check: fail while the page still has its own order (the preview is suspended for it), pass once plans.json has the new order', async () => {
       const item = structure((await items(t)).find((entry) => entry.id === itemId))
       const ask = async () => {
-        const outcome = await lane.reglet.session.measure([item], 5000)
+        const outcome = await lane.primp.session.measure([item], 5000)
         if (outcome.status !== 'measured') throw new Error(`session.measure: ${outcome.status}`)
         return outcome.results[0]!.checks.find((check) => check.expectation.type === 'order')!
       }
@@ -1518,7 +1518,7 @@ async function viteReorder(browser: Browser, lane: Lane): Promise<void> {
       expect(JSON.stringify(shown) === JSON.stringify(['Team', 'Starter', 'Scale']), `the preview did not come back after measuring: ${shown.join(', ')}`)
       // Send first: the agent's edit must land on the page's own order.
       const shiftsBeforeSend = await unmarkedShifts(t)
-      const prompt = await t.evaluate(() => window.__reglet_test!.send())
+      const prompt = await t.evaluate(() => window.__primp_test!.send())
       const afterSend = await planOrder(t)
       await sleep(200)
       const shiftsAfterSend = await unmarkedShifts(t)
@@ -1562,9 +1562,9 @@ async function viteDrags(browser: Browser, lane: Lane): Promise<void> {
     const shiftsBefore = await unmarkedShifts(t)
 
     await report.attempt('reorder by a REAL mouse drag on the grip: an insertion line between the plans, the drop index it shows is recorded, the app gets no pointer or click event', async () => {
-      await t.evaluate((selector) => window.__reglet_test!.select(selector), `${PLAN}:nth-of-type(1)`)
+      await t.evaluate((selector) => window.__primp_test!.select(selector), `${PLAN}:nth-of-type(1)`)
       await countAppEvents(t, `${PLAN}, ${PLAN_CTA}`)
-      const handles = await t.evaluate(() => window.__reglet_test!.handles())
+      const handles = await t.evaluate(() => window.__primp_test!.handles())
       const grip = handles.grip
       expect(grip !== undefined && handles.se !== undefined, `handles shown: ${JSON.stringify(handles)}`)
       const team = await t.evaluate((selector) => document.querySelectorAll(selector)[1]!.getBoundingClientRect().toJSON() as DOMRect, PLAN)
@@ -1576,14 +1576,14 @@ async function viteDrags(browser: Browser, lane: Lane): Promise<void> {
       await t.mouse.down()
       // Over the third plan's button first (it must not be pressed), then into the gap between Team and Scale.
       await t.mouse.move(cta.x + cta.width / 2, cta.y + cta.height / 2, { steps: 8 })
-      const overButton = await t.evaluate(() => window.__reglet_test!.drag())
+      const overButton = await t.evaluate(() => window.__primp_test!.drag())
       const gap = { x: (team.right + scale.left) / 2, y: team.top + team.height / 2 }
       await t.mouse.move(gap.x, gap.y, { steps: 8 })
-      const dragging = await t.evaluate(() => window.__reglet_test!.drag())
+      const dragging = await t.evaluate(() => window.__primp_test!.drag())
       await sleep(150)
       await t.screenshot({ path: join(SHOTS, 'reorder-drag-light.png') })
       await t.mouse.up()
-      await t.evaluate(() => window.__reglet_overlay!.controller.idle())
+      await t.evaluate(() => window.__primp_overlay!.controller.idle())
       await sleep(100)
       const all = await items(t)
       const order = await planOrder(t)
@@ -1593,21 +1593,21 @@ async function viteDrags(browser: Browser, lane: Lane): Promise<void> {
       const item = structure(all[0])
       expect(all.length === 1 && item.move?.fromIndex === 0 && item.move.toIndex === dragging.toIndex && JSON.stringify(order) === JSON.stringify(['Team', 'Starter', 'Scale']), `after the drop: ${all.length} items, move ${JSON.stringify(item.move).slice(0, 120)}, order ${order.join(', ')}`)
       expect(Object.keys(events).length === 0, `the app saw: ${JSON.stringify(events)}`)
-      expect((await t.evaluate(() => window.__reglet_test!.drag())) === null, 'the drag did not end')
+      expect((await t.evaluate(() => window.__primp_test!.drag())) === null, 'the drag did not end')
       return `grip at ${Math.round(start.x)},${Math.round(start.y)}; over the third plan's button the line stood for position 3; in the gap between Team and Scale a 2px vertical line at x ${dragging.line.x + 1} for position ${dragging.toIndex + 1}; dropped: one reorder 0 -> ${item.move.toIndex}, order ${order.join(', ')}; the app's handlers on the plans, their buttons and the document saw nothing`
     })
-    await t.evaluate(() => window.__reglet_test!.undo())
+    await t.evaluate(() => window.__primp_test!.undo())
 
     await report.attempt('resize by a REAL mouse drag on the corner handle of a card: width and height, one undo step, the border box is the dragged size; Escape during a drag cancels', async () => {
       const card = `${CARD}:nth-of-type(1)`
       await t.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), card)
       await t.mouse.move(2, 2)
-      await t.evaluate((selector) => window.__reglet_test!.select(selector), card)
+      await t.evaluate((selector) => window.__primp_test!.select(selector), card)
       await waitFor(async () => (await testState(t)).source?.state === 'done', { timeoutMs: 5000 })
       await countAppEvents(t, CARD)
       const startBox = await rect(t, card)
       const boxSizing = await computed(t, card, 'box-sizing')
-      const handles = await t.evaluate(() => window.__reglet_test!.handles())
+      const handles = await t.evaluate(() => window.__primp_test!.handles())
       expect(handles.se !== undefined && handles.e !== undefined && handles.s !== undefined && handles.grip !== undefined, `handles: ${JSON.stringify(handles)}`)
       await t.screenshot({ path: join(SHOTS, 'handles-light.png') })
       const corner = centre(handles.se)
@@ -1616,11 +1616,11 @@ async function viteDrags(browser: Browser, lane: Lane): Promise<void> {
       await resetAppEvents(t)
       await t.mouse.down()
       await t.mouse.move(corner.x + dx, corner.y + dy, { steps: 10 })
-      const live = await t.evaluate(() => window.__reglet_test!.drag())
+      const live = await t.evaluate(() => window.__primp_test!.drag())
       const liveBox = await rect(t, card)
       const midHistory = (await items(t)).length
       await t.mouse.up()
-      await t.evaluate(() => window.__reglet_overlay!.controller.idle())
+      await t.evaluate(() => window.__primp_overlay!.controller.idle())
       await sleep(100)
       const all = await items(t)
       const box = await rect(t, card)
@@ -1633,15 +1633,15 @@ async function viteDrags(browser: Browser, lane: Lane): Promise<void> {
       expect(Number.parseFloat(width.after.authored) + extra.w === want.w && Number.parseFloat(height.after.authored) + extra.h === want.h, `values ${width.after.authored} / ${height.after.authored} (box-sizing ${boxSizing}) for a ${want.w} x ${want.h} border box`)
       expect(width.after.computed === `${want.w}px` && width.expect.some((entry) => entry.type === 'computed' && entry.property === 'width') && height.expect.some((entry) => entry.type === 'computed' && entry.property === 'height'), `computed ${width.after.computed}; expect ${JSON.stringify(width.expect.map((entry) => entry.type))}`)
       // One undo step takes both away.
-      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
       const undone = await items(t)
       const undoneBox = await rect(t, card)
       const canUndo = (await testState(t)).canUndo
-      await t.evaluate(() => window.__reglet_test!.redo())
+      await t.evaluate(() => window.__primp_test!.redo())
       expect(undone.length === 0 && near(undoneBox.w, startBox.w) && near(undoneBox.h, startBox.h) && !canUndo && (await items(t)).length === 2, `undo: ${undone.length} items, box ${undoneBox.w} x ${undoneBox.h}, canUndo ${canUndo}`)
       // Escape during a drag: the size shown goes back, nothing is recorded.
       const before = await rect(t, card)
-      const se = centre((await t.evaluate(() => window.__reglet_test!.handles())).se!)
+      const se = centre((await t.evaluate(() => window.__primp_test!.handles())).se!)
       await t.mouse.move(se.x, se.y)
       const seenBefore = await appEvents(t)
       await t.mouse.down()
@@ -1651,7 +1651,7 @@ async function viteDrags(browser: Browser, lane: Lane): Promise<void> {
       await sleep(50)
       const cancelled = await rect(t, card)
       await t.mouse.up()
-      await t.evaluate(() => window.__reglet_overlay!.controller.idle())
+      await t.evaluate(() => window.__primp_overlay!.controller.idle())
       await sleep(100)
       const kept = await items(t)
       const events = await appEvents(t)
@@ -1666,15 +1666,15 @@ async function viteDrags(browser: Browser, lane: Lane): Promise<void> {
     })
 
     await report.attempt('resize refusals: an inline element (no handles either), and a size the layout does not let change', async () => {
-      await t.evaluate(() => window.__reglet_test!.select('.plan__period'))
-      const inline = await t.evaluate(() => window.__reglet_test!.resize({ width: 120 }))
-      const inlineHandles = await t.evaluate(() => window.__reglet_test!.handles())
+      await t.evaluate(() => window.__primp_test!.select('.plan__period'))
+      const inline = await t.evaluate(() => window.__primp_test!.resize({ width: 120 }))
+      const inlineHandles = await t.evaluate(() => window.__primp_test!.handles())
       // A table row: width does not apply to it.
       const row = '[data-label="pricing-compare-support"]'
-      await t.evaluate((selector) => window.__reglet_test!.select(selector), row)
+      await t.evaluate((selector) => window.__primp_test!.select(selector), row)
       const box = await rect(t, row)
       const cssBefore = (await testState(t)).previewCss
-      const wide = await t.evaluate((w) => window.__reglet_test!.resize({ width: w }), box.w + 80)
+      const wide = await t.evaluate((w) => window.__primp_test!.resize({ width: w }), box.w + 80)
       const after = await rect(t, row)
       const css = (await testState(t)).previewCss
       expect(!inline.ok && inline.error?.includes('inline element') === true && inlineHandles.se === undefined && inlineHandles.e === undefined, `inline: ${JSON.stringify(inline)}, handles ${JSON.stringify(inlineHandles)}`)
@@ -1683,26 +1683,26 @@ async function viteDrags(browser: Browser, lane: Lane): Promise<void> {
       return `"${inline.error}"; a table row: "${wide.error}"; nothing recorded, no preview left`
     })
 
-    await report.attempt('the handles and the drags added no layout-shift entry that is not tagged as reglet\'s own', async () => {
+    await report.attempt('the handles and the drags added no layout-shift entry that is not tagged as primp\'s own', async () => {
       // Handles coming and going: pick mode, another selection, none.
-      await t.evaluate(() => window.__reglet_test!.pick(true))
+      await t.evaluate(() => window.__primp_test!.pick(true))
       await sleep(150)
-      const inPick = await t.evaluate(() => window.__reglet_test!.handles())
-      await t.evaluate(() => window.__reglet_test!.pick(false))
-      await t.evaluate((selector) => window.__reglet_test!.select(selector), `${PLAN}:nth-of-type(2)`)
+      const inPick = await t.evaluate(() => window.__primp_test!.handles())
+      await t.evaluate(() => window.__primp_test!.pick(false))
+      await t.evaluate((selector) => window.__primp_test!.select(selector), `${PLAN}:nth-of-type(2)`)
       await sleep(150)
-      await t.evaluate(() => window.__reglet_overlay!.controller.select(null))
+      await t.evaluate(() => window.__primp_overlay!.controller.select(null))
       await sleep(150)
-      const none = await t.evaluate(() => window.__reglet_test!.handles())
+      const none = await t.evaluate(() => window.__primp_test!.handles())
       const after = await unmarkedShifts(t)
       expect(Object.keys(inPick).length === 0 && Object.keys(none).length === 0, `handles in pick mode ${JSON.stringify(inPick)}, without a selection ${JSON.stringify(none)}`)
       expect(after.unmarked === shiftsBefore.unmarked, `untagged entries: ${shiftsBefore.unmarked} before, ${after.unmarked} after (${after.own - shiftsBefore.own} tagged)`)
-      return `no handles in pick mode or without a selection; ${after.unmarked - shiftsBefore.unmarked} untagged entries added over two drags, a resize and handles shown and hidden; ${after.own - shiftsBefore.own} tagged as reglet's own (the previews)`
+      return `no handles in pick mode or without a selection; ${after.unmarked - shiftsBefore.unmarked} untagged entries added over two drags, a resize and handles shown and hidden; ${after.own - shiftsBefore.own} tagged as primp's own (the previews)`
     })
 
     await report.attempt('screenshots: the selection with its handles, a reorder drag with its insertion line, and the tray with a move and a resize', async () => {
-      await t.evaluate((selector) => window.__reglet_test!.select(selector), `${PLAN}:nth-of-type(1)`)
-      await t.evaluate(() => window.__reglet_test!.move(1))
+      await t.evaluate((selector) => window.__primp_test!.select(selector), `${PLAN}:nth-of-type(1)`)
+      await t.evaluate(() => window.__primp_test!.move(1))
       await sleep(300)
       await page.dock.evaluate(() => document.querySelector('#panel')?.scrollTo(0, 100000))
       await sleep(200)
@@ -1734,33 +1734,33 @@ async function staticStates(browser: Browser, lane: Lane): Promise<void> {
   let revert: (() => void) | undefined
   try {
     await t.mouse.move(2, 2)
-    const ref = await t.evaluate((selector) => window.__reglet_test!.select(selector), CTA)
+    const ref = await t.evaluate((selector) => window.__primp_test!.select(selector), CTA)
     let item: StyleChange | undefined
 
     await report.attempt(':focus-visible on plain HTML: the page\'s :focus-visible ring without focus, an edit recorded for it, measured with the state emulated', async () => {
       const state0 = await testState(t)
       const restOutline = await computed(t, CTA, 'outline-style')
-      await t.evaluate(() => window.__reglet_test!.setState('focus-visible'))
+      await t.evaluate(() => window.__primp_test!.setState('focus-visible'))
       const ring = { style: await computed(t, CTA, 'outline-style'), color: await computed(t, CTA, 'outline-color'), focused: await t.evaluate((selector) => document.activeElement === document.querySelector(selector), CTA) }
       // The bare :focus-visible rule does not apply to a plain :focus.
-      await t.evaluate(() => window.__reglet_test!.setState('focus'))
+      await t.evaluate(() => window.__primp_test!.setState('focus'))
       const plainFocus = await computed(t, CTA, 'outline-style')
-      await t.evaluate(() => window.__reglet_test!.setState('focus-visible'))
+      await t.evaluate(() => window.__primp_test!.setState('focus-visible'))
       expect(state0.statesWithRules.includes('focus-visible') && state0.statesWithRules.includes('hover') && !state0.statesWithRules.includes('focus'), `statesWithRules ${JSON.stringify(state0.statesWithRules)}`)
       expect(restOutline === 'none' && ring.style === 'solid' && ring.color === AMBER && !ring.focused && plainFocus === 'none', `outline at rest ${restOutline}; forced :focus-visible ${JSON.stringify(ring)}; forced :focus ${plainFocus}`)
       const listed = await waitFor(() => page.dock.evaluate(() => [...document.querySelectorAll('.rule')].find((rule) => rule.querySelector('.sel')?.textContent === ':focus-visible')?.querySelector<HTMLInputElement>('#v-outline')?.value))
-      const result = await t.evaluate(() => window.__reglet_test!.setStyle('outline-color', '#2563eb'))
+      const result = await t.evaluate(() => window.__primp_test!.setStyle('outline-color', '#2563eb'))
       item = style(result.item)
       expect(item.condition.state === 'focus-visible' && item.before.computed === AMBER && item.after.computed === BLUE && item.origin?.selector === ':focus-visible' && item.bystanders === undefined, `item: ${JSON.stringify({ condition: item.condition, before: item.before, after: item.after, origin: item.origin })}`)
-      const measured = await lane.reglet.session.measure([item], 5000)
+      const measured = await lane.primp.session.measure([item], 5000)
       const check = measured.status === 'measured' ? measured.results[0]?.checks[0] : undefined
       expect(check?.status === 'fail' && check.actual === AMBER && check.expected === BLUE && check.note === 'measured with :focus-visible emulated', `before the source changed: ${JSON.stringify(check)}`)
       // The source gets the new colour; plain HTML has no hot update, so the page is loaded again (the draft comes back from the server).
       revert = editFile(lane.fixture, 'css/site.css', replaceOnce('outline: 2px solid var(--warn);', 'outline: 2px solid #2563eb;')).revert
       await t.reload({ waitUntil: 'load' })
-      await t.waitForFunction(() => window.__reglet_test !== undefined)
-      await t.evaluate(() => window.__reglet_test!.ready())
-      const again = await lane.reglet.session.measure([item], 5000)
+      await t.waitForFunction(() => window.__primp_test !== undefined)
+      await t.evaluate(() => window.__primp_test!.ready())
+      const again = await lane.primp.session.measure([item], 5000)
       const pass = again.status === 'measured' ? again.results[0]?.checks[0] : undefined
       expect(pass?.status === 'pass' && pass.actual === BLUE && pass.note === 'measured with :focus-visible emulated', `after the source changed: ${JSON.stringify(pass)}`)
       expect((await forceMarks(t)).elements === 0, 'the reloaded page has a marker on it')
@@ -1795,7 +1795,7 @@ async function staticStates(browser: Browser, lane: Lane): Promise<void> {
         await t.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
         const condition = { ...(item?.condition ?? { viewport: { w: 1280, h: 800, dpr: 1 }, colorScheme: 'light' as const }) }
         delete condition.state
-        const answer = await t.evaluate(([locator, cond]) => window.__reglet_test!.measure([{
+        const answer = await t.evaluate(([locator, cond]) => window.__primp_test!.measure([{
           itemId: 'foreign',
           locator,
           expect: [
@@ -1808,7 +1808,7 @@ async function staticStates(browser: Browser, lane: Lane): Promise<void> {
         expect(facts.loaded && !facts.readable && realFocus === 'rgb(255, 0, 0)', `foreign sheet ${JSON.stringify(facts)}, colour under a real focus ${realFocus}`)
         expect(blocked?.status === 'not_measurable' && blocked.note?.startsWith('the state could not be emulated: ') === true && blocked.note.includes('another origin'), `blocked: ${JSON.stringify(blocked)}`)
         expect(measured?.status === 'pass' && measured.note === 'measured with :focus-visible emulated', `measured: ${JSON.stringify(measured)}`)
-        const server = await lane.reglet.session.measure([{ ...style(item), expect: [{ type: 'computed', property: 'color', value: 'rgb(255, 0, 0)', condition: { ...condition, state: 'focus' } }] }], 5000)
+        const server = await lane.primp.session.measure([{ ...style(item), expect: [{ type: 'computed', property: 'color', value: 'rgb(255, 0, 0)', condition: { ...condition, state: 'focus' } }] }], 5000)
         const viaServer = server.status === 'measured' ? server.results[0]?.checks[0] : undefined
         expect(viaServer?.status === 'not_measurable' && viaServer.note === blocked.note, `through the server: ${JSON.stringify(viaServer)}`)
         await t.evaluate(() => document.getElementById('foreign-sheet')?.remove())
@@ -1835,29 +1835,29 @@ async function nextEdits(browser: Browser, lane: Lane): Promise<void> {
     await report.attempt('under a strict nonce CSP: select, edit all instances, undo, send, with zero CSP violations', async () => {
       const policy = await t.evaluate(async () => (await fetch(location.href)).headers.get('content-security-policy') ?? '')
       expect(policy.includes("'strict-dynamic'") && /style-src 'self' 'nonce-/.test(policy), `this page is not under the strict policy: ${policy}`)
-      const ref = await t.evaluate((selector) => window.__reglet_test!.select(selector), card)
+      const ref = await t.evaluate((selector) => window.__primp_test!.select(selector), card)
       const source = (await waitFor(async () => {
         const now = await testState(t)
         return now.source?.state === 'done' ? now : undefined
       }, { timeoutMs: 20_000, what: 'the source of the card to resolve' })).source
       const truth = lane.fixture.labels.find((entry) => entry.label === 'home-card-edits')
       expect(source !== null && truth !== undefined && source.file === truth.file && source.line === truth.line, `source ${JSON.stringify(source)}, labels.json says ${truth?.file}:${truth?.line}`)
-      const result = await t.evaluate(() => window.__reglet_test!.setStyle('padding', '24px', { scope: 'all-instances' }))
+      const result = await t.evaluate(() => window.__primp_test!.setStyle('padding', '24px', { scope: 'all-instances' }))
       const item = style(result.item)
       const paddings = await computedAll(t, 'li[data-label^="home-card-"]', 'padding')
       expect(ref.instanceCount === 3 && paddings.length === 3 && paddings.every((value) => value === '24px'), `instances ${ref.instanceCount}; paddings ${paddings.join(', ')}`)
       expect(item.before.computed === '16px' && item.stylingSystem === 'css-modules' && item.origin?.via === 'rule', `item: ${JSON.stringify({ before: item.before, system: item.stylingSystem, origin: item.origin })}`)
       const hidden = await (async () => {
-        await t.evaluate(() => window.__reglet_test!.select('[data-label="home-hero"]'))
+        await t.evaluate(() => window.__primp_test!.select('[data-label="home-hero"]'))
         const before = await rect(t, '[data-label="home-card-grid"]')
         const hero = await rect(t, '[data-label="home-hero"]')
-        const outcome = await t.evaluate(() => window.__reglet_test!.hide())
+        const outcome = await t.evaluate(() => window.__primp_test!.hide())
         const after = await rect(t, '[data-label="home-card-grid"]')
         return { ok: outcome.ok, moved: before.y - after.y, hero: hero.h, effects: outcome.item?.sideEffects.length ?? 0 }
       })()
       expect(hidden.ok && hidden.moved > 0 && hidden.effects > 0, `hide: ${JSON.stringify(hidden)}`)
-      await t.evaluate(() => window.__reglet_test!.undo())
-      const prompt = await t.evaluate(() => window.__reglet_test!.send())
+      await t.evaluate(() => window.__primp_test!.undo())
+      const prompt = await t.evaluate(() => window.__primp_test!.send())
       await page.dock.locator('[role="tab"]', { hasText: 'Verify' }).click()
       await page.dock.locator('[role="tab"]', { hasText: 'Shifts' }).click()
       await page.dock.locator('[role="tab"]', { hasText: 'Edits' }).click()
@@ -1877,50 +1877,50 @@ async function staticEdits(browser: Browser, lane: Lane): Promise<void> {
   const t = page.page
   try {
     await report.attempt('plain HTML and CSS: instances, a custom-property value, hide with its side effect, undo', async () => {
-      const ref = await t.evaluate(() => window.__reglet_test!.select('.card'))
-      const result = await t.evaluate(() => window.__reglet_test!.setStyle('border-radius', 'calc(var(--radius) * 2)', { scope: 'all-instances' }))
+      const ref = await t.evaluate(() => window.__primp_test!.select('.card'))
+      const result = await t.evaluate(() => window.__primp_test!.setStyle('border-radius', 'calc(var(--radius) * 2)', { scope: 'all-instances' }))
       const item = style(result.item)
       const radii = await computedAll(t, '.card', 'border-radius')
       expect(ref.instanceCount === 3 && radii.every((value) => value === '16px') && item.stylingSystem === 'plain-css', `instances ${ref.instanceCount}; radii ${radii.join(', ')}; system ${item.stylingSystem}`)
       expect(item.origin?.sheet?.endsWith('/css/site.css') === true, `origin: ${JSON.stringify(item.origin)}`)
       const hero = await rect(t, '.hero')
       const before = await rect(t, '.cards')
-      await t.evaluate(() => window.__reglet_test!.select('.hero'))
-      const hidden = await t.evaluate(() => window.__reglet_test!.hide())
+      await t.evaluate(() => window.__primp_test!.select('.hero'))
+      const hidden = await t.evaluate(() => window.__primp_test!.hide())
       const after = await rect(t, '.cards')
       const effect = hidden.item?.sideEffects.find((entry) => entry.label.startsWith('section.cards'))
       expect(before.y - after.y > 0 && effect !== undefined && near(effect.before.y - effect.after.y, before.y - after.y), `cards moved ${before.y - after.y}px; effect ${JSON.stringify(effect)}`)
-      await t.evaluate(() => window.__reglet_test!.undo())
-      await t.evaluate(() => window.__reglet_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
       expect((await items(t)).length === 0 && (await marks(t)) === 0 && near((await rect(t, '.cards')).y, before.y), 'undo did not restore the page')
       const problems = hygiene(page, lane)
       expect(problems.length === 0, problems.join('; '))
       return `3 cards at calc(var(--radius) * 2) = 16px (plain-css, site.css); hiding the ${hero.h}px hero moved section.cards up ${before.y - after.y}px, recorded with the same number; undo x2 restores everything`
     })
 
-    await report.attempt('reglet is restarted and the page stays: the ONE socket reconnects, the same document says hello again, drafts are re-sent', async () => {
-      await t.evaluate(() => window.__reglet_test!.select('.hero-title'))
-      await t.evaluate(() => window.__reglet_test!.setStyle('font-size', '50px'))
-      await waitFor(() => lane.reglet.session.items().length === 1, { timeoutMs: 3000 })
-      const doc = lane.reglet.session.documents()[0]?.doc
+    await report.attempt('primp is restarted and the page stays: the ONE socket reconnects, the same document says hello again, drafts are re-sent', async () => {
+      await t.evaluate(() => window.__primp_test!.select('.hero-title'))
+      await t.evaluate(() => window.__primp_test!.setStyle('font-size', '50px'))
+      await waitFor(() => lane.primp.session.items().length === 1, { timeoutMs: 3000 })
+      const doc = lane.primp.session.documents()[0]?.doc
       const loads = page.record.documentRequests.length
-      await lane.reglet.close()
+      await lane.primp.close()
       await waitFor(async () => !(await testState(t)).connected, { timeoutMs: 3000, what: 'the dock to notice the lost connection' })
-      await t.evaluate(() => window.__reglet_test!.setStyle('letter-spacing', '1px'))
+      await t.evaluate(() => window.__primp_test!.setStyle('letter-spacing', '1px'))
       await sleep(1200)
-      await restartReglet(lane)
+      await restartPrimp(lane)
       await waitFor(async () => (await testState(t)).connected, { timeoutMs: 12_000, what: 'the reconnect' })
-      await waitFor(() => lane.reglet.session.items().length === 2, { timeoutMs: 3000, what: `the drafts to arrive (the new session has ${lane.reglet.session.items().length})` })
-      await waitFor(() => lane.reglet.detector.status().browsers === 1, { timeoutMs: 3000, what: 'the settle detector to know the document again' })
-      const again = lane.reglet.session.documents()
+      await waitFor(() => lane.primp.session.items().length === 2, { timeoutMs: 3000, what: `the drafts to arrive (the new session has ${lane.primp.session.items().length})` })
+      await waitFor(() => lane.primp.detector.status().browsers === 1, { timeoutMs: 3000, what: 'the settle detector to know the document again' })
+      const again = lane.primp.session.documents()
       expect(again.length === 1 && again[0]?.doc === doc && page.record.documentRequests.length === loads, `document ${doc} -> ${again.map((entry) => entry.doc).join(', ')}; ${page.record.documentRequests.length - loads} reloads`)
       expect((await computed(t, '.hero-title', 'font-size')) === '50px' && (await computed(t, '.hero-title', 'letter-spacing')) === '1px', 'the previews did not survive')
       const refused = lane.logs.filter((line) => line.includes('did not match the protocol') || line.includes('before session:hello'))
       expect(refused.length === 0, refused.join(' | '))
-      const sockets = page.record.webSockets.filter((url) => url.includes('/__reglet/')).length
-      await t.evaluate(() => window.__reglet_test!.undo())
-      await t.evaluate(() => window.__reglet_test!.undo())
-      return `no reload; ${sockets} socket attempts in all (backoff while reglet was down); the same document id said hello to the new session, both drafts (one made while down) were stored again, the settle detector has its browser back, previews untouched`
+      const sockets = page.record.webSockets.filter((url) => url.includes('/__primp/')).length
+      await t.evaluate(() => window.__primp_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
+      return `no reload; ${sockets} socket attempts in all (backoff while primp was down); the same document id said hello to the new session, both drafts (one made while down) were stored again, the settle detector has its browser back, previews untouched`
     })
   } finally {
     await page.close()
@@ -1938,7 +1938,7 @@ async function shiftsTab(browser: Browser, lane: Lane, bundles: Bundles): Promis
   const t = page.page
   try {
     await report.attempt('the recording is sent by itself about 3 s after the page went quiet, and the tab shows the culprit', async () => {
-      await t.evaluate(() => window.__reglet_test!.openTab('shifts'))
+      await t.evaluate(() => window.__primp_test!.openTab('shifts'))
       const waiting = await page.dock.evaluate(() => document.querySelector('#panel')?.textContent ?? '')
       const started = Date.now()
       const row = await waitFor(() => page.dock.evaluate(() => {
@@ -1946,7 +1946,7 @@ async function shiftsTab(browser: Browser, lane: Lane, bundles: Bundles): Promis
         return issue === null ? undefined : { text: issue.textContent ?? '', who: issue.querySelector('.who')?.textContent ?? '', badge: issue.querySelector('.source')?.textContent ?? '', cls: document.querySelector('.cls .value')?.textContent ?? '' }
       }), { timeoutMs: 9000, what: 'the shift report to appear in the dock' })
       const seconds = (Date.now() - started) / 1000
-      const stored = lane.reglet.session.shifts()
+      const stored = lane.primp.session.shifts()
       expect(stored !== undefined && stored.report.status === 'ok', `the session holds: ${JSON.stringify(stored?.report.status)}`)
       // expected.json of the corpus page: the culprit is written by the script at index.html:38.
       expect(row.who === 'div#promo-banner' && row.text.includes('injected content') && row.badge.includes('index.html:38'), `row: ${JSON.stringify(row)}`)
@@ -1956,7 +1956,7 @@ async function shiftsTab(browser: Browser, lane: Lane, bundles: Bundles): Promis
     })
 
     await report.attempt('shiftReport(): the attributed report names the expected culprit, and the dock added nothing to the recording', async () => {
-      const state = await t.evaluate(() => window.__reglet_test!.shiftReport())
+      const state = await t.evaluate(() => window.__primp_test!.shiftReport())
       const report_: ShiftReport = state.report
       const top = report_.issues.find((issue) => issue.scored)
       expect(report_.status === 'ok' && top?.culprit?.node.id === 'promo-banner' && top.cause === 'injected-content', `report: ${JSON.stringify({ status: report_.status, culprit: top?.culprit?.node.id, cause: top?.cause })}`)
@@ -1973,7 +1973,7 @@ async function shiftsTab(browser: Browser, lane: Lane, bundles: Bundles): Promis
       const scoredIssues = report_.issues.filter((issue) => issue.scored).length
       expect(scored(plain).length === scored(controlEntries).length && scoredIssues === 1, `with the dock ${describeEntries(plain)}, without ${describeEntries(controlEntries)}, ${scoredIssues} scored issues`)
       expect(Math.abs((report_.cls ?? 0) - sum(scored(controlEntries).map((entry) => entry.value))) < 1e-6, `CLS ${report_.cls} vs the control's ${sum(scored(controlEntries).map((entry) => entry.value))}`)
-      return `status ok, CLS ${fixed(report_.cls ?? 0, 6)} = the page without reglet (${describeEntries(controlEntries)}), top culprit #promo-banner, cause injected-content, confidence ${top.confidence}`
+      return `status ok, CLS ${fixed(report_.cls ?? 0, 6)} = the page without primp (${describeEntries(controlEntries)}), top culprit #promo-banner, cause injected-content, confidence ${top.confidence}`
     })
 
     await report.attempt('hovering an issue outlines the victims (before and after) and the culprit on the page', async () => {
@@ -1982,14 +1982,14 @@ async function shiftsTab(browser: Browser, lane: Lane, bundles: Bundles): Promis
       // Playwright reports the box of an element in a frame in page coordinates.
       await t.mouse.move(box.x + 20, box.y + 12)
       const boxes = await waitFor(() => t.evaluate(() => {
-        const shown = [...document.querySelector('reglet-root')!.shadowRoot!.querySelectorAll<HTMLElement>('.box')].filter((node) => getComputedStyle(node).display !== 'none')
+        const shown = [...document.querySelector('primp-root')!.shadowRoot!.querySelectorAll<HTMLElement>('.box')].filter((node) => getComputedStyle(node).display !== 'none')
         const kinds = shown.map((node) => `${node.className.replace('box ', '')}@${Math.round(node.getBoundingClientRect().top)}`)
         return kinds.some((kind) => kind.startsWith('culprit')) ? kinds : undefined
       }))
       expect(boxes.filter((kind) => kind.startsWith('previous')).length === 2 && boxes.filter((kind) => kind.startsWith('current')).length === 2 && boxes.includes('culprit@0'), `boxes: ${boxes.join(', ')}`)
       expect(boxes.includes('previous@0') && boxes.includes('current@96'), `the header's rectangles are not at 0 and 96: ${boxes.join(', ')}`)
       await t.mouse.move(5, 400)
-      await waitFor(() => t.evaluate(() => [...document.querySelector('reglet-root')!.shadowRoot!.querySelectorAll<HTMLElement>('.box')].every((node) => getComputedStyle(node).display === 'none')))
+      await waitFor(() => t.evaluate(() => [...document.querySelector('primp-root')!.shadowRoot!.querySelectorAll<HTMLElement>('.box')].every((node) => getComputedStyle(node).display === 'none')))
       const entries = scored(await readPlainEntries(t)).length
       expect(entries === 1, `drawing the outlines added layout-shift entries: ${entries}`)
       return `on hover: ${boxes.join(', ')}; gone when the pointer leaves; still 1 layout-shift entry on the page`
@@ -2000,7 +2000,7 @@ async function shiftsTab(browser: Browser, lane: Lane, bundles: Bundles): Promis
       const fake = await startFakeLane(lane.fixture, bundles)
       const hidden = await openDock(browser, lane, SHIFT_PAGE, { origin: fake.proxy.url })
       try {
-        await hidden.page.evaluate(() => window.__reglet_test!.openTab('shifts'))
+        await hidden.page.evaluate(() => window.__primp_test!.openTab('shifts'))
         fake.session.pushShiftReport({ status: 'tab_hidden', reason: 'the tab was hidden from 0 to 412 ms', cls: null, windows: [], issues: [], cachedResources: [], notes: [] })
         const text = await waitFor(() => hidden.dock.evaluate(() => {
           const alert = document.querySelector('[data-shift-status="tab_hidden"]')
@@ -2025,17 +2025,17 @@ async function shiftsTab(browser: Browser, lane: Lane, bundles: Bundles): Promis
         await sleep(1500)
         const before = scored(await readPlainEntries(fresh.page)).length
         // No user input in any of this: everything is driven through the handle and the socket.
-        await fresh.page.evaluate(() => window.__reglet_test!.select('#title'))
+        await fresh.page.evaluate(() => window.__primp_test!.select('#title'))
         await waitFor(async () => (await testState(fresh.page)).source?.state === 'done')
-        await fresh.page.evaluate(() => window.__reglet_test!.setStyle('color', 'rgb(0, 0, 255)'))
-        await fresh.page.evaluate(() => window.__reglet_test!.openTab('shifts'))
-        await fresh.page.evaluate(() => window.__reglet_test!.shiftReport())
-        await fresh.page.evaluate(() => window.__reglet_test!.openTab('edits'))
-        await fresh.page.evaluate(() => window.__reglet_test!.collapse(true))
+        await fresh.page.evaluate(() => window.__primp_test!.setStyle('color', 'rgb(0, 0, 255)'))
+        await fresh.page.evaluate(() => window.__primp_test!.openTab('shifts'))
+        await fresh.page.evaluate(() => window.__primp_test!.shiftReport())
+        await fresh.page.evaluate(() => window.__primp_test!.openTab('edits'))
+        await fresh.page.evaluate(() => window.__primp_test!.collapse(true))
         await sleep(200)
-        await fresh.page.evaluate(() => window.__reglet_test!.collapse(false))
+        await fresh.page.evaluate(() => window.__primp_test!.collapse(false))
         await sleep(700)
-        const recording = await fresh.page.evaluate(() => window.__reglet!.recording())
+        const recording = await fresh.page.evaluate(() => window.__primp!.recording())
         const after = scored(await readPlainEntries(fresh.page)).length
         const unmarked = recording.shifts.filter((entry) => entry.selfInduced === undefined && !entry.hadRecentInput).length
         expect(before === 1 && after === 1 && unmarked === 1, `entries before ${before}, after ${after}; unmarked in the recording ${unmarked}`)
@@ -2060,10 +2060,10 @@ async function screenshots(browser: Browser, vite: Lane, cls: Lane): Promise<voi
     for (const scheme of ['light', 'dark'] as const) {
       const edits = await openDock(browser, vite, '/', { context: { colorScheme: scheme } })
       try {
-        await edits.page.evaluate((selector) => window.__reglet_test!.select(selector), `${CARD}:nth-of-type(1)`)
+        await edits.page.evaluate((selector) => window.__primp_test!.select(selector), `${CARD}:nth-of-type(1)`)
         await waitFor(async () => (await testState(edits.page)).source?.state === 'done')
-        await edits.page.evaluate(() => window.__reglet_test!.setStyle('padding', '28px'))
-        await edits.page.evaluate(() => window.__reglet_test!.setStyle('border-radius', '4px', { scope: 'all-instances' }))
+        await edits.page.evaluate(() => window.__primp_test!.setStyle('padding', '28px'))
+        await edits.page.evaluate(() => window.__primp_test!.setStyle('border-radius', '4px', { scope: 'all-instances' }))
         await sleep(300)
         files.push(`edits-${scheme}.png`)
         await edits.page.screenshot({ path: join(SHOTS, `edits-${scheme}.png`) })
@@ -2076,14 +2076,14 @@ async function screenshots(browser: Browser, vite: Lane, cls: Lane): Promise<voi
         files.push(`tray-${scheme}.png`)
         await edits.page.screenshot({ path: join(SHOTS, `tray-${scheme}.png`) })
         if (scheme === 'light') {
-          await edits.page.evaluate(() => window.__reglet_test!.pick(true))
+          await edits.page.evaluate(() => window.__primp_test!.pick(true))
           const target = await rect(edits.page, '[data-label="hero-cta-primary"]')
           await edits.page.mouse.move(target.x + 10, target.y + 10)
           await sleep(200)
           files.push('pick-light.png')
           await edits.page.screenshot({ path: join(SHOTS, 'pick-light.png') })
-          await edits.page.evaluate(() => window.__reglet_test!.pick(false))
-          await edits.page.evaluate(() => window.__reglet_test!.collapse(true))
+          await edits.page.evaluate(() => window.__primp_test!.pick(false))
+          await edits.page.evaluate(() => window.__primp_test!.collapse(true))
           await sleep(200)
           files.push('collapsed-light.png')
           await edits.page.screenshot({ path: join(SHOTS, 'collapsed-light.png') })
@@ -2096,10 +2096,10 @@ async function screenshots(browser: Browser, vite: Lane, cls: Lane): Promise<voi
       try {
         await states.page.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), PLAN_CTA)
         await states.page.mouse.move(2, 2)
-        await states.page.evaluate((selector) => window.__reglet_test!.select(selector), PLAN_CTA)
+        await states.page.evaluate((selector) => window.__primp_test!.select(selector), PLAN_CTA)
         await waitFor(async () => (await testState(states.page)).source?.state === 'done')
-        await states.page.evaluate(() => window.__reglet_test!.setState('hover'))
-        await states.page.evaluate(() => window.__reglet_test!.setStyle('background-color', '#2563eb'))
+        await states.page.evaluate(() => window.__primp_test!.setState('hover'))
+        await states.page.evaluate(() => window.__primp_test!.setStyle('background-color', '#2563eb'))
         await sleep(300)
         files.push(`states-${scheme}.png`)
         await states.page.screenshot({ path: join(SHOTS, `states-${scheme}.png`) })
@@ -2112,8 +2112,8 @@ async function screenshots(browser: Browser, vite: Lane, cls: Lane): Promise<voi
       }
       const shifts = await openDock(browser, cls, SHIFT_PAGE, { context: { colorScheme: scheme } })
       try {
-        await shifts.page.evaluate(() => window.__reglet_test!.openTab('shifts'))
-        await shifts.page.evaluate(() => window.__reglet_test!.shiftReport())
+        await shifts.page.evaluate(() => window.__primp_test!.openTab('shifts'))
+        await shifts.page.evaluate(() => window.__primp_test!.shiftReport())
         await shifts.dock.locator('[data-issue] button', { hasText: 'Show on page' }).click()
         await waitFor(() => shifts.dock.evaluate(() => (document.querySelector('[data-issue] .source')?.textContent ?? '').includes('index.html')), { timeoutMs: 5000 })
         await shifts.page.mouse.move(300, 500)
@@ -2161,7 +2161,7 @@ async function main(): Promise<void> {
   if (wants('vite')) {
     report.section('vite-react-19')
     vite = await startLane('vite-react-19')
-    report.info(`reglet built the bundles itself from packages/overlay/src/entry: hook.js ${vite.reglet.assets.hook.bytes} bytes (${vite.reglet.assets.hook.from}), overlay.js ${vite.reglet.assets.overlay.bytes} bytes`)
+    report.info(`primp built the bundles itself from packages/overlay/src/entry: hook.js ${vite.primp.assets.hook.bytes} bytes (${vite.primp.assets.hook.from}), overlay.js ${vite.primp.assets.overlay.bytes} bytes`)
     await mountChecks(browser, vite, '/', 1200)
     await viteSelection(browser, vite)
     await viteEdits(browser, vite)
@@ -2194,7 +2194,7 @@ async function main(): Promise<void> {
     await (await fetch(next.fixture.url + '/')).arrayBuffer()
     await mountChecks(browser, next, '/', 2000)
     await nextEdits(browser, next)
-    await next.reglet.close()
+    await next.primp.close()
     await next.fixture.stop()
   }
   if (wants('static')) {

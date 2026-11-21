@@ -9,7 +9,7 @@
  * Reads the DOM and writes nothing.
  */
 
-import type { Bystander } from '@reglet/protocol/change'
+import type { Bystander } from '@primp/protocol/change'
 import { buildSelector, instancesOf, labelOf, locatorOf } from './ref.ts'
 import { OVERLAY_ROOT_ATTR } from './snapshot.ts'
 import { splitSelectorList, withoutStates } from './specificity.ts'

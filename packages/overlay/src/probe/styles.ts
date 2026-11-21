@@ -14,7 +14,7 @@
  * browser really applies is always available as the computed style.
  */
 
-import type { ElementState, StyleChange } from '@reglet/protocol/change'
+import type { ElementState, StyleChange } from '@primp/protocol/change'
 import { longhandsOf } from './properties.ts'
 import {
   activeStates,
@@ -103,11 +103,11 @@ export interface ElementStyles {
 }
 
 /** Marks an element (and what is above it) that `forceState` (states.ts) holds in a state. */
-export const FORCE_ATTR = 'data-reglet-force'
+export const FORCE_ATTR = 'data-primp-force'
 
 /**
  * A rule's selector as the page wrote it. While a state is forced, the page's rules for that
- * state carry a second selector with reglet's marker in it (see states.ts); those are not the page's.
+ * state carry a second selector with primp's marker in it (see states.ts); those are not the page's.
  */
 export function pageSelector(selectorText: string): string {
   if (!selectorText.includes(FORCE_ATTR)) return selectorText
@@ -118,7 +118,7 @@ export function pageSelector(selectorText: string): string {
 
 const ignoredSheets = new WeakSet<CSSStyleSheet>()
 
-/** reglet's own stylesheets (the preview sheet) are not part of the page's styles. */
+/** primp's own stylesheets (the preview sheet) are not part of the page's styles. */
 export function ignoreSheet(sheet: CSSStyleSheet): void {
   ignoredSheets.add(sheet)
 }

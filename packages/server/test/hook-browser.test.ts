@@ -10,11 +10,11 @@ import { removeDir, tempDir } from './session-helpers.ts'
 
 /**
  * What the layout-shift hook records, in a real Chromium, with the hook built and minified as the
- * product builds it and served from `/__reglet/hook.js`: the stack of a DOM call, the unclipped
+ * product builds it and served from `/__primp/hook.js`: the stack of a DOM call, the unclipped
  * box of a shift victim, the fonts of inline children.
  *
  * Stacks: the hook wraps DOM methods to capture the stack. A frame of the wrapper on top of the recorded
- * stack reads as "a script of reglet made this call": on 2026-11-21 that classified a page's own
+ * stack reads as "a script of primp made this call": on 2026-11-21 that classified a page's own
  * `insertAdjacentHTML` as development tooling and hid its layout shift. Every wrapped method is
  * checked here: the first recorded frame must be the page's statement.
  */
@@ -113,7 +113,7 @@ describe('what the hook records about a layout shift, in Chromium', () => {
     try {
       await page.goto(proxy.url)
       await page.waitForFunction(() => (window as unknown as { __done?: boolean }).__done === true, undefined, { timeout: 10_000 })
-      const recording = await page.evaluate(() => (window as unknown as { __reglet: { recording(): ShiftRecording } }).__reglet.recording())
+      const recording = await page.evaluate(() => (window as unknown as { __primp: { recording(): ShiftRecording } }).__primp.recording())
       const block = recording.shifts.flatMap((entry) => entry.sources).find((source) => source.node?.id === 'block')
       // What the Layout Instability API says: visible from y=500+ to the bottom edge before, nothing after.
       expect(block?.previousRect.height).toBeGreaterThan(0)
@@ -137,7 +137,7 @@ describe('what the hook records about a layout shift, in Chromium', () => {
 })
 
 describe('DOM-call stacks recorded by the hook, in Chromium', () => {
-  it('start at the page\'s own statement for every wrapped DOM method, never at a frame of reglet', async () => {
+  it('start at the page\'s own statement for every wrapped DOM method, never at a frame of primp', async () => {
     const built = await buildOverlayAssets({ hookEntry: HOOK_ENTRY, overlayEntry: join(dir, 'overlay.ts'), prebuiltDir: false })
     const upstream = await startUpstream((req, res) => {
       if (req.url === '/page.js') {
@@ -154,8 +154,8 @@ describe('DOM-call stacks recorded by the hook, in Chromium', () => {
       await page.goto(proxy.url)
       await page.waitForFunction(() => (window as unknown as { __done?: boolean }).__done === true, undefined, { timeout: 10_000 })
       const { ops, recording } = await page.evaluate(() => {
-        const w = window as unknown as { __ops: string[]; __reglet: { recording(): ShiftRecording } }
-        return { ops: w.__ops, recording: w.__reglet.recording() }
+        const w = window as unknown as { __ops: string[]; __primp: { recording(): ShiftRecording } }
+        return { ops: w.__ops, recording: w.__primp.recording() }
       })
       expect(ops.length).toBeGreaterThanOrEqual(21)
       const problems: string[] = []
@@ -167,7 +167,7 @@ describe('DOM-call stacks recorded by the hook, in Chromium', () => {
           continue
         }
         const stack = mutation.stack ?? ''
-        if (stack.includes('/__reglet/')) problems.push(`${name}: a frame of reglet is on the stack:\n${stack}`)
+        if (stack.includes('/__primp/')) problems.push(`${name}: a frame of primp is on the stack:\n${stack}`)
         const first = stack.split('\n')[0] ?? ''
         if (name === 'appendChild-bound') {
           // Called through Array.prototype.forEach: the browser's frame, then the page's function.

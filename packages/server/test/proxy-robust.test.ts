@@ -189,7 +189,7 @@ describe('9. robustness', () => {
     expect(response.text).toContain('http-equiv="refresh"')
     expect(response.body.length).toBeLessThan(2000)
     // The assets the page points at are still served.
-    expect((await send(proxy.port, { path: '/__reglet/hook.js' })).status).toBe(200)
+    expect((await send(proxy.port, { path: '/__primp/hook.js' })).status).toBe(200)
   })
 
   it('answers other requests with a plain 502', async () => {

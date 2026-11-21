@@ -2,7 +2,7 @@ import { SourceLocSchema, type SourceLoc } from '../../protocol/src/change.ts'
 import type { SourceResult } from '../../source/src/types.ts'
 
 /**
- * `SourceResult` (what @reglet/source's resolver returns) to `SourceLoc` (what
+ * `SourceResult` (what @primp/source's resolver returns) to `SourceLoc` (what
  * travels in the protocol): the same fields minus timing, with anything the
  * schema would refuse dropped rather than passed on.
  */

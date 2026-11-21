@@ -12,7 +12,7 @@
  *   - nothing reads as measured when it was not: an element that is not found has
  *     `found: false`, a media-scoped expectation outside its query has `mediaMatches: false`;
  *   - `expectedComputed` is the recorded value as the browser computes it ON THIS ELEMENT
- *     (`1.75rem` -> `28px`). It is resolved with a temporary rule in a stylesheet of reglet's,
+ *     (`1.75rem` -> `28px`). It is resolved with a temporary rule in a stylesheet of primp's,
  *     so the DOM is never touched, and only reported when that rule demonstrably takes effect
  *     on the element (a page rule with `!important` could beat it; then it stays undefined).
  *
@@ -36,9 +36,9 @@
  * and on again.
  */
 
-import { ORDER_NEIGHBOURS_LOST, type Measured as EngineMeasured } from '@reglet/engine/judge'
-import type { CheckResult, Expectation, Rect } from '@reglet/protocol/change'
-import type { ClientMessage, ServerMessage } from '@reglet/protocol/messages'
+import { ORDER_NEIGHBOURS_LOST, type Measured as EngineMeasured } from '@primp/engine/judge'
+import type { CheckResult, Expectation, Rect } from '@primp/protocol/change'
+import type { ClientMessage, ServerMessage } from '@primp/protocol/messages'
 import type { Preview } from './preview.ts'
 import { longhandsOf } from './properties.ts'
 import { locateAmongSiblings } from './order.ts'
@@ -80,7 +80,7 @@ function probe(doc: Document): CSSStyleSheet {
 }
 
 /** Raises the specificity of the temporary rule above anything an author plausibly wrote. */
-const BOOST = ':not(#_reglet_):not(#_reglet_):not(#_reglet_)'
+const BOOST = ':not(#_primp_):not(#_primp_):not(#_primp_)'
 
 /** The value of `property` as one string: the browser's own serialisation, or its longhands spelled out when they do not combine. */
 function read(style: CSSStyleDeclaration, property: string, longhands: readonly string[]): string {

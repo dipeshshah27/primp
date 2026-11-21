@@ -7,8 +7,8 @@ import {
   type JudgeExtras,
   type Measured,
   type SettleInfo,
-} from '@reglet/engine'
-import type { ChangeItem, CheckResult, Expectation, ItemStatus, Rect, VerificationResult, VerificationStatus } from '@reglet/protocol/change'
+} from '@primp/engine'
+import type { ChangeItem, CheckResult, Expectation, ItemStatus, Rect, VerificationResult, VerificationStatus } from '@primp/protocol/change'
 import type { MeasuredItem, Session } from './session.ts'
 import type { JournalEntry, JournalPosition, SettleDetector, SettleResult } from './settle.ts'
 
@@ -263,7 +263,7 @@ export function createVerifier(options: VerifierOptions): Verifier {
     const afterReload = (base: Pick<SettleResult, 'ms' | 'filesChanged'>, quiet: SettleResult): SettleResult =>
       quiet.status === 'build_error'
         ? { ...quiet, filesChanged: base.filesChanged }
-        : { ...quiet, status: 'settled', signal: 'fs', domChanged: true, ms: base.ms + quiet.ms, filesChanged: base.filesChanged, reason: 'no hot reload here: reglet reloaded the page after the source changed' }
+        : { ...quiet, status: 'settled', signal: 'fs', domChanged: true, ms: base.ms + quiet.ms, filesChanged: base.filesChanged, reason: 'no hot reload here: primp reloaded the page after the source changed' }
 
     let reloaded = false
     let settle: SettleResult | undefined

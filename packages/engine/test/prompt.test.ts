@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import type { ChangeItem, CheckResult, Expectation, SourceLoc } from '@reglet/protocol/change'
-import type { ShiftIssue, ShiftRecording } from '@reglet/protocol/shift'
+import type { ChangeItem, CheckResult, Expectation, SourceLoc } from '@primp/protocol/change'
+import type { ShiftIssue, ShiftRecording } from '@primp/protocol/shift'
 import { beforeValueFor, judgeCheck, judgeItem } from '../src/judge.ts'
 import type { JudgeExtras, Measured } from '../src/judge.ts'
 import { renderFixup, renderPrompt } from '../src/prompt.ts'
@@ -839,8 +839,8 @@ describe('renderPrompt', () => {
     const clipboard = renderPrompt([singleExact()], { batchId: 'b', channel: 'clipboard' })
     expect(mcp).toContain('`verify_changes`')
     expect(mcp).toContain('after two retries stop')
-    expect(mcp).not.toContain('reglet dock')
-    expect(clipboard).toContain('return to the reglet dock')
+    expect(mcp).not.toContain('primp dock')
+    expect(clipboard).toContain('return to the primp dock')
     expect(clipboard).toContain('fix-up prompt')
     expect(clipboard).not.toContain('verify_changes')
     expect(mcp.split('## Verify')[0]).toBe(clipboard.split('## Verify')[0]?.replace('b`', 'b`'))
@@ -854,17 +854,17 @@ describe('renderPrompt', () => {
     expect(byDefault).not.toContain('shift-3')
     expect(byDefault).not.toContain('shift-u')
     expect(byDefault).not.toContain('shift-e')
-    expect(byDefault.split('\n')[0]).toBe('# reglet batch `b-x`: 1 layout shift')
+    expect(byDefault.split('\n')[0]).toBe('# primp batch `b-x`: 1 layout shift')
 
     const all = renderPrompt([], ctx, { shifts: [imageShift, devShift, unknown, excluded], includeUncertainShifts: true })
-    expect(all.split('\n')[0]).toBe('# reglet batch `b-x`: 4 layout shifts')
+    expect(all.split('\n')[0]).toBe('# primp batch `b-x`: 4 layout shifts')
     expect(all).toContain('development tooling')
     expect(all).toContain('- Culprit: not identified')
     expect(all).toContain('there is no standard fix')
   })
 
   it('an empty batch says so', () => {
-    expect(renderPrompt([], ctx)).toBe('# reglet batch `b-x`: 0 changes\n\nThere is nothing to implement in this batch.\n')
+    expect(renderPrompt([], ctx)).toBe('# primp batch `b-x`: 0 changes\n\nThere is nothing to implement in this batch.\n')
     expect(renderPrompt([], ctx, { shifts: [devShift] })).toContain('nothing to implement')
   })
 
@@ -873,7 +873,7 @@ describe('renderPrompt', () => {
     const lines = text.split('\n')
     // Headings are ours: the title, one per group, one per item, Verify.
     expect(lines.filter((line) => line.startsWith('#'))).toEqual([
-      "# reglet batch `b-10' # x`: 2 changes | viewport 1280x800 | light colour scheme",
+      "# primp batch `b-10' # x`: 2 changes | viewport 1280x800 | light colour scheme",
       '## `src/pages/Blog.tsx`',
       lines.find((line) => line.startsWith("### `c'1' ## injected`")),
       '## Source location uncertain or unknown',
@@ -1196,7 +1196,7 @@ describe('renderFixup: a moved element and a change made for a state', () => {
   }
 
   it('lists what did not pass and what could not be checked, and names what passed', () => {
-    expect(text.split('\n')[0]).toBe('# reglet fix-up: 4 of 6 changes need another pass')
+    expect(text.split('\n')[0]).toBe('# primp fix-up: 4 of 6 changes need another pass')
     expect(text).toContain('Passed, leave as they are: `c52`, `c42`.')
     for (const id of ['c40', 'c41', 'c50', 'c51']) expect(text).toContain(`### \`${id}\` `)
   })
@@ -1230,7 +1230,7 @@ describe('renderFixup: a moved element and a change made for a state', () => {
     expect(c40).toContain('### `c40` not measurable: `background-color` on `:hover`: ')
     expect(c40).toContain('- Condition: only in the `:hover` state. Do not change the resting style.')
     expect(c40).toContain(
-      '- Found: Not checked: reglet could not emulate the `:hover` state on this page (reason: `the stylesheet https://cdn.example.com/site.css is on another origin and cannot be read`), so `background-color` in that state was not measured (expected `rgb(15, 23, 42)`). That is a limit of the measurement, not a fault found in your edit, and verifying again will not change it: ask the user to check this state by eye.',
+      '- Found: Not checked: primp could not emulate the `:hover` state on this page (reason: `the stylesheet https://cdn.example.com/site.css is on another origin and cannot be read`), so `background-color` in that state was not measured (expected `rgb(15, 23, 42)`). That is a limit of the measurement, not a fault found in your edit, and verifying again will not change it: ask the user to check this state by eye.',
     )
     expect(c40).not.toMatch(/viewport|Resize|media query/)
     expect(c40).not.toContain('- Hint:')
@@ -1266,7 +1266,7 @@ describe('renderFixup: a moved element and a change made for a state', () => {
       '## Verify\n\nNothing here can be verified again. `c43` cannot be checked again on this page, because the state it is made for cannot be emulated: ask the user to check it by eye.\n',
     )
     // Without the tools the dock checks everything again by itself.
-    expect(renderFixup([blocked], { channel: 'clipboard' })).toContain('When you are done, tell the user to return to the reglet dock')
+    expect(renderFixup([blocked], { channel: 'clipboard' })).toContain('When you are done, tell the user to return to the primp dock')
     expect(renderFixup([blocked])).toContain('Nothing here can be verified again.')
   })
 
@@ -1293,7 +1293,7 @@ describe('renderFixup: bystanders', () => {
   const text = renderFixup(bystanderFixupItems(), { channel: 'mcp' })
 
   it('a change that landed but dragged a bystander along needs another pass, and is told why once', () => {
-    expect(text.split('\n')[0]).toBe('# reglet fix-up: 2 of 3 changes need another pass')
+    expect(text.split('\n')[0]).toBe('# primp fix-up: 2 of 3 changes need another pass')
     expect(text).toContain('Passed, leave as it is: `c31`.')
     expect(text).toContain('### `c30` fail: `padding`: `10px 18px` -> `14px 26px`')
     expect(text).toContain('- Found (4 other checks passed):')
@@ -1326,15 +1326,15 @@ describe('renderFixup: bystanders', () => {
 describe('renderFixup', () => {
   it('nothing to fix', () => {
     const pass = verified(singleExact(), () => found({ actual: '16px' }))
-    expect(renderFixup([pass])).toBe('# reglet fix-up: nothing to fix\n\nThe change passed verification.\n')
-    expect(renderFixup([pass, { ...pass, id: 'c1b' }, noSource()])).toBe('# reglet fix-up: nothing to fix\n\nAll 2 changes passed verification.\nNot checked yet: `c6`.\n')
-    expect(renderFixup([])).toBe('# reglet fix-up: nothing to fix\n\nNo change has been verified yet.\n')
+    expect(renderFixup([pass])).toBe('# primp fix-up: nothing to fix\n\nThe change passed verification.\n')
+    expect(renderFixup([pass, { ...pass, id: 'c1b' }, noSource()])).toBe('# primp fix-up: nothing to fix\n\nAll 2 changes passed verification.\nNot checked yet: `c6`.\n')
+    expect(renderFixup([])).toBe('# primp fix-up: nothing to fix\n\nNo change has been verified yet.\n')
   })
 
   it('lists only what did not pass, names what passed, and is deterministic', () => {
     const text = renderFixup(fixupItems(), { channel: 'mcp' })
     expect(text).toBe(renderFixup(fixupItems(), { channel: 'mcp' }))
-    expect(text.split('\n')[0]).toBe('# reglet fix-up: 7 of 8 changes need another pass')
+    expect(text.split('\n')[0]).toBe('# primp fix-up: 7 of 8 changes need another pass')
     expect(text).toContain('Passed, leave as it is: `c1`.')
     expect(text).toContain('Not checked yet: `c6`.')
     expect(text).not.toContain('### `c1`')
@@ -1359,6 +1359,6 @@ describe('renderFixup', () => {
     expect(custom).toContain('- Hint: The radius scale of this project stops at 12px.')
     const bare = renderFixup([{ ...item, verification: { ...item.verification, hint: '', checks: [] } }])
     expect(bare).toContain('- Found: Landed near the requested value. Acceptable if that is the nearest design token; otherwise set the exact value.')
-    expect(bare).toContain('if you have the reglet tools, call the `verify_changes` tool again with this id: `c4`. Otherwise tell the user to return to the reglet dock')
+    expect(bare).toContain('if you have the primp tools, call the `verify_changes` tool again with this id: `c4`. Otherwise tell the user to return to the primp dock')
   })
 })

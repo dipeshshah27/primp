@@ -7,12 +7,12 @@ import { WebSocket } from 'ws'
 import type { ClientMessage, ServerMessage } from '../../protocol/src/messages.ts'
 import type { RpcResponse } from '../../protocol/src/rpc.ts'
 import { SessionFileSchema, type PendingChanges, type SessionFile, type SessionSummary } from '../../protocol/src/session.ts'
-import { isPortAnswering, startReglet, type RegletHandle, type StartRegletOptions } from '../src/app.ts'
+import { isPortAnswering, startPrimp, type PrimpHandle, type StartPrimpOptions } from '../src/app.ts'
 import { NAVIGATE, send, sleep } from './helpers.ts'
 import { freeLowPort, hello, removeDir, structureItem, styleItem, tempDir } from './session-helpers.ts'
 
 /**
- * `startReglet` end to end without a browser: a scripted dev server, stub
+ * `startPrimp` end to end without a browser: a scripted dev server, stub
  * bundles, a WebSocket client playing the page, and the control endpoint
  * called the way the MCP shim calls it.
  */
@@ -32,7 +32,7 @@ let projectRoot: string
 let sessionDir: string
 let hookEntry: string
 let overlayEntry: string
-const running: RegletHandle[] = []
+const running: PrimpHandle[] = []
 const servers: (http.Server | net.Server)[] = []
 
 beforeAll(() => {
@@ -76,9 +76,9 @@ async function devServer(host = '::1', fixedPort?: number): Promise<number> {
   return (server.address() as net.AddressInfo).port
 }
 
-async function start(target: number, overrides: Partial<StartRegletOptions> = {}): Promise<RegletHandle & { logs: string[] }> {
+async function start(target: number, overrides: Partial<StartPrimpOptions> = {}): Promise<PrimpHandle & { logs: string[] }> {
   const logs: string[] = []
-  const handle = await startReglet({
+  const handle = await startPrimp({
     projectRoot,
     target,
     assets: { hookEntry, overlayEntry },
@@ -98,7 +98,7 @@ class Page {
   closed: { code: number } | undefined
   private constructor(readonly socket: WebSocket) {}
 
-  static open(handle: RegletHandle, path = '/__reglet/ws', origin = handle.url): Promise<Page> {
+  static open(handle: PrimpHandle, path = '/__primp/ws', origin = handle.url): Promise<Page> {
     return new Promise((resolve, reject) => {
       const socket = new WebSocket(`ws://localhost:${handle.port}${path}`, { origin })
       const page = new Page(socket)
@@ -144,68 +144,68 @@ async function rpc<T>(file: SessionFile, method: string, params: unknown = {}, t
   return { status: response.status, body, result: (body.ok ? body.result : undefined) as T }
 }
 
-describe('startReglet', () => {
+describe('startPrimp', () => {
   it('serves the app through the proxy with the hook as the first script, and both bundles uncached', async () => {
     const target = await devServer()
-    const reglet = await start(target)
-    expect(reglet.target).toBe(`http://localhost:${target}`)
-    expect(reglet.url).toBe(`http://localhost:${reglet.port}`)
-    expect(reglet.framework).toBe('static')
+    const primp = await start(target)
+    expect(primp.target).toBe(`http://localhost:${target}`)
+    expect(primp.url).toBe(`http://localhost:${primp.port}`)
+    expect(primp.framework).toBe('static')
 
-    const page = await send(reglet.port, { headers: NAVIGATE })
+    const page = await send(primp.port, { headers: NAVIGATE })
     expect(page.status).toBe(200)
-    const tag = `<script src="/__reglet/hook.js?v=${reglet.assets.hook.hash}" data-reglet></script>`
+    const tag = `<script src="/__primp/hook.js?v=${primp.assets.hook.hash}" data-primp></script>`
     expect(page.text).toContain(`<head>${tag}<title>App</title>`)
     expect(page.text.match(/<script/g)).toHaveLength(1)
 
     for (const [path, asset] of [
-      [`/__reglet/hook.js?v=${reglet.assets.hook.hash}`, reglet.assets.hook],
-      ['/__reglet/overlay.js', reglet.assets.overlay],
+      [`/__primp/hook.js?v=${primp.assets.hook.hash}`, primp.assets.hook],
+      ['/__primp/overlay.js', primp.assets.overlay],
     ] as const) {
-      const response = await send(reglet.port, { path })
+      const response = await send(primp.port, { path })
       expect(response.status, path).toBe(200)
       expect(response.headers['cache-control']).toBe('no-store')
       expect(response.headers['content-type']).toBe('text/javascript; charset=utf-8')
       expect(response.text).toBe(asset.code)
     }
-    expect(reglet.assets.hook.code).toContain('__stubHook')
-    expect((await send(reglet.port, { path: '/__reglet/nothing.js' })).status).toBe(404)
+    expect(primp.assets.hook.code).toContain('__stubHook')
+    expect((await send(primp.port, { path: '/__primp/nothing.js' })).status).toBe(404)
     // The app fetching its own HTML is not a navigation: passed through untouched.
-    expect((await send(reglet.port, { path: '/', headers: { 'sec-fetch-dest': 'empty', accept: '*/*' } })).text).toBe(PAGE)
+    expect((await send(primp.port, { path: '/', headers: { 'sec-fetch-dest': 'empty', accept: '*/*' } })).text).toBe(PAGE)
   })
 
   it('hands the one overlay socket to the settle detector and to the session', async () => {
-    const reglet = await start(await devServer())
-    const page = await Page.open(reglet)
-    page.send({ type: 'settle:hello', doc: 'doc-1', url: `${reglet.url}/`, timeOrigin: Date.now() - 50, at: Date.now() })
+    const primp = await start(await devServer())
+    const page = await Page.open(primp)
+    page.send({ type: 'settle:hello', doc: 'doc-1', url: `${primp.url}/`, timeOrigin: Date.now() - 50, at: Date.now() })
     page.send(hello('doc-1'))
     const state = await page.next('session:state')
-    expect(state.info).toEqual({ target: reglet.target, framework: 'static', projectName: 'shop', version: '9.9.9' })
+    expect(state.info).toEqual({ target: primp.target, framework: 'static', projectName: 'shop', version: '9.9.9' })
     expect(state.items).toEqual([])
     // The detector calibrates its clock with a probe as soon as a document says hello.
     for (let waited = 0; waited < 2000 && page.count('settle:probe') === 0; waited += 10) await sleep(10)
     expect(page.count('settle:probe')).toBeGreaterThan(0)
-    expect(reglet.detector.status().browsers).toBe(1)
-    expect(reglet.session.documents().map((document) => document.doc)).toEqual(['doc-1'])
+    expect(primp.detector.status().browsers).toBe(1)
+    expect(primp.session.documents().map((document) => document.doc)).toEqual(['doc-1'])
 
     page.socket.close()
-    for (let waited = 0; waited < 2000 && reglet.session.documents().length > 0; waited += 10) await sleep(10)
-    expect(reglet.session.documents()).toEqual([])
-    expect(reglet.detector.status().browsers).toBe(0)
+    for (let waited = 0; waited < 2000 && primp.session.documents().length > 0; waited += 10) await sleep(10)
+    expect(primp.session.documents()).toEqual([])
+    expect(primp.detector.status().browsers).toBe(0)
   })
 
-  it('refuses overlay sockets from other origins and closes sockets on unknown reglet paths', async () => {
-    const reglet = await start(await devServer())
-    await expect(Page.open(reglet, '/__reglet/ws', 'http://evil.example')).rejects.toThrow(/upgrade refused: 403/)
-    const stray = await Page.open(reglet, '/__reglet/other')
+  it('refuses overlay sockets from other origins and closes sockets on unknown primp paths', async () => {
+    const primp = await start(await devServer())
+    await expect(Page.open(primp, '/__primp/ws', 'http://evil.example')).rejects.toThrow(/upgrade refused: 403/)
+    const stray = await Page.open(primp, '/__primp/other')
     for (let waited = 0; waited < 2000 && stray.closed === undefined; waited += 10) await sleep(10)
     expect(stray.closed).toEqual({ code: 1008 })
-    expect(reglet.session.documents()).toEqual([])
+    expect(primp.session.documents()).toEqual([])
   })
 
   it('resolves an element of the project over the socket with the real resolver', async () => {
-    const reglet = await start(await devServer())
-    const page = await Page.open(reglet)
+    const primp = await start(await devServer())
+    const page = await Page.open(primp)
     page.send(hello('doc-1'))
     await page.next('session:state')
     page.send({
@@ -225,7 +225,7 @@ describe('startReglet', () => {
             { tag: 'h1', index: 0, ofType: 0, ofTypeCount: 1, id: 'title' },
           ],
           pagePath: '/',
-          pageOrigin: reglet.url,
+          pageOrigin: primp.url,
           pageLoadedAt: Date.now(),
         },
         hints: [],
@@ -238,16 +238,16 @@ describe('startReglet', () => {
   })
 
   it('writes a session file the shim can use, and answers the three control methods', async () => {
-    const reglet = await start(await devServer())
+    const primp = await start(await devServer())
     const file = readSessionFile()
-    expect(file).toMatchObject({ pid: process.pid, controlPort: reglet.controlPort, proxyUrl: reglet.url, projectRoot: reglet.projectRoot })
-    expect(reglet.sessionFile.startsWith(sessionDir)).toBe(true)
+    expect(file).toMatchObject({ pid: process.pid, controlPort: primp.controlPort, proxyUrl: primp.url, projectRoot: primp.projectRoot })
+    expect(primp.sessionFile.startsWith(sessionDir)).toBe(true)
 
-    expect((await rpc<SessionSummary>(file, 'get_session')).result).toEqual({ target: reglet.target, framework: 'static', browserConnected: false, counts: {} })
+    expect((await rpc<SessionSummary>(file, 'get_session')).result).toEqual({ target: primp.target, framework: 'static', browserConnected: false, counts: {} })
     expect((await rpc(file, 'get_session', {}, 'x'.repeat(43))).status).toBe(401)
     expect((await rpc<PendingChanges>(file, 'get_pending_changes')).result).toEqual({ batchIds: [], count: 0, files: [], prompt: '', claimedAt: null })
 
-    const page = await Page.open(reglet)
+    const page = await Page.open(primp)
     page.send(hello('doc-1'))
     page.send({ type: 'session:upsert', item: styleItem('one', 'index.html') })
     page.send({ type: 'session:upsert', item: structureItem('two', 'index.html') })
@@ -256,7 +256,7 @@ describe('startReglet', () => {
     expect(sent.batch.items.map((item) => item.status)).toEqual(['queued', 'queued'])
     expect((await rpc<SessionSummary>(file, 'get_session')).result).toMatchObject({ browserConnected: true, counts: { queued: 2 } })
 
-    const journalBefore = reglet.detector.mark().seq
+    const journalBefore = primp.detector.mark().seq
     const pending = (await rpc<PendingChanges>(file, 'get_pending_changes')).result
     expect(pending.count).toBe(2)
     expect(pending.batchIds).toEqual([sent.batch.batchId])
@@ -268,10 +268,10 @@ describe('startReglet', () => {
     ])
     expect(pending.prompt.length).toBeGreaterThan(0)
     // The batch is anchored at the settle detector's journal position of that moment.
-    const batch = reglet.session.batch(sent.batch.batchId)
+    const batch = primp.session.batch(sent.batch.batchId)
     expect(batch?.claimedAt).toBe(pending.claimedAt)
     expect(batch?.claimMark?.seq).toBeGreaterThanOrEqual(journalBefore)
-    expect(batch?.claimMark?.seq).toBeLessThanOrEqual(reglet.detector.mark().seq)
+    expect(batch?.claimMark?.seq).toBeLessThanOrEqual(primp.detector.mark().seq)
 
     const bad = await rpc(file, 'dismiss_change', { id: 'one' })
     expect([bad.status, bad.body.ok]).toEqual([422, false])
@@ -294,7 +294,7 @@ describe('startReglet', () => {
 
     const first = await start(target)
     expect(first.port).toBe(target + 1)
-    // While the first proxy holds target + 1, a second reglet moves on.
+    // While the first proxy holds target + 1, a second primp moves on.
     const second = await start(target)
     expect(second.port).toBeGreaterThan(target + 1)
     expect(second.port).toBeLessThanOrEqual(target + 20)
@@ -317,8 +317,8 @@ describe('startReglet', () => {
     expect(await isPortAnswering(target + 1)).toBe(true)
     expect(await isPortAnswering(target + 2)).toBe(false)
 
-    const reglet = await start(target)
-    expect(reglet.port).toBe(target + 2)
+    const primp = await start(target)
+    expect(primp.port).toBe(target + 2)
     // The API server still answers on its port, on both loopback families.
     for (const host of ['127.0.0.1', '[::1]']) expect(await (await fetch(`http://${host}:${target + 1}/`)).text()).toBe('api')
     await expect(start(target, { port: target + 1 })).rejects.toThrow(`port ${target + 1} is already in use`)
@@ -326,22 +326,22 @@ describe('startReglet', () => {
   })
 
   it('close() removes the session file, frees both ports, drops sockets and is safe to repeat', async () => {
-    const reglet = await start(await devServer())
-    const page = await Page.open(reglet)
+    const primp = await start(await devServer())
+    const page = await Page.open(primp)
     page.send(hello('doc-1'))
     await page.next('session:state')
-    const pending = reglet.session.measure([], 10_000)
-    expect(existsSync(reglet.sessionFile)).toBe(true)
+    const pending = primp.session.measure([], 10_000)
+    expect(existsSync(primp.sessionFile)).toBe(true)
 
-    await Promise.all([reglet.close(), reglet.close()])
-    expect(existsSync(reglet.sessionFile)).toBe(false)
+    await Promise.all([primp.close(), primp.close()])
+    expect(existsSync(primp.sessionFile)).toBe(false)
     expect(await pending).toEqual({ status: 'disconnected', doc: 'doc-1' })
     for (let waited = 0; waited < 2000 && page.closed === undefined; waited += 10) await sleep(10)
     expect(page.closed).toBeDefined()
-    await expect(send(reglet.port)).rejects.toThrow(/ECONNREFUSED/)
-    await expect(fetch(`http://127.0.0.1:${reglet.controlPort}/rpc`, { method: 'POST' })).rejects.toThrow()
-    expect(reglet.detector.status().journal).toBeGreaterThanOrEqual(0)
-    await reglet.close()
+    await expect(send(primp.port)).rejects.toThrow(/ECONNREFUSED/)
+    await expect(fetch(`http://127.0.0.1:${primp.controlPort}/rpc`, { method: 'POST' })).rejects.toThrow()
+    expect(primp.detector.status().journal).toBeGreaterThanOrEqual(0)
+    await primp.close()
   })
 
   it('installs signal handlers only when asked, and removes them on close', async () => {
@@ -357,18 +357,18 @@ describe('startReglet', () => {
 
   it('rejects, leaving nothing running, when the project or a bundle is missing', async () => {
     const target = await devServer()
-    await expect(startReglet({ projectRoot: join(work, 'no-such-dir'), target, assets: { hookEntry, overlayEntry }, sessionDir, handleSignals: false })).rejects.toThrow(/project directory not found/)
-    await expect(startReglet({ projectRoot, target, assets: { hookEntry: join(work, 'missing.ts'), overlayEntry }, sessionDir, handleSignals: false })).rejects.toThrow(/could not build hook\.js/)
-    await expect(startReglet({ projectRoot, target: 'nonsense://x', assets: { hookEntry, overlayEntry }, sessionDir, handleSignals: false })).rejects.toThrow(/cannot read/)
+    await expect(startPrimp({ projectRoot: join(work, 'no-such-dir'), target, assets: { hookEntry, overlayEntry }, sessionDir, handleSignals: false })).rejects.toThrow(/project directory not found/)
+    await expect(startPrimp({ projectRoot, target, assets: { hookEntry: join(work, 'missing.ts'), overlayEntry }, sessionDir, handleSignals: false })).rejects.toThrow(/could not build hook\.js/)
+    await expect(startPrimp({ projectRoot, target: 'nonsense://x', assets: { hookEntry, overlayEntry }, sessionDir, handleSignals: false })).rejects.toThrow(/cannot read/)
     expect(existsSync(sessionDir) ? readdirSync(sessionDir).filter((name) => name.endsWith('.json')) : []).toEqual([])
   })
 
   it('shows the "not reachable" page, with the hook, while the dev server is down', async () => {
     const free = await freeLowPort()
-    const reglet = await start(free)
-    const page = await send(reglet.port, { headers: NAVIGATE })
+    const primp = await start(free)
+    const page = await send(primp.port, { headers: NAVIGATE })
     expect(page.status).toBe(502)
     expect(page.text).toContain('Dev server not reachable')
-    expect(page.text).toContain(`/__reglet/hook.js?v=${reglet.assets.hook.hash}`)
+    expect(page.text).toContain(`/__primp/hook.js?v=${primp.assets.hook.hash}`)
   })
 })

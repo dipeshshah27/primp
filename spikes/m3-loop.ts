@@ -1,12 +1,12 @@
 /**
  * M3: the closed loop, end to end, with nothing faked except the agent's judgement.
  *
- *   developer (Playwright driving the real dock through window.__reglet_test)
+ *   developer (Playwright driving the real dock through window.__primp_test)
  *     -> edits in the page, presses Send
- *   agent (an MCP client over the real `reglet mcp` stdio shim)
+ *   agent (an MCP client over the real `primp mcp` stdio shim)
  *     -> get_pending_changes, then a scripted source patch (right, wrong, near miss, none, broken),
  *     -> verify_changes
- *   reglet -> waits for the dev server to apply the patch, measures the page, judges.
+ *   primp -> waits for the dev server to apply the patch, measures the page, judges.
  *
  * Passes when each kind of patch gets the status the plan names for it, and nothing
  * is ever reported as pass without the source having been edited to match.
@@ -23,7 +23,7 @@ import { createReport, editFile, expect, newPage, replaceOnce, runCleanups, slee
 import { startLoop } from './lib/loop.ts'
 
 const only = process.argv[2]
-const report = createReport('M3 closed loop: edit in the dock, agent patches source, reglet verifies')
+const report = createReport('M3 closed loop: edit in the dock, agent patches source, primp verifies')
 
 /** The part of an agent prompt about one change: from its heading on. */
 const sectionOf = (prompt: string, id: string): string => {
@@ -37,11 +37,11 @@ async function vite(): Promise<void> {
   const one = loop.only
 
   report.section('Vite + React 19: setup')
-  const ready = await report.attempt('the dock loads through reglet and the MCP shim lists verify_changes', async () => {
+  const ready = await report.attempt('the dock loads through primp and the MCP shim lists verify_changes', async () => {
     await loop.open('/')
     const names = (await loop.client.listTools()).tools.map((tool) => tool.name)
     expect(names.includes('verify_changes'), `tools: ${names.join(', ')}`)
-    return `dock ready at ${loop.reglet.url}; tools ${names.join(', ')}`
+    return `dock ready at ${loop.primp.url}; tools ${names.join(', ')}`
   })
   if (!ready) return
 
@@ -167,7 +167,7 @@ async function vite(): Promise<void> {
   report.section('Vite G. Without MCP: a pasted prompt is verified by itself after the source changes')
   await report.attempt('a queued change nobody claimed turns verified in the dock once the source matches', async () => {
     const { item, prompt } = await loop.editAndSend('.pricing__lead', { property: 'margin-top', value: '14px' })
-    expect(prompt.includes('return to the reglet dock'), 'the clipboard prompt does not tell the agent to send the user back to the dock')
+    expect(prompt.includes('return to the primp dock'), 'the clipboard prompt does not tell the agent to send the user back to the dock')
     expect(itemStatus(item.id) === 'queued', `item status ${itemStatus(item.id)}`)
     editFile(fixture, 'src/styles/site.css', replaceOnce('.pricing__lead {\n  margin-top: 8px;', '.pricing__lead {\n  margin-top: 14px;'))
     const started = Date.now()
@@ -480,7 +480,7 @@ async function next(): Promise<void> {
   const one = loop.only
 
   // Next's own dev tools violate the fixture's strict policy by themselves. A violation counts against
-  // reglet unless the same one happens on the page without it, or it is on reglet's own elements.
+  // primp unless the same one happens on the page without it, or it is on primp's own elements.
   const key = (violation: { effectiveDirective: string; blockedURI: string; target: string }): string => `${violation.effectiveDirective} ${violation.blockedURI} (${violation.target})`
   const baseline = await newPage(loop.browser)
   await baseline.page.goto(`${fixture.url}/`, { waitUntil: 'load' })
@@ -488,15 +488,15 @@ async function next(): Promise<void> {
   const own = new Set(baseline.record.cspViolations.map(key))
   const ownCount = baseline.record.cspViolations.length
   await baseline.close()
-  const fromReglet = (): string[] =>
-    record.cspViolations.filter((violation) => !own.has(key(violation)) || violation.target === 'reglet-root' || violation.documentURI === 'about:blank').map((violation) => `${key(violation)} in ${violation.documentURI}`)
+  const fromPrimp = (): string[] =>
+    record.cspViolations.filter((violation) => !own.has(key(violation)) || violation.target === 'primp-root' || violation.documentURI === 'about:blank').map((violation) => `${key(violation)} in ${violation.documentURI}`)
 
   report.section('Next 16 + Turbopack (strict nonce CSP): setup')
   const ready = await report.attempt('the dock loads under the strict CSP and adds no violation of its own', async () => {
     await loop.open('/')
     await sleep(1000)
-    expect(fromReglet().length === 0, `CSP violations from reglet: ${fromReglet().slice(0, 3).join(' | ')}`)
-    return `dock ready at ${loop.reglet.url}; framework ${loop.reglet.framework}; 0 violations from reglet (the page has ${ownCount} of its own without reglet, ${record.cspViolations.length} with it)`
+    expect(fromPrimp().length === 0, `CSP violations from primp: ${fromPrimp().slice(0, 3).join(' | ')}`)
+    return `dock ready at ${loop.primp.url}; framework ${loop.primp.framework}; 0 violations from primp (the page has ${ownCount} of its own without primp, ${record.cspViolations.length} with it)`
   })
   if (!ready) return
 
@@ -595,7 +595,7 @@ async function next(): Promise<void> {
     return `${describe(result)}\n        nav: ${before.slice(0, 3).join(', ')} -> ${after.slice(0, 3).join(', ')}`
   })
 
-  report.check('reglet added no CSP violation during the whole Next loop', fromReglet().length === 0, fromReglet().slice(0, 3).join(' | ') || 'none')
+  report.check('primp added no CSP violation during the whole Next loop', fromPrimp().length === 0, fromPrimp().slice(0, 3).join(' | ') || 'none')
 }
 
 async function svelte(): Promise<void> {
@@ -650,7 +650,7 @@ async function staticSite(): Promise<void> {
   const one = loop.only
 
   report.section('Plain HTML, no build step and no hot reload')
-  await report.attempt('the agent edits css/site.css; reglet reloads the page by itself and then judges: fail, then pass', async () => {
+  await report.attempt('the agent edits css/site.css; primp reloads the page by itself and then judges: fail, then pass', async () => {
     await loop.open('/')
     const item = await loop.editAndClaim('[data-label="hero-title"]', { property: 'font-size', value: '52px' })
     expect(item.target.source?.file === 'index.html', `source ${item.target.source?.file}:${item.target.source?.line} (${item.target.source?.level})`)
@@ -667,7 +667,7 @@ async function staticSite(): Promise<void> {
     expect(reloads === 2, `the page was loaded ${reloads} times for two verifications`)
     const shown = await loop.shownStatus(item.id)
     expect(shown === 'pass', `after the reload the dock shows ${shown}`)
-    return `source ${item.target.source?.file}:${item.target.source?.line} (${item.target.source?.level}); ${reloads} reloads by reglet\n        wrong: ${describe(wrong)}\n        right: ${describe(right)}`
+    return `source ${item.target.source?.file}:${item.target.source?.line} (${item.target.source?.level}); ${reloads} reloads by primp\n        wrong: ${describe(wrong)}\n        right: ${describe(right)}`
   })
   await report.attempt('removing an element from index.html: pass after the reload', async () => {
     const item = await loop.editAndClaim('[data-label="hero-emphasis"]', 'remove')
@@ -686,7 +686,7 @@ async function staticSite(): Promise<void> {
     expect(record.documentRequests.length === loadsBefore, 'the page was reloaded although nothing changed')
     return describe(result)
   })
-  await report.attempt('a :hover background on .button (css/site.css has .button:hover): the agent edits that rule; pass after reglet reloads the page', async () => {
+  await report.attempt('a :hover background on .button (css/site.css has .button:hover): the agent edits that rule; pass after primp reloads the page', async () => {
     const item = await loop.editAndClaim('[data-label="hero-cta"]', { property: 'background-color', value: '#0b2a1f', state: 'hover' })
     expect(item.kind === 'style' && item.condition.state === 'hover', 'not a :hover change')
     const origin = item.kind === 'style' ? item.origin : undefined

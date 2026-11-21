@@ -6,14 +6,14 @@
  * For each app fixture (vite-react-19, next-16-turbopack, sveltekit-svelte-5, static-html) a
  * working copy is started on a free port, the proxy from packages/server is put in front of
  * it with one injected head script (spikes/lib/hooks/marker-hook.ts, which sets
- * `window.__reglet_hook`), and headless Chromium is driven through `http://localhost:<proxy>`.
+ * `window.__primp_hook`), and headless Chromium is driven through `http://localhost:<proxy>`.
  *
  * Checks, by letter (the table at the end is fixture x letter):
  *   a  the page renders (every label of labels.json for that page is in the DOM) and the hook
  *      ran before any other script: first <script> in the HTML, first element of <head>,
  *      `document.scripts.length === 1` when it ran
  *   b  no console error, uncaught error or CSP violation that the same page does not also
- *      produce when loaded straight from the dev server; nothing mentions /__reglet/.
+ *      produce when loaded straight from the dev server; nothing mentions /__primp/.
  *      Next: the strict nonce policy is still enforced while the hook runs
  *   c  hot reload through the proxy: a source edit changes the DOM without a page load
  *      (a window marker and the hook's timestamp survive, no new document request).
@@ -65,7 +65,7 @@ import {
   type PageRecord,
   type ProxyHandle,
   type RecordedFrame,
-  type RegletHookMarker,
+  type PrimpHookMarker,
 } from './lib/index.ts'
 
 declare global {
@@ -74,7 +74,7 @@ declare global {
   }
 }
 
-const HOOK_SRC = '/__reglet/hook.js'
+const HOOK_SRC = '/__primp/hook.js'
 const HOOK_TAG_START = `<script src="${HOOK_SRC}"`
 const HMR_TIMEOUT_MS = 20_000
 const TTFB_SAMPLES = 20
@@ -122,8 +122,8 @@ async function quiet(activity: () => number, quietMs = 500, maxMs = 8000): Promi
 const activityOf = (record: PageRecord, proxy?: ProxyHandle) => (): number =>
   record.console.length + record.cspViolations.length + record.responses.length + record.pageErrors.length + (proxy?.frames.length ?? 0)
 
-function readHook(page: Page): Promise<RegletHookMarker | undefined> {
-  return page.evaluate(() => window.__reglet_hook)
+function readHook(page: Page): Promise<PrimpHookMarker | undefined> {
+  return page.evaluate(() => window.__primp_hook)
 }
 
 function textOf(page: Page, selector: string): Promise<string> {
@@ -230,7 +230,7 @@ async function checkRender(ctx: Ctx, handle: PageHandle, path: string): Promise<
     expect(missing.length === 0, `${missing.length} of ${wanted.length} labels are not in the DOM: ${missing.slice(0, 8).join(', ')}`)
 
     const hook = await readHook(page)
-    expect(hook !== undefined, 'window.__reglet_hook is not set: the injected script did not run')
+    expect(hook !== undefined, 'window.__primp_hook is not set: the injected script did not run')
     expect(hook.runs === 1, `the hook ran ${hook.runs} times`)
     expect(hook.scriptsAtRun === 1, `document.scripts.length was ${hook.scriptsAtRun} when the hook ran, expected 1`)
     expect(hook.firstInHead, 'the hook was not the first element child of <head> when it ran')
@@ -262,7 +262,7 @@ async function checkClean(ctx: Ctx, viaProxy: PageHandle, path: string): Promise
       const newViolations = extra(mine.violations, base.violations)
       expect(newErrors.length === 0, `${newErrors.length} console/page errors only through the proxy: ${short(newErrors)}`)
       expect(newViolations.length === 0, `${newViolations.length} CSP violations only through the proxy: ${short(newViolations)}`)
-      const mentioning = [...mine.errors, ...mine.violations].filter((entry) => entry.includes('__reglet'))
+      const mentioning = [...mine.errors, ...mine.violations].filter((entry) => entry.includes('__primp'))
       expect(mentioning.length === 0, `problems that mention the injected script: ${short(mentioning)}`)
       const hookResponses = viaProxy.record.responses.filter((entry) => entry.url === proxy.url + HOOK_SRC)
       expect(hookResponses.length === 1 && hookResponses[0]?.status === 200, `hook.js responses: ${JSON.stringify(hookResponses)}`)
@@ -304,11 +304,11 @@ interface CspProbe {
   handler: Outcome
   /** A `javascript:` link clicked by the test. */
   javascriptUrl: Outcome
-  hook: RegletHookMarker | undefined
+  hook: PrimpHookMarker | undefined
   /** Effective directives of the script violations reported for the test's own injections, sorted. */
   violations: string[]
-  /** Violations on the page whose blocked URI or source file is under /__reglet/. */
-  fromReglet: number
+  /** Violations on the page whose blocked URI or source file is under /__primp/. */
+  fromPrimp: number
 }
 
 declare global {
@@ -339,7 +339,7 @@ async function probeCsp(ctx: Ctx, origin: string): Promise<CspProbe> {
     await page.evaluate(() => {
       const probe: Record<string, number> = {}
       window.__s1_probe = probe
-      const source = document.querySelector<HTMLScriptElement>('script[data-reglet]') ?? document.querySelector<HTMLScriptElement>('script[nonce]')
+      const source = document.querySelector<HTMLScriptElement>('script[data-primp]') ?? document.querySelector<HTMLScriptElement>('script[nonce]')
       const plain = document.createElement('script')
       plain.textContent = 'window.__s1_probe.domUnnonced = 1'
       document.head.appendChild(plain)
@@ -362,12 +362,12 @@ async function probeCsp(ctx: Ctx, origin: string): Promise<CspProbe> {
     await waitFor(() => scriptViolations().length >= before + 2, { timeoutMs: 5000, what: 'violation reports for the blocked handler and javascript: URL' }).catch(() => undefined)
     await sleep(200)
     const early = scriptViolations().slice(before).map((entry) => entry.effectiveDirective)
-    const fromReglet = record.cspViolations.filter((entry) => `${entry.blockedURI} ${entry.sourceFile}`.includes('__reglet')).length
+    const fromPrimp = record.cspViolations.filter((entry) => `${entry.blockedURI} ${entry.sourceFile}`.includes('__primp')).length
 
     // Last, because it replaces the document: scripts written through the parser. The
     // document keeps its policy; document.open() drops the listeners, so a new one is added.
     await page.evaluate(() => {
-      const source = document.querySelector<HTMLScriptElement>('script[data-reglet]') ?? document.querySelector<HTMLScriptElement>('script[nonce]')
+      const source = document.querySelector<HTMLScriptElement>('script[data-primp]') ?? document.querySelector<HTMLScriptElement>('script[nonce]')
       const nonce = source?.nonce ?? ''
       const late: string[] = []
       window.__s1_late = late
@@ -395,7 +395,7 @@ async function probeCsp(ctx: Ctx, origin: string): Promise<CspProbe> {
       javascriptUrl: outcome('javascriptUrl'),
       hook,
       violations: [...early, ...result.late].sort(),
-      fromReglet,
+      fromPrimp,
     }
   } finally {
     await handle.close()
@@ -734,12 +734,12 @@ async function runNext(ctx: Ctx): Promise<void> {
     expect(outcomes(mine) === outcomes(baseline), `the policy behaves differently through the proxy.\nproxy:  ${outcomes(mine)}\ndirect: ${outcomes(baseline)}`)
     expect(mine.violations.join(', ') === baseline.violations.join(', '), `script violations differ. proxy: ${mine.violations.join(', ')}; direct: ${baseline.violations.join(', ')}`)
     expect(mine.violations.length === 3, `expected a violation report for each of the 3 blocked injections, got: ${mine.violations.join(', ') || 'none'}`)
-    expect(mine.fromReglet === 0, `${mine.fromReglet} violations name the injected script`)
+    expect(mine.fromPrimp === 0, `${mine.fromPrimp} violations name the injected script`)
     return (
       `policy through the proxy keeps script-src "${directive(viaCsp, 'script-src')}" and style-src "${directive(viaCsp, 'style-src')}" unchanged; ` +
       `added or changed by the proxy: ${added.length > 0 ? added.join('; ') : 'nothing'}; hook tag carries the response's nonce and ran first. ` +
       `In Chromium through the proxy: ${outcomes(mine)}; identical when loaded straight from the dev server. ` +
-      `Script violations reported: ${mine.violations.join(', ')}; none names /__reglet/. ` +
+      `Script violations reported: ${mine.violations.join(', ')}; none names /__primp/. ` +
       `Note: "DOM-created un-nonced ${mine.domUnnonced}" is 'strict-dynamic' at work (Chromium lets a script element created by a running script execute), with and without the proxy`
     )
   })
@@ -805,7 +805,7 @@ async function runNext(ctx: Ctx): Promise<void> {
     const fallbackSeen = since(started)
     const early = await page.evaluate(() => ({
       resolved: document.querySelector('[data-label="stream-resolved"]') !== null,
-      hook: window.__reglet_hook !== undefined,
+      hook: window.__primp_hook !== undefined,
       readyState: document.readyState,
     }))
     expect(early.hook, 'the hook had not run when the fallback was visible')
@@ -971,7 +971,7 @@ async function runNext(ctx: Ctx): Promise<void> {
     await rawNavigate(`${proxy.url}/big`)
     const direct = await rawNavigate(`${fixture.url}/big`, { headers: { 'Accept-Encoding': 'identity' } })
     const via = await rawNavigate(`${proxy.url}/big`)
-    const tag = /<script src="\/__reglet\/hook\.js"[^>]*><\/script>/.exec(via.text)?.[0] ?? ''
+    const tag = /<script src="\/__primp\/hook\.js"[^>]*><\/script>/.exec(via.text)?.[0] ?? ''
     expect(via.status === 200 && tag !== '', `status ${via.status}, hook tag "${tag}"`)
     const rows = (html: string): number => html.split('<li').length - 1
     expect(rows(via.text) === rows(direct.text) && rows(via.text) >= 3000, `rows: ${rows(direct.text)} direct, ${rows(via.text)} through the proxy`)
@@ -1049,7 +1049,7 @@ async function runSvelteKit(ctx: Ctx): Promise<void> {
     expect(posts[0]?.url.startsWith(`${proxy.url}/`), `the form was posted to ${posts[0]?.url}`)
     const forbidden = record.responses.filter((entry) => entry.status === 403)
     expect(forbidden.length === 0, `403 responses: ${JSON.stringify(forbidden)}`)
-    const cookie = (await context.cookies(proxy.url)).find((entry) => entry.name === 'reglet_fixture_user')
+    const cookie = (await context.cookies(proxy.url)).find((entry) => entry.name === 'primp_fixture_user')
     expect(cookie?.value === 'Ada' && cookie.httpOnly, `session cookie is ${JSON.stringify(cookie)}`)
     await page.reload({ waitUntil: 'load' })
     const title = await textOf(page, '[data-label="account-title"]')
@@ -1065,7 +1065,7 @@ async function runSvelteKit(ctx: Ctx): Promise<void> {
       `control failed: the dev server accepted a POST with Origin ${proxy.url} sent straight to it (HTTP ${control.status}), so this check proves nothing`,
     )
     return (
-      `Chromium (use:enhance fetch): POST ${posts[0]?.url.replace(proxy.url, '')} -> 200, account card "${title}", cookie reglet_fixture_user=Ada (HttpOnly), no 403; ` +
+      `Chromium (use:enhance fetch): POST ${posts[0]?.url.replace(proxy.url, '')} -> 200, account card "${title}", cookie primp_fixture_user=Ada (HttpOnly), no 403; ` +
       `still signed in after reload; plain form POST through the proxy: 303 Location ${native.headers.location}; ` +
       `control (same POST straight to the dev server, Origin = proxy): ${control.status} "${control.text.slice(0, 60)}"`
     )

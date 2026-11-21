@@ -3,22 +3,22 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { claudeRegistration, codexRegistration, cursorConfig, registrationText, shellQuote, shimCommand, type ShimCommand } from '../src/registration.ts'
 
-const PUBLISHED: ShimCommand = { command: 'npx', args: ['-y', 'reglet', 'mcp'], fromSource: false }
+const PUBLISHED: ShimCommand = { command: 'npx', args: ['-y', 'primp', 'mcp'], fromSource: false }
 
 describe('registration commands', () => {
   it('are the ones spike S6 verified for the published package', () => {
-    expect(claudeRegistration(PUBLISHED).line).toBe('claude mcp add reglet -- npx -y reglet mcp')
-    expect(claudeRegistration(PUBLISHED)).toMatchObject({ binary: 'claude', args: ['mcp', 'add', 'reglet', '--', 'npx', '-y', 'reglet', 'mcp'] })
-    expect(codexRegistration(PUBLISHED).line).toBe('codex mcp add reglet -- npx -y reglet mcp')
+    expect(claudeRegistration(PUBLISHED).line).toBe('claude mcp add primp -- npx -y primp mcp')
+    expect(claudeRegistration(PUBLISHED)).toMatchObject({ binary: 'claude', args: ['mcp', 'add', 'primp', '--', 'npx', '-y', 'primp', 'mcp'] })
+    expect(codexRegistration(PUBLISHED).line).toBe('codex mcp add primp -- npx -y primp mcp')
     expect(JSON.parse(cursorConfig(PUBLISHED))).toEqual({
-      mcpServers: { reglet: { type: 'stdio', command: 'npx', args: ['-y', 'reglet', 'mcp', '--project', '${workspaceFolder}'] } },
+      mcpServers: { primp: { type: 'stdio', command: 'npx', args: ['-y', 'primp', 'mcp', '--project', '${workspaceFolder}'] } },
     })
   })
 
   it('print all three clients in the block shown at start-up', () => {
     const text = registrationText(PUBLISHED)
-    expect(text).toContain('claude mcp add reglet -- npx -y reglet mcp')
-    expect(text).toContain('codex mcp add reglet -- npx -y reglet mcp')
+    expect(text).toContain('claude mcp add primp -- npx -y primp mcp')
+    expect(text).toContain('codex mcp add primp -- npx -y primp mcp')
     expect(text).toContain('.cursor/mcp.json')
     expect(text).toContain('"${workspaceFolder}"')
     expect(text).not.toContain('checkout')
@@ -34,7 +34,7 @@ describe('registration commands', () => {
     expect(shim.args[3]).toBe('mcp')
     expect(registrationText(shim)).toContain('running from a checkout')
     // The bundled CLI is a .js file: it registers the published form.
-    expect(shimCommand('file:///usr/lib/node_modules/reglet/dist/cli.js')).toEqual(PUBLISHED)
+    expect(shimCommand('file:///usr/lib/node_modules/primp/dist/cli.js')).toEqual(PUBLISHED)
   })
 
   it('quote arguments a shell would split or expand', () => {
@@ -43,6 +43,6 @@ describe('registration commands', () => {
     expect(shellQuote("it's")).toBe("'it'\\''s'")
     expect(shellQuote('$HOME')).toBe("'$HOME'")
     const spaced: ShimCommand = { command: '/opt/node 22/bin/node', args: ['--import', 'file:///a b/loader.mjs', '/a b/index.ts', 'mcp'], fromSource: true }
-    expect(claudeRegistration(spaced).line).toBe("claude mcp add reglet -- '/opt/node 22/bin/node' --import 'file:///a b/loader.mjs' '/a b/index.ts' mcp")
+    expect(claudeRegistration(spaced).line).toBe("claude mcp add primp -- '/opt/node 22/bin/node' --import 'file:///a b/loader.mjs' '/a b/index.ts' mcp")
   })
 })

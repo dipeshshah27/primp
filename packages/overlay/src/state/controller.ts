@@ -1,7 +1,7 @@
 /**
  * The dock's controller: the one place where edits are made, recorded, previewed and sent.
  *
- * The UI and the test handle (`window.__reglet_test`) call the same methods here, so a scripted
+ * The UI and the test handle (`window.__primp_test`) call the same methods here, so a scripted
  * test exercises the code a person's click does.
  *
  * Rules it keeps:
@@ -25,12 +25,12 @@
  */
 
 import { batch, effect } from '@preact/signals'
-import { deriveExpectations } from '@reglet/engine/expect'
-import { editKey, emptyHistory, historyReducer, upsertEdit } from '@reglet/engine/items'
-import type { ChangeItem, Condition, ElementState, SideEffect, SiblingAnchor, SourceLoc, StructuralChange, StyleChange } from '@reglet/protocol/change'
-import type { ServerMessage, SessionInfo } from '@reglet/protocol/messages'
-import { collectEvidence } from '@reglet/source/browser/index'
-import type { RegletBus } from '../bus.ts'
+import { deriveExpectations } from '@primp/engine/expect'
+import { editKey, emptyHistory, historyReducer, upsertEdit } from '@primp/engine/items'
+import type { ChangeItem, Condition, ElementState, SideEffect, SiblingAnchor, SourceLoc, StructuralChange, StyleChange } from '@primp/protocol/change'
+import type { ServerMessage, SessionInfo } from '@primp/protocol/messages'
+import { collectEvidence } from '@primp/source/browser/index'
+import type { PrimpBus } from '../bus.ts'
 import { describeBystander, findBystanders, valuesOf } from '../probe/bystanders.ts'
 import { measureEffects, type EffectsResult } from '../probe/effects.ts'
 import { measure, type MeasureRequest, type Measurement } from '../probe/measure.ts'
@@ -70,7 +70,7 @@ export interface StyleEditOptions {
 }
 
 export interface ControllerOptions {
-  bus: RegletBus
+  bus: PrimpBus
   /** Puts text on the clipboard; resolves false when that was refused. */
   copy?: (text: string) => Promise<boolean>
 }
@@ -133,17 +133,17 @@ export interface Controller {
   copy(text: string): Promise<boolean>
   /** Cost of the last side-effect measurement, for the budget check. */
   lastEffects(): EffectsCost | null
-  /** Takes reglet's marks off the page: the forced state, pick mode and every preview. The items are kept. */
+  /** Takes primp's marks off the page: the forced state, pick mode and every preview. The items are kept. */
   dispose(): void
 }
 
 /**
  * Drafts are also kept in the tab's sessionStorage. A dev server's own client (Vite's, for one)
- * reloads the page when its connection through the proxy comes back, so after reglet was
+ * reloads the page when its connection through the proxy comes back, so after primp was
  * restarted the page that held the drafts is gone and the new session is empty: without this
  * copy the drafts would be lost with nobody having deleted them.
  */
-const DRAFTS_KEY = 'reglet:drafts'
+const DRAFTS_KEY = 'primp:drafts'
 const MAX_STORED_DRAFTS = 200
 /** How long Send waits for source positions that are still being resolved. */
 const SEND_WAITS_FOR_SOURCES_MS = 3000
@@ -843,7 +843,7 @@ export function createController(options: ControllerOptions): Controller {
   }
 
   /** The preview of a handle drag in progress: one rule, no item, no history, nothing sent. */
-  const LIVE_SIZE = 'reglet-live-size'
+  const LIVE_SIZE = 'primp-live-size'
 
   const previewSize = (size: SizeRequest | null): void => {
     const selection = store.selection.peek()
@@ -1070,7 +1070,7 @@ export function createController(options: ControllerOptions): Controller {
       store.error.value = null
       if (store.allDrafts.value.length === 0) return ''
       if (!bus.connected()) {
-        store.error.value = 'Not connected to reglet. The changes are kept; send again once it is back.'
+        store.error.value = 'Not connected to primp. The changes are kept; send again once it is back.'
         throw new Error(store.error.value)
       }
       store.sending.value = true
@@ -1082,7 +1082,7 @@ export function createController(options: ControllerOptions): Controller {
         const answer = await new Promise<Extract<ServerMessage, { type: 'session:sent' }>>((resolve, reject) => {
           const timer = window.setTimeout(() => {
             pendingSends.delete(reqId)
-            reject(new Error('reglet did not answer the send request.'))
+            reject(new Error('primp did not answer the send request.'))
           }, SEND_TIMEOUT_MS)
           pendingSends.set(reqId, (message) => {
             window.clearTimeout(timer)
@@ -1177,7 +1177,7 @@ export function createController(options: ControllerOptions): Controller {
 
   const sendShifts = (): void => {
     shiftTimer = undefined
-    const hook = window.__reglet
+    const hook = window.__primp
     if (hook === undefined) return
     shiftsSent++
     store.shiftsPending.value = true
@@ -1194,7 +1194,7 @@ export function createController(options: ControllerOptions): Controller {
   }
 
   const watchShifts = (): void => {
-    const hook = window.__reglet
+    const hook = window.__primp
     if (hook === undefined) return
     const start = (): void => armShifts(SHIFT_QUIET_MS)
     if (document.readyState === 'complete') start()
@@ -1246,7 +1246,7 @@ export function createController(options: ControllerOptions): Controller {
 
   const requestShifts = (): Promise<ShiftState> =>
     new Promise((resolve, reject) => {
-      if (window.__reglet === undefined) {
+      if (window.__primp === undefined) {
         reject(new Error('the layout-shift recorder is not on this page'))
         return
       }

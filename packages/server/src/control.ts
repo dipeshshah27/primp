@@ -16,9 +16,9 @@ import {
 } from '../../protocol/src/rpc.ts'
 
 /**
- * Control endpoint of the long-running reglet process.
+ * Control endpoint of the long-running primp process.
  *
- * It is the only way `reglet mcp` talks to the process. It listens on the IPv4
+ * It is the only way `primp mcp` talks to the process. It listens on the IPv4
  * loopback interface on a port chosen by the OS and requires a random bearer
  * token, which the shim reads from the session file (mode 0600).
  *

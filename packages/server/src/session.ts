@@ -10,7 +10,7 @@ import type { JournalPosition } from './settle.ts'
 import { toSourceLoc } from './source-loc.ts'
 
 /**
- * The session: everything reglet remembers while it runs, and the `session:*`
+ * The session: everything primp remembers while it runs, and the `session:*`
  * half of the overlay socket.
  *
  *   - items: the changes recorded in the dock, by id. The dock writes drafts
@@ -43,7 +43,7 @@ export type SessionLogger = (level: 'debug' | 'info' | 'warn' | 'error', message
 
 export interface SessionOptions {
   info: SessionInfo
-  /** Element evidence to source position: `createResolver(...)` of @reglet/source, or a double. */
+  /** Element evidence to source position: `createResolver(...)` of @primp/source, or a double. */
   resolver: { resolve(evidence: Evidence): Promise<SourceResult> }
   /** Culprit of a shift issue to source position (`createCulpritResolver`). Without it reports carry no sources. */
   culprits?: (issue: ShiftIssue, recording: ShiftRecording) => Promise<SourceLoc | undefined>
@@ -272,7 +272,7 @@ export function createSession(options: SessionOptions): Session {
     } catch (error) {
       log('error', 'the prompt could not be rendered', error)
       // The hand-off must still carry the changes; the structured items say everything the prompt would.
-      return `# reglet batch ${batchId}: ${batchItems.length} change(s)\n\nThe prompt could not be rendered (${error instanceof Error ? error.message : String(error)}). The recorded changes follow as JSON.\n\n${JSON.stringify(batchItems, null, 2)}`
+      return `# primp batch ${batchId}: ${batchItems.length} change(s)\n\nThe prompt could not be rendered (${error instanceof Error ? error.message : String(error)}). The recorded changes follow as JSON.\n\n${JSON.stringify(batchItems, null, 2)}`
     }
   }
 

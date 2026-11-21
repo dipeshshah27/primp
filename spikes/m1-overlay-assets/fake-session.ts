@@ -154,7 +154,7 @@ export function createFakeSession(info: SessionInfo): FakeSession {
               const what = item.kind === 'style' ? `${item.property}: ${item.before.authored ?? item.before.computed} -> ${item.after.authored}` : item.op
               return `${index + 1}. ${item.target.label} (${where}): ${what}`
             })
-            const prompt = `# reglet ${batchId}: ${drafts.length} change(s)\n${lines.join('\n')}`
+            const prompt = `# primp ${batchId}: ${drafts.length} change(s)\n${lines.join('\n')}`
             send(socket, { type: 'session:sent', reqId: message.reqId, batch: { batchId, items: drafts, prompt: drafts.length === 0 ? '' : prompt } })
             broadcast()
             break

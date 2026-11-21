@@ -14,11 +14,11 @@ export const STUB_ENTRY = join(REPO_ROOT, 'spikes/s7-assets/overlay-stub.ts')
 
 /** The hook as the proxy's first head script. `stacks` compiles in the DOM-call stack capture. */
 export function hookScript(options: { stacks?: boolean } = {}): HeadScript {
-  return { name: 'hook.js', entry: HOOK_ENTRY, minify: true, define: { __REGLET_HOOK_STACKS__: options.stacks === true ? 'true' : 'false' } }
+  return { name: 'hook.js', entry: HOOK_ENTRY, minify: true, define: { __PRIMP_HOOK_STACKS__: options.stacks === true ? 'true' : 'false' } }
 }
 
 export function stubScript(mode: 'popover' | 'fixed'): HeadScript {
-  return { name: 'overlay-stub.js', entry: STUB_ENTRY, minify: true, define: { __REGLET_STUB_MODE__: JSON.stringify(mode) } }
+  return { name: 'overlay-stub.js', entry: STUB_ENTRY, minify: true, define: { __PRIMP_STUB_MODE__: JSON.stringify(mode) } }
 }
 
 export interface HookSize {
@@ -27,15 +27,15 @@ export interface HookSize {
 }
 
 export async function hookSize(options: { stacks?: boolean } = {}): Promise<HookSize> {
-  const code = await bundleBrowser(HOOK_ENTRY, { minify: true, define: { __REGLET_HOOK_STACKS__: options.stacks === true ? 'true' : 'false' } })
+  const code = await bundleBrowser(HOOK_ENTRY, { minify: true, define: { __PRIMP_HOOK_STACKS__: options.stacks === true ? 'true' : 'false' } })
   return { minified: Buffer.byteLength(code), gzipped: gzipSync(code, { level: 9 }).length }
 }
 
 /** The hook's recording, validated against the protocol schema: a recording that does not parse fails the caller. */
 export async function readRecording(page: Page): Promise<ShiftRecording> {
   const raw = await page.evaluate(() => {
-    const hook = window.__reglet
-    if (hook === undefined) throw new Error('window.__reglet is missing: the hook was not injected')
+    const hook = window.__primp
+    if (hook === undefined) throw new Error('window.__primp is missing: the hook was not injected')
     return hook.recording()
   })
   return ShiftRecordingSchema.parse(raw)
@@ -51,7 +51,7 @@ export interface PlainEntry {
 /**
  * Layout-shift entries read by a fresh `PerformanceObserver` created now, with
  * `buffered: true`. Nothing has to be in the page while it loads, so this is
- * the measurement of a page that reglet did not touch, and an independent
+ * the measurement of a page that primp did not touch, and an independent
  * second opinion on a page it did.
  */
 export function readPlainEntries(page: Page): Promise<PlainEntry[]> {

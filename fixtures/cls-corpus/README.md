@@ -1,6 +1,6 @@
 # cls-corpus
 
-Labelled test pages for reglet's layout-shift attribution. Every page produces the same layout shifts on every load, and an `expected.json` beside it says what caused them: the cause class, the culprit element, its file and line, and the elements that move.
+Labelled test pages for primp's layout-shift attribution. Every page produces the same layout shifts on every load, and an `expected.json` beside it says what caused them: the cause class, the culprit element, its file and line, and the elements that move.
 
 The corpus is dependency-free: static HTML, a few generated assets, one self-hosted font and a small Node server. Nothing is fetched from the network.
 

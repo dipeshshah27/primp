@@ -122,4 +122,4 @@ const probe: S2Probe = {
   },
 }
 
-;(window as unknown as { __regletS2: S2Probe }).__regletS2 = probe
+;(window as unknown as { __primpS2: S2Probe }).__primpS2 = probe

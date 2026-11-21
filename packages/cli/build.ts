@@ -1,8 +1,8 @@
 /**
  * Builds the published package: `dist/cli.js` (one ESM file with every dependency inside)
- * and `dist/assets/{hook,overlay}.js` (the two scripts reglet serves to the page).
+ * and `dist/assets/{hook,overlay}.js` (the two scripts primp serves to the page).
  *
- *   pnpm --filter reglet build      (or: pnpm build, from the repo root)
+ *   pnpm --filter primp build      (or: pnpm build, from the repo root)
  *
  * The published package has no dependencies. esbuild is only needed here: at run time the
  * prebuilt assets next to cli.js are used (see packages/server/src/assets.ts).
@@ -31,7 +31,7 @@ const result = await build({
   // esbuild: only loaded when there are no prebuilt assets. The other two are optional speed-ups of `ws`.
   external: ['esbuild', 'bufferutil', 'utf-8-validate'],
   // Bundled CommonJS dependencies call `require` for Node built-ins; an ES module has none of its own.
-  banner: { js: "import { createRequire as __regletCreateRequire } from 'node:module';\nconst require = __regletCreateRequire(import.meta.url);" },
+  banner: { js: "import { createRequire as __primpCreateRequire } from 'node:module';\nconst require = __primpCreateRequire(import.meta.url);" },
   legalComments: 'none',
   minifyWhitespace: true,
   minifySyntax: true,
@@ -44,7 +44,7 @@ const assets = await buildOverlayAssets({ prebuiltDir: false })
 writeFileSync(join(DIST, 'assets/hook.js'), assets.hook.code)
 writeFileSync(join(DIST, 'assets/overlay.js'), assets.overlay.code)
 
-// The site `reglet demo` copies out.
+// The site `primp demo` copies out.
 cpSync(join(HERE, 'demo-site'), join(DIST, 'demo'), { recursive: true })
 
 // npm packs these from the package directory; they are copies, kept out of git.

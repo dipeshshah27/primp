@@ -247,7 +247,7 @@ export interface DevServerDetection {
   others: DevServerCandidate[]
   /** Ports of project processes that did not answer `/` with HTML (not dev servers, or still starting). */
   ignored: { port: number; reason: string }[]
-  /** How the candidates were found. `none`: nothing listens anywhere reglet looked. */
+  /** How the candidates were found. `none`: nothing listens anywhere primp looked. */
   method: 'process' | 'port' | 'none'
   /** Set when the process scan could not run (Windows, no lsof): only well-known ports were probed. */
   processScan?: string
@@ -266,9 +266,9 @@ export interface DetectDevServerOptions {
   projectRoot: string
   /** Orders several candidates: this framework's default port is preferred. */
   framework?: DetectedFramework
-  /** Ports that are reglet's own (running proxies) and must not be picked. */
+  /** Ports that are primp's own (running proxies) and must not be picked. */
   excludePorts?: readonly number[]
-  /** Processes that are reglet's own. The current process is always excluded. */
+  /** Processes that are primp's own. The current process is always excluded. */
   excludePids?: readonly number[]
   platform?: NodeJS.Platform
   /** Runs a command and resolves with its stdout; rejects when it cannot run. Default: `execFile`. */

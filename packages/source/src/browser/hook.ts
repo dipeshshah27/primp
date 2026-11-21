@@ -9,7 +9,7 @@
  * Everything else in this package can load whenever the probe loads: finding a fiber needs
  * only the DOM node, and the hook is used for the renderer's version and build type.
  *
- * Source lookup itself does not depend on this hook. Measured in spike S2 with no reglet hook
+ * Source lookup itself does not depend on this hook. Measured in spike S2 with no primp hook
  * injected at all: 51 of 51 labels on the Vite fixture and 46 of 46 on the Next fixture's home
  * page still resolved at level exact (React Refresh and Next install a hook of their own, with
  * an empty renderer list). What is lost without it is `version` / `bundleType` in the evidence,

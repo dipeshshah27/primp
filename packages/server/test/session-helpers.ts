@@ -71,7 +71,7 @@ export const LOCATOR: Locator = { tag: 'button', indexPath: [0, 2, 1], ancestors
 export function ref(uid: string, file: string | null, line = 12): Ref {
   return {
     uid,
-    selector: `[data-reglet-id="${uid}"]`,
+    selector: `[data-primp-id="${uid}"]`,
     tag: 'button',
     classes: ['btn'],
     text: 'Sign in',
@@ -139,10 +139,10 @@ function isFree(port: number, host: string): Promise<boolean> {
  * A port P with P, P+1 and P+2 free on both loopback families, taken from below the range the
  * OS hands out for `listen(0)`.
  *
- * reglet puts its proxy on "dev-server port + 1". With an OS-assigned dev-server port that
+ * primp puts its proxy on "dev-server port + 1". With an OS-assigned dev-server port that
  * neighbour is, on macOS, the very next port the OS gives to whatever asks next, so tests that
- * run in parallel would find reglet's proxy on a port they were just given or had just freed.
- * Dev servers of tests that let reglet choose its port therefore listen down here.
+ * run in parallel would find primp's proxy on a port they were just given or had just freed.
+ * Dev servers of tests that let primp choose its port therefore listen down here.
  */
 export async function freeLowPort(): Promise<number> {
   for (let attempt = 0; attempt < 200; attempt++) {

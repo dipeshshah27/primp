@@ -91,7 +91,7 @@ ul{list-style:none}
 .footer-link{display:block;padding:2px 0}
 .legal{display:flex;justify-content:space-between;gap:16px;border-top:1px solid #3a3a3c;padding-top:16px}
 .to-top{position:fixed;right:24px;bottom:24px;width:44px;height:44px;border-radius:22px;border:0;background:#111;color:#fff;font:inherit;white-space:nowrap}
-[data-reglet-root]{position:fixed;left:16px;bottom:16px;z-index:2147483647;width:320px;padding:8px;background:#fff;border:1px solid #111;border-radius:8px}
+[data-primp-root]{position:fixed;left:16px;bottom:16px;z-index:2147483647;width:320px;padding:8px;background:#fff;border:1px solid #111;border-radius:8px}
 .fake-dock-row{display:flex;gap:4px;height:20px}
 .fake-dock-cell{flex:1;background:#ddd}
 `
@@ -187,8 +187,8 @@ export function buildPage(opts: PageOptions): string {
   )
   h.push(`<button id="to-top" class="to-top">Top</button>`)
 
-  // Stand-in for the reglet dock: light children and a shadow tree, both of which must be ignored.
-  h.push(`<div data-reglet-root id="fake-dock">`)
+  // Stand-in for the primp dock: light children and a shadow tree, both of which must be ignored.
+  h.push(`<div data-primp-root id="fake-dock">`)
   for (let r = 0; r < 4; r++) {
     h.push(`<div class="fake-dock-row">`)
     for (let c = 0; c < 4; c++) h.push(`<div class="fake-dock-cell"></div>`)
@@ -205,7 +205,7 @@ export function buildPage(opts: PageOptions): string {
 
   return (
     `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">` +
-    `<title>reglet S5 fixture</title><script src="${opts.script}"></script><style>${CSS}</style></head><body>` +
+    `<title>primp S5 fixture</title><script src="${opts.script}"></script><style>${CSS}</style></head><body>` +
     h.join('') +
     `<script>${boot}</script></body></html>`
   )

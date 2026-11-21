@@ -34,11 +34,11 @@ import { isOwnMoveRecord } from './own-moves.ts'
  *
  * Everything the client adds to the page is this one observer and a few
  * listeners; it does not touch the DOM. Mutations inside an element marked
- * `data-reglet-root` (the dock) are ignored, and so is anything in a shadow
- * tree, which a document-level observer does not see. So are reglet's own
- * marks on the page: the `data-reglet-id` attribute of a previewed element, the
- * `data-reglet-force` attribute of an element held in `:hover` or another state,
- * the insertion or removal of a node that carries `data-reglet-root`, and a reorder
+ * `data-primp-root` (the dock) are ignored, and so is anything in a shadow
+ * tree, which a document-level observer does not see. So are primp's own
+ * marks on the page: the `data-primp-id` attribute of a previewed element, the
+ * `data-primp-force` attribute of an element held in `:hover` or another state,
+ * the insertion or removal of a node that carries `data-primp-root`, and a reorder
  * preview moving an element among its siblings (own-moves.ts).
  */
 
@@ -94,28 +94,28 @@ function isStylesheetLink(node: Node): node is HTMLLinkElement {
   return node.nodeType === 1 && (node as Element).localName === 'link' && /(?:^|\s)stylesheet(?:\s|$)/i.test((node as HTMLLinkElement).rel)
 }
 
-function insideReglet(node: Node): boolean {
+function insidePrimp(node: Node): boolean {
   const element = node.nodeType === 1 ? (node as Element) : node.parentElement
-  return element !== null && element.closest('[data-reglet-root]') !== null
+  return element !== null && element.closest('[data-primp-root]') !== null
 }
 
 /** Marks an element that has a preview on it (packages/overlay/src/probe/preview.ts). */
-const MARK_ATTR = 'data-reglet-id'
+const MARK_ATTR = 'data-primp-id'
 /** Marks an element the dock holds in an interaction state, and its ancestors (packages/overlay/src/probe/states.ts). */
-const FORCE_ATTR = 'data-reglet-force'
+const FORCE_ATTR = 'data-primp-force'
 
-function isRegletNode(node: Node): boolean {
-  return node.nodeType === 1 && (node as Element).hasAttribute('data-reglet-root')
+function isPrimpNode(node: Node): boolean {
+  return node.nodeType === 1 && (node as Element).hasAttribute('data-primp-root')
 }
 
-/** A mutation reglet made itself: one of its marks on an element, or one of its own nodes coming or going. */
+/** A mutation primp made itself: one of its marks on an element, or one of its own nodes coming or going. */
 function isOwnRecord(record: MutationRecord): boolean {
   if (record.type === 'attributes') return record.attributeName === MARK_ATTR || record.attributeName === FORCE_ATTR
   if (record.type !== 'childList') return false
   // A reorder preview moving an element among its siblings, or putting it back.
   if (isOwnMoveRecord(record)) return true
-  for (const node of record.addedNodes) if (!isRegletNode(node)) return false
-  for (const node of record.removedNodes) if (!isRegletNode(node)) return false
+  for (const node of record.addedNodes) if (!isPrimpNode(node)) return false
+  for (const node of record.removedNodes) if (!isPrimpNode(node)) return false
   return record.addedNodes.length + record.removedNodes.length > 0
 }
 
@@ -228,7 +228,7 @@ export function createSettleClient(transport: SettleTransport, doc: Document = d
   const observer = new MutationObserver((records) => {
     let relevant = false
     for (const record of records) {
-      if (insideReglet(record.target) || isOwnRecord(record)) continue
+      if (insidePrimp(record.target) || isOwnRecord(record)) continue
       relevant = true
       if (record.type === 'childList') {
         for (const node of record.addedNodes) {
@@ -340,7 +340,7 @@ export function createSettleClient(transport: SettleTransport, doc: Document = d
     void (import(/* @vite-ignore */ url) as Promise<ViteClientModule>)
       .then((module) => {
         if (typeof module.createHotContext !== 'function') throw new Error('no createHotContext export')
-        const hot = module.createHotContext('/@reglet/settle-client')
+        const hot = module.createHotContext('/@primp/settle-client')
         const hooked = { pending: 0, applied: 0 }
         hot.on('vite:beforeUpdate', () => {
           hooked.pending += 1
@@ -400,7 +400,7 @@ export function createSettleClient(transport: SettleTransport, doc: Document = d
  * `<meta>` Content-Security-Policy only lets the hook open its socket before
  * the meta element is parsed.
  */
-export function connectSettleClient(path = '/__reglet/settle'): SettleClient {
+export function connectSettleClient(path = '/__primp/settle'): SettleClient {
   const url = new URL(path, location.href)
   url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
   const socket = new WebSocket(url)
@@ -426,10 +426,10 @@ export function connectSettleClient(path = '/__reglet/settle'): SettleClient {
   return client
 }
 
-declare const __REGLET_SETTLE_AUTOSTART__: boolean | undefined
+declare const __PRIMP_SETTLE_AUTOSTART__: boolean | undefined
 
 // Bundled as a head script of its own (the spike does this with esbuild's `define`), it starts itself.
-if (typeof __REGLET_SETTLE_AUTOSTART__ !== 'undefined' && __REGLET_SETTLE_AUTOSTART__) {
+if (typeof __PRIMP_SETTLE_AUTOSTART__ !== 'undefined' && __PRIMP_SETTLE_AUTOSTART__) {
   const started = connectSettleClient()
-  ;(window as unknown as { __reglet_settle?: SettleClient }).__reglet_settle = started
+  ;(window as unknown as { __primp_settle?: SettleClient }).__primp_settle = started
 }

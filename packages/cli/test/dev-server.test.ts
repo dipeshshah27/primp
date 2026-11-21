@@ -110,7 +110,7 @@ describe.skipIf(process.platform === 'win32')('startDevServer', () => {
   })
 
   it('reports a command that does not exist as an exit, with the shell\'s message passed on', async () => {
-    const { child, lines } = run('reglet-no-such-command-xyz --flag')
+    const { child, lines } = run('primp-no-such-command-xyz --flag')
     const exit = await child.exited
     expect(exit.code).toBe(127)
     await until(() => lines.length > 0)
@@ -178,7 +178,7 @@ describe('waitForDevServer', () => {
       detect: async () => nothing,
     })
     expect(outcome).toMatchObject({ status: 'ready', target: { port: 6001 }, via: 'output' })
-    // An announced port that is reglet's own is not taken.
+    // An announced port that is primp's own is not taken.
     const excluded = await waitForDevServer({ projectRoot: '/p', child: fakeChild([6001], true), excludePorts: [6001], probe: async () => html, detect: async () => nothing })
     expect(excluded.status).toBe('exited')
   })

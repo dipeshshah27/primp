@@ -1,10 +1,10 @@
 /**
- * `window.__reglet_test`: a small handle for end-to-end tests. Every method goes through the
+ * `window.__primp_test`: a small handle for end-to-end tests. Every method goes through the
  * controller, the same code the dock's buttons and inputs call, and returns plain JSON.
  * It is always present; it adds nothing a page script could not already do by clicking.
  */
 
-import type { ChangeItem, ElementState, Ref, SideEffect } from '@reglet/protocol/change'
+import type { ChangeItem, ElementState, Ref, SideEffect } from '@primp/protocol/change'
 import type { MeasureRequest, Measurement } from './probe/measure.ts'
 import { forcedNow } from './probe/states.ts'
 import { suggestProperties, supportedProperties } from './probe/properties.ts'
@@ -50,7 +50,7 @@ export interface TestState {
   forced: { state: ElementState; rules: number; unreadable: number } | null
 }
 
-export interface RegletTestHandle {
+export interface PrimpTestHandle {
   /** Resolves when the dock is mounted and the first `session:state` has arrived. */
   ready(): Promise<void>
   /** Selects the first element matching `cssSelector`, as a click in pick mode would. */
@@ -105,11 +105,11 @@ export interface RegletTestHandle {
 
 declare global {
   interface Window {
-    __reglet_test?: RegletTestHandle
+    __primp_test?: PrimpTestHandle
   }
 }
 
-export function installTestHandle(c: Controller, dock: DockHandle): RegletTestHandle {
+export function installTestHandle(c: Controller, dock: DockHandle): PrimpTestHandle {
   const { store } = c
   const items = (): ChangeItem[] => store.items.value
   const result = async (edit: ReturnType<Controller['setStyle']>): Promise<TestEditResult> => {
@@ -119,7 +119,7 @@ export function installTestHandle(c: Controller, dock: DockHandle): RegletTestHa
   }
   const find = (id: string): ChangeItem | null => items().find((item) => item.id === id) ?? null
 
-  const handle: RegletTestHandle = {
+  const handle: PrimpTestHandle = {
     async ready() {
       await c.ready()
       for (let i = 0; i < 200 && !dock.mounted(); i++) await new Promise((resolve) => setTimeout(resolve, 10))
@@ -229,6 +229,6 @@ export function installTestHandle(c: Controller, dock: DockHandle): RegletTestHa
       }
     },
   }
-  window.__reglet_test = handle
+  window.__primp_test = handle
   return handle
 }

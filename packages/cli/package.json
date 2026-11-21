@@ -1,11 +1,11 @@
 {
-  "name": "reglet",
+  "name": "primp",
   "version": "0.0.0",
   "description": "Visual edits, layout shifts and verification for AI coding agents",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "reglet": "./dist/cli.js"
+    "primp": "./dist/cli.js"
   },
   "files": [
     "dist",
@@ -17,11 +17,11 @@
     "node": "^22.22.0 || >=24.11.0"
   },
   "devDependencies": {
-    "@reglet/protocol": "workspace:*",
-    "@reglet/engine": "workspace:*",
-    "@reglet/source": "workspace:*",
-    "@reglet/server": "workspace:*",
-    "@reglet/overlay": "workspace:*"
+    "@primp/protocol": "workspace:*",
+    "@primp/engine": "workspace:*",
+    "@primp/source": "workspace:*",
+    "@primp/server": "workspace:*",
+    "@primp/overlay": "workspace:*"
   },
   "scripts": {
     "build": "tsx build.ts",

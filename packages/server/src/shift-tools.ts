@@ -1,6 +1,6 @@
-import { renderPrompt } from '@reglet/engine'
-import type { SourceLoc } from '@reglet/protocol/change'
-import type { NodeDescriptor, ShiftIssue, ShiftReport } from '@reglet/protocol/shift'
+import { renderPrompt } from '@primp/engine'
+import type { SourceLoc } from '@primp/protocol/change'
+import type { NodeDescriptor, ShiftIssue, ShiftReport } from '@primp/protocol/shift'
 import type { Session, SessionShifts } from './session.ts'
 
 /**
@@ -158,7 +158,7 @@ export function createShiftTools(options: ShiftToolsOptions): ShiftTools {
         prompt: '',
         message: connected
           ? 'The page has not reported its layout shifts yet (the dock reports a few seconds after the page has loaded). Try again shortly.'
-          : 'No browser tab with the reglet dock is connected, so nothing was measured. Ask the developer to open the app through reglet.',
+          : 'No browser tab with the primp dock is connected, so nothing was measured. Ask the developer to open the app through primp.',
       }
     }
     const { report, recording } = latest
@@ -266,7 +266,7 @@ export function createShiftTools(options: ShiftToolsOptions): ShiftTools {
     const last = replays[replays.length - 1]
     const base = { id, before: issue.value, replays }
     if (last === undefined || last.status === 'no_browser') {
-      return { ...base, status: 'no_browser', hint: 'No browser tab with the reglet dock is connected, so the page could not be reloaded and measured. Ask the developer to open the app through reglet.' }
+      return { ...base, status: 'no_browser', hint: 'No browser tab with the primp dock is connected, so the page could not be reloaded and measured. Ask the developer to open the app through primp.' }
     }
     if (last.status === 'tab_hidden') {
       return { ...base, status: 'tab_hidden', hint: 'The tab was not visible during a replay, and a hidden tab reports no layout shifts. Ask the developer to keep the tab in front, then verify again.' }

@@ -6,17 +6,17 @@
  *
  * What is exercised, end to end and with real processes:
  *
- *   fake reglet process  --writes-->  ~/.cache/reglet/sessions/<id>.json
+ *   fake primp process  --writes-->  ~/.cache/primp/sessions/<id>.json
  *        ^ control endpoint (loopback, bearer token)
  *        |
- *   reglet mcp (stdio shim, started from source)  <--stdio-->  MCP client / Claude Code
+ *   primp mcp (stdio shim, started from source)  <--stdio-->  MCP client / Claude Code
  *
  * Exit code 0 only when every check passed. A Claude Code check that could not
  * run because of the environment is reported as FAILED-ENV and leaves the exit
  * code to the other checks, but the verdict line says so.
  *
- * This file is also the fake reglet process: it re-runs itself with
- * `--fake-reglet <projectRoot> <marker>`.
+ * This file is also the fake primp process: it re-runs itself with
+ * `--fake-primp <projectRoot> <marker>`.
  */
 import { spawn, spawnSync, type ChildProcess } from 'node:child_process'
 import { randomBytes } from 'node:crypto'
@@ -45,7 +45,7 @@ const TSX_LOADER = pathToFileURL(createRequire(import.meta.url).resolve('tsx')).
 const CLAUDE_BIN = join(homedir(), '.local', 'bin', 'claude')
 const CLAUDE_TIMEOUT_MS = 120_000
 
-/** `reglet mcp`, run from source. */
+/** `primp mcp`, run from source. */
 const SHIM = { command: process.execPath, args: ['--import', TSX_LOADER, CLI_ENTRY, 'mcp'] }
 
 function fakeSummary(marker: string): SessionSummary {
@@ -58,10 +58,10 @@ function fakeSummary(marker: string): SessionSummary {
 }
 
 // ---------------------------------------------------------------------------
-// Fake reglet process
+// Fake primp process
 // ---------------------------------------------------------------------------
 
-async function runFakeReglet(projectRoot: string, marker: string): Promise<void> {
+async function runFakePrimp(projectRoot: string, marker: string): Promise<void> {
   const emit = (event: Record<string, unknown>): void => void process.stdout.write(`${JSON.stringify(event)}\n`)
   let calls = 0
 
@@ -174,7 +174,7 @@ function waitForExit(child: ChildProcess, ms: number): Promise<{ code: number | 
   )
 }
 
-interface FakeReglet {
+interface FakePrimp {
   child: ChildProcess
   pid: number
   sessionPath: string
@@ -186,8 +186,8 @@ interface FakeReglet {
   calls(): number
 }
 
-async function startFakeReglet(projectRoot: string, marker: string): Promise<FakeReglet> {
-  const child = spawnTracked(process.execPath, ['--import', TSX_LOADER, SELF, '--fake-reglet', projectRoot, marker], { cwd: REPO })
+async function startFakePrimp(projectRoot: string, marker: string): Promise<FakePrimp> {
+  const child = spawnTracked(process.execPath, ['--import', TSX_LOADER, SELF, '--fake-primp', projectRoot, marker], { cwd: REPO })
   let stderr = ''
   child.stderr?.on('data', (chunk: Buffer) => (stderr += chunk.toString()))
   let calls = 0
@@ -202,9 +202,9 @@ async function startFakeReglet(projectRoot: string, marker: string): Promise<Fak
       if (event.event === 'ready') done(event)
       if (event.event === 'call') calls = Number(event.calls)
     })
-    child.once('exit', (code, signal) => reject(new Error(`fake reglet exited early (code ${code}, signal ${signal}): ${stderr.trim()}`)))
+    child.once('exit', (code, signal) => reject(new Error(`fake primp exited early (code ${code}, signal ${signal}): ${stderr.trim()}`)))
   })
-  const event = await withTimeout(ready, 20_000, 'fake reglet start')
+  const event = await withTimeout(ready, 20_000, 'fake primp start')
   return {
     child,
     pid: Number(event.pid),
@@ -250,7 +250,7 @@ async function connectShim(cwd: string, mode: 'legacy' | 'auto', extraArgs: stri
   const transport = new StdioClientTransport({ command: SHIM.command, args: [...SHIM.args, ...extraArgs], cwd, stderr: 'pipe' })
   let stderr = ''
   transport.stderr?.on('data', (chunk: Buffer) => (stderr += chunk.toString()))
-  const client = new Client({ name: 'reglet-spike-s6', version: '0.0.0' }, { versionNegotiation: { mode } })
+  const client = new Client({ name: 'primp-spike-s6', version: '0.0.0' }, { versionNegotiation: { mode } })
   const connection: ShimConnection = {
     client,
     transport,
@@ -278,12 +278,12 @@ function textOf(result: CallToolResult): string {
 // Checks
 // ---------------------------------------------------------------------------
 
-async function checkFakeProcess(fake: FakeReglet, projectRoot: string): Promise<void> {
-  await check('1a', 'fake reglet process writes a session file with mode 0600', () => {
+async function checkFakeProcess(fake: FakePrimp, projectRoot: string): Promise<void> {
+  await check('1a', 'fake primp process writes a session file with mode 0600', () => {
     expect(fake.pid !== process.pid, 'the fake must be a separate process')
     const sessionsDir = defaultSessionDir()
     expect(dirname(fake.sessionPath) === sessionsDir, `session file is in ${dirname(fake.sessionPath)}, expected ${sessionsDir}`)
-    expect(sessionsDir === join(homedir(), '.cache', 'reglet', 'sessions'), `unexpected sessions directory ${sessionsDir}`)
+    expect(sessionsDir === join(homedir(), '.cache', 'primp', 'sessions'), `unexpected sessions directory ${sessionsDir}`)
     const fileMode = statSync(fake.sessionPath).mode & 0o777
     const dirMode = statSync(sessionsDir).mode & 0o777
     expect(fileMode === 0o600, `file mode is 0${fileMode.toString(8)}, expected 0600`)
@@ -325,7 +325,7 @@ async function checkFakeProcess(fake: FakeReglet, projectRoot: string): Promise<
   })
 }
 
-async function checkShim(fake: FakeReglet, nestedCwd: string): Promise<void> {
+async function checkShim(fake: FakePrimp, nestedCwd: string): Promise<void> {
   let connection: ShimConnection | undefined
   try {
     const connected = await check('2a', 'official MCP client initializes against the shim (cwd nested in the project)', async () => {
@@ -334,7 +334,7 @@ async function checkShim(fake: FakeReglet, nestedCwd: string): Promise<void> {
       const ms = Math.round(performance.now() - started)
       const info = connection.client.getServerVersion()
       const instructions = connection.client.getInstructions() ?? ''
-      expect(info?.name === 'reglet', `server name ${info?.name}`)
+      expect(info?.name === 'primp', `server name ${info?.name}`)
       expect(instructions.length > 100, 'server instructions missing')
       expect(connection.client.getProtocolEra() === 'legacy', `era ${connection.client.getProtocolEra()}`)
       return `initialize handshake in ${ms} ms (includes tsx start); server ${info?.name}@${info?.version}; protocol ${connection.client.getNegotiatedProtocolVersion()}; instructions ${instructions.length} chars; cwd ${nestedCwd}`
@@ -392,7 +392,7 @@ async function checkShim(fake: FakeReglet, nestedCwd: string): Promise<void> {
     const firstLine = new Promise<string>((done) => createInterface({ input: child.stdout! }).once('line', done))
     child.stdin!.write(`${JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'eof-check', version: '0' } } })}\n`)
     const reply = JSON.parse(await withTimeout(firstLine, 20_000, 'initialize reply')) as { result?: { serverInfo?: { name?: string } } }
-    expect(reply.result?.serverInfo?.name === 'reglet', 'no initialize reply on stdout')
+    expect(reply.result?.serverInfo?.name === 'primp', 'no initialize reply on stdout')
     const closedAt = performance.now()
     child.stdin!.end()
     const exit = await waitForExit(child, 5_000)
@@ -486,7 +486,7 @@ async function checkNoSession(staleRoot: string, unrelatedCwd: string): Promise<
   })
 
   await check('3b', 'session of a killed process: reported as not running and its file is cleaned up', async () => {
-    const doomed = await startFakeReglet(staleRoot, `doomed-${randomBytes(4).toString('hex')}`)
+    const doomed = await startFakePrimp(staleRoot, `doomed-${randomBytes(4).toString('hex')}`)
     killGroup(doomed.child, 'SIGKILL')
     await waitForExit(doomed.child, 5_000)
     expect(existsSync(doomed.sessionPath), 'precondition: SIGKILL should leave the session file behind')
@@ -527,8 +527,8 @@ async function checkDeadEndpoint(root: string): Promise<void> {
   })
 }
 
-async function checkSessionRemovedOnExit(fake: FakeReglet): Promise<void> {
-  await check('3c', 'session file is removed when the reglet process exits on SIGTERM', async () => {
+async function checkSessionRemovedOnExit(fake: FakePrimp): Promise<void> {
+  await check('3c', 'session file is removed when the primp process exits on SIGTERM', async () => {
     expect(existsSync(fake.sessionPath), 'precondition: session file should still exist')
     fake.child.kill('SIGTERM')
     const exit = await waitForExit(fake.child, 5_000)
@@ -565,7 +565,7 @@ interface StreamEvent {
   [key: string]: unknown
 }
 
-async function checkClaudeCode(fake: FakeReglet, nestedCwd: string): Promise<void> {
+async function checkClaudeCode(fake: FakePrimp, nestedCwd: string): Promise<void> {
   const id = '4'
   const name = 'Claude Code (headless, one call) calls get_session through the shim'
   if (process.env.S6_SKIP_CLAUDE) {
@@ -578,9 +578,9 @@ async function checkClaudeCode(fake: FakeReglet, nestedCwd: string): Promise<voi
   }
 
   const configPath = join(WORK, 'claude-mcp.json')
-  writeFileSync(configPath, `${JSON.stringify({ mcpServers: { reglet: { type: 'stdio', command: SHIM.command, args: SHIM.args } } }, null, 2)}\n`)
+  writeFileSync(configPath, `${JSON.stringify({ mcpServers: { primp: { type: 'stdio', command: SHIM.command, args: SHIM.args } } }, null, 2)}\n`)
   const prompt = [
-    'Call the get_session tool of the reglet MCP server (full name mcp__reglet__get_session) exactly once.',
+    'Call the get_session tool of the primp MCP server (full name mcp__primp__get_session) exactly once.',
     'Then answer with exactly one line and nothing else, in this form, using the values the tool returned:',
     'browserConnected=<value>; framework=<value>',
     'If the tool is unavailable or fails, answer exactly: TOOL-UNAVAILABLE: <reason>',
@@ -589,7 +589,7 @@ async function checkClaudeCode(fake: FakeReglet, nestedCwd: string): Promise<voi
     '-p', prompt,
     '--mcp-config', configPath,
     '--strict-mcp-config',
-    '--allowedTools', 'mcp__reglet__get_session',
+    '--allowedTools', 'mcp__primp__get_session',
     '--tools', 'ToolSearch',
     '--model', 'haiku',
     '--permission-mode', 'dontAsk',
@@ -707,30 +707,30 @@ function printRegistration(): void {
 How users register the shim (published package; not executed by this spike)
 
   Claude Code   https://code.claude.com/docs/en/mcp
-    claude mcp add reglet -- npx -y reglet mcp
-    claude mcp add --scope project reglet -- npx -y reglet mcp      (shared through .mcp.json)
+    claude mcp add primp -- npx -y primp mcp
+    claude mcp add --scope project primp -- npx -y primp mcp      (shared through .mcp.json)
     .mcp.json equivalent:
-      { "mcpServers": { "reglet": { "command": "npx", "args": ["-y", "reglet", "mcp"] } } }
+      { "mcpServers": { "primp": { "command": "npx", "args": ["-y", "primp", "mcp"] } } }
 
   Codex CLI     https://developers.openai.com/codex/mcp  (redirects to https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
-    codex mcp add reglet -- npx -y reglet mcp
+    codex mcp add primp -- npx -y primp mcp
     ~/.codex/config.toml equivalent:
-      [mcp_servers.reglet]
+      [mcp_servers.primp]
       command = "npx"
-      args = ["-y", "reglet", "mcp"]
+      args = ["-y", "primp", "mcp"]
 
   Cursor        https://cursor.com/docs/context/mcp      (.cursor/mcp.json in the project)
       {
         "mcpServers": {
-          "reglet": {
+          "primp": {
             "type": "stdio",
             "command": "npx",
-            "args": ["-y", "reglet", "mcp", "--project", "\${workspaceFolder}"]
+            "args": ["-y", "primp", "mcp", "--project", "\${workspaceFolder}"]
           }
         }
       }
 
-  From this checkout, replace "npx -y reglet mcp" with:
+  From this checkout, replace "npx -y primp mcp" with:
     ${fromSource}
 `)
 }
@@ -751,13 +751,13 @@ async function main(): Promise<number> {
   const sessionsDir = defaultSessionDir()
   const createdDirs = [sessionsDir, dirname(sessionsDir)].filter((path) => !existsSync(path))
   const marker = `s6-${randomBytes(8).toString('hex')}`
-  let fake: FakeReglet | undefined
+  let fake: FakePrimp | undefined
 
   try {
     try {
-      fake = await startFakeReglet(projectRoot, marker)
+      fake = await startFakePrimp(projectRoot, marker)
     } catch (error) {
-      record('1a', 'fake reglet process writes a session file with mode 0600', 'FAIL', error instanceof Error ? error.message : String(error))
+      record('1a', 'fake primp process writes a session file with mode 0600', 'FAIL', error instanceof Error ? error.message : String(error))
       return 1
     }
     await checkFakeProcess(fake, projectRoot)
@@ -769,9 +769,9 @@ async function main(): Promise<number> {
 
     const codex = spawnSync('codex', ['--version'], { encoding: 'utf8' })
     if (codex.error) {
-      record('5', 'Codex CLI calls get_session through the shim', 'SKIP', 'codex is not installed on this machine (not on PATH); users register with: codex mcp add reglet -- npx -y reglet mcp')
+      record('5', 'Codex CLI calls get_session through the shim', 'SKIP', 'codex is not installed on this machine (not on PATH); users register with: codex mcp add primp -- npx -y primp mcp')
     } else {
-      record('5', 'Codex CLI calls get_session through the shim', 'SKIP', `codex ${codex.stdout.trim()} is installed but this spike has no Codex check yet; register with: codex mcp add reglet -- npx -y reglet mcp`)
+      record('5', 'Codex CLI calls get_session through the shim', 'SKIP', `codex ${codex.stdout.trim()} is installed but this spike has no Codex check yet; register with: codex mcp add primp -- npx -y primp mcp`)
     }
 
     await checkSessionRemovedOnExit(fake)
@@ -814,13 +814,13 @@ async function main(): Promise<number> {
   return 0
 }
 
-if (process.argv[2] === '--fake-reglet') {
+if (process.argv[2] === '--fake-primp') {
   const [, , , projectRoot, marker] = process.argv
   if (!projectRoot || !marker) {
-    console.error('usage: s6-mcp.ts --fake-reglet <projectRoot> <marker>')
+    console.error('usage: s6-mcp.ts --fake-primp <projectRoot> <marker>')
     process.exit(2)
   }
-  await runFakeReglet(projectRoot, marker)
+  await runFakePrimp(projectRoot, marker)
 } else {
   for (const signal of ['SIGINT', 'SIGTERM'] as const) {
     process.on(signal, () => {

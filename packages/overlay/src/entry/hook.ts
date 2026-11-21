@@ -1,27 +1,27 @@
 /**
- * reglet's head script: the first script of every document the proxy serves, synchronous, small.
+ * primp's head script: the first script of every document the proxy serves, synchronous, small.
  *
  * In the top window it
- *   1. starts the layout-shift recorder (`window.__reglet`, see hook/install.ts);
+ *   1. starts the layout-shift recorder (`window.__primp`, see hook/install.ts);
  *   2. opens the document's ONE overlay WebSocket at once. A page with a `<meta>`
  *      Content-Security-Policy only lets a script open a socket before that element is parsed,
  *      and the settle client must see the document from its first mutation. Sends are queued
  *      until the socket is open; a closed socket is reopened with a growing pause;
  *   3. runs the settle client on that socket;
- *   4. publishes `window.__reglet_bus` for the dock (see bus.ts);
+ *   4. publishes `window.__primp_bus` for the dock (see bus.ts);
  *   5. after DOMContentLoaded, loads the dock bundle with a script element that carries this
  *      script's nonce.
  *
  * It writes nothing to the DOM except that one script element (removed again once it ran), logs
  * nothing, and does nothing at all inside a frame.
  *
- * Build: esbuild, IIFE. Optional `define`s: `__REGLET_HOOK_STACKS__` (true compiles in the
- * DOM-call stack capture) and `__REGLET_SETTLE_AUTOSTART__` (false drops the settle client's
+ * Build: esbuild, IIFE. Optional `define`s: `__PRIMP_HOOK_STACKS__` (true compiles in the
+ * DOM-call stack capture) and `__PRIMP_SETTLE_AUTOSTART__` (false drops the settle client's
  * stand-alone starter from the bundle).
  */
 
-import type { ClientMessage } from '@reglet/protocol/messages'
-import { OVERLAY_PATH, SOCKET_PATH, type BusEvent, type RegletBus } from '../bus.ts'
+import type { ClientMessage } from '@primp/protocol/messages'
+import { OVERLAY_PATH, SOCKET_PATH, type BusEvent, type PrimpBus } from '../bus.ts'
 import { installHook } from '../hook/install.ts'
 import { createSettleClient } from '../probe/settle-client.ts'
 
@@ -149,7 +149,7 @@ function start(): void {
     if (socket === undefined) connect()
   })
 
-  const bus: RegletBus = {
+  const bus: PrimpBus = {
     doc,
     nonce,
     connected: () => open,
@@ -167,7 +167,7 @@ function start(): void {
       return () => set.delete(listener)
     },
   }
-  window.__reglet_bus = bus
+  window.__primp_bus = bus
 
   const loadOverlay = (): void => {
     const script = document.createElement('script')
@@ -175,7 +175,7 @@ function start(): void {
     script.async = true
     script.nonce = nonce
     // The recorder and the settle client skip nodes that carry this attribute.
-    script.setAttribute('data-reglet-root', '')
+    script.setAttribute('data-primp-root', '')
     script.onload = script.onerror = () => script.remove()
     // Outside <head> and <body>, which frameworks own.
     document.documentElement.append(script)
@@ -185,7 +185,7 @@ function start(): void {
 }
 
 try {
-  if (window.top === window && window.__reglet_bus === undefined) start()
+  if (window.top === window && window.__primp_bus === undefined) start()
 } catch {
   // Never break the page.
 }

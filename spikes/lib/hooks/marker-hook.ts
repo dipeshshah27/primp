@@ -7,7 +7,7 @@
  * `{ name: 'hook.js', entry: MARKER_HOOK_ENTRY }` to `startProxy`.
  */
 
-export interface RegletHookMarker {
+export interface PrimpHookMarker {
   /** `performance.now()` when the script ran. */
   t: number
   /** `document.scripts.length` when it ran; 1 means no other script element had been parsed yet. */
@@ -28,13 +28,13 @@ export interface RegletHookMarker {
 
 declare global {
   interface Window {
-    __reglet_hook?: RegletHookMarker
+    __primp_hook?: PrimpHookMarker
   }
 }
 
 const current = document.currentScript as HTMLScriptElement | null
 
-window.__reglet_hook = {
+window.__primp_hook = {
   t: performance.now(),
   scriptsAtRun: document.scripts.length,
   firstInHead: current !== null && document.head?.firstElementChild === current,
@@ -42,5 +42,5 @@ window.__reglet_hook = {
   hasNonce: (current?.nonce ?? '') !== '',
   readyState: document.readyState,
   bodyAtRun: document.body !== null,
-  runs: (window.__reglet_hook?.runs ?? 0) + 1,
+  runs: (window.__primp_hook?.runs ?? 0) + 1,
 }

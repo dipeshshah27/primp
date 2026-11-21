@@ -25,8 +25,8 @@ export interface SnapshotOptions {
 }
 
 export const DEFAULT_CAP = 2500
-/** Marks the reglet overlay host; it and everything inside it are never measured. */
-export const OVERLAY_ROOT_ATTR = 'data-reglet-root'
+/** Marks the primp overlay host; it and everything inside it are never measured. */
+export const OVERLAY_ROOT_ATTR = 'data-primp-root'
 
 const ids = new WeakMap<Element, number>()
 const refs = new Map<number, WeakRef<Element>>()

@@ -1,5 +1,5 @@
 /**
- * The reglet hook: the first script in `<head>`, synchronous, and small.
+ * The primp hook: the first script in `<head>`, synchronous, and small.
  *
  * It starts observing before the page has built anything, so that when a
  * layout shift happens the evidence about its cause is already on record:
@@ -7,8 +7,8 @@
  * or font had just arrived, and whether the tab was visible at all.
  *
  * It reads and records. It never writes to the DOM, and no callback of it can
- * throw into the page. Later-loaded reglet code talks to it through
- * `window.__reglet`.
+ * throw into the page. Later-loaded primp code talks to it through
+ * `window.__primp`.
  *
  * This module only defines the recorder; `installHook()` starts it. `hook/index.ts` starts it on
  * import (the bare hook, as spikes S3 and S7 inject it); `entry/hook.ts` starts it together with
@@ -31,9 +31,9 @@ import { cost, frame, now, round } from './state.ts'
 const VERSION: typeof SHIFT_RECORDING_VERSION = 1
 
 /** Replaced at build time; `true` compiles in the DOM-call stack capture (see stacks.ts). */
-declare const __REGLET_HOOK_STACKS__: boolean | undefined
+declare const __PRIMP_HOOK_STACKS__: boolean | undefined
 
-export interface RegletHook {
+export interface PrimpHook {
   version: typeof SHIFT_RECORDING_VERSION
   /**
    * The overlay calls this right before it changes the page (a style preview,
@@ -51,7 +51,7 @@ export interface RegletHook {
 
 declare global {
   interface Window {
-    __reglet?: RegletHook
+    __primp?: PrimpHook
   }
 }
 
@@ -105,19 +105,19 @@ function recording(): ShiftRecording {
 const startedAt = now()
 
 /**
- * Starts the recorder and publishes `window.__reglet`. Idempotent: a second copy of the script
+ * Starts the recorder and publishes `window.__primp`. Idempotent: a second copy of the script
  * (a proxy in front of a proxy) must not observe twice.
  */
 export function installHook(): void {
-  if (window.__reglet !== undefined) return
-  window.__reglet = { version: VERSION, markSelf, recording, onShift, cost: hookCost }
+  if (window.__primp !== undefined) return
+  window.__primp = { version: VERSION, markSelf, recording, onShift, cost: hookCost }
   try {
     installShifts()
     installPage()
     installLedger()
     installMedia()
     installFonts()
-    if (typeof __REGLET_HOOK_STACKS__ !== 'undefined' && __REGLET_HOOK_STACKS__) installStacks()
+    if (typeof __PRIMP_HOOK_STACKS__ !== 'undefined' && __PRIMP_HOOK_STACKS__) installStacks()
     requestAnimationFrame(() => {
       frame.seen = true
       frame.at = round(now())

@@ -1,6 +1,6 @@
 # sveltekit-svelte-5
 
-A small SvelteKit 3.4 app on Svelte 5.58 (runes mode) and the Vite 8 dev server. reglet's tests put the proxy in front of it to check hot reload, streaming, form posts, cookies and Svelte source lookup.
+A small SvelteKit 3.4 app on Svelte 5.58 (runes mode) and the Vite 8 dev server. primp's tests put the proxy in front of it to check hot reload, streaming, form posts, cookies and Svelte source lookup.
 
 It is a standalone project, outside the pnpm workspace.
 
@@ -33,7 +33,7 @@ Every page is wrapped by `src/routes/+layout.svelte` (header, `<main>`, footer) 
 
 ## Sign-in, cookie and the Origin rule
 
-The form posts to the action `/?/signin` in `src/routes/+page.server.ts`. On success the action sets the cookie `reglet_fixture_user=<name>` (`HttpOnly`, `SameSite=Lax`, `Path=/`, one day) and redirects with 303 to `/`. `/?/signout` deletes it. An empty name returns 400 and re-renders the form with an error.
+The form posts to the action `/?/signin` in `src/routes/+page.server.ts`. On success the action sets the cookie `primp_fixture_user=<name>` (`HttpOnly`, `SameSite=Lax`, `Path=/`, one day) and redirects with 303 to `/`. `/?/signout` deletes it. An empty name returns 400 and re-renders the form with an error.
 
 Both forms use `use:enhance`. With JavaScript the browser posts with `fetch` and gets JSON back (`{"type":"redirect",...}`, status 200); without it, or when the request's `Accept` prefers `text/html`, the answer is the 303.
 

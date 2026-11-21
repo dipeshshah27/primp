@@ -5,7 +5,7 @@ import { DemoError, demoGuide, demoTemplateDir, prepareDemo, startDemoServer, ty
 
 const TMP_ROOT = join(import.meta.dirname, '../../../.tmp')
 
-describe('reglet demo', () => {
+describe('primp demo', () => {
   let work: string
   let server: DemoServer | undefined
   beforeEach(() => {
@@ -20,7 +20,7 @@ describe('reglet demo', () => {
 
   it('finds the template and copies it into a new directory', () => {
     expect(demoTemplateDir()).toMatch(/demo-site$/)
-    const site = prepareDemo(join(work, 'reglet-demo'))
+    const site = prepareDemo(join(work, 'primp-demo'))
     expect(site.created).toBe(true)
     const html = readFileSync(join(site.dir, 'index.html'), 'utf8')
     expect(html).toContain('<title>Tidewater Coffee</title>')
@@ -66,8 +66,8 @@ describe('reglet demo', () => {
   })
 
   it('prints what to do next, with the directory relative to where the user is', () => {
-    const guide = demoGuide('/home/me/work/reglet-demo', '/home/me/work')
-    expect(guide).toContain('./reglet-demo')
+    const guide = demoGuide('/home/me/work/primp-demo', '/home/me/work')
+    expect(guide).toContain('./primp-demo')
     expect(guide).toContain('get_layout_shifts')
     expect(guide).toContain('verify_layout_shift')
   })

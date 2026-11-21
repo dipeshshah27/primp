@@ -1,6 +1,6 @@
 'use client'
 
-/* reglet:break */ const breakState: string = 'off'
+/* primp:break */ const breakState: string = 'off'
 
 /** Client component that scripts/break.mjs breaks on purpose (target "client"). */
 export function BreakTargetClient() {

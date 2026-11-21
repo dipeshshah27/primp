@@ -1,6 +1,6 @@
 /** Small pieces shared by the dock's tabs. */
 
-import type { ChangeItem, SourceLoc } from '@reglet/protocol/change'
+import type { ChangeItem, SourceLoc } from '@primp/protocol/change'
 import type { SourceState } from '../state/store.ts'
 
 export const basename = (path: string): string => path.slice(path.lastIndexOf('/') + 1)
@@ -29,7 +29,7 @@ export function SourceBadge({ loc, state }: { loc: SourceLoc | null; state?: Sou
   if (state === 'resolving') return <span class="source unknown">resolving...</span>
   if (loc === null || loc.file === undefined || loc.file === '') {
     return (
-      <span class="source unknown" title={state === 'failed' ? 'reglet did not answer in time' : 'No source position was found for this element'}>
+      <span class="source unknown" title={state === 'failed' ? 'primp did not answer in time' : 'No source position was found for this element'}>
         source unknown
       </span>
     )

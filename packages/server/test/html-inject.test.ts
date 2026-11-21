@@ -2,7 +2,7 @@ import { Readable } from 'node:stream'
 import { describe, expect, it } from 'vitest'
 import { createHeadInjectStream, HeadInjector, HEAD_SCAN_LIMIT, type InjectionPlacement } from '../src/html-inject.ts'
 
-const TAG = '<script src="/__reglet/hook.js"></script>'
+const TAG = '<script src="/__primp/hook.js"></script>'
 
 function run(chunks: (string | Buffer)[], limit?: number): { html: string; placement: InjectionPlacement | undefined; perChunk: string[] } {
   const injector = new HeadInjector(Buffer.from(TAG), limit)

@@ -6,7 +6,7 @@
  * Pure: no DOM, no Node. Nothing here mutates its arguments.
  */
 
-import type { ChangeItem, ItemStatus, SideEffect, StructuralChange, StyleChange } from '@reglet/protocol/change'
+import type { ChangeItem, ItemStatus, SideEffect, StructuralChange, StyleChange } from '@primp/protocol/change'
 import { deriveExpectations } from './expect.ts'
 import { normalizeValue } from './units.ts'
 

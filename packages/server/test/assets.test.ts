@@ -21,9 +21,9 @@ beforeAll(() => {
     hookEntry,
     [
       "import { greeting } from './shared.ts'",
-      'declare const __REGLET_HOOK_STACKS__: boolean',
+      'declare const __PRIMP_HOOK_STACKS__: boolean',
       'declare const __CUSTOM__: string',
-      "const result: { hook: string; stacks: boolean; custom: string } = { hook: greeting, stacks: __REGLET_HOOK_STACKS__, custom: typeof __CUSTOM__ === 'undefined' ? 'unset' : __CUSTOM__ }",
+      "const result: { hook: string; stacks: boolean; custom: string } = { hook: greeting, stacks: __PRIMP_HOOK_STACKS__, custom: typeof __CUSTOM__ === 'undefined' ? 'unset' : __CUSTOM__ }",
       ';(globalThis as Record<string, unknown>).__hook = result',
       '',
     ].join('\n'),
@@ -59,7 +59,7 @@ describe('buildOverlayAssets', () => {
     const same = await buildOverlayAssets({ hookEntry, overlayEntry })
     const other = await buildOverlayAssets({ hookEntry, overlayEntry, define: { __CUSTOM__: '"set"' } })
     expect(first.hook.hash).toMatch(/^[0-9a-f]{12}$/)
-    expect(first.headScripts).toEqual([`/__reglet/hook.js?v=${first.hook.hash}`])
+    expect(first.headScripts).toEqual([`/__primp/hook.js?v=${first.hook.hash}`])
     expect(same.hook.hash).toBe(first.hook.hash)
     expect(other.hook.hash).not.toBe(first.hook.hash)
     expect(run(other.hook.code).__hook).toMatchObject({ custom: 'set' })
@@ -67,7 +67,7 @@ describe('buildOverlayAssets', () => {
   })
 
   it('lets the caller turn minification and the stack capture off', async () => {
-    const built = await buildOverlayAssets({ hookEntry, overlayEntry, minify: false, define: { __REGLET_HOOK_STACKS__: 'false' } })
+    const built = await buildOverlayAssets({ hookEntry, overlayEntry, minify: false, define: { __PRIMP_HOOK_STACKS__: 'false' } })
     expect(built.hook.code.trim().split('\n').length).toBeGreaterThan(1)
     expect(run(built.hook.code).__hook).toMatchObject({ stacks: false })
   })
@@ -80,7 +80,7 @@ describe('buildOverlayAssets', () => {
     const built = await buildOverlayAssets({ prebuiltDir })
     expect(built.hook).toMatchObject({ from: 'prebuilt', source: join(prebuiltDir, 'hook.js'), code: 'globalThis.__hook="prebuilt hook"' })
     expect(built.overlay).toMatchObject({ from: 'prebuilt', code: 'globalThis.__overlay="prebuilt overlay"' })
-    expect(built.headScripts).toEqual([`/__reglet/hook.js?v=${built.hook.hash}`])
+    expect(built.headScripts).toEqual([`/__primp/hook.js?v=${built.hook.hash}`])
 
     // A named entry wins over the prebuilt file of the same bundle; the other still comes prebuilt.
     const mixed = await buildOverlayAssets({ prebuiltDir, hookEntry })

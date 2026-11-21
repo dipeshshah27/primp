@@ -17,7 +17,7 @@ export function uidOf(node: Node): number {
   return uid
 }
 
-const KEPT_ATTRS = 'src href rel data-vite-dev-id data-n-href data-reglet-root'.split(' ')
+const KEPT_ATTRS = 'src href rel data-vite-dev-id data-n-href data-primp-root'.split(' ')
 
 function pathOf(element: Element | null): number[] {
   if (element === null || !element.isConnected) return []

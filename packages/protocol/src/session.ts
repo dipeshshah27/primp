@@ -4,7 +4,7 @@ import { ChangeItemSchema, ItemStatusSchema, VerificationResultSchema, Verificat
 /**
  * Session discovery and the `get_session` summary.
  *
- * A running reglet process writes one session file so that `reglet mcp` (the
+ * A running primp process writes one session file so that `primp mcp` (the
  * stdio shim an agent spawns) can find its control endpoint. The file lives in
  * the user's home directory, never in the project.
  */
@@ -14,9 +14,9 @@ export const SESSION_FILE_VERSION = 1
 
 export const SessionFileSchema = z.object({
   version: z.literal(SESSION_FILE_VERSION),
-  /** Process id of the long-running reglet process; used to detect stale files. */
+  /** Process id of the long-running primp process; used to detect stale files. */
   pid: z.number().int().positive(),
-  /** Absolute path of the directory reglet was started for. */
+  /** Absolute path of the directory primp was started for. */
   projectRoot: z.string().min(1),
   /** Loopback TCP port of the control endpoint. */
   controlPort: z.number().int().min(1).max(65535),
@@ -34,11 +34,11 @@ export type SessionFile = z.infer<typeof SessionFileSchema>
  * tools can do anything useful right now.
  */
 export const SessionSummarySchema = z.object({
-  target: z.string().describe('Origin of the dev server reglet is proxying, for example http://localhost:5173'),
+  target: z.string().describe('Origin of the dev server primp is proxying, for example http://localhost:5173'),
   framework: z.string().describe('Detected framework, for example next, vite, sveltekit, static or unknown'),
   browserConnected: z
     .boolean()
-    .describe('Whether a browser tab with the reglet dock is attached; without one nothing can be measured'),
+    .describe('Whether a browser tab with the primp dock is attached; without one nothing can be measured'),
   counts: z
     .record(z.string(), z.number().int().nonnegative())
     .describe('Number of recorded items per status, keyed by status name'),
@@ -53,7 +53,7 @@ export const PendingFileGroupSchema = z.object({
   file: z
     .string()
     .nullable()
-    .describe('Project-relative source file the changes in this group belong to; null when reglet could not tell where the element comes from'),
+    .describe('Project-relative source file the changes in this group belong to; null when primp could not tell where the element comes from'),
   items: z.array(ChangeItemSchema).describe('The recorded changes for this file, in the order the developer made them'),
 })
 export type PendingFileGroup = z.infer<typeof PendingFileGroupSchema>
@@ -104,7 +104,7 @@ export const LayoutShiftsResultSchema = z.object({
       cause: z.enum(['unsized-media', 'font-swap', 'injected-content', 'dev-artifact', 'unknown']),
       confidence: z.number().describe('0 to 1; 0.7 and above only when the culprit explains the movement geometrically'),
       culprit: z.object({ label: z.string(), selector: z.string() }).nullable().describe('The element that caused the shift; null when none could be named'),
-      source: SourceLocSchema.nullable().describe('Where the culprit is in the source, when reglet could find it'),
+      source: SourceLocSchema.nullable().describe('Where the culprit is in the source, when primp could find it'),
       moved: z.array(z.string()).describe('The elements that moved'),
       evidence: z.array(z.string()),
     }),

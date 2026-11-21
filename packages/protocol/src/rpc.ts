@@ -2,8 +2,8 @@ import { z } from 'zod'
 import { DismissChangeResultSchema, PendingChangesSchema, SessionSummarySchema, VerifyChangesResultSchema, LayoutShiftsResultSchema, ShiftVerificationSchema } from './session.ts'
 
 /**
- * Control RPC: the private channel between `reglet mcp` (stdio shim) and the
- * long-running reglet process.
+ * Control RPC: the private channel between `primp mcp` (stdio shim) and the
+ * long-running primp process.
  *
  *   POST http://127.0.0.1:<controlPort>/rpc
  *   Authorization: Bearer <token>

@@ -5,10 +5,10 @@ import { onCleanup } from '../lib/index.ts'
 /**
  * A plain streaming HTTP relay with hooks on the headers, for the spikes.
  *
- * It stands where the product will later have options on the reglet proxy
+ * It stands where the product will later have options on the primp proxy
  * itself (the spikes may not change `packages/server`):
  *
- *   browser -> reglet proxy (injects the hook) -> relay -> dev server
+ *   browser -> primp proxy (injects the hook) -> relay -> dev server
  *
  * WebSocket upgrades are tunnelled byte for byte, so a dev server's HMR socket
  * keeps working through it.
@@ -188,7 +188,7 @@ export interface ColdPolicyOptions {
 }
 
 /**
- * The cold-replay policy under test: what the reglet proxy would do to every
+ * The cold-replay policy under test: what the primp proxy would do to every
  * proxied response while a replay is running. It works on headers only, so it
  * needs nothing from the browser but an ordinary reload.
  */

@@ -21,7 +21,7 @@ import { attributeShifts, callerFrames, CONFIDENT } from '../src/shift-attributo
  * The rules added after the first run on the held-out pages (2026-11-21), each on a small
  * recording written by hand, so that one rule is under test at a time:
  *
- *   1. who made a DOM call: the first frame of its stack that is not reglet's own;
+ *   1. who made a DOM call: the first frame of its stack that is not primp's own;
  *   2. victims that left or entered the viewport: their rectangles are clipped, not moved;
  *   3. a font swap of text INSIDE the element that grew;
  * and the two that the second one exposed: a wrapper that only "appeared" because the image in it
@@ -118,7 +118,7 @@ const MAIN = node(2, 'main', [1, 1], { id: 'main' })
 // ---------------------------------------------------------------------------
 
 const PAGE_FRAMES = '    at showPromo (http://localhost:4310/page/:205:14)\n    at http://localhost:4310/page/:210:3'
-const HOOK = 'http://localhost:4310/__reglet/hook.js?v=a06967e3c1c1'
+const HOOK = 'http://localhost:4310/__primp/hook.js?v=a06967e3c1c1'
 
 /** A strip inserted between the header and `main` by a script: `main` moves down by its height. */
 function inserted(stack: string | undefined, strip: Partial<NodeDescriptor> = {}): Parts {
@@ -131,14 +131,14 @@ function inserted(stack: string | undefined, strip: Partial<NodeDescriptor> = {}
   }
 }
 
-describe('1. a DOM call belongs to the first frame of its stack that is not reglet\'s own', () => {
+describe('1. a DOM call belongs to the first frame of its stack that is not primp\'s own', () => {
   it.each([
     ['insertAdjacentHTML as the hook recorded it before 2026-11-21', `    at e.<computed> [as insertAdjacentHTML] (${HOOK}:3:111)\n${PAGE_FRAMES}`],
     ['a property setter', `    at HTMLElement.set [as innerHTML] (${HOOK}:3:400)\n${PAGE_FRAMES}`],
     ['an anonymous wrapper, no parentheses', `    at ${HOOK}:3:95\n${PAGE_FRAMES}`],
     ['two frames of the hook', `    at capture (${HOOK}:3:50)\n    at Element.<anonymous> (${HOOK}:3:111)\n${PAGE_FRAMES}`],
     ['a wrapper called by the browser on behalf of the page', `    at Node.appendChild (${HOOK}:3:111)\n    at Array.forEach (<anonymous>)\n${PAGE_FRAMES}`],
-    ['no frame of reglet at all (a hook that drops its own frames)', PAGE_FRAMES],
+    ['no frame of primp at all (a hook that drops its own frames)', PAGE_FRAMES],
   ])('%s: the page inserted the node, and the shift counts', (_name, stack) => {
     const issue = only(inserted(stack))
     expect(named(issue)).toEqual(['injected-content', '#promo'])
@@ -147,7 +147,7 @@ describe('1. a DOM call belongs to the first frame of its stack that is not regl
     expect(issue.confidence).toBeGreaterThanOrEqual(CONFIDENT)
     // What is handed on (to the source resolver, to the dock) starts at the page's statement.
     expect(issue.trigger?.stack?.split('\n')[0]).toBe('    at showPromo (http://localhost:4310/page/:205:14)')
-    expect(issue.trigger?.stack).not.toContain('/__reglet/')
+    expect(issue.trigger?.stack).not.toContain('/__primp/')
     expect(attributeShifts(recording(inserted(stack))).cls).toBeCloseTo(0.05, 12)
   })
 
@@ -165,7 +165,7 @@ describe('1. a DOM call belongs to the first frame of its stack that is not regl
     expect(named(issue)).toEqual(['injected-content', '#promo'])
   })
 
-  it('a stack of reglet\'s frames only says nothing about the caller: the node is the page\'s', () => {
+  it('a stack of primp\'s frames only says nothing about the caller: the node is the page\'s', () => {
     const issue = only(inserted(`    at e.<computed> [as insertAdjacentHTML] (${HOOK}:3:111)`))
     expect(named(issue)).toEqual(['injected-content', '#promo'])
     expect(issue.scored).toBe(true)
@@ -181,11 +181,11 @@ describe('1. a DOM call belongs to the first frame of its stack that is not regl
     expect(issue).toMatchObject({ cause: 'dev-artifact', scored: false })
   })
 
-  it('callerFrames: reglet\'s frames on top and frames without a script are dropped', () => {
+  it('callerFrames: primp\'s frames on top and frames without a script are dropped', () => {
     expect(callerFrames(undefined)).toEqual([])
     expect(callerFrames('')).toEqual([])
     expect(callerFrames(`    at e.<computed> [as insertAdjacentHTML] (${HOOK}:3:111)\n    at Array.forEach (<anonymous>)\n${PAGE_FRAMES}`)).toEqual(PAGE_FRAMES.split('\n'))
-    // Only the frames on top: a frame of reglet further down is part of the caller's story.
+    // Only the frames on top: a frame of primp further down is part of the caller's story.
     expect(callerFrames(`${PAGE_FRAMES}\n    at boot (${HOOK}:3:9)`)).toHaveLength(3)
     // Firefox and Safari write frames as name@url.
     expect(callerFrames(`wrap/proto[name]@${HOOK}:3:111\nshowPromo@http://localhost:4310/page/:205:14`)).toEqual(['showPromo@http://localhost:4310/page/:205:14'])

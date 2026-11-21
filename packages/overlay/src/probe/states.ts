@@ -6,7 +6,7 @@
  * attribute, and every readable rule of the page that mentions the state gets a second selector
  * in which the pseudo-class is replaced by that marker:
  *
- *   .btn:hover { ... }   becomes   .btn:hover, .btn[data-reglet-force~="hover"] { ... }
+ *   .btn:hover { ... }   becomes   .btn:hover, .btn[data-primp-force~="hover"] { ... }
  *
  * The rule stays where it is, so its order, its `@media`, its `@layer` and its specificity (an
  * attribute selector weighs the same as a pseudo-class) are exactly the page's own. `release()`
@@ -58,7 +58,7 @@ const marker = (token: string): string => `[${FORCE_ATTR}~="${token}"]`
 
 const markSelf = (reason: string): void => {
   try {
-    ;(window as unknown as { __reglet?: { markSelf(reason: string): void } }).__reglet?.markSelf(reason)
+    ;(window as unknown as { __primp?: { markSelf(reason: string): void } }).__primp?.markSelf(reason)
   } catch {
     // The recorder is optional.
   }

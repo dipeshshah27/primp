@@ -1,5 +1,5 @@
 /**
- * Helpers of the overlay integration check (spikes/m1-overlay.ts): the real reglet in front of a
+ * Helpers of the overlay integration check (spikes/m1-overlay.ts): the real primp in front of a
  * fixture, the two bundles measured on their own, a fake session server for the few things the
  * real one cannot be made to say, and small page-side readers.
  */
@@ -10,7 +10,7 @@ import { join } from 'node:path'
 import { gzipSync } from 'node:zlib'
 import type { Browser, Frame, Page } from '@playwright/test'
 import { HOOK_ASSET_PATH, OVERLAY_ASSET_PATH, RESERVED_PREFIX } from '../../packages/protocol/src/messages.ts'
-import { startReglet, type RegletHandle } from '../../packages/server/src/app.ts'
+import { startPrimp, type PrimpHandle } from '../../packages/server/src/app.ts'
 import {
   newPage,
   onCleanup,
@@ -69,10 +69,10 @@ async function bundle(entry: string, define: Record<string, string>): Promise<Bu
 
 /** Both bundles as the server will build them: minified IIFE, stack capture on, no stand-alone settle starter. */
 export async function buildBundles(): Promise<Bundles> {
-  const define = { __REGLET_HOOK_STACKS__: 'true', __REGLET_SETTLE_AUTOSTART__: 'false' }
+  const define = { __PRIMP_HOOK_STACKS__: 'true', __PRIMP_SETTLE_AUTOSTART__: 'false' }
   const [hook, hookNoStacks, overlay, recorder, settle] = await Promise.all([
     bundle(HOOK_ENTRY, define),
-    bundle(HOOK_ENTRY, { ...define, __REGLET_HOOK_STACKS__: 'false' }),
+    bundle(HOOK_ENTRY, { ...define, __PRIMP_HOOK_STACKS__: 'false' }),
     bundle(OVERLAY_ENTRY, {}),
     bundle(join(REPO_ROOT, 'packages/overlay/src/hook/index.ts'), define),
     bundle(join(REPO_ROOT, 'packages/overlay/src/probe/settle-client.ts'), define),
@@ -83,19 +83,19 @@ export async function buildBundles(): Promise<Bundles> {
 export interface Lane {
   name: FixtureName
   fixture: FixtureHandle
-  /** The real reglet (proxy, session, settle detector) in front of the fixture. Replaced by `restartReglet`. */
-  reglet: RegletHandle
+  /** The real primp (proxy, session, settle detector) in front of the fixture. Replaced by `restartPrimp`. */
+  primp: PrimpHandle
   /** The same fixture behind a proxy that injects nothing. */
   control: ProxyHandle
-  /** Warnings and errors the reglet process logged. */
+  /** Warnings and errors the primp process logged. */
   logs: string[]
 }
 
 const SESSION_DIR = join(TMP_ROOT, `m1-overlay-sessions-${process.pid}`)
 onCleanup(() => rmSync(SESSION_DIR, { recursive: true, force: true }))
 
-async function launch(lane: Pick<Lane, 'fixture' | 'logs'>, port?: number, assets?: RegletHandle['assets']): Promise<RegletHandle> {
-  const reglet = await startReglet({
+async function launch(lane: Pick<Lane, 'fixture' | 'logs'>, port?: number, assets?: PrimpHandle['assets']): Promise<PrimpHandle> {
+  const primp = await startPrimp({
     projectRoot: lane.fixture.dir,
     target: lane.fixture.url,
     ...(port === undefined ? {} : { port }),
@@ -108,23 +108,23 @@ async function launch(lane: Pick<Lane, 'fixture' | 'logs'>, port?: number, asset
       if (level === 'warn' || level === 'error') lane.logs.push(`${level}: ${message}${detail === undefined ? '' : ` ${detail instanceof Error ? detail.message : JSON.stringify(detail)?.slice(0, 300)}`}`)
     },
   })
-  onCleanup(() => reglet.close())
-  return reglet
+  onCleanup(() => primp.close())
+  return primp
 }
 
 export async function startLane(name: FixtureName): Promise<Lane> {
   const fixture = await startFixture(name)
   const logs: string[] = []
-  const reglet = await launch({ fixture, logs })
+  const primp = await launch({ fixture, logs })
   const control = await startProxy(fixture)
-  return { name, fixture, reglet, control, logs }
+  return { name, fixture, primp, control, logs }
 }
 
-/** Stops reglet and starts it again on the same port with an empty session, as after `npx reglet` was restarted. */
-export async function restartReglet(lane: Lane): Promise<void> {
-  const { port, assets } = lane.reglet
-  await lane.reglet.close()
-  lane.reglet = await waitFor(() => launch(lane, port, assets), { timeoutMs: 5000, what: `reglet to start again on port ${port}` })
+/** Stops primp and starts it again on the same port with an empty session, as after `npx primp` was restarted. */
+export async function restartPrimp(lane: Lane): Promise<void> {
+  const { port, assets } = lane.primp
+  await lane.primp.close()
+  lane.primp = await waitFor(() => launch(lane, port, assets), { timeoutMs: 5000, what: `primp to start again on port ${port}` })
 }
 
 /** A proxy with the same bundles and a FAKE session server, for what the real one cannot be made to say. */
@@ -145,27 +145,27 @@ export interface DockPage extends PageHandle {
 }
 
 export interface OpenOptions extends NewPageOptions {
-  /** Keep the session of the page before (default: reglet is restarted, so the page starts with an empty session). */
+  /** Keep the session of the page before (default: primp is restarted, so the page starts with an empty session). */
   keepSession?: boolean
-  /** Open through this origin instead of the lane's reglet. */
+  /** Open through this origin instead of the lane's primp. */
   origin?: string
 }
 
-/** Opens `path` through reglet and waits until the dock is mounted and has its first session state. */
+/** Opens `path` through primp and waits until the dock is mounted and has its first session state. */
 export async function openDock(browser: Browser, lane: Lane, path: string, options: OpenOptions = {}): Promise<DockPage> {
-  if (options.keepSession !== true && options.origin === undefined && lane.reglet.session.items().length > 0) await restartReglet(lane)
+  if (options.keepSession !== true && options.origin === undefined && lane.primp.session.items().length > 0) await restartPrimp(lane)
   const handle = await newPage(browser, options)
   // tsx compiles named inner functions to `__name(fn, "name")`; the page does not have that helper.
   await handle.context.addInitScript({ content: 'globalThis.__name = globalThis.__name || function (f) { return f }' })
-  await handle.page.goto((options.origin ?? lane.reglet.url) + path, { waitUntil: 'load' })
+  await handle.page.goto((options.origin ?? lane.primp.url) + path, { waitUntil: 'load' })
   const dock = await dockFrame(handle.page)
-  await handle.page.evaluate(() => window.__reglet_test!.ready())
+  await handle.page.evaluate(() => window.__primp_test!.ready())
   return { ...handle, dock }
 }
 
 export async function dockFrame(page: Page): Promise<Frame> {
-  await page.waitForFunction(() => window.__reglet_test !== undefined, undefined, { timeout: 15_000 })
-  const element = await page.waitForSelector('reglet-root iframe', { state: 'attached', timeout: 10_000 })
+  await page.waitForFunction(() => window.__primp_test !== undefined, undefined, { timeout: 15_000 })
+  const element = await page.waitForSelector('primp-root iframe', { state: 'attached', timeout: 10_000 })
   const frame = await element.contentFrame()
   if (frame === null) throw new Error('the dock frame has no document')
   return frame
@@ -199,17 +199,17 @@ export async function computed(page: Page, selector: string, property: string): 
   return values[0]
 }
 
-/** Elements that carry reglet's mark. */
+/** Elements that carry primp's mark. */
 export function marks(page: Page): Promise<number> {
-  return page.evaluate(() => document.querySelectorAll('[data-reglet-id]').length)
+  return page.evaluate(() => document.querySelectorAll('[data-primp-id]').length)
 }
 
 export function testState(page: Page) {
-  return page.evaluate(() => window.__reglet_test!.state())
+  return page.evaluate(() => window.__primp_test!.state())
 }
 
 export function items(page: Page) {
-  return page.evaluate(() => window.__reglet_test!.items())
+  return page.evaluate(() => window.__primp_test!.items())
 }
 
 export const px = (n: number): string => `${Math.round(Math.abs(n) * 2) / 2}px`

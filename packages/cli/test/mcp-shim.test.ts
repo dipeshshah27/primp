@@ -63,7 +63,7 @@ async function startBackend(): Promise<void> {
 async function connect(cwd = join(project, 'src')): Promise<Client> {
   const server = createShimServer({ cwd, dir: sessionDir, version: '1.2.3', controlTimeoutMs: 3000 })
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair()
-  const client = new Client({ name: 'reglet-test', version: '0.0.0' })
+  const client = new Client({ name: 'primp-test', version: '0.0.0' })
   await server.connect(serverSide)
   await client.connect(clientSide)
   closers.push(async () => {
@@ -76,7 +76,7 @@ async function connect(cwd = join(project, 'src')): Promise<Client> {
 const text = (result: CallToolResult): string => result.content.map((block) => (block.type === 'text' ? block.text : `[${block.type}]`)).join('\n')
 const call = async (client: Client, name: string, args: Record<string, unknown> = {}): Promise<CallToolResult> => (await client.callTool({ name, arguments: args })) as CallToolResult
 
-describe('reglet mcp', () => {
+describe('primp mcp', () => {
   it('lists six tools with schemas, and instructions that describe the loop', async () => {
     await startBackend()
     const client = await connect()
@@ -97,7 +97,7 @@ describe('reglet mcp', () => {
 
     const instructions = client.getInstructions() ?? ''
     for (const word of ['get_session', 'get_pending_changes', 'dismiss_change', 'verify_changes', 'could not look']) expect(instructions).toContain(word)
-    expect(client.getServerVersion()).toMatchObject({ name: 'reglet', version: '1.2.3' })
+    expect(client.getServerVersion()).toMatchObject({ name: 'primp', version: '1.2.3' })
   })
 
   it('get_pending_changes hands over what was sent, as text and as structured content, and claims it', async () => {
@@ -162,14 +162,14 @@ describe('reglet mcp', () => {
     expect(text(await call(client, 'dismiss_change', { id: 'draft', reason: 'x' }))).toContain('still editing it')
     expect(text(await call(client, 'dismiss_change', { id: 'nope', reason: 'x' }))).toBe('No change has the id nope.')
 
-    // Arguments the schema refuses never reach reglet.
+    // Arguments the schema refuses never reach primp.
     const invalid = await call(client, 'dismiss_change', { id: 'pad' }).catch((error: unknown) => error)
     const refused = invalid instanceof Error ? invalid.message : text(invalid as CallToolResult)
     expect(refused).toMatch(/reason/)
     expect(session.item('draft')?.status).toBe('draft')
   })
 
-  it('says that reglet is not running, for every tool, when no session covers the directory', async () => {
+  it('says that primp is not running, for every tool, when no session covers the directory', async () => {
     await startBackend()
     const client = await connect(join(work, 'elsewhere-not-a-project'))
     for (const [name, args] of [

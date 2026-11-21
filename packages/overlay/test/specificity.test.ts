@@ -60,7 +60,7 @@ describe('withoutStates', () => {
 })
 
 describe('replaceState', () => {
-  const MARK = '[data-reglet-force~="hover"]'
+  const MARK = '[data-primp-force~="hover"]'
   it.each<[string, string | null]>([
     // simple
     ['.btn:hover', `.btn${MARK}`],

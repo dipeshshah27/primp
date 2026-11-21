@@ -517,7 +517,7 @@
  ],
  "resources": [
   {
-   "url": "http://localhost:4310/__reglet/hook.js",
+   "url": "http://localhost:4310/__primp/hook.js",
    "initiator": "script",
    "start": 2.7,
    "end": 5.3,

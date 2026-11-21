@@ -6,11 +6,11 @@ import type { ShimCommand } from '../src/registration.ts'
 import { isOnPath, runSetup, type SetupDeps } from '../src/setup.ts'
 
 /**
- * `reglet setup` with every outside effect replaced: nothing here starts
+ * `primp setup` with every outside effect replaced: nothing here starts
  * `claude` or `codex`, and nothing touches a client's configuration.
  */
 
-const SHIM: ShimCommand = { command: 'npx', args: ['-y', 'reglet', 'mcp'], fromSource: false }
+const SHIM: ShimCommand = { command: 'npx', args: ['-y', 'primp', 'mcp'], fromSource: false }
 
 interface Script {
   installed: string[]
@@ -40,21 +40,21 @@ function deps(script: Script): SetupDeps & { printed: string[]; asked: string[];
   }
 }
 
-describe('reglet setup', () => {
+describe('primp setup', () => {
   it('asks once per installed client and runs that client\'s own command on yes', async () => {
     const d = deps({ installed: ['claude', 'codex'], answers: [true, true] })
     const outcomes = await runSetup(d, { shim: SHIM })
     expect(d.asked).toHaveLength(2)
     expect(d.ran).toEqual([
-      ['claude', ['mcp', 'add', 'reglet', '--', 'npx', '-y', 'reglet', 'mcp']],
-      ['codex', ['mcp', 'add', 'reglet', '--', 'npx', '-y', 'reglet', 'mcp']],
+      ['claude', ['mcp', 'add', 'primp', '--', 'npx', '-y', 'primp', 'mcp']],
+      ['codex', ['mcp', 'add', 'primp', '--', 'npx', '-y', 'primp', 'mcp']],
     ])
     expect(outcomes).toEqual([
       { client: 'Claude Code', result: 'registered', exitCode: 0 },
       { client: 'Codex', result: 'registered', exitCode: 0 },
     ])
     // The command is shown before the question, so the user knows what they agree to.
-    expect(d.printed.indexOf('  claude mcp add reglet -- npx -y reglet mcp')).toBeGreaterThan(-1)
+    expect(d.printed.indexOf('  claude mcp add primp -- npx -y primp mcp')).toBeGreaterThan(-1)
   })
 
   it('runs nothing on no (the default answer)', async () => {
@@ -70,7 +70,7 @@ describe('reglet setup', () => {
     expect(d.asked).toHaveLength(1)
     expect(d.ran.map(([binary]) => binary)).toEqual(['codex'])
     expect(outcomes.map((outcome) => outcome.result)).toEqual(['not-installed', 'registered'])
-    expect(d.printed).toContain('  claude mcp add reglet -- npx -y reglet mcp')
+    expect(d.printed).toContain('  claude mcp add primp -- npx -y primp mcp')
     expect(d.printed.some((line) => line.includes('`claude` command was not found'))).toBe(true)
   })
 
@@ -96,7 +96,7 @@ describe('reglet setup', () => {
     const d = deps({ installed: [], answers: [] })
     await runSetup(d, { shim: SHIM })
     const json = d.printed.at(-1) ?? ''
-    expect(JSON.parse(json).mcpServers.reglet.args).toEqual(['-y', 'reglet', 'mcp', '--project', '${workspaceFolder}'])
+    expect(JSON.parse(json).mcpServers.primp.args).toEqual(['-y', 'primp', 'mcp', '--project', '${workspaceFolder}'])
     expect(d.printed.at(-2)).toMatch(/Cursor: put this in \.cursor\/mcp\.json/)
     expect(d.ran).toEqual([])
   })

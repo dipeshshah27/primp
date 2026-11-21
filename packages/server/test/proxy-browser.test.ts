@@ -56,20 +56,20 @@ const PROBE = `
       violations: r.violations,
     }
   }
-  const ws = new WebSocket('ws://' + location.host + '/__reglet/ws')
+  const ws = new WebSocket('ws://' + location.host + '/__primp/ws')
   ws.onopen = () => { r.ws = 'open'; ws.send('hi') }
   ws.onerror = () => { r.ws = 'error' }
   ws.onmessage = (e) => { r.message = e.data }
   const later = document.createElement('script')
-  later.src = '/__reglet/later.js'
+  later.src = '/__primp/later.js'
   if (r.nonce) later.nonce = r.nonce
   document.documentElement.appendChild(later)
   document.addEventListener('DOMContentLoaded', () => {
-    const ws2 = new WebSocket('ws://' + location.host + '/__reglet/ws')
+    const ws2 = new WebSocket('ws://' + location.host + '/__primp/ws')
     ws2.onopen = () => { r.deferred.ws = 'open' }
     ws2.onerror = () => { r.deferred.ws = 'error' }
     const script = document.createElement('script')
-    script.src = '/__reglet/later.js?deferred'
+    script.src = '/__primp/later.js?deferred'
     if (r.nonce) script.nonce = r.nonce
     script.onload = () => { r.deferred.script = 'loaded' }
     script.onerror = () => { r.deferred.script = 'blocked' }
@@ -140,7 +140,7 @@ describe('6. Content-Security-Policy, in Chromium', () => {
   it("Chromium itself: 'self' covers the same-origin websocket, and CSSOM styling is not subject to style-src", async () => {
     // No proxy here: this pins down the browser behaviour the policy code relies on.
     const server = http.createServer((req, res) => {
-      if (req.url === '/__reglet/later.js') {
+      if (req.url === '/__primp/later.js') {
         res.writeHead(200, { 'content-type': 'text/javascript' })
         res.end('window.__later = true')
         return

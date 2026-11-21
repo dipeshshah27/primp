@@ -1,5 +1,5 @@
 {
-  "name": "@reglet/engine",
+  "name": "@primp/engine",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,6 +8,6 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@reglet/protocol": "workspace:*"
+    "@primp/protocol": "workspace:*"
   }
 }

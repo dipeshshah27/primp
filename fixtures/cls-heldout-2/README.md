@@ -1,6 +1,6 @@
 # cls-heldout-2
 
-A second held-out test set for reglet's layout-shift attribution: fourteen pages that look like real sites, each with an `expected.json` that says what (if anything) shifted, which element caused it and why. The sites, layouts and mechanisms are all different from `fixtures/cls-heldout`.
+A second held-out test set for primp's layout-shift attribution: fourteen pages that look like real sites, each with an `expected.json` that says what (if anything) shifted, which element caused it and why. The sites, layouts and mechanisms are all different from `fixtures/cls-heldout`.
 
 **Do not tune the attribution engine on these pages.** They exist to measure it. They were written without reading the engine, the overlay hook, the shift tools, the spikes or the pages of `fixtures/cls-corpus`, and without knowing how the tool did on the first held-out set.
 

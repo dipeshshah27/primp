@@ -1,6 +1,6 @@
 # static-html
 
-A two-page site in plain HTML, CSS and JavaScript. There is no framework, no build step, no dependencies and no live reload. reglet's tests put the proxy in front of it to check response encodings, conditional requests and source lookup when the only "source map" is the HTML file itself.
+A two-page site in plain HTML, CSS and JavaScript. There is no framework, no build step, no dependencies and no live reload. primp's tests put the proxy in front of it to check response encodings, conditional requests and source lookup when the only "source map" is the HTML file itself.
 
 It is a standalone project, outside the pnpm workspace. Nothing needs installing.
 

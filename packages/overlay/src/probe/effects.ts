@@ -11,8 +11,8 @@
  * about 5 ms); `ms` in the result is what this call spent, without the wait for the frame.
  */
 
-import { sideEffects, type SideEffect as EngineEffect } from '@reglet/engine/side-effects'
-import type { SideEffect } from '@reglet/protocol/change'
+import { sideEffects, type SideEffect as EngineEffect } from '@primp/engine/side-effects'
+import type { SideEffect } from '@primp/protocol/change'
 import { buildSelector, labelOf, locatorOf } from './ref.ts'
 import { DEFAULT_CAP, elementOf, idOf, snapshot } from './snapshot.ts'
 

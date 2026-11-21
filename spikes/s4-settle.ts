@@ -6,7 +6,7 @@
  *   pnpm spike:s4 -- --record     also rewrites packages/server/test/fixtures/hmr-*.json from the frames seen
  *   pnpm spike:s4 -- --journal    prints the journal of every edit, not only of failed ones
  *
- * After a coding agent edits source files, reglet has to know when the page
+ * After a coding agent edits source files, primp has to know when the page
  * has finished updating, so that what it measures next is the edited page.
  * This spike drives the real detector (packages/server/src/settle.ts, fed by
  * packages/server/src/hmr-tee.ts and packages/overlay/src/probe/settle-client.ts)
@@ -69,7 +69,7 @@ import {
 
 const SETTLE_CLIENT_ENTRY = fileURLToPath(new URL('../packages/overlay/src/probe/settle-client.ts', import.meta.url))
 const FIXTURE_DIR = fileURLToPath(new URL('../packages/server/test/fixtures/', import.meta.url))
-const SETTLE_PATH = '/__reglet/settle'
+const SETTLE_PATH = '/__primp/settle'
 
 const SETTLE_LIMIT_MS = 5000
 const NO_OP_TIMEOUT_MS = 1500
@@ -342,11 +342,11 @@ const NEXT_EDITS = bothWays([
     name: 'footer note in the root layout',
     kind: 'server layout text',
     file: 'app/layout.tsx',
-    from: 'reglet fixture. Server components,',
-    to: 'reglet fixture: server components,',
+    from: 'primp fixture. Server components,',
+    to: 'primp fixture: server components,',
     expect: { selector: label('footer-note'), read: 'text' },
-    before: 'reglet fixture. Server components, client components, a nonce CSP and a Server Action.',
-    after: 'reglet fixture: server components, client components, a nonce CSP and a Server Action.',
+    before: 'primp fixture. Server components, client components, a nonce CSP and a Server Action.',
+    after: 'primp fixture: server components, client components, a nonce CSP and a Server Action.',
   },
 ])
 
@@ -696,7 +696,7 @@ async function openStage(
   onCleanup(() => detector.close())
   await detector.ready()
   const proxy = await startProxy(fixture, {
-    headScripts: [{ name: 'settle.js', entry: SETTLE_CLIENT_ENTRY, define: { __REGLET_SETTLE_AUTOSTART__: 'true' } }],
+    headScripts: [{ name: 'settle.js', entry: SETTLE_CLIENT_ENTRY, define: { __PRIMP_SETTLE_AUTOSTART__: 'true' } }],
     onWebSocket(socket, request) {
       if ((request.url ?? '').split('?', 1)[0] === SETTLE_PATH) detector.attachBrowser(socket)
       else socket.close()

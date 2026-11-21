@@ -2,8 +2,8 @@
  * The dock bundle: probe, state and UI. Loaded by the head script (`entry/hook.ts`) after
  * DOMContentLoaded, with the head script's nonce.
  *
- * It mounts one `<reglet-root data-reglet-root>` element as the last child of `<html>` and
- * publishes `window.__reglet_test` for end-to-end tests. It runs only in the top window and
+ * It mounts one `<primp-root data-primp-root>` element as the last child of `<html>` and
+ * publishes `window.__primp_test` for end-to-end tests. It runs only in the top window and
  * only once per document.
  *
  * Build: esbuild, IIFE, with JSX set to `automatic` and `jsxImportSource: 'preact'` (esbuild
@@ -19,5 +19,5 @@ try {
   }
 } catch (error) {
   // The dock failing must not take the page down with it; a developer still wants to know.
-  console.warn('[reglet] the dock could not start:', error)
+  console.warn('[primp] the dock could not start:', error)
 }

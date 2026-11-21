@@ -5,8 +5,8 @@ import { detectDevServer, detectFramework, type DevServerDetection, type Framewo
 import { findSession, listSessions, type SessionLookup } from '../../server/src/session-file.ts'
 
 /**
- * `reglet doctor`: what reglet sees on this machine, one line per check.
- * Only two things fail it (exit code 1): a Node version reglet does not run
+ * `primp doctor`: what primp sees on this machine, one line per check.
+ * Only two things fail it (exit code 1): a Node version primp does not run
  * on, and browser bundles that cannot be built. Everything else is a report.
  */
 
@@ -24,7 +24,7 @@ export interface DoctorDeps {
   framework(projectRoot: string): FrameworkInfo
   devServer(projectRoot: string, framework: FrameworkInfo, excludePorts: number[], excludePids: number[]): Promise<DevServerDetection>
   session(projectRoot: string): SessionLookup
-  /** Ports and pids of running reglet processes, which are not dev servers. */
+  /** Ports and pids of running primp processes, which are not dev servers. */
   ownProcesses(): { ports: number[]; pids: number[] }
   buildAssets(options?: OverlayAssetsOptions): Promise<OverlayAssets>
 }
@@ -66,7 +66,7 @@ export async function collectDoctorChecks(projectRoot: string, deps: DoctorDeps)
   add(
     'Node',
     isSupportedNode(deps.nodeVersion) ? 'ok' : 'fail',
-    isSupportedNode(deps.nodeVersion) ? `${deps.nodeVersion} on ${deps.platform}` : `${deps.nodeVersion}; reglet needs ^22.22.0 or >=24.11.0`,
+    isSupportedNode(deps.nodeVersion) ? `${deps.nodeVersion} on ${deps.platform}` : `${deps.nodeVersion}; primp needs ^22.22.0 or >=24.11.0`,
   )
 
   let isDirectory = false
@@ -102,9 +102,9 @@ export async function collectDoctorChecks(projectRoot: string, deps: DoctorDeps)
     add('Dev server', 'warn', `detection failed: ${error instanceof Error ? error.message : String(error)}`)
   }
 
-  if (session.kind === 'found') add('Session', 'ok', `reglet is running for ${session.session.projectRoot} (pid ${session.session.pid}); open ${session.session.proxyUrl}`)
-  else if (session.kind === 'ambiguous') add('Session', 'warn', `reglet is running for several projects below this directory: ${session.projectRoots.join(', ')}`)
-  else add('Session', 'ok', 'reglet is not running for this project (start it with `reglet`)')
+  if (session.kind === 'found') add('Session', 'ok', `primp is running for ${session.session.projectRoot} (pid ${session.session.pid}); open ${session.session.proxyUrl}`)
+  else if (session.kind === 'ambiguous') add('Session', 'warn', `primp is running for several projects below this directory: ${session.projectRoots.join(', ')}`)
+  else add('Session', 'ok', 'primp is not running for this project (start it with `primp`)')
 
   try {
     const assets = await deps.buildAssets()

@@ -25,7 +25,7 @@ import { since, waitFor } from './wait.ts'
  * checked-in install with a symlink, so nothing large is copied.
  *
  * What makes the symlinked copy work, per fixture (all measured, see S1):
- *   - vite-react-19: `REGLET_FIXTURE_CACHE_DIR=.vite` gives the copy its own
+ *   - vite-react-19: `PRIMP_FIXTURE_CACHE_DIR=.vite` gives the copy its own
  *     dependency cache; otherwise every copy rewrites the shared
  *     `node_modules/.vite`.
  *   - sveltekit-svelte-5: its config already keeps the Vite cache beside the
@@ -136,7 +136,7 @@ const AGENT_ENV = /^(CLAUDE|CLAUDECODE|CODEX|CURSOR_AGENT|AI_AGENT)/
 
 const FIXTURE_ENV: Partial<Record<FixtureName, Record<string, string>>> = {
   // A cache of its own beside the copy; see the header comment.
-  'vite-react-19': { REGLET_FIXTURE_CACHE_DIR: '.vite' },
+  'vite-react-19': { PRIMP_FIXTURE_CACHE_DIR: '.vite' },
 }
 
 let processRunId: string | undefined

@@ -4,7 +4,7 @@
  * are done on the page, with the handles on the selection: handles.ts.)
  */
 
-import type { ChangeItem, ElementState, SideEffect } from '@reglet/protocol/change'
+import type { ChangeItem, ElementState, SideEffect } from '@primp/protocol/change'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { describeEffect, summarizeRecorded } from '../probe/effects.ts'
 import { computedValue, suggestProperties, supportedProperties } from '../probe/properties.ts'

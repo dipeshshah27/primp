@@ -3,7 +3,7 @@
  *
  * The pages in fixtures/cls-heldout were written by someone who had not seen the attribution
  * code, after it was finished, as realistic templates with decoys. This script only measures:
- * each page is loaded through reglet with the real dock, the report the product would show is
+ * each page is loaded through primp with the real dock, the report the product would show is
  * compared with the page's answer key, and the totals are printed. The answer key is read here
  * and nowhere else.
  *
@@ -18,7 +18,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { SourceLoc } from '../packages/protocol/src/change.ts'
 import type { ShiftIssue } from '../packages/protocol/src/shift.ts'
-import { startReglet } from '../packages/server/src/app.ts'
+import { startPrimp } from '../packages/server/src/app.ts'
 import { createReport, launchBrowser, newPage, onCleanup, runCleanups, sleep, startFixture, TMP_ROOT, waitFor } from './lib/index.ts'
 
 /** The plan's bar: the top culprit right on at least this share of positive pages. */
@@ -73,8 +73,8 @@ function interactionSelector(interaction: Expected['interaction']): { selector: 
 try {
   const fixture = await startFixture(SET)
   const sessionDir = join(TMP_ROOT, `${SET}-sessions-${process.pid}`)
-  const reglet = await startReglet({ projectRoot: fixture.dir, target: fixture.port, handleSignals: false, sessionDir })
-  onCleanup(() => reglet.close())
+  const primp = await startPrimp({ projectRoot: fixture.dir, target: fixture.port, handleSignals: false, sessionDir })
+  onCleanup(() => primp.close())
   const browser = await launchBrowser()
   const { page } = await newPage(browser, { viewport: { width: 1280, height: 800 } })
 
@@ -86,21 +86,21 @@ try {
   const rows: Row[] = []
   for (const { name, expected } of pages) {
     const interaction = interactionSelector(expected.interaction)
-    const before = reglet.session.shifts()?.at ?? 0
-    await page.goto(`${reglet.url}/${name}/`)
+    const before = primp.session.shifts()?.at ?? 0
+    await page.goto(`${primp.url}/${name}/`)
     if (interaction !== undefined) {
       await sleep(interaction.afterMs)
       // A trusted input event, as a person would make it: the browser then marks the shift as caused by input.
       if (interaction.key === undefined) await page.click(interaction.selector, { timeout: 5000 }).catch(() => undefined)
       else await page.press(interaction.selector, interaction.key, { timeout: 5000 }).catch(() => undefined)
     }
-    const reported = await waitFor(() => (reglet.session.shifts()?.at ?? 0) > before && reglet.session.shifts()?.recording.url.includes(`/${name}/`), { what: `the shift report of ${name}`, timeoutMs: 25_000 }).then(
+    const reported = await waitFor(() => (primp.session.shifts()?.at ?? 0) > before && primp.session.shifts()?.recording.url.includes(`/${name}/`), { what: `the shift report of ${name}`, timeoutMs: 25_000 }).then(
       () => true,
       () => false,
     )
     // The dock reports again when later entries arrive: let it finish.
     await sleep(1500)
-    const latest = reported ? reglet.session.shifts() : undefined
+    const latest = reported ? primp.session.shifts() : undefined
     const base = { page: name, template: expected.template, positive: expected.positive }
     if (latest === undefined || latest.report.status !== 'ok') {
       rows.push({ ...base, expected: expected.positive ? (expected.shifts[0]?.cause ?? '?') : 'no accusation', reported: latest === undefined ? 'no report' : latest.report.status, verdict: expected.positive ? 'missed' : 'clean', source: '-', detail: 'the page was not measured' })
@@ -193,7 +193,7 @@ try {
 export const FIRST_RUN =
   'First run, 2026-11-21, attributor as built against fixtures/cls-corpus only: 11 positive pages: 5 correct, 5 conservative, 0 wrong, 1 missed (45% correct; target 80%). ' +
   '5 negative pages: 5 clean, 0 accused. Source line right on 5 of the 5 correct ones. ' +
-  'Not correct: pricing-ledgerly (missed: the inserted strip was classified dev-artifact because reglet\'s own DOM wrapper is a frame of the insertion stack); ' +
+  'Not correct: pricing-ledgerly (missed: the inserted strip was classified dev-artifact because primp\'s own DOM wrapper is a frame of the insertion stack); ' +
   'product-tidewell, recipe-saltwater-kitchen, shop-grid-fernhill (unknown, no culprit: victims pushed out of the viewport have an empty current rect, which was read as movement up and left); ' +
   'dashboard-orderdesk, docs-quillstack (culprit right, cause unknown: a web font used by text inside the element that grew was not linked to it). ' +
   'The attributor was changed for these three defects afterwards, so this set is a development set from then on; fixtures/cls-heldout-2 is the held-out measurement.'

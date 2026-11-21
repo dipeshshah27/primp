@@ -5,7 +5,7 @@ import { createInterface } from 'node:readline/promises'
 import { claudeRegistration, codexRegistration, cursorConfig, shimCommand, type ClientRegistration, type ShimCommand } from './registration.ts'
 
 /**
- * `reglet setup`: registers the MCP shim with the coding agents installed on
+ * `primp setup`: registers the MCP shim with the coding agents installed on
  * this machine.
  *
  * For Claude Code and Codex it runs the client's own `mcp add` command, after
@@ -48,7 +48,7 @@ export async function runSetup(deps: SetupDeps, options: SetupOptions = {}): Pro
       outcomes.push({ client: registration.client, result: 'not-installed' })
       continue
     }
-    deps.print(`${registration.client}: reglet can register itself by running`)
+    deps.print(`${registration.client}: primp can register itself by running`)
     deps.print(`  ${registration.line}`)
     const agreed = options.yes === true || (await deps.confirm(`Run it now? [y/N] `))
     if (!agreed) {
@@ -61,12 +61,12 @@ export async function runSetup(deps: SetupDeps, options: SetupOptions = {}): Pro
       deps.print(`  registered with ${registration.client}.`)
       outcomes.push({ client: registration.client, result: 'registered', exitCode })
     } else {
-      deps.print(`  \`${registration.binary}\` exited with code ${exitCode}. If it says a server named reglet exists already, nothing needs doing.`)
+      deps.print(`  \`${registration.binary}\` exited with code ${exitCode}. If it says a server named primp exists already, nothing needs doing.`)
       outcomes.push({ client: registration.client, result: 'failed', exitCode })
     }
   }
 
-  deps.print('Cursor: put this in .cursor/mcp.json in the project (reglet does not write it for you):')
+  deps.print('Cursor: put this in .cursor/mcp.json in the project (primp does not write it for you):')
   deps.print(cursorConfig(shim))
   return outcomes
 }

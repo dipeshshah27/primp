@@ -503,7 +503,7 @@ async function main(): Promise<void> {
     browser = await chromium.launch({ headless: true })
     const context = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1 })
 
-    console.log('reglet spike S5: rect snapshot + diff + side-effect classification')
+    console.log('primp spike S5: rect snapshot + diff + side-effect classification')
     console.log(`  machine: ${cpus()[0]?.model ?? 'unknown CPU'} x${cpus().length}, node ${process.version}, chromium ${browser.version()} (headless), viewport ${VIEWPORT.width}x${VIEWPORT.height}`)
     console.log(`  shipped code (snapshot + diff + classify), minified: ${productJs.length} bytes, ${gzipSync(productJs).length} gzipped`)
 
@@ -523,7 +523,7 @@ async function main(): Promise<void> {
     const sA = await a.evaluate((cap) => window.__s5.structure({ cap }), UNCAPPED)
     info(`DOM has ${sA.domElements} elements under body; snapshot has ${sA.entries} entries (${sA.withLines} with a line count, ${sA.withOverflow} overflowing), ${sA.bytes} bytes as JSON`)
     check('page A has at least 2,500 measured elements and is not truncated', sA.entries >= 2500 && !sA.truncated && sA.total === sA.entries, `${sA.entries} entries, total ${sA.total}, truncated ${sA.truncated}`)
-    check('overlay root is excluded (light children and shadow tree)', sA.insideOverlay === 0 && sA.overlayElements > 1, `${sA.insideOverlay} entries inside [data-reglet-root]; the page has ${sA.overlayElements} light elements there plus a shadow tree`)
+    check('overlay root is excluded (light children and shadow tree)', sA.insideOverlay === 0 && sA.overlayElements > 1, `${sA.insideOverlay} entries inside [data-primp-root]; the page has ${sA.overlayElements} light elements there plus a shadow tree`)
     check('visibility:hidden boxes are left out', sA.invisibleBoxes === 7 && sA.invisibleEntries === 0, `${sA.invisibleEntries} entries among the ${sA.invisibleBoxes} elements of the closed dropdown (computed visibility: hidden)`)
     check('display:none subtree is skipped; open shadow roots of the app are walked', sA.hiddenMenuEntries === 0 && sA.shadowEntries === 2, `${sA.hiddenMenuEntries} entries from the hidden 40-link menu, ${sA.shadowEntries} entries from the app's own shadow root (expected 2)`)
     check('rects are document coordinates rounded to 0.5px and match raw getBoundingClientRect', sA.notHalfPixel === 0 && sA.rawMismatches === 0, `${sA.notHalfPixel} values off the 0.5px grid, ${sA.rawMismatches} rects further than 0.25px from raw (max error ${sA.maxRawError.toFixed(3)}px)`)

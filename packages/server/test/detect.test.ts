@@ -24,7 +24,7 @@ import { removeDir, tempDir } from './session-helpers.ts'
  *           keep the recorded layout (including the narrower DEVICE value of one IPv4 line);
  *           their pids, ports and directories were rewritten into one scenario: a project
  *           /Users/sam/code/shop with a Vite server (5173), a Next server in apps/admin (3000
- *           plus a second port), a reglet proxy (5174) and another project's server on 8080.
+ *           plus a second port), a primp proxy (5174) and another project's server on 8080.
  *   Linux   NOT recorded: written by hand after lsof's documented column layout (numeric
  *           DEVICE, long user names). It checks that the parser does not depend on the macOS
  *           column widths, nothing more.
@@ -286,7 +286,7 @@ describe('detectDevServer', () => {
     expect(orderCandidates([{ port: 9 }, { port: 4321 }, { port: 3 }], 'astro').map((candidate) => candidate.port)).toEqual([4321, 3, 9])
   })
 
-  it('narrows to a sub-project, and leaves out ports and processes that are reglet itself', async () => {
+  it('narrows to a sub-project, and leaves out ports and processes that are primp itself', async () => {
     const { probe } = probeWith({ 5173: html, 3000: html, 5174: html })
     const admin = await detectDevServer({ projectRoot: '/Users/sam/code/shop/apps/admin', run: lsof().run, probe, platform: 'darwin' })
     expect([admin.chosen?.port, admin.others.length]).toEqual([3000, 0])

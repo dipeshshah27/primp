@@ -160,7 +160,7 @@ async function hoverChecks(name: 'vite-react-19' | 'static-html' | 'sveltekit-sv
     expect(changed > 0, 'no property changed under real hover, so the check proves nothing')
     const after = await selectors(page)
     expect(after === before, 'release() did not restore the page\'s selectors')
-    const leftovers = await page.evaluate(() => document.querySelectorAll('[data-reglet-force]').length)
+    const leftovers = await page.evaluate(() => document.querySelectorAll('[data-primp-force]').length)
     expect(leftovers === 0, `${leftovers} elements still carry the marker`)
     const errors = record.pageErrors
     expect(errors.length === 0, `page errors: ${errors.join(' | ')}`)

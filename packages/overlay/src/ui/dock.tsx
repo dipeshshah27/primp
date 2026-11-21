@@ -126,8 +126,8 @@ export function Dock({ c, ui }: { c: Controller; ui: DockUi }) {
         ref={launcher}
         type="button"
         class="launcher"
-        aria-label={`Open reglet${count > 0 ? `, ${count} unsent ${count === 1 ? 'change' : 'changes'}` : ''}${connected ? '' : ', reconnecting'}`}
-        title="Open reglet"
+        aria-label={`Open primp${count > 0 ? `, ${count} unsent ${count === 1 ? 'change' : 'changes'}` : ''}${connected ? '' : ', reconnecting'}`}
+        title="Open primp"
         onClick={() => ui.setCollapsed(false)}
       >
         <span aria-hidden="true">r</span>
@@ -141,16 +141,16 @@ export function Dock({ c, ui }: { c: Controller; ui: DockUi }) {
   }
 
   return (
-    <div class="dock" role="region" aria-label="reglet">
+    <div class="dock" role="region" aria-label="primp">
       <header
         class="head"
         onPointerDown={(event) => {
           if ((event.target as Element).closest('button') === null) ui.startDrag(event)
         }}
       >
-        <span class={`conn${connected ? '' : ' off'}`} role="img" aria-label={connected ? 'Connected' : 'Reconnecting'} title={connected ? 'Connected to reglet' : 'Reconnecting to reglet...'} />
-        <span class="brand">reglet</span>
-        <span class="project" title={info === null ? undefined : `${info.projectName}\n${info.target}\n${info.framework}, reglet ${info.version}`}>
+        <span class={`conn${connected ? '' : ' off'}`} role="img" aria-label={connected ? 'Connected' : 'Reconnecting'} title={connected ? 'Connected to primp' : 'Reconnecting to primp...'} />
+        <span class="brand">primp</span>
+        <span class="project" title={info === null ? undefined : `${info.projectName}\n${info.target}\n${info.framework}, primp ${info.version}`}>
           {connected ? (info === null ? '' : `${info.projectName} · ${hostOf(info.target)}`) : 'reconnecting...'}
         </span>
         <button type="button" class="iconbtn" aria-label="Move the dock to the next corner" title="Move (or drag the header)" onClick={() => ui.nextPosition()}>
@@ -158,13 +158,13 @@ export function Dock({ c, ui }: { c: Controller; ui: DockUi }) {
             <path d="M7 1.5v11M1.5 7h11M7 1.5 5.2 3.3M7 1.5l1.8 1.8M7 12.5l-1.8-1.8M7 12.5l1.8-1.8M1.5 7l1.8-1.8M1.5 7l1.8 1.8M12.5 7l-1.8-1.8M12.5 7l-1.8 1.8" />
           </svg>
         </button>
-        <button ref={collapse} type="button" class="iconbtn" aria-label="Collapse reglet" title="Collapse" onClick={() => ui.setCollapsed(true)}>
+        <button ref={collapse} type="button" class="iconbtn" aria-label="Collapse primp" title="Collapse" onClick={() => ui.setCollapsed(true)}>
           <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
             <path d="M3 10.5h8" />
           </svg>
         </button>
       </header>
-      <div class="tabs" role="tablist" aria-label="reglet">
+      <div class="tabs" role="tablist" aria-label="primp">
         {TABS.map(({ name, label }) => (
           <button key={name} type="button" class="tab" role="tab" id={`tab-${name}`} aria-selected={tab === name} aria-controls="panel" onClick={() => (store.tab.value = name)}>
             {label}

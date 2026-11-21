@@ -56,7 +56,7 @@ const TARGET = 0.95
 const VERBOSE = process.env.S2_VERBOSE === '1'
 const ONLY = process.env.S2_ONLY
 
-type ProbeWindow = Window & { __regletS2: S2Probe }
+type ProbeWindow = Window & { __primpS2: S2Probe }
 
 interface Expected {
   file: string
@@ -176,7 +176,7 @@ async function settle(page: Page, wantFramework: boolean): Promise<PageFacts> {
   let stable = 0
   const started = performance.now()
   for (;;) {
-    const facts = await page.evaluate(() => (window as unknown as ProbeWindow).__regletS2.facts())
+    const facts = await page.evaluate(() => (window as unknown as ProbeWindow).__primpS2.facts())
     const marked = facts.withFiber + facts.withSvelteMeta
     stable = marked === previous ? stable + 1 : 0
     previous = marked
@@ -199,13 +199,13 @@ function instanceIndexes(count: number): number[] {
 
 async function collectLabel(page: Page, label: FixtureLabel, pagePath: string, indexes?: number[]): Promise<Omit<Case, 'fileOk' | 'lineOk' | 'colOk'>[]> {
   const expected: Expected = { file: label.file, line: label.line, col: label.col, tag: label.tag }
-  const count = await page.evaluate((name) => (window as unknown as ProbeWindow).__regletS2.count(name), label.label)
+  const count = await page.evaluate((name) => (window as unknown as ProbeWindow).__primpS2.count(name), label.label)
   if (count === 0) {
     return [{ page: pagePath, name: label.label, instance: 0, kind: label.kind, expected, evidence: null, note: 'element not in the DOM' }]
   }
   const cases: Omit<Case, 'fileOk' | 'lineOk' | 'colOk'>[] = []
   for (const index of indexes ?? instanceIndexes(count)) {
-    const evidence = await page.evaluate(([name, at]) => (window as unknown as ProbeWindow).__regletS2.collect(name, at), [label.label, index] as const)
+    const evidence = await page.evaluate(([name, at]) => (window as unknown as ProbeWindow).__primpS2.collect(name, at), [label.label, index] as const)
     cases.push({ page: pagePath, name: label.label, instance: index, kind: label.kind, expected, evidence })
   }
   return cases
@@ -341,7 +341,7 @@ function checkPageHealth(report: Report, title: string, handle: PageHandle, hook
   )
 }
 
-const hookInfo = (page: Page): Promise<HookInfo> => page.evaluate(() => (window as unknown as ProbeWindow).__regletS2.hook())
+const hookInfo = (page: Page): Promise<HookInfo> => page.evaluate(() => (window as unknown as ProbeWindow).__primpS2.hook())
 
 /**
  * Edits a source file so every line below the first moves down by one, waits for the dev
@@ -358,7 +358,7 @@ async function checkFollowsEdit(report: Report, session: Session, page: Page, ti
     let last: SourceResult | undefined
     await waitFor(
       async () => {
-        const evidence = await page.evaluate((name) => (window as unknown as ProbeWindow).__regletS2.collect(name, 0), label.label)
+        const evidence = await page.evaluate((name) => (window as unknown as ProbeWindow).__primpS2.collect(name, 0), label.label)
         if (!evidence) return false
         last = await session.resolver.resolve(evidence)
         return last.file === label.file && last.line === label.line + 1 && last.level === 'exact'
@@ -410,15 +410,15 @@ async function runVite(report: Report, browser: Browser, scripts: { hook: string
         const big = await newPage(browser)
         try {
           const bigFacts = await open(big.page, session.proxy.url + variant, true)
-          const all = await big.page.evaluate(() => (window as unknown as ProbeWindow).__regletS2.timeAll('body *'))
+          const all = await big.page.evaluate(() => (window as unknown as ProbeWindow).__primpS2.timeAll('body *'))
           const bigPending = []
           for (const label of labels.filter((entry) => entry.page === '/big')) {
-            const count = await big.page.evaluate((name) => (window as unknown as ProbeWindow).__regletS2.count(name), label.label)
+            const count = await big.page.evaluate((name) => (window as unknown as ProbeWindow).__primpS2.count(name), label.label)
             const indexes = count > 8 ? [0, 1, 1000, 1998, 1999, 2000, count - 1].filter((index) => index < count) : undefined
             bigPending.push(...(await collectLabel(big.page, label, variant, indexes)))
           }
           const labelled = await resolveAll(session.resolver, bigPending)
-          const sample = await big.page.evaluate(() => (window as unknown as ProbeWindow).__regletS2.sample('.big-table tr, .big-table td', 80))
+          const sample = await big.page.evaluate(() => (window as unknown as ProbeWindow).__primpS2.sample('.big-table tr, .big-table td', 80))
           const bigSource = readFixtureFile(session.fixture, 'src/pages/Big.tsx')
           const unlabelled = await resolveAll(
             session.resolver,
@@ -491,7 +491,7 @@ async function runNext(report: Report, browser: Browser, scripts: { hook: string
         // In the DOM only while the response is still streaming: collect during the navigation.
         await handle.page.goto(session.proxy.url + path, { waitUntil: 'commit' })
         for (const label of transient) {
-          const seen = await handle.page.evaluate((name) => (window as unknown as ProbeWindow).__regletS2.collectTransient(name, 8000), label.label)
+          const seen = await handle.page.evaluate((name) => (window as unknown as ProbeWindow).__primpS2.collectTransient(name, 8000), label.label)
           pending.push({
             page: path,
             name: label.label,
@@ -569,12 +569,12 @@ async function runNext(report: Report, browser: Browser, scripts: { hook: string
       const big = await newPage(browser)
       try {
         const facts = await open(big.page, `${session.proxy.url}/big`, true)
-        const all = await big.page.evaluate(() => (window as unknown as ProbeWindow).__regletS2.timeAll('body *'))
+        const all = await big.page.evaluate(() => (window as unknown as ProbeWindow).__primpS2.timeAll('body *'))
         const bigPending = []
         for (const label of labels.filter((entry) => entry.page === '/big')) bigPending.push(...(await collectLabel(big.page, label, '/big')))
         const labelled = await resolveAll(session.resolver, bigPending)
         // The labelled middle marker is an <li> of the same list but not a row of the template.
-        const sample = await big.page.evaluate(() => (window as unknown as ProbeWindow).__regletS2.sample('.big-list li:not([data-marker]), .big-list span', 80))
+        const sample = await big.page.evaluate(() => (window as unknown as ProbeWindow).__primpS2.sample('.big-list li:not([data-marker]), .big-list span', 80))
         const bigSource = readFixtureFile(session.fixture, 'app/big/page.tsx')
         const unlabelled = await resolveAll(
           session.resolver,

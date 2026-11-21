@@ -1,4 +1,4 @@
-import type { Bystander, Condition, Locator, Rect, Ref, SiblingAnchor, SideEffect, SourceLoc, StructuralChange, StyleChange } from '@reglet/protocol/change'
+import type { Bystander, Condition, Locator, Rect, Ref, SiblingAnchor, SideEffect, SourceLoc, StructuralChange, StyleChange } from '@primp/protocol/change'
 import { deriveExpectations } from '../src/expect.ts'
 
 /** Builders for change items used by several test files. Every default is fixed, so output is deterministic. */

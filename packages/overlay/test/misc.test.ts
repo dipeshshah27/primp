@@ -1,5 +1,5 @@
-import { pickBest } from '@reglet/engine/locator'
-import type { Locator, SideEffect } from '@reglet/protocol/change'
+import { pickBest } from '@primp/engine/locator'
+import type { Locator, SideEffect } from '@primp/protocol/change'
 import { describe, expect, it } from 'vitest'
 import { describeEffect, summarizeRecorded } from '../src/probe/effects.ts'
 import { ruleOrder, ruleText, type PreviewSpec } from '../src/probe/preview.ts'
@@ -39,12 +39,12 @@ describe('preview rules', () => {
   const spec = { itemId: 'i', uid: 'a', locator: { tag: 'div', indexPath: [], ancestors: [] }, scope: 'instance' as const, declarations: [{ property: 'padding', value: '28px' }], seq: 0 }
 
   it('writes one important rule keyed by the mark', () => {
-    expect(ruleText(spec, ['a'])).toBe('[data-reglet-id="a"] { padding: 28px !important }')
+    expect(ruleText(spec, ['a'])).toBe('[data-primp-id="a"] { padding: 28px !important }')
   })
 
   it('lists every instance and wraps the rule in its media query', () => {
     expect(ruleText({ ...spec, media: '(min-width: 768px)' }, ['a', 'b'])).toBe(
-      '@media (min-width: 768px) { [data-reglet-id="a"],[data-reglet-id="b"] { padding: 28px !important } }',
+      '@media (min-width: 768px) { [data-primp-id="a"],[data-primp-id="b"] { padding: 28px !important } }',
     )
   })
 
@@ -53,31 +53,31 @@ describe('preview rules', () => {
   })
 
   it('a rule for a state applies in the real state and in the forced one', () => {
-    expect(ruleText({ ...spec, state: 'hover' }, ['a'])).toBe('[data-reglet-id="a"]:hover, [data-reglet-id="a"][data-reglet-force~="hover"] { padding: 28px !important }')
+    expect(ruleText({ ...spec, state: 'hover' }, ['a'])).toBe('[data-primp-id="a"]:hover, [data-primp-id="a"][data-primp-force~="hover"] { padding: 28px !important }')
     expect(ruleText({ ...spec, state: 'focus-visible' }, ['a'])).toBe(
-      '[data-reglet-id="a"]:focus-visible, [data-reglet-id="a"][data-reglet-force~="focus-visible"] { padding: 28px !important }',
+      '[data-primp-id="a"]:focus-visible, [data-primp-id="a"][data-primp-force~="focus-visible"] { padding: 28px !important }',
     )
   })
 
   it('a rule for a state lists both selectors for every instance', () => {
     expect(ruleText({ ...spec, state: 'active', scope: 'all-instances' }, ['a', 'b'])).toBe(
-      '[data-reglet-id="a"]:active, [data-reglet-id="a"][data-reglet-force~="active"], [data-reglet-id="b"]:active, [data-reglet-id="b"][data-reglet-force~="active"] { padding: 28px !important }',
+      '[data-primp-id="a"]:active, [data-primp-id="a"][data-primp-force~="active"], [data-primp-id="b"]:active, [data-primp-id="b"][data-primp-force~="active"] { padding: 28px !important }',
     )
   })
 
   it('a rule for a state goes inside its media query like any other', () => {
     expect(ruleText({ ...spec, state: 'hover', media: '(min-width: 768px)' }, ['a'])).toBe(
-      '@media (min-width: 768px) { [data-reglet-id="a"]:hover, [data-reglet-id="a"][data-reglet-force~="hover"] { padding: 28px !important } }',
+      '@media (min-width: 768px) { [data-primp-id="a"]:hover, [data-primp-id="a"][data-primp-force~="hover"] { padding: 28px !important } }',
     )
     expect(ruleText({ ...spec, state: 'hover' }, [])).toBe('')
   })
 
   it('a resting rule stays out of the states where the page has its own rule, without weighing more', () => {
     expect(ruleText({ ...spec, exceptIn: ['hover', 'active'] }, ['a'])).toBe(
-      '[data-reglet-id="a"]:not(:where(:hover, [data-reglet-force~="hover"], :active, [data-reglet-force~="active"])) { padding: 28px !important }',
+      '[data-primp-id="a"]:not(:where(:hover, [data-primp-force~="hover"], :active, [data-primp-force~="active"])) { padding: 28px !important }',
     )
     // Only a resting rule; a rule for a state ignores it.
-    expect(ruleText({ ...spec, state: 'hover', exceptIn: ['hover'] }, ['a'])).toBe('[data-reglet-id="a"]:hover, [data-reglet-id="a"][data-reglet-force~="hover"] { padding: 28px !important }')
+    expect(ruleText({ ...spec, state: 'hover', exceptIn: ['hover'] }, ['a'])).toBe('[data-primp-id="a"]:hover, [data-primp-id="a"][data-primp-force~="hover"] { padding: 28px !important }')
     expect(ruleText({ ...spec, exceptIn: [] }, ['a'])).toBe(ruleText(spec, ['a']))
   })
 

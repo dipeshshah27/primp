@@ -4,7 +4,7 @@
  * "no shifts".
  */
 
-import type { NodeDescriptor, ShiftIssue } from '@reglet/protocol/shift'
+import type { NodeDescriptor, ShiftIssue } from '@primp/protocol/shift'
 import { useState } from 'preact/hooks'
 import type { Controller } from '../state/controller.ts'
 import type { Outline, ShiftState } from '../state/store.ts'
@@ -159,7 +159,7 @@ export function ShiftsTab({ c }: { c: Controller }) {
   if (state === null) {
     return (
       <p class="empty" role="status">
-        {window.__reglet === undefined
+        {window.__primp === undefined
           ? 'The layout-shift recorder is not on this page.'
           : pending
             ? 'Attributing the layout shifts of this load...'

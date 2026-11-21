@@ -70,5 +70,5 @@ export function timed<A extends unknown[]>(body: (...args: A) => void, kind: Tim
  */
 export const frame = { seen: false, at: undefined as number | undefined }
 
-/** Marks the reglet overlay host. It and everything in it is never recorded. */
-export const OWN_ATTR = 'data-reglet-root'
+/** Marks the primp overlay host. It and everything in it is never recorded. */
+export const OWN_ATTR = 'data-primp-root'

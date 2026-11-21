@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { CheckResult, Expectation, VerificationStatus } from '@reglet/protocol/change'
-import { CheckResultSchema, VerificationResultSchema } from '@reglet/protocol/change'
+import type { CheckResult, Expectation, VerificationStatus } from '@primp/protocol/change'
+import { CheckResultSchema, VerificationResultSchema } from '@primp/protocol/change'
 import {
   BYSTANDER_NOT_CHECKED,
   ORDER_NEIGHBOURS_LOST,
@@ -384,13 +384,13 @@ describe('judgeCheck: a computed value under an interaction state', () => {
     const blocked = judgeCheck(hover, found({ stateBlocked: 'the stylesheet `https://cdn.example/site.css` is from another origin\n# and cannot be read' }))
     const text = stateBlockedText(blocked)
     expect(text).toBe(
-      "Not checked: reglet could not emulate the `:hover` state on this page (reason: `the stylesheet 'https://cdn.example/site.css' is from another origin # and cannot be read`), so `background-color` in that state was not measured (expected `rgb(15, 23, 42)`). That is a limit of the measurement, not a fault found in your edit, and verifying again will not change it: ask the user to check this state by eye.",
+      "Not checked: primp could not emulate the `:hover` state on this page (reason: `the stylesheet 'https://cdn.example/site.css' is from another origin # and cannot be read`), so `background-color` in that state was not measured (expected `rgb(15, 23, 42)`). That is a limit of the measurement, not a fault found in your edit, and verifying again will not change it: ask the user to check this state by eye.",
     )
     expect(explainCheck(blocked)).toBe(text)
     expect(text).not.toContain('\n')
     expect((text.match(/`/g) ?? []).length % 2).toBe(0)
     expect(stateBlockedText(judgeCheck(inState('outline-color', dark, 'focus-visible'), found({ stateBlocked: '' })))).toBe(
-      'Not checked: reglet could not emulate the `:focus-visible` state on this page, so `outline-color` in that state was not measured (expected `rgb(15, 23, 42)`). That is a limit of the measurement, not a fault found in your edit, and verifying again will not change it: ask the user to check this state by eye.',
+      'Not checked: primp could not emulate the `:focus-visible` state on this page, so `outline-color` in that state was not measured (expected `rgb(15, 23, 42)`). That is a limit of the measurement, not a fault found in your edit, and verifying again will not change it: ask the user to check this state by eye.',
     )
   })
 })
@@ -662,7 +662,7 @@ describe('judgeItem', () => {
     ['build_error beats passing checks', [pass], { ...ok, settle: broken }, 'build_error', ['build error']],
     ['tab_hidden', [pass], { ...ok, visible: false }, 'tab_hidden', ['tab was hidden', 'bring the tab to the front']],
     ['tab_hidden beats build_error', [], { ...ok, visible: false, settle: broken }, 'tab_hidden', ['hidden']],
-    ['no_browser', [], { ...ok, browser: false, visible: false, settle: broken }, 'no_browser', ['No browser tab', 'open the app through reglet']],
+    ['no_browser', [], { ...ok, browser: false, visible: false, settle: broken }, 'no_browser', ['No browser tab', 'open the app through primp']],
     ['timeout is said when something did not pass', [fail], { ...ok, settle: { ...settled, status: 'timeout', signal: 'timeout' } }, 'fail', ['had not finished updating']],
     ['timeout with every check passing: pass', [pass], { ...ok, settle: { ...settled, status: 'timeout', signal: 'timeout' } }, 'pass', ['The check passes.']],
     ['no settle information', [fail], { visible: true, browser: true, attempt: 2, now: 5 }, 'fail', ['expected `16px`']],
@@ -674,7 +674,7 @@ describe('judgeItem', () => {
       [hoverBlocked],
       ok,
       'not_measurable',
-      ['Not checked: reglet could not emulate the `:hover` state on this page (reason: `a stylesheet from another origin cannot be read`)', 'not a fault found in your edit', 'ask the user to check this state by eye'],
+      ['Not checked: primp could not emulate the `:hover` state on this page (reason: `a stylesheet from another origin cannot be read`)', 'not a fault found in your edit', 'ask the user to check this state by eye'],
     ],
     ['two blocked checks: the second is listed', [hoverBlocked, hoverBlockedToo], ok, 'not_measurable', ['could not emulate the `:hover` state', 'Also not passing: `color` in the `:hover` state could not be checked (expected `rgb(255, 255, 255)`).']],
     ['a blocked state next to a passing check is still not a pass', [stayed, hoverBlocked], ok, 'not_measurable', ['could not emulate']],

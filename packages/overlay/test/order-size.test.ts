@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { pickBest } from '@reglet/engine/locator'
-import type { Locator } from '@reglet/protocol/change'
+import { pickBest } from '@primp/engine/locator'
+import type { Locator } from '@primp/protocol/change'
 import { dropSlot, siblingPicker, toIndexOf, type Box } from '../src/probe/order.ts'
 import { cssSizeFor } from '../src/probe/size.ts'
 

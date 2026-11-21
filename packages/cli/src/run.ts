@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
 import { statSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { startReglet, type RegletHandle, type RegletLogger } from '../../server/src/app.ts'
+import { startPrimp, type PrimpHandle, type PrimpLogger } from '../../server/src/app.ts'
 import type { OverlayAssetsOptions } from '../../server/src/assets.ts'
 import { detectFramework, parseTarget, targetOrigin, type DevServerDetection } from '../../server/src/detect.ts'
 import type { ProxyTarget } from '../../server/src/headers.ts'
@@ -10,7 +10,7 @@ import { ownProcesses } from './doctor.ts'
 import { registrationText, shimCommand } from './registration.ts'
 
 /**
- * The default command: `reglet [--target <url|port>] [--port <n>] [--exec "<command>"] [--project <dir>] [--no-open]`.
+ * The default command: `primp [--target <url|port>] [--port <n>] [--exec "<command>"] [--project <dir>] [--no-open]`.
  *
  *   1. the project directory is the working directory, or `--project`;
  *   2. with `--exec` the dev server is started first and stopped again on exit;
@@ -38,7 +38,7 @@ export interface RunOptions {
   /** Whether a person is watching; the browser is only opened for one. Default: stdout is a TTY. */
   interactive?: boolean
   openBrowser?: (url: string) => void
-  /** Browser bundle sources; default from `REGLET_HOOK_ENTRY` / `REGLET_OVERLAY_ENTRY` (development), else the built-in ones. */
+  /** Browser bundle sources; default from `PRIMP_HOOK_ENTRY` / `PRIMP_OVERLAY_ENTRY` (development), else the built-in ones. */
   assets?: OverlayAssetsOptions
   sessionDir?: string
   /** How long `--exec` may take until the dev server answers. Default 60 s. */
@@ -46,12 +46,12 @@ export interface RunOptions {
 }
 
 export interface RunHandle {
-  reglet: RegletHandle
+  primp: PrimpHandle
   target: ProxyTarget
   devServer: DevServerProcess | undefined
   /** Resolves with an exit code when the command started with `--exec` ends by itself. Never resolves without `--exec`. */
   devServerExit: Promise<number>
-  /** Stops reglet and the dev server it started. Safe to call twice. */
+  /** Stops primp and the dev server it started. Safe to call twice. */
   close(): Promise<void>
 }
 
@@ -81,11 +81,11 @@ function notFoundMessage(projectRoot: string, detection: DevServerDetection | un
     lines.push(`Ports opened by this project that did not answer with a page: ${detection.ignored.map((entry) => `${entry.port} (${entry.reason})`).join(', ')}.`)
   }
   if (detection?.processScan !== undefined) lines.push(`Note: ${detection.processScan}.`)
-  lines.push('Start your dev server and run reglet again, or name it: reglet --target 5173, or let reglet start it: reglet --exec "npm run dev".')
+  lines.push('Start your dev server and run primp again, or name it: primp --target 5173, or let primp start it: primp --exec "npm run dev".')
   return lines.join('\n')
 }
 
-export async function runReglet(options: RunOptions): Promise<RunHandle> {
+export async function runPrimp(options: RunOptions): Promise<RunHandle> {
   const print = options.print ?? ((line: string) => process.stdout.write(`${line}\n`))
   const projectRoot = resolve(options.project !== undefined && options.project !== '' ? options.project : process.cwd())
   let isDirectory = false
@@ -110,13 +110,13 @@ export async function runReglet(options: RunOptions): Promise<RunHandle> {
 
   const exec = options.exec !== undefined && options.exec.trim() !== '' ? options.exec : undefined
   const devServer = exec === undefined ? undefined : startDevServer(exec, { cwd: projectRoot })
-  if (exec !== undefined) print(`reglet: starting the dev server: ${exec}`)
+  if (exec !== undefined) print(`primp: starting the dev server: ${exec}`)
 
-  let reglet: RegletHandle | undefined
+  let primp: PrimpHandle | undefined
   let closing: Promise<void> | undefined
   const close = (): Promise<void> => {
     closing ??= (async () => {
-      await reglet?.close()
+      await primp?.close()
       await devServer?.stop()
     })()
     return closing
@@ -141,33 +141,33 @@ export async function runReglet(options: RunOptions): Promise<RunHandle> {
       else if (waited.via === 'port') foundHow = 'found on a well-known port; pass --target if this is another project'
       else if (waited.via === 'output') foundHow = 'announced by the dev server'
       const others = waited.detection?.others ?? []
-      if (others.length > 0) print(`reglet: other servers of this project also answer: ${others.map((other) => other.url).join(', ')} (pick one with --target)`)
+      if (others.length > 0) print(`primp: other servers of this project also answer: ${others.map((other) => other.url).join(', ')} (pick one with --target)`)
     } else if (waited.status === 'exited') {
       throw new CliError(`The command "${exec}" ended (${waited.signal ?? `exit code ${waited.code}`}) before a dev server answered.`)
     } else if (given !== undefined && devServer === undefined) {
       // The user named the address; the proxy's own page says "not reachable" and retries until it is.
       target = given
-      print(`reglet: nothing answers at ${targetOrigin(given)} yet; starting anyway, the page retries until the dev server is up`)
+      print(`primp: nothing answers at ${targetOrigin(given)} yet; starting anyway, the page retries until the dev server is up`)
     } else if (devServer !== undefined) {
       throw new CliError(`The command "${exec}" is running, but no dev server answered within ${Math.round((options.startTimeoutMs ?? 60_000) / 1000)} s${given === undefined ? '' : ` at ${targetOrigin(given)}`}. Pass --target if it listens somewhere unusual.`)
     } else {
       throw new CliError(notFoundMessage(projectRoot, waited.detection))
     }
 
-    const debug = process.env.REGLET_DEBUG !== undefined && process.env.REGLET_DEBUG !== ''
-    const log: RegletLogger = (level, message, detail) => {
+    const debug = process.env.PRIMP_DEBUG !== undefined && process.env.PRIMP_DEBUG !== ''
+    const log: PrimpLogger = (level, message, detail) => {
       if ((level === 'debug' || level === 'info') && !debug) return
       const extra = detail === undefined ? '' : `: ${detail instanceof Error ? detail.message : typeof detail === 'string' ? detail : JSON.stringify(detail)}`
-      process.stderr.write(`reglet ${level}: ${message}${extra}\n`)
+      process.stderr.write(`primp ${level}: ${message}${extra}\n`)
     }
     const assets: OverlayAssetsOptions | undefined =
       options.assets ??
-      (process.env.REGLET_HOOK_ENTRY !== undefined || process.env.REGLET_OVERLAY_ENTRY !== undefined
-        ? { hookEntry: process.env.REGLET_HOOK_ENTRY, overlayEntry: process.env.REGLET_OVERLAY_ENTRY }
+      (process.env.PRIMP_HOOK_ENTRY !== undefined || process.env.PRIMP_OVERLAY_ENTRY !== undefined
+        ? { hookEntry: process.env.PRIMP_HOOK_ENTRY, overlayEntry: process.env.PRIMP_OVERLAY_ENTRY }
         : undefined)
 
     try {
-      reglet = await startReglet({
+      primp = await startPrimp({
         projectRoot,
         target,
         port,
@@ -180,30 +180,30 @@ export async function runReglet(options: RunOptions): Promise<RunHandle> {
         handleSignals: false,
       })
     } catch (error) {
-      throw new CliError(`reglet could not start: ${error instanceof Error ? error.message : String(error)}`)
+      throw new CliError(`primp could not start: ${error instanceof Error ? error.message : String(error)}`)
     }
 
     print('')
-    print(`  reglet ${options.version}`)
-    print(`  open      ${reglet.url}    (your app with the reglet dock)`)
-    print(`  target    ${reglet.target}    (${framework.framework}${foundHow === '' ? '' : `; ${foundHow}`})`)
-    print(`  project   ${reglet.projectRoot}`)
+    print(`  primp ${options.version}`)
+    print(`  open      ${primp.url}    (your app with the primp dock)`)
+    print(`  target    ${primp.target}    (${framework.framework}${foundHow === '' ? '' : `; ${foundHow}`})`)
+    print(`  project   ${primp.projectRoot}`)
     print('')
     print(registrationText(shimCommand()))
     print('')
     print('Press Ctrl+C to stop.')
 
     const interactive = options.interactive ?? process.stdout.isTTY === true
-    if (options.open !== false && interactive) (options.openBrowser ?? openInBrowser)(reglet.url)
+    if (options.open !== false && interactive) (options.openBrowser ?? openInBrowser)(primp.url)
 
     const devServerExit =
       devServer === undefined
         ? new Promise<number>(() => {})
         : devServer.exited.then(({ code, signal }) => {
-            print(`reglet: the dev server ended (${signal ?? `exit code ${code}`})`)
+            print(`primp: the dev server ended (${signal ?? `exit code ${code}`})`)
             return code ?? 1
           })
-    return { reglet, target, devServer, devServerExit, close }
+    return { primp, target, devServer, devServerExit, close }
   } catch (error) {
     await close()
     throw error

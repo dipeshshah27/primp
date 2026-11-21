@@ -1,4 +1,4 @@
-/* reglet:break */ const breakState: string = 'off'
+/* primp:break */ const breakState: string = 'off'
 
 /** Server component that scripts/break.mjs breaks on purpose (target "server"). */
 export function BreakTargetServer() {

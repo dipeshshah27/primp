@@ -15,7 +15,7 @@ import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { SESSION_FILE_VERSION, SessionFileSchema, type SessionFile } from '../../protocol/src/session.ts'
 
 /**
- * Session files: how `reglet mcp` finds the running reglet process.
+ * Session files: how `primp mcp` finds the running primp process.
  *
  * The long-running process writes `<sessions dir>/<id>.json` with its control
  * port and bearer token, and removes it when it exits. The shim reads every
@@ -30,16 +30,16 @@ import { SESSION_FILE_VERSION, SessionFileSchema, type SessionFile } from '../..
  *
  * The location is deliberately not taken from XDG_CACHE_HOME: an agent host
  * started from the desktop often has a different environment from the shell
- * that started reglet, and the two must agree on one path.
+ * that started primp, and the two must agree on one path.
  */
 
 /** Overrides the sessions directory. Meant for tests; both processes must set it. */
-export const SESSION_DIR_ENV = 'REGLET_SESSION_DIR'
+export const SESSION_DIR_ENV = 'PRIMP_SESSION_DIR'
 
 export function defaultSessionDir(env: NodeJS.ProcessEnv = process.env): string {
   const override = env[SESSION_DIR_ENV]
   if (override) return resolve(override)
-  return join(homedir(), '.cache', 'reglet', 'sessions')
+  return join(homedir(), '.cache', 'primp', 'sessions')
 }
 
 export interface SessionDirOption {
@@ -48,7 +48,7 @@ export interface SessionDirOption {
 }
 
 export interface WriteSessionInput {
-  /** Directory reglet was started for. Stored with symlinks resolved. */
+  /** Directory primp was started for. Stored with symlinks resolved. */
   projectRoot: string
   controlPort: number
   token: string
@@ -83,7 +83,7 @@ export type SessionLookup =
   | { kind: 'ambiguous'; projectRoots: string[] }
 
 /**
- * Writes the session file for a running reglet process and arranges for it to
+ * Writes the session file for a running primp process and arranges for it to
  * be removed when the process exits normally. A process killed with SIGKILL
  * leaves the file behind; the next lookup removes it (see {@link listSessions}).
  */
@@ -133,7 +133,7 @@ export function writeSessionFile(input: WriteSessionInput, options: SessionDirOp
  * running. Files that name a dead process are deleted on the way.
  *
  * Files this version cannot parse are left alone when their process is alive
- * or unknown: they may belong to a newer reglet with a different file format.
+ * or unknown: they may belong to a newer primp with a different file format.
  */
 export function listSessions(options: SessionDirOption = {}): LiveSession[] {
   const dir = options.dir ?? defaultSessionDir()
@@ -170,13 +170,13 @@ export function listSessions(options: SessionDirOption = {}): LiveSession[] {
  *
  * 1. Sessions whose project root is `cwd` or one of its parents win; the
  *    nearest root is chosen. This is the walk up from `cwd`, and it covers an
- *    agent working anywhere inside the project reglet was started for.
+ *    agent working anywhere inside the project primp was started for.
  * 2. Otherwise sessions started somewhere below `cwd` are considered, which
- *    covers an agent opened at a monorepo root while reglet runs in one app,
+ *    covers an agent opened at a monorepo root while primp runs in one app,
  *    and agent hosts that start MCP servers in the home directory. One such
  *    project is used; several are reported as ambiguous rather than guessed.
  *
- * Two sessions for the same root (a second `reglet` started before the first
+ * Two sessions for the same root (a second `primp` started before the first
  * exited) resolve to the most recently started one.
  */
 export function findSession(cwd: string, options: SessionDirOption = {}): SessionLookup {

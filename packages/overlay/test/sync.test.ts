@@ -1,4 +1,4 @@
-import type { ChangeItem, StyleChange } from '@reglet/protocol/change'
+import type { ChangeItem, StyleChange } from '@primp/protocol/change'
 import { describe, expect, it } from 'vitest'
 import { diffLists, reconcile, withServerTruth } from '../src/state/sync.ts'
 

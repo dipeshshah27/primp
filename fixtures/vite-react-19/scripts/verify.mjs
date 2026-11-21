@@ -10,7 +10,7 @@
 // never counted as passed.
 //
 // The browser checks need @playwright/test. The fixture does not depend on it: it is resolved
-// from the reglet repo root, so they run when the fixture sits inside the repo (in place or
+// from the primp repo root, so they run when the fixture sits inside the repo (in place or
 // under .tmp/) and are skipped when it has been copied elsewhere.
 
 import { spawn } from 'node:child_process';

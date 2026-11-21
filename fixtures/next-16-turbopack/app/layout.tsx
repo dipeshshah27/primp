@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     default: 'next-16-turbopack fixture',
     template: '%s | next-16-turbopack fixture',
   },
-  description: 'reglet test fixture: Next.js 16 App Router on Turbopack.',
+  description: 'primp test fixture: Next.js 16 App Router on Turbopack.',
 }
 
 const NAV_LINKS = [
@@ -49,7 +49,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         </main>
         <footer data-label="site-footer" className="site-footer">
           <p data-label="footer-note">
-            reglet fixture. Server components, client components, a nonce CSP and a Server Action.
+            primp fixture. Server components, client components, a nonce CSP and a Server Action.
           </p>
         </footer>
       </body>

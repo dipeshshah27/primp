@@ -3,10 +3,10 @@
  */
 
 import { computed, signal, type ReadonlySignal, type Signal } from '@preact/signals'
-import { canRedo, canUndo, emptyHistory, type ItemHistory } from '@reglet/engine/items'
-import type { ChangeItem, ElementState, Ref, SourceLoc } from '@reglet/protocol/change'
-import type { SessionInfo } from '@reglet/protocol/messages'
-import type { ShiftReport } from '@reglet/protocol/shift'
+import { canRedo, canUndo, emptyHistory, type ItemHistory } from '@primp/engine/items'
+import type { ChangeItem, ElementState, Ref, SourceLoc } from '@primp/protocol/change'
+import type { SessionInfo } from '@primp/protocol/messages'
+import type { ShiftReport } from '@primp/protocol/shift'
 import type { ElementStyles } from '../probe/styles.ts'
 
 export type TabName = 'edits' | 'shifts' | 'verify'

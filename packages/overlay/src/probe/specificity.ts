@@ -6,7 +6,7 @@
  * cascade layers, specificity and source order. Scoping (`@scope`) proximity is not modelled.
  */
 
-import type { ElementState } from '@reglet/protocol/change'
+import type { ElementState } from '@primp/protocol/change'
 
 export type Specificity = readonly [ids: number, classes: number, types: number]
 

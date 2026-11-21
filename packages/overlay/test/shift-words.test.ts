@@ -1,4 +1,4 @@
-import type { ShiftIssue } from '@reglet/protocol/shift'
+import type { ShiftIssue } from '@primp/protocol/shift'
 import { describe, expect, it } from 'vitest'
 import { movement, outlinesOf } from '../src/ui/shifts.tsx'
 

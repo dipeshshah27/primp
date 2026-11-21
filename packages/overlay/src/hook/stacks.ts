@@ -2,7 +2,7 @@
  * Optional: capture the JavaScript stack of DOM insertions, so an inserted
  * culprit can be traced to the script line that put it in the document.
  *
- * Only compiled in when the hook is built with `__REGLET_HOOK_STACKS__` set to
+ * Only compiled in when the hook is built with `__PRIMP_HOOK_STACKS__` set to
  * true, because it replaces methods on DOM prototypes: every call the page
  * makes to them then goes through a wrapper. Until the first frame the wrapper
  * does nothing but one flag check; after it, a stack is captured only for calls
@@ -22,8 +22,8 @@ const MAX_PENDING = 200
 /**
  * Frames on top of the page's own when `capture` is called straight from a wrapper: the `Error`
  * line, `capture`, and the wrapper. Every call below keeps exactly that shape, so the recorded
- * stack starts at the page's statement, never at a frame of this script: a frame of reglet's
- * wrapper says nothing about who made the call, and reads as "reglet did it" downstream.
+ * stack starts at the page's statement, never at a frame of this script: a frame of primp's
+ * wrapper says nothing about who made the call, and reads as "primp did it" downstream.
  */
 const OWN_FRAMES = 3
 

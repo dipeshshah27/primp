@@ -1,7 +1,7 @@
 /**
  * Puts the dock on the page.
  *
- *   <reglet-root data-reglet-root popover="manual">      one custom element, appended to <html>
+ *   <primp-root data-primp-root popover="manual">      one custom element, appended to <html>
  *     #shadow-root
  *       <div class="layer">     highlight boxes (see highlight.ts) and the handles on the selection (handles.ts)
  *       <iframe>                the dock itself: its own document, rendered by Preact
@@ -31,13 +31,13 @@ import { Dock, type DockUi } from './dock.tsx'
 import { createHandles, type Handles } from './handles.ts'
 import { createHighlighter, type Highlighter } from './highlight.ts'
 
-export const HOST_TAG = 'reglet-root'
+export const HOST_TAG = 'primp-root'
 
 const WIDTH = 376
 const HEIGHT = 700
 const COLLAPSED = 44
 const MARGIN = 12
-const STORAGE_KEY = 'reglet:dock'
+const STORAGE_KEY = 'primp:dock'
 
 type Horizontal = 'left' | 'right'
 type Vertical = 'top' | 'middle' | 'bottom'
@@ -117,8 +117,8 @@ export function mountDock(c: Controller): DockHandle {
   layer.className = 'layer'
   layer.setAttribute('aria-hidden', 'true')
   const frame = document.createElement('iframe')
-  frame.title = 'reglet'
-  frame.setAttribute('data-reglet-dock', '')
+  frame.title = 'primp'
+  frame.setAttribute('data-primp-dock', '')
   shadow.append(layer, frame)
 
   // --- geometry: transform and size only ------------------------------------
@@ -217,7 +217,7 @@ export function mountDock(c: Controller): DockHandle {
     if (doc === null || view === null || doc === mountedIn || doc.body === null) return
     mountedIn = doc
     doc.documentElement.lang = 'en'
-    doc.title = 'reglet'
+    doc.title = 'primp'
     const sheet = new (view as Window & typeof globalThis).CSSStyleSheet()
     sheet.replaceSync(DOCK_CSS)
     doc.adoptedStyleSheets = [sheet]

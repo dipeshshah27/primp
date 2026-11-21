@@ -71,37 +71,37 @@ importers:
 
   packages/cli:
     devDependencies:
-      '@reglet/engine':
+      '@primp/engine':
         specifier: workspace:*
         version: link:../engine
-      '@reglet/overlay':
+      '@primp/overlay':
         specifier: workspace:*
         version: link:../overlay
-      '@reglet/protocol':
+      '@primp/protocol':
         specifier: workspace:*
         version: link:../protocol
-      '@reglet/server':
+      '@primp/server':
         specifier: workspace:*
         version: link:../server
-      '@reglet/source':
+      '@primp/source':
         specifier: workspace:*
         version: link:../source
 
   packages/engine:
     dependencies:
-      '@reglet/protocol':
+      '@primp/protocol':
         specifier: workspace:*
         version: link:../protocol
 
   packages/overlay:
     dependencies:
-      '@reglet/engine':
+      '@primp/engine':
         specifier: workspace:*
         version: link:../engine
-      '@reglet/protocol':
+      '@primp/protocol':
         specifier: workspace:*
         version: link:../protocol
-      '@reglet/source':
+      '@primp/source':
         specifier: workspace:*
         version: link:../source
 
@@ -109,13 +109,13 @@ importers:
 
   packages/server:
     dependencies:
-      '@reglet/engine':
+      '@primp/engine':
         specifier: workspace:*
         version: link:../engine
-      '@reglet/protocol':
+      '@primp/protocol':
         specifier: workspace:*
         version: link:../protocol
-      '@reglet/source':
+      '@primp/source':
         specifier: workspace:*
         version: link:../source
 

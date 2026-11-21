@@ -64,14 +64,14 @@
  *     `options.headScripts`: [{ name: 'hook.js', entry: '/abs/path/hook.ts' }] bundles each entry
  *     with esbuild (IIFE) and injects them, in order, as the first elements of <head>;
  *     `{ name, code }` takes a ready string instead. Also: `assets`, `cspMode`, `onWebSocket`
- *     (the overlay socket under /__reglet/), `maxFrameText`, `proxy` (raw createProxy overrides).
+ *     (the overlay socket under /__primp/), `maxFrameText`, `proxy` (raw createProxy overrides).
  *     `frames` holds every WebSocket message of every tunnelled upgrade (the HMR socket):
  *     { t, direction, tunnelId, path, opcode, kind, bytes, text?, isJson?, jsonType?, jsonEvent? }.
  *     `frames.length` taken before an action is a mark for `frameSummary(mark)` and
  *     `waitForFrame(match, { from: mark })`.
  *
  *   bundleBrowser(entryFile, { minify?, define? }) -> Promise<string>   one IIFE script
- *   MARKER_HOOK_ENTRY   a ready head script that sets `window.__reglet_hook` (hooks/marker-hook.ts)
+ *   MARKER_HOOK_ENTRY   a ready head script that sets `window.__primp_hook` (hooks/marker-hook.ts)
  *
  * BROWSER (browser.ts)
  *
@@ -144,7 +144,7 @@ export * from './proc.ts'
 export * from './proxy.ts'
 export * from './report.ts'
 export * from './wait.ts'
-export type { RegletHookMarker } from './hooks/marker-hook.ts'
+export type { PrimpHookMarker } from './hooks/marker-hook.ts'
 
 /** Absolute path of the marker head script, for `startProxy({ headScripts: [{ name, entry }] })`. */
 export const MARKER_HOOK_ENTRY = fileURLToPath(new URL('./hooks/marker-hook.ts', import.meta.url))

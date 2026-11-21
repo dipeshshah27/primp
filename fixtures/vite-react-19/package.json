@@ -1,9 +1,9 @@
 {
-  "name": "reglet-fixture-vite-react-19",
+  "name": "primp-fixture-vite-react-19",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "reglet test fixture: Vite 8 + React 19 + Tailwind CSS v4. Not published.",
+  "description": "primp test fixture: Vite 8 + React 19 + Tailwind CSS v4. Not published.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

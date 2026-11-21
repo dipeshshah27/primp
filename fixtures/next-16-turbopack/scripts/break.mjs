@@ -6,7 +6,7 @@
 //   node scripts/break.mjs status                print the state of both targets
 //
 // Each target file has exactly one line that starts with the marker
-// "/* reglet:break */". The script rewrites only that line, so line numbers in
+// "/* primp:break */". The script rewrites only that line, so line numbers in
 // the file (and therefore labels.json) do not change.
 
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -14,7 +14,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const MARKER = '/* reglet:break */'
+const MARKER = '/* primp:break */'
 const LINE_OFF = `${MARKER} const breakState: string = 'off'`
 // "+;" leaves the expression unfinished: a syntax error for every parser.
 const LINE_ON = `${MARKER} const breakState: string = 'on' +;`

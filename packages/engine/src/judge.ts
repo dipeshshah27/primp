@@ -96,7 +96,7 @@
  * means exactly: nothing was found wrong, and at least one check is still open.
  */
 
-import type { ChangeItem, CheckResult, Expectation, Rect, VerificationResult, VerificationStatus } from '@reglet/protocol/change'
+import type { ChangeItem, CheckResult, Expectation, Rect, VerificationResult, VerificationStatus } from '@primp/protocol/change'
 import { colorDistance } from './color.ts'
 import { code, num, oneLine, signedPx, truncate } from './text.ts'
 import { TOLERANCE, alignLeaves, compareComputed, computedEqual } from './units.ts'
@@ -657,7 +657,7 @@ export function stateBlockedText(check: CheckResult): string {
   const state = e.type === 'computed' && e.condition.state !== undefined ? `the ${stateName(e.condition.state)} state` : 'the interaction state'
   const given = oneLine((check.note ?? '').slice(STATE_NOT_EMULATED.length).replace(/^\s*:\s*/, ''))
   const reason = isStateBlocked(check) && given !== '' ? ` (reason: ${code(given, 200)})` : ''
-  return `Not checked: reglet could not emulate ${state} on this page${reason}, so ${checkSubject(check)} in that state was not measured (expected ${code(check.expected)}). That is a limit of the measurement, not a fault found in your edit, and verifying again will not change it: ask the user to check this state by eye.`
+  return `Not checked: primp could not emulate ${state} on this page${reason}, so ${checkSubject(check)} in that state was not measured (expected ${code(check.expected)}). That is a limit of the measurement, not a fault found in your edit, and verifying again will not change it: ask the user to check this state by eye.`
 }
 
 function others(checks: readonly CheckResult[], first: CheckResult): string {
@@ -684,7 +684,7 @@ export function hintFor(status: VerificationStatus, item: ChangeItem, checks: re
 
   switch (status) {
     case 'no_browser':
-      return 'No browser tab with the reglet dock is connected, so nothing was measured. Ask the user to open the app through reglet, then verify again.'
+      return 'No browser tab with the primp dock is connected, so nothing was measured. Ask the user to open the app through primp, then verify again.'
     case 'tab_hidden':
       return 'The browser tab was hidden, so nothing measured in it can be trusted. Ask the user to bring the tab to the front, then verify again.'
     case 'build_error': {

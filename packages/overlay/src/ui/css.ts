@@ -1,6 +1,6 @@
 /**
  * All of the dock's CSS. Nothing of it is in the page: `HOST_CSS` goes into the shadow root of
- * `<reglet-root>` (the host, the highlight boxes, the frame of the dock) and `DOCK_CSS` into the
+ * `<primp-root>` (the host, the highlight boxes, the frame of the dock) and `DOCK_CSS` into the
  * dock's own document. Both are applied as constructable stylesheets, which work under any
  * Content-Security-Policy.
  */

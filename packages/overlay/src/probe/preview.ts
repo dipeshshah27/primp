@@ -1,28 +1,28 @@
 /**
  * Live previews of recorded edits, without touching the DOM structure the framework owns.
  *
- * An edited element gets one attribute, `data-reglet-id`, and every preview is a rule in ONE
+ * An edited element gets one attribute, `data-primp-id`, and every preview is a rule in ONE
  * constructable stylesheet (`document.adoptedStyleSheets`):
  *
- *   [data-reglet-id="x"] { padding: 28px !important }
- *   @media (min-width: 768px) { [data-reglet-id="y"] { gap: 8px !important } }
+ *   [data-primp-id="x"] { padding: 28px !important }
+ *   @media (min-width: 768px) { [data-primp-id="y"] { gap: 8px !important } }
  *
  * Hide and remove are both previewed as `display: none !important`: the node stays where the
  * framework put it. `all-instances` marks every instance and lists them in the rule.
  *
  * An edit made for a state applies in the real state and in the forced one (states.ts):
  *
- *   [data-reglet-id="x"]:hover, [data-reglet-id="x"][data-reglet-force~="hover"] { color: red !important }
+ *   [data-primp-id="x"]:hover, [data-primp-id="x"][data-primp-force~="hover"] { color: red !important }
  *
  * Both selectors weigh more than the resting one, and the rules for a state are written after
  * the resting rules, so a resting preview and a state preview of one property resolve as the
  * same two declarations in a stylesheet would. A resting preview is `!important` and would also
  * cover the page's own rule for a state (`.btn:hover`); where the page has one for the property,
- * the resting rule is written `[data-reglet-id="x"]:not(:where(:hover, [data-reglet-force~="hover"]))`
+ * the resting rule is written `[data-primp-id="x"]:not(:where(:hover, [data-primp-force~="hover"]))`
  * (`exceptIn`, no added weight), so the state keeps its own value as it will once the edit is in the source.
  *
  * Every write to the page (a mark, the stylesheet text) is announced to the layout-shift
- * recorder first with `window.__reglet.markSelf()`, so the shifts it causes count as reglet's own.
+ * recorder first with `window.__primp.markSelf()`, so the shifts it causes count as primp's own.
  *
  * A framework re-render or a hot update may replace a marked node. A MutationObserver notices,
  * finds the element again by its locator and marks the new node; when it cannot be found the
@@ -44,7 +44,7 @@
  * and this module's own observer do not take it for the page changing.
  */
 
-import type { ElementState, Locator } from '@reglet/protocol/change'
+import type { ElementState, Locator } from '@primp/protocol/change'
 import { elementChildren, siblingPicker } from './order.ts'
 import { isOwnMoveRecord, noteOwnMove } from './own-moves.ts'
 import { adoptUid, elementOfUid, instancesOf, locate, MARK_ATTR, uidOf } from './ref.ts'
@@ -129,7 +129,7 @@ const CHECK_DELAY_MS = 40
 
 const markSelf = (reason: string): void => {
   try {
-    window.__reglet?.markSelf(reason)
+    window.__primp?.markSelf(reason)
   } catch {
     // The recorder is optional.
   }
@@ -365,7 +365,7 @@ export function createPreview(options: PreviewOptions = {}): Preview {
 
   const observer = new view.MutationObserver((records) => {
     if (timer !== undefined || (entries.size === 0 && options.onPageChange === undefined)) return
-    // A move of reglet's own is not the page changing.
+    // A move of primp's own is not the page changing.
     if (records.every(isOwnMoveRecord)) return
     // A timer, not an animation frame: frames do not run in a hidden tab.
     timer = view.setTimeout(() => {
@@ -373,8 +373,8 @@ export function createPreview(options: PreviewOptions = {}): Preview {
       options.onPageChange?.()
     }, CHECK_DELAY_MS)
   })
-  // Of the attributes only reglet's mark is watched (a framework may rewrite it away). The marker of a
-  // forced state (`data-reglet-force`, states.ts) is reglet's own write and deliberately not in the filter.
+  // Of the attributes only primp's mark is watched (a framework may rewrite it away). The marker of a
+  // forced state (`data-primp-force`, states.ts) is primp's own write and deliberately not in the filter.
   observer.observe(doc.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: [MARK_ATTR] })
 
   const register = (spec: PreviewSpec): Entry => {

@@ -15,7 +15,7 @@ import { onCleanup } from './proc.ts'
 import { waitFor, type WaitOptions } from './wait.ts'
 
 /**
- * The reglet proxy in front of a fixture, with everything it observes recorded:
+ * The primp proxy in front of a fixture, with everything it observes recorded:
  * every WebSocket message of every tunnelled upgrade (the dev server's HMR
  * socket) and every log line of the proxy.
  */
@@ -46,7 +46,7 @@ export async function bundleBrowser(entryFile: string, options: BundleOptions = 
 
 /** A script injected at the start of `<head>`: give either a TypeScript `entry` to bundle or ready `code`. */
 export interface HeadScript {
-  /** File name below `/__reglet/`, for example `hook.js`. */
+  /** File name below `/__primp/`, for example `hook.js`. */
   name: string
   entry?: string
   code?: string
@@ -101,10 +101,10 @@ export interface ProxyLogEntry {
 
 export interface StartProxyOptions {
   headScripts?: HeadScript[]
-  /** More assets below `/__reglet/`, by path. */
+  /** More assets below `/__primp/`, by path. */
   assets?: Record<string, ProxyAsset>
   cspMode?: CspMode
-  /** Receives the overlay's own WebSocket connections (upgrades under `/__reglet/`). */
+  /** Receives the overlay's own WebSocket connections (upgrades under `/__primp/`). */
   onWebSocket?: (socket: WebSocket, request: IncomingMessage) => void
   /** Characters of each text frame kept in `frames[].text`. Default 4000. */
   maxFrameText?: number

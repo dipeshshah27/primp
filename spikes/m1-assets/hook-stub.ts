@@ -1,5 +1,5 @@
 /**
- * Stand-in for reglet's head script, for spike `m1-server` (the real one is
+ * Stand-in for primp's head script, for spike `m1-server` (the real one is
  * packages/overlay/src/entry/hook.ts, which belongs to the dock work).
  *
  * It does the three things the server relies on, and nothing else:
@@ -9,7 +9,7 @@
  *      count the document), and `session:hello`;
  *   3. loads the second bundle from OVERLAY_ASSET_PATH after DOMContentLoaded.
  *
- * `window.__regletM1` lets the spike drive the socket from Playwright.
+ * `window.__primpM1` lets the spike drive the socket from Playwright.
  */
 
 import '../../packages/source/src/browser/hook.ts'
@@ -18,8 +18,8 @@ import type { ClientMessage, OVERLAY_ASSET_PATH, OVERLAY_SOCKET_PATH, ServerMess
 import type { Evidence } from '../../packages/source/src/types.ts'
 
 /** Must equal the protocol's constants; only their types are imported, so zod stays out of the bundle. */
-const SOCKET_PATH: typeof OVERLAY_SOCKET_PATH = '/__reglet/ws'
-const OVERLAY_PATH: typeof OVERLAY_ASSET_PATH = '/__reglet/overlay.js'
+const SOCKET_PATH: typeof OVERLAY_SOCKET_PATH = '/__primp/ws'
+const OVERLAY_PATH: typeof OVERLAY_ASSET_PATH = '/__primp/overlay.js'
 
 export interface M1Stub {
   doc: string
@@ -44,7 +44,7 @@ export interface M1Stub {
 
 declare global {
   interface Window {
-    __regletM1?: M1Stub
+    __primpM1?: M1Stub
   }
 }
 
@@ -110,7 +110,7 @@ const stub: M1Stub = {
     })
   },
 }
-window.__regletM1 = stub
+window.__primpM1 = stub
 
 socket.addEventListener('open', () => {
   stub.socketOpen = true
@@ -153,7 +153,7 @@ document.addEventListener('visibilitychange', () => sendRaw({ type: 'session:vis
 const loadOverlay = (): void => {
   const script = document.createElement('script')
   script.src = OVERLAY_PATH
-  script.setAttribute('data-reglet-root', '')
+  script.setAttribute('data-primp-root', '')
   document.documentElement.append(script)
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadOverlay, { once: true })

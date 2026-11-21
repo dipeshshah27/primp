@@ -1,6 +1,6 @@
 /**
  * Stand-in for the dock bundle, for spike `m1-server`: the real element
- * collector of @reglet/source, and an automatic answer to `session:measure`
+ * collector of @primp/source, and an automatic answer to `session:measure`
  * so the server's measure plumbing can be checked end to end.
  */
 
@@ -8,7 +8,7 @@ import type { ClientMessage, ServerMessage } from '../../packages/protocol/src/m
 import { collectEvidence } from '../../packages/source/src/browser/index.ts'
 import type { M1Stub } from './hook-stub.ts'
 
-const stub = window.__regletM1 as M1Stub
+const stub = window.__primpM1 as M1Stub
 stub.collect = (selector, index) => {
   const element = document.querySelectorAll(selector)[index]
   return element === undefined ? null : collectEvidence(element)

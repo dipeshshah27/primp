@@ -246,7 +246,7 @@ export function planCsp(mode: CspMode, headers: readonly string[], context: CspC
     }
     if (mode === 'nonce' && changed.length > 0) {
       warning =
-        `the page's Content-Security-Policy has no nonce or 'self' that lets reglet's script run; ` +
+        `the page's Content-Security-Policy has no nonce or 'self' that lets primp's script run; ` +
         `added a source to ${[...new Set(changed)].join(', ')}`
     }
   }

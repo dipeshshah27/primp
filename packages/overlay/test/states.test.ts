@@ -1,4 +1,4 @@
-import type { ElementState } from '@reglet/protocol/change'
+import type { ElementState } from '@primp/protocol/change'
 import { describe, expect, it } from 'vitest'
 import { parseDeclarations, type Specificity } from '../src/probe/specificity.ts'
 import { appliesIn, declaredIn, declaredWinners, draftShowsIn, originOf, pageSelector, statesCovering, statesWithRules, type ElementStyles, type MatchedRule } from '../src/probe/styles.ts'
@@ -173,10 +173,10 @@ describe('declaredIn and originOf', () => {
 describe('pageSelector', () => {
   it('drops the alternatives a forced state added to a rule', () => {
     expect(pageSelector('.btn:hover')).toBe('.btn:hover')
-    expect(pageSelector('.btn:hover, .btn[data-reglet-force~="hover"]')).toBe('.btn:hover')
-    expect(pageSelector('.a:hover, .b:hover, .a[data-reglet-force~="hover"], .b[data-reglet-force~="hover"]')).toBe('.a:hover, .b:hover')
-    expect(pageSelector('&:hover, &[data-reglet-force~="hover"]')).toBe('&:hover')
-    expect(pageSelector('.card[data-reglet-force~="hover"] .btn, .card:hover .btn')).toBe('.card:hover .btn')
+    expect(pageSelector('.btn:hover, .btn[data-primp-force~="hover"]')).toBe('.btn:hover')
+    expect(pageSelector('.a:hover, .b:hover, .a[data-primp-force~="hover"], .b[data-primp-force~="hover"]')).toBe('.a:hover, .b:hover')
+    expect(pageSelector('&:hover, &[data-primp-force~="hover"]')).toBe('&:hover')
+    expect(pageSelector('.card[data-primp-force~="hover"] .btn, .card:hover .btn')).toBe('.card:hover .btn')
   })
 })
 

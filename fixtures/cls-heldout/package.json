@@ -1,8 +1,8 @@
 {
-  "name": "reglet-fixture-cls-heldout",
+  "name": "primp-fixture-cls-heldout",
   "version": "0.0.0",
   "private": true,
-  "description": "Held-out layout-shift test pages (realistic site templates) for measuring reglet's shift attribution. Not for tuning. No dependencies.",
+  "description": "Held-out layout-shift test pages (realistic site templates) for measuring primp's shift attribution. Not for tuning. No dependencies.",
   "license": "MIT",
   "type": "module",
   "scripts": {

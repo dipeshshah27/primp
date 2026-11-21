@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { ChangeItem, CheckResult, Expectation } from '@reglet/protocol/change'
+import type { ChangeItem, CheckResult, Expectation } from '@primp/protocol/change'
 import type { MeasureOutcome, MeasuredItem, Session, SessionBatch } from '../src/session.ts'
 import type { JournalEntry, SettleResult } from '../src/settle.ts'
 import { createVerifier, itemStatusAfter, startAutoVerify, stateBlockedReason, toMeasured } from '../src/verify.ts'
@@ -656,7 +656,7 @@ describe('createVerifier', () => {
       expect(result?.status).toBe('not_measurable')
       expect(result?.checks[0]).toMatchObject({ status: 'not_measurable', note: NOT_EMULATED })
       expect(result?.hint).toBe(
-        'Not checked: reglet could not emulate the `:hover` state on this page (reason: `a stylesheet from another origin cannot be read`), so `background-color` in that state was not measured (expected `rgb(15, 23, 42)`). That is a limit of the measurement, not a fault found in your edit, and verifying again will not change it: ask the user to check this state by eye.',
+        'Not checked: primp could not emulate the `:hover` state on this page (reason: `a stylesheet from another origin cannot be read`), so `background-color` in that state was not measured (expected `rgb(15, 23, 42)`). That is a limit of the measurement, not a fault found in your edit, and verifying again will not change it: ask the user to check this state by eye.',
       )
       expect(item?.status).toBe('claimed')
       expect(item?.verification?.status).toBe('not_measurable')

@@ -25,11 +25,11 @@ import {
 import { findSession, isProcessAlive, removeSessionFile, type SessionDirOption } from './session-file.ts'
 
 /**
- * `reglet mcp`: the stdio MCP server an agent host starts.
+ * `primp mcp`: the stdio MCP server an agent host starts.
  *
  * It holds no state. Every tool call looks up the session file again and
- * forwards to the control endpoint of the running reglet process, so it does
- * not matter whether reglet or the agent was started first, or whether reglet
+ * forwards to the control endpoint of the running primp process, so it does
+ * not matter whether primp or the agent was started first, or whether primp
  * was restarted in between.
  *
  * stdout carries the protocol; anything for humans goes to stderr.
@@ -44,31 +44,31 @@ export interface ShimOptions extends SessionDirOption {
   controlTimeoutMs?: number
 }
 
-export const SERVER_NAME = 'reglet'
+export const SERVER_NAME = 'primp'
 
 const DEFAULT_CONTROL_TIMEOUT_MS = 10_000
 
 /** Start of the message agents see when nothing is running; kept stable so it can be matched. */
-export const NOT_RUNNING = 'reglet is not running for this project; start it with npx reglet'
+export const NOT_RUNNING = 'primp is not running for this project; start it with npx primp'
 
 const INSTRUCTIONS = [
-  'reglet runs next to a web project during development. It serves the app through a local proxy and gives the developer a dock in the page for trying visual changes (CSS values, also for a state such as :hover or :focus, resizing by dragging, hiding or removing elements, and moving an element among its siblings) and for inspecting layout shifts. It measures the rendered page; it never writes to source files, so the source edits are yours to make.',
-  'Reach for this server when the developer mentions reglet, says they sent or queued changes from the browser, or wants a visual change or a layout-shift fix carried over into the code.',
-  'The loop: (1) call get_session to see whether reglet is running for this project, whether a browser tab is attached, and whether anything is queued; (2) call get_pending_changes to take the queued changes, which come grouped by source file together with written instructions; (3) make those edits in the source files named there, keeping to the recorded values, the media, state or viewport condition, and every "must not move" constraint; (4) call verify_changes: reglet waits for the dev server to hot-reload your edits, measures the page in the developer\'s tab and answers pass, drift or fail per change with expected and actual values; (5) fix what failed and verify again, at most twice, then report what still fails; (6) if a change cannot or should not be made, close it with dismiss_change and say why.',
+  'primp runs next to a web project during development. It serves the app through a local proxy and gives the developer a dock in the page for trying visual changes (CSS values, also for a state such as :hover or :focus, resizing by dragging, hiding or removing elements, and moving an element among its siblings) and for inspecting layout shifts. It measures the rendered page; it never writes to source files, so the source edits are yours to make.',
+  'Reach for this server when the developer mentions primp, says they sent or queued changes from the browser, or wants a visual change or a layout-shift fix carried over into the code.',
+  'The loop: (1) call get_session to see whether primp is running for this project, whether a browser tab is attached, and whether anything is queued; (2) call get_pending_changes to take the queued changes, which come grouped by source file together with written instructions; (3) make those edits in the source files named there, keeping to the recorded values, the media, state or viewport condition, and every "must not move" constraint; (4) call verify_changes: primp waits for the dev server to hot-reload your edits, measures the page in the developer\'s tab and answers pass, drift or fail per change with expected and actual values; (5) fix what failed and verify again, at most twice, then report what still fails; (6) if a change cannot or should not be made, close it with dismiss_change and say why.',
   'Layout shifts are separate from the queued changes: get_layout_shifts lists what jumped while the page loaded and why, and verify_layout_shift reloads the page to confirm a fix.',
-  'A result of no browser, tab hidden or not measurable means reglet could not look, not that the change is right: say so to the developer (the tab with the app has to be open and in front) instead of treating it as a pass.',
-  `If a tool answers "${NOT_RUNNING}", pass that on to the developer: reglet has to be started in a terminal in the project directory, and it keeps running there.`,
+  'A result of no browser, tab hidden or not measurable means primp could not look, not that the change is right: say so to the developer (the tab with the app has to be open and in front) instead of treating it as a pass.',
+  `If a tool answers "${NOT_RUNNING}", pass that on to the developer: primp has to be started in a terminal in the project directory, and it keeps running there.`,
 ].join('\n\n')
 
 const GET_SESSION_DESCRIPTION = [
-  'Status of the reglet process serving this project. Takes no arguments and changes nothing.',
-  'Returns the dev-server origin being proxied (target), the detected framework, whether a browser tab with the reglet dock is attached (browserConnected), and how many recorded items there are per status (counts): draft is still being edited by the developer, queued is waiting for you, claimed is already handed to an agent.',
-  'Use it before any other reglet tool, and again whenever a result says no browser was available.',
+  'Status of the primp process serving this project. Takes no arguments and changes nothing.',
+  'Returns the dev-server origin being proxied (target), the detected framework, whether a browser tab with the primp dock is attached (browserConnected), and how many recorded items there are per status (counts): draft is still being edited by the developer, queued is waiting for you, claimed is already handed to an agent.',
+  'Use it before any other primp tool, and again whenever a result says no browser was available.',
 ].join(' ')
 
 const GET_PENDING_CHANGES_DESCRIPTION = [
-  'Takes the visual changes the developer sent from the reglet dock and hands them to you for implementing in source.',
-  'Each change names the element (selector, text, and source file and line when reglet could find them), what the developer did to it (one CSS property with its value before and after, hiding or removing the element, or moving it to another position among the children of its parent), the viewport, media query and interaction state (such as :hover) it was made under, the side effects the developer marked as unwanted, and the checks that have to hold once the source matches. One resize by dragging can produce two changes, one for width and one for height.',
+  'Takes the visual changes the developer sent from the primp dock and hands them to you for implementing in source.',
+  'Each change names the element (selector, text, and source file and line when primp could find them), what the developer did to it (one CSS property with its value before and after, hiding or removing the element, or moving it to another position among the children of its parent), the viewport, media query and interaction state (such as :hover) it was made under, the side effects the developer marked as unwanted, and the checks that have to hold once the source matches. One resize by dragging can produce two changes, one for width and one for height.',
   'The result groups the changes by source file (files) and repeats them as written instructions (prompt).',
   'Calling this marks the returned changes as claimed: the dock shows them as in progress and a later call does not return them again. Call it when you are ready to make the edits, not to look around; get_session shows the counts without claiming anything.',
   'Pass batchId to get one batch a second time, for example after its first answer was lost.',
@@ -76,23 +76,23 @@ const GET_PENDING_CHANGES_DESCRIPTION = [
 
 const VERIFY_CHANGES_DESCRIPTION = [
   'Checks your source edits against the running page. Call it after implementing changes taken with get_pending_changes.',
-  'reglet waits until the dev server has applied your edits and the page is quiet, then measures each change in the developer\'s browser tab with its own previews switched off, and compares the result with what the developer recorded.',
-  'Each result has a status: pass (every check holds); drift (the value landed close to the requested one, as happens when the nearest design token was used: keep it only if that was your intent, and say so); fail (a check does not hold: expected and actual are given); unresolved (the element could not be found again); no_update_observed (no source file changed since you took the changes); build_error (the dev server reports an error, quoted in the hint); not_measurable, tab_hidden and no_browser (reglet could not measure: not a pass; not_measurable means the viewport is outside the media query of the change, or the interaction state the change is made for could not be emulated on this page, in which case ask the developer to check it by eye).',
+  'primp waits until the dev server has applied your edits and the page is quiet, then measures each change in the developer\'s browser tab with its own previews switched off, and compares the result with what the developer recorded.',
+  'Each result has a status: pass (every check holds); drift (the value landed close to the requested one, as happens when the nearest design token was used: keep it only if that was your intent, and say so); fail (a check does not hold: expected and actual are given); unresolved (the element could not be found again); no_update_observed (no source file changed since you took the changes); build_error (the dev server reports an error, quoted in the hint); not_measurable, tab_hidden and no_browser (primp could not measure: not a pass; not_measurable means the viewport is outside the media query of the change, or the interaction state the change is made for could not be emulated on this page, in which case ask the developer to check it by eye).',
   'fixup repeats everything that did not pass as instructions for your next edit. Leave ids out to verify every change you have taken.',
   'The call blocks while the page settles, normally a second or two and at most waitMs plus a few seconds.',
 ].join(' ')
 
 const GET_LAYOUT_SHIFTS_DESCRIPTION = [
-  'Lists the layout shifts reglet measured during the last load of the page open in the developer\'s tab. Changes nothing and reloads nothing.',
-  'A layout shift is visible content jumping after it was first shown, scored as in Cumulative Layout Shift (CLS). For each one the result names the element that caused it (not just the elements that moved), the cause (media without reserved space, a web font swapping in, content inserted above existing content), how confident the attribution is, the evidence it rests on, and the source position of the culprit when reglet could find it.',
+  'Lists the layout shifts primp measured during the last load of the page open in the developer\'s tab. Changes nothing and reloads nothing.',
+  'A layout shift is visible content jumping after it was first shown, scored as in Cumulative Layout Shift (CLS). For each one the result names the element that caused it (not just the elements that moved), the cause (media without reserved space, a web font swapping in, content inserted above existing content), how confident the attribution is, the evidence it rests on, and the source position of the culprit when primp could find it.',
   'prompt repeats the shifts with a known cause as instructions including the usual fix for that cause. A status other than ok means the load could not be measured (most often because the tab was hidden), which is not the same as no shifts.',
   'Use it when the developer asks about layout shift, CLS or content jumping, then fix the cause in source and call verify_layout_shift with the id.',
 ].join(' ')
 
 const VERIFY_LAYOUT_SHIFT_DESCRIPTION = [
   'Checks whether a layout shift from get_layout_shifts is gone after your source edit.',
-  'reglet reloads the developer\'s tab three times with the browser cache switched off for that page (a cached image or font would hide the shift) and looks in each load for a shift with the same culprit or the same moved elements.',
-  'pass means it did not come back in any reload; fail means it did, with how much of it remains. tab_hidden, no_browser and not_measurable mean reglet could not look: tell the developer, do not treat it as fixed.',
+  'primp reloads the developer\'s tab three times with the browser cache switched off for that page (a cached image or font would hide the shift) and looks in each load for a shift with the same culprit or the same moved elements.',
+  'pass means it did not come back in any reload; fail means it did, with how much of it remains. tab_hidden, no_browser and not_measurable mean primp could not look: tell the developer, do not treat it as fixed.',
   'This visibly reloads the page in the developer\'s browser and takes about five seconds per reload, so call it once after the fix, not to explore.',
 ].join(' ')
 
@@ -111,14 +111,14 @@ export function createShimServer(options: ShimOptions = {}): McpServer {
   const timeoutMs = options.controlTimeoutMs ?? DEFAULT_CONTROL_TIMEOUT_MS
 
   const server = new McpServer(
-    { name: SERVER_NAME, title: 'reglet', version: options.version ?? '0.0.0' },
+    { name: SERVER_NAME, title: 'primp', version: options.version ?? '0.0.0' },
     { instructions: INSTRUCTIONS },
   )
 
   server.registerTool(
     'get_session',
     {
-      title: 'reglet session status',
+      title: 'primp session status',
       description: GET_SESSION_DESCRIPTION,
       outputSchema: SessionSummarySchema,
       annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
@@ -140,7 +140,7 @@ export function createShimServer(options: ShimOptions = {}): McpServer {
   server.registerTool(
     'get_pending_changes',
     {
-      title: 'Take the queued reglet changes',
+      title: 'Take the queued primp changes',
       description: GET_PENDING_CHANGES_DESCRIPTION,
       inputSchema: z.object({
         batchId: z
@@ -166,7 +166,7 @@ export function createShimServer(options: ShimOptions = {}): McpServer {
   server.registerTool(
     'verify_changes',
     {
-      title: 'Verify reglet changes against the page',
+      title: 'Verify primp changes against the page',
       description: VERIFY_CHANGES_DESCRIPTION,
       inputSchema: z.object({
         ids: z
@@ -248,7 +248,7 @@ export function createShimServer(options: ShimOptions = {}): McpServer {
   server.registerTool(
     'dismiss_change',
     {
-      title: 'Dismiss a reglet change',
+      title: 'Dismiss a primp change',
       description: DISMISS_CHANGE_DESCRIPTION,
       inputSchema: z.object({
         id: z.string().min(1).describe('Id of the change, as returned by get_pending_changes'),
@@ -276,7 +276,7 @@ export function createShimServer(options: ShimOptions = {}): McpServer {
 /** Serves the shim on this process's stdin and stdout until the client closes stdin. */
 export function runShim(options: ShimOptions = {}): StdioServerHandle {
   return serveStdio(() => createShimServer(options), {
-    onerror: (error) => process.stderr.write(`reglet mcp: ${error.message}\n`),
+    onerror: (error) => process.stderr.write(`primp mcp: ${error.message}\n`),
   })
 }
 
@@ -293,9 +293,9 @@ function locateSession(cwd: string, options: SessionDirOption): LocatedSession {
     case 'ambiguous':
       throw new ShimError(
         [
-          `reglet is running for ${lookup.projectRoots.length} projects below ${cwd} and it is not clear which one is meant:`,
+          `primp is running for ${lookup.projectRoots.length} projects below ${cwd} and it is not clear which one is meant:`,
           ...lookup.projectRoots.map((root) => `  ${root}`),
-          'Start the agent inside one of those directories, or register the server as "reglet mcp --project <directory>".',
+          'Start the agent inside one of those directories, or register the server as "primp mcp --project <directory>".',
         ].join('\n'),
       )
     case 'none':
@@ -322,7 +322,7 @@ async function callControl<M extends ControlMethod>(
     }
     const reason = error instanceof Error ? error.message : String(error)
     throw new ShimError(
-      `The reglet process (pid ${session.file.pid}) did not answer ${method}: ${reason}. If it is stuck, restart it with npx reglet.`,
+      `The primp process (pid ${session.file.pid}) did not answer ${method}: ${reason}. If it is stuck, restart it with npx primp.`,
     )
   }
 
@@ -334,7 +334,7 @@ async function callControl<M extends ControlMethod>(
   }
   const response = RpcResponseSchema.safeParse(parsed)
   if (!response.success) {
-    throw new ShimError(`The reglet process (pid ${session.file.pid}) sent a reply to ${method} that could not be read.`)
+    throw new ShimError(`The primp process (pid ${session.file.pid}) sent a reply to ${method} that could not be read.`)
   }
   if (!response.data.ok) {
     const { code, message } = response.data.error
@@ -344,16 +344,16 @@ async function callControl<M extends ControlMethod>(
     }
     if (code === 'method_not_found') {
       throw new ShimError(
-        `The running reglet does not know ${method}; it is probably an older version than this MCP server. Restart it with npx reglet.`,
+        `The running primp does not know ${method}; it is probably an older version than this MCP server. Restart it with npx primp.`,
       )
     }
-    throw new ShimError(`reglet could not complete ${method}: ${message}`)
+    throw new ShimError(`primp could not complete ${method}: ${message}`)
   }
 
   const result = controlMethods[method].result.safeParse(response.data.result)
   if (!result.success) {
     throw new ShimError(
-      `reglet answered ${method} in a shape this MCP server does not understand; the two are probably different versions. Restart reglet with npx reglet.`,
+      `primp answered ${method} in a shape this MCP server does not understand; the two are probably different versions. Restart primp with npx primp.`,
     )
   }
   return result.data as ControlResult<M>
@@ -395,7 +395,7 @@ function postJson(file: SessionFile, payload: unknown, timeoutMs: number): Promi
 function describeSession(summary: SessionSummary, file: SessionFile): string {
   const counts = Object.entries(summary.counts)
   const lines = [
-    `reglet is running for ${file.projectRoot}`,
+    `primp is running for ${file.projectRoot}`,
     `target: ${summary.target}`,
     `framework: ${summary.framework}`,
     `browserConnected: ${summary.browserConnected}`,
@@ -411,7 +411,7 @@ function describeSession(summary: SessionSummary, file: SessionFile): string {
 function describePending(pending: PendingChanges, batchId: string | undefined): string {
   if (pending.count === 0) {
     return batchId === undefined
-      ? 'Nothing is queued. Either the developer has not pressed Send in the reglet dock since the last call, or the queued changes were already taken (get_session shows the counts).'
+      ? 'Nothing is queued. Either the developer has not pressed Send in the primp dock since the last call, or the queued changes were already taken (get_session shows the counts).'
       : `Batch ${batchId} has no queued or claimed changes. Check the id, or call get_pending_changes without batchId.`
   }
   const files = pending.files.map((group) => `${group.file ?? '(source file unknown)'}: ${group.items.map((item) => item.id).join(', ')}`)
@@ -426,9 +426,9 @@ function describePending(pending: PendingChanges, batchId: string | undefined): 
 
 function toolFailure(error: unknown): CallToolResult {
   if (!(error instanceof ShimError)) {
-    process.stderr.write(`reglet mcp: ${error instanceof Error ? (error.stack ?? error.message) : String(error)}\n`)
+    process.stderr.write(`primp mcp: ${error instanceof Error ? (error.stack ?? error.message) : String(error)}\n`)
   }
-  const text = error instanceof ShimError ? error.message : 'reglet mcp failed unexpectedly; see its stderr output.'
+  const text = error instanceof ShimError ? error.message : 'primp mcp failed unexpectedly; see its stderr output.'
   return { content: [{ type: 'text', text }], isError: true }
 }
 

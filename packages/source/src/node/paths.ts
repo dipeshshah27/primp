@@ -81,7 +81,7 @@ export function locateSource(source: string, files: ProjectFiles): LocatedSource
   if (dependency) return { dependency }
 
   // A dev server whose root is not the project root, or a bundler root above the project
-  // ("[project]/apps/web/src/x.tsx" when reglet runs in apps/web): match by path suffix.
+  // ("[project]/apps/web/src/x.tsx" when primp runs in apps/web): match by path suffix.
   for (const spelling of spellings) {
     if (isAbsolute(spelling)) continue
     const segments = spelling.split('/')

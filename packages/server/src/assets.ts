@@ -6,7 +6,7 @@ import { HOOK_ASSET_PATH, OVERLAY_ASSET_PATH, RESERVED_PREFIX } from '../../prot
 import type { ProxyAsset } from './proxy.ts'
 
 /**
- * The two browser bundles reglet serves from the proxy origin:
+ * The two browser bundles primp serves from the proxy origin:
  *
  *   hook.js      the synchronous head script (HOOK_ASSET_PATH), injected into every document
  *   overlay.js   the dock (OVERLAY_ASSET_PATH), loaded by the hook after DOMContentLoaded
@@ -19,7 +19,7 @@ import type { ProxyAsset } from './proxy.ts'
  *   2. esbuild, from the TypeScript entry files of packages/overlay (a checkout).
  *
  * The proxy serves every asset with `Cache-Control: no-store`. The hook's script tag also
- * carries the content hash as a query (`/__reglet/hook.js?v=<hash>`), so a document can
+ * carries the content hash as a query (`/__primp/hook.js?v=<hash>`), so a document can
  * never pair with a hook from another build even where a cache ignores the header.
  */
 
@@ -37,7 +37,7 @@ export interface OverlayAssetsOptions {
   /** Default true. */
   minify?: boolean
   /**
-   * esbuild `define` replacements. Default: `__REGLET_HOOK_STACKS__` is `true`, which compiles
+   * esbuild `define` replacements. Default: `__PRIMP_HOOK_STACKS__` is `true`, which compiles
    * the DOM-call stack capture into the layout-shift hook (needed to trace an inserted culprit
    * to the script line that inserted it).
    */
@@ -74,7 +74,7 @@ export const DEFAULT_OVERLAY_ENTRY = resolve(HERE, '../../overlay/src/entry/over
 export const DEFAULT_PREBUILT_DIR = join(HERE, 'assets')
 
 // The settle client is started by the hook entry on the shared socket, never by its own starter code.
-const DEFAULT_DEFINE: Record<string, string> = { __REGLET_HOOK_STACKS__: 'true', __REGLET_SETTLE_AUTOSTART__: 'false' }
+const DEFAULT_DEFINE: Record<string, string> = { __PRIMP_HOOK_STACKS__: 'true', __PRIMP_SETTLE_AUTOSTART__: 'false' }
 const SCRIPT_TYPE = 'text/javascript; charset=utf-8'
 
 function isFile(path: string): boolean {

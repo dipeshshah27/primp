@@ -3,14 +3,14 @@
  * can be moved at all, and where a drop at the pointer puts it.
  *
  * Indexes count the element children of the parent, from 0, as the protocol's `move` does
- * (reglet's own nodes are never counted). A reorder never changes the parent.
+ * (primp's own nodes are never counted). A reorder never changes the parent.
  *
  * `dropSlot` and `toIndexOf` are pure (rectangles in, numbers out) so that the drop position can
  * be tested without a browser.
  */
 
-import { pickBest } from '@reglet/engine/locator'
-import type { Locator } from '@reglet/protocol/change'
+import { pickBest } from '@primp/engine/locator'
+import type { Locator } from '@primp/protocol/change'
 import { isOwn, locate, type LocateResult, type LocatorPicker } from './ref.ts'
 
 /** The element children of `parent` that are the page's, in document order. */
@@ -43,7 +43,7 @@ export function reorderRefusal(element: Element, hiddenBy?: 'hide' | 'remove'): 
   const position = positionOf(element)
   const tag = position?.parent.localName
   if (position === null || tag === 'html' || tag === 'body' || tag === 'head') {
-    return 'This element sits directly in the page body: reglet moves elements only inside one of the page’s own containers.'
+    return 'This element sits directly in the page body: primp moves elements only inside one of the page’s own containers.'
   }
   if (position.siblings.length < 2) return 'This element is the only child of its parent: there is nothing to move it among.'
   if (hiddenBy !== undefined) return `This element is ${hiddenBy === 'hide' ? 'hidden' : 'removed'} by a recorded change. Delete that change to move it.`

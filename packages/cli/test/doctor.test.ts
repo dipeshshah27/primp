@@ -17,7 +17,7 @@ beforeAll(() => {
 })
 afterAll(() => removeDir(dir))
 
-const asset = (bytes: number, from: 'esbuild' | 'prebuilt') => ({ path: '/__reglet/x.js', code: '', bytes, hash: 'abc', from, source: '/x' })
+const asset = (bytes: number, from: 'esbuild' | 'prebuilt') => ({ path: '/__primp/x.js', code: '', bytes, hash: 'abc', from, source: '/x' })
 const ASSETS: OverlayAssets = { hook: asset(9216, 'esbuild'), overlay: asset(81920, 'prebuilt'), assets: new Map(), headScripts: [] }
 const NOTHING: DevServerDetection = { others: [], ignored: [], method: 'none' }
 
@@ -44,7 +44,7 @@ function deps(overrides: Partial<DoctorDeps> = {}): DoctorDeps & { excluded: { p
   }
 }
 
-describe('reglet doctor', () => {
+describe('primp doctor', () => {
   it('reports every check in order when all is well, and exits 0', async () => {
     const d = deps()
     const checks = await collectDoctorChecks(project, d)
@@ -61,9 +61,9 @@ describe('reglet doctor', () => {
     expect(text).toContain(project)
     expect(text).toContain('vite (package.json depends on vite)')
     expect(text).toContain(`http://localhost:5173 (node pid 41875, working in ${project}); also answering: http://localhost:5180`)
-    expect(text).toContain('reglet is not running for this project')
+    expect(text).toContain('primp is not running for this project')
     expect(text).toContain('hook.js 9.0 kB (esbuild), overlay.js 80.0 kB (prebuilt)')
-    // reglet's own ports and process are not candidates for "the dev server".
+    // primp's own ports and process are not candidates for "the dev server".
     expect(d.excluded).toEqual([{ ports: [5174, 60001], pids: [777] }])
     const printed: string[] = []
     expect(await runDoctor(project, d, (line) => printed.push(line))).toBe(0)
@@ -72,7 +72,7 @@ describe('reglet doctor', () => {
 
   it('fails on an unsupported Node and on bundles that do not build', async () => {
     const old = await collectDoctorChecks(project, deps({ nodeVersion: '20.11.1' }))
-    expect(old[0]).toEqual({ name: 'Node', status: 'fail', detail: '20.11.1; reglet needs ^22.22.0 or >=24.11.0' })
+    expect(old[0]).toEqual({ name: 'Node', status: 'fail', detail: '20.11.1; primp needs ^22.22.0 or >=24.11.0' })
     const broken = deps({
       buildAssets: async () => {
         throw new Error('could not build overlay.js from /x/overlay.ts: boom')
@@ -109,7 +109,7 @@ describe('reglet doctor', () => {
   it('says where a running session is, and when several match', async () => {
     const session = { version: 1 as const, pid: 4242, projectRoot: project, controlPort: 60001, token: 't'.repeat(43), proxyUrl: 'http://localhost:5174', startedAt: new Date().toISOString() }
     const found = await collectDoctorChecks(project, deps({ session: () => ({ kind: 'found', path: '/s.json', session, relation: 'contains-cwd' }) }))
-    expect(found.find((check) => check.name === 'Session')).toEqual({ name: 'Session', status: 'ok', detail: `reglet is running for ${project} (pid 4242); open http://localhost:5174` })
+    expect(found.find((check) => check.name === 'Session')).toEqual({ name: 'Session', status: 'ok', detail: `primp is running for ${project} (pid 4242); open http://localhost:5174` })
     const many = await collectDoctorChecks(project, deps({ session: () => ({ kind: 'ambiguous', projectRoots: ['/a', '/b'] }) }))
     expect(many.find((check) => check.name === 'Session')).toMatchObject({ status: 'warn', detail: expect.stringContaining('/a, /b') })
   })

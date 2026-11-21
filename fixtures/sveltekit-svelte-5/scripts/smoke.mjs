@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const HOST = 'localhost';
 const START_TIMEOUT_MS = 60_000;
-const SESSION_COOKIE = 'reglet_fixture_user';
+const SESSION_COOKIE = 'primp_fixture_user';
 const PAGES = ['/', '/about', '/streamed', '/server-only'];
 const FORM_HEADERS = {
 	accept: 'text/html,application/xhtml+xml',

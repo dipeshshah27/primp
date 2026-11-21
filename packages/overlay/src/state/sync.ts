@@ -6,7 +6,7 @@
  * and `session:state` is the truth for it.
  */
 
-import type { ChangeItem } from '@reglet/protocol/change'
+import type { ChangeItem } from '@primp/protocol/change'
 
 export interface ReconcileOptions {
   /**

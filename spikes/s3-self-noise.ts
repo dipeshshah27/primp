@@ -1,7 +1,7 @@
 /**
  * Spike S3: self-noise.
  *
- * Question: does reglet itself disturb what it measures?
+ * Question: does primp itself disturb what it measures?
  *
  *   A. Zero added layout shift. Each page is loaded through the proxy three
  *      ways, three times each: untouched (control), with the hook and a stub
@@ -82,10 +82,10 @@ async function loadOnce(browser: Browser, proxy: ProxyHandle, target: Target, ar
     const entries = await readPlainEntries(page)
     let recording: ShiftRecording | undefined
     const injected = await page.evaluate(() => ({
-      hook: window.__reglet !== undefined,
-      stub: window.__regletStub?.mode,
+      hook: window.__primp !== undefined,
+      stub: window.__primpStub?.mode,
       host: (() => {
-        const host = document.querySelector('[data-reglet-root]')
+        const host = document.querySelector('[data-primp-root]')
         if (host === null) return undefined
         const dock = host.shadowRoot?.querySelector('.dock')?.getBoundingClientRect()
         return {
@@ -98,7 +98,7 @@ async function loadOnce(browser: Browser, proxy: ProxyHandle, target: Target, ar
     }))
     if (injected.visible !== 'visible') problems.push(`tab was ${injected.visible}`)
     if (arm === 'control') {
-      if (injected.hook || injected.host !== undefined) problems.push('the control page has reglet in it')
+      if (injected.hook || injected.host !== undefined) problems.push('the control page has primp in it')
     } else {
       if (!injected.hook) problems.push('hook missing')
       if (injected.stub !== arm) problems.push(`stub mode is ${String(injected.stub)}`)
@@ -142,7 +142,7 @@ async function compareArms(browser: Browser, proxies: Record<Arm, ProxyHandle>, 
   const tolerance = Math.max(VALUE_NOISE, controlSpread)
   const line = ARMS.map((arm) => `${arm} ${results[arm].map((result) => describeEntries(result.entries)).join(' ')}`).join(' | ')
 
-  await report.attempt(`${label}: same layout-shift entries with and without reglet`, () => {
+  await report.attempt(`${label}: same layout-shift entries with and without primp`, () => {
     const problems = ARMS.flatMap((arm) => results[arm].flatMap((result, index) => result.problems.map((problem) => `${arm} load ${index + 1}: ${problem}`)))
     expect(problems.length === 0, `${problems.join('; ')} || ${line}`)
     for (const arm of ['popover', 'fixed'] as const) {
@@ -254,7 +254,7 @@ interface NewEntry {
 
 /** Runs `action`, then returns the layout-shift entries the hook recorded since. */
 async function entriesAfter(page: Page, action: () => Promise<void>, settleMs = 350): Promise<NewEntry[]> {
-  const before = await page.evaluate(() => window.__reglet?.recording().shifts.length ?? 0)
+  const before = await page.evaluate(() => window.__primp?.recording().shifts.length ?? 0)
   await action()
   await sleep(settleMs)
   const recording = await readRecording(page)
@@ -275,7 +275,7 @@ async function selfTagging(browser: Browser, proxy: ProxyHandle, path: string, s
     /** A style change that moves everything below `selector`, a different distance each time. */
     const edit = (mark?: string): Promise<void> => {
       step += 1
-      return page.evaluate(([sel, px, reason]) => window.__regletStub?.edit(sel as string, 'margin-top', `${px}px`, reason as string | undefined), [selector, 24 + step * 12, mark] as const)
+      return page.evaluate(([sel, px, reason]) => window.__primpStub?.edit(sel as string, 'margin-top', `${px}px`, reason as string | undefined), [selector, 24 + step * 12, mark] as const)
     }
 
     await report.attempt(`${label}: an edit announced with markSelf() is tagged selfInduced`, async () => {
@@ -297,13 +297,13 @@ async function selfTagging(browser: Browser, proxy: ProxyHandle, path: string, s
     await report.attempt(`${label}: the tag covers 500 ms after the mark and no more`, async () => {
       await sleep(650)
       const inside = await entriesAfter(page, async () => {
-        await page.evaluate(() => window.__reglet?.markSelf('mark, then edit 300 ms later'))
+        await page.evaluate(() => window.__primp?.markSelf('mark, then edit 300 ms later'))
         await sleep(300)
         await edit()
       })
       await sleep(650)
       const outside = await entriesAfter(page, async () => {
-        await page.evaluate(() => window.__reglet?.markSelf('mark, then edit 800 ms later'))
+        await page.evaluate(() => window.__primp?.markSelf('mark, then edit 800 ms later'))
         await sleep(800)
         await edit()
       })
@@ -325,7 +325,7 @@ async function selfTagging(browser: Browser, proxy: ProxyHandle, path: string, s
                 while (performance.now() - started < 8) {
                   /* busy */
                 }
-                window.__regletStub?.edit(sel as string, 'margin-top', `${px}px`, 'preview in a frame callback')
+                window.__primpStub?.edit(sel as string, 'margin-top', `${px}px`, 'preview in a frame callback')
                 resolve()
               })
             }),
@@ -360,7 +360,7 @@ async function inputSemantics(browser: Browser, proxy: ProxyHandle, path: string
     let step = 0
     const scripted = (): Promise<void> => {
       step += 1
-      return page.evaluate(([sel, px]) => window.__regletStub?.edit(sel as string, 'margin-top', `${px}px`), [selector, 20 + step * 10] as const)
+      return page.evaluate(([sel, px]) => window.__primpStub?.edit(sel as string, 'margin-top', `${px}px`), [selector, 20 + step * 10] as const)
     }
     /** `input`, then `delayMs`, then a scripted (unmarked) move; returns the entries. */
     const probe = async (input: () => Promise<void>, delayMs: number): Promise<NewEntry[]> => {
@@ -374,7 +374,7 @@ async function inputSemantics(browser: Browser, proxy: ProxyHandle, path: string
     const flagged = (entries: NewEntry[]): string => (entries.length === 0 ? 'no entry' : entries.every((entry) => entry.hadRecentInput) ? 'hadRecentInput=true' : entries.some((entry) => entry.hadRecentInput) ? 'mixed' : 'hadRecentInput=false')
     const dockPoint = async (inner: string): Promise<{ x: number; y: number }> =>
       page.evaluate((sel) => {
-        const rect = document.querySelector('[data-reglet-root]')!.shadowRoot!.querySelector(sel)!.getBoundingClientRect()
+        const rect = document.querySelector('[data-primp-root]')!.shadowRoot!.querySelector(sel)!.getBoundingClientRect()
         return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }
       }, inner)
 
@@ -400,7 +400,7 @@ async function inputSemantics(browser: Browser, proxy: ProxyHandle, path: string
     const dockTyping = await probe(() => page.keyboard.type('4'), 100)
     // The real thing: the dock's own button applies an announced edit.
     await sleep(700)
-    await page.evaluate(([sel]) => window.__regletStub?.onApply(() => window.__regletStub?.edit(sel as string, 'margin-top', '333px', 'dock: apply')), [selector] as const)
+    await page.evaluate(([sel]) => window.__primpStub?.onApply(() => window.__primpStub?.edit(sel as string, 'margin-top', '333px', 'dock: apply')), [selector] as const)
     const dockApply = await entriesAfter(page, () => page.mouse.click(dockButton.x, dockButton.y))
 
     report.info(
@@ -458,7 +458,7 @@ async function domBench(browser: Browser, proxy: ProxyHandle, path: string): Pro
     await sleep(600)
     return await page.evaluate(async () => {
       const N = 20_000
-      const costBefore = window.__reglet?.cost().mutationMs ?? 0
+      const costBefore = window.__primp?.cost().mutationMs ?? 0
       const box = document.createElement('div')
       box.style.display = 'none'
       document.body.append(box)
@@ -496,7 +496,7 @@ async function domBench(browser: Browser, proxy: ProxyHandle, path: string): Pro
         connectedAppend: mid[1] ?? 0,
         setAttribute: mid[2] ?? 0,
         manyParents: mid[3] ?? 0,
-        observerMs: Math.round(((window.__reglet?.cost().mutationMs ?? 0) - costBefore) * 100) / 100,
+        observerMs: Math.round(((window.__primp?.cost().mutationMs ?? 0) - costBefore) * 100) / 100,
         // Per round: N nodes added, N attribute writes, 2,000 more nodes added, and all of them removed again.
         mutations: ROUNDS * (N + N + 2000 + N + 2000),
       }
@@ -531,7 +531,7 @@ async function main(): Promise<void> {
       label: `cls-corpus ${page}`,
       target: { fixture: corpus, path: `/${page}/`, observeMs: observeOf(page), shifts: false },
     })),
-    // Pages that DO shift: reglet must not change what they report either.
+    // Pages that DO shift: primp must not change what they report either.
     ...['unsized-media/img-block', 'font-swap/nav', 'injected-content/banner-innerhtml'].map((page) => ({
       label: `cls-corpus ${page}`,
       target: { fixture: corpus, path: `/${page}/`, observeMs: observeOf(page), shifts: true },
@@ -598,7 +598,7 @@ async function main(): Promise<void> {
       `${fixed(pick(without), 1)} / ${fixed(pick(hookOnly), 1)} / ${fixed(pick(withStub), 1)} ms`
     report.info(
       `${costPage.label}: the browser's own main-thread counters (CDP Performance.getMetrics), median of ${COST_LOADS} loads, ` +
-        `no reglet / hook only / hook + stub overlay: all tasks ${triple((s) => s.task)}, script ${triple((s) => s.script)}, style+layout ${triple((s) => s.layout)}. ` +
+        `no primp / hook only / hook + stub overlay: all tasks ${triple((s) => s.task)}, script ${triple((s) => s.script)}, style+layout ${triple((s) => s.layout)}. ` +
         `These include what self-timing cannot see (the browser's bookkeeping for the observers); their run-to-run spread is a few ms.`,
     )
   }
@@ -623,7 +623,7 @@ async function main(): Promise<void> {
     report.info(
       [
         'DOM call cost after the first frame, median of 7 rounds of 20,000 calls (run-to-run noise is about +-50 ns):',
-        row('no reglet', plain),
+        row('no primp', plain),
         row('hook', hooked),
         row('hook with stack capture', stacks),
         `size: +${sizeWithStacks.minified - size.minified} bytes minified, +${sizeWithStacks.gzipped - size.gzipped} gzipped`,

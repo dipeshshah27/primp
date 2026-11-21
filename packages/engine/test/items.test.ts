@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { ChangeItem } from '@reglet/protocol/change'
-import { ChangeItemSchema } from '@reglet/protocol/change'
+import type { ChangeItem } from '@primp/protocol/change'
+import { ChangeItemSchema } from '@primp/protocol/change'
 import {
   HISTORY_DEPTH,
   canRedo,

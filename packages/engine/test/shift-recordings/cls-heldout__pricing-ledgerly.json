@@ -390,7 +390,7 @@
  ],
  "resources": [
   {
-   "url": "http://localhost:4310/__reglet/hook.js?v=4c2c34f0b506",
+   "url": "http://localhost:4310/__primp/hook.js?v=4c2c34f0b506",
    "initiator": "script",
    "start": 7.1,
    "end": 8.1,
@@ -404,7 +404,7 @@
    "transferSize": 567
   },
   {
-   "url": "http://localhost:4310/__reglet/overlay.js",
+   "url": "http://localhost:4310/__primp/overlay.js",
    "initiator": "script",
    "start": 12.4,
    "end": 13.3,

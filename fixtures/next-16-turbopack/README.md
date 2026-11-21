@@ -1,6 +1,6 @@
 # next-16-turbopack fixture
 
-A small Next.js 16.4 App Router app (React 19.3, TypeScript, Turbopack dev server) used to test reglet's proxy against a demanding framework: server and client components, a nonce Content-Security-Policy, cookie auth, a Server Action, a streamed page, a very large page and a switchable build error.
+A small Next.js 16.4 App Router app (React 19.3, TypeScript, Turbopack dev server) used to test primp's proxy against a demanding framework: server and client components, a nonce Content-Security-Policy, cookie auth, a Server Action, a streamed page, a very large page and a switchable build error.
 
 It is a standalone app outside the pnpm workspace.
 
@@ -90,7 +90,7 @@ node scripts/break.mjs off           # repair both (or: off server | off client)
 node scripts/break.mjs status
 ```
 
-Each target has one line starting with `/* reglet:break */`. `on` turns it into `const breakState: string = 'on' +;`; `off` restores it. Only that line changes, so `labels.json` stays valid. Only `/broken-toggle` imports the two files, so other pages keep working while one is broken.
+Each target has one line starting with `/* primp:break */`. `on` turns it into `const breakState: string = 'on' +;`; `off` restores it. Only that line changes, so `labels.json` stays valid. Only `/broken-toggle` imports the two files, so other pages keep working while one is broken.
 
 Measured with the dev server running: within about 250 ms of `on`, `GET /broken-toggle` answers HTTP 500, and the HMR socket sends `{"type":"built","errors":[{"message":"./components/client/BreakTargetClient.tsx:3:53\nError: Expression expected…` . Within about 250 ms of `off` the page is 200 again and the socket sends `{"type":"built","errors":[]}`.
 

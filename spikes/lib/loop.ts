@@ -1,7 +1,7 @@
 /**
- * Harness for closed-loop checks: a fixture's dev server, reglet in front of it
- * (the real `startReglet`), a headless page with the real dock, and an MCP
- * client talking to the real `reglet mcp` stdio shim.
+ * Harness for closed-loop checks: a fixture's dev server, primp in front of it
+ * (the real `startPrimp`), a headless page with the real dock, and an MCP
+ * client talking to the real `primp mcp` stdio shim.
  *
  *   const loop = await startLoop('vite-react-19')
  *   await loop.open('/')                                   // loads the page, waits for the dock and the HMR socket
@@ -13,7 +13,7 @@
  * for an edit made in an interaction state, `reorderAndClaim(sel, { by: 1 })` for a move among the
  * siblings, `resizeAndClaim(sel, { width, height })` for a handle drag (one item per axis).
  *
- * The dock is driven through `window.__reglet_test` by METHOD NAME (`loop.dock('select', sel)`),
+ * The dock is driven through `window.__primp_test` by METHOD NAME (`loop.dock('select', sel)`),
  * never by evaluating source text in the page, so it also works under a strict CSP.
  */
 
@@ -26,8 +26,8 @@ import { getDefaultEnvironment, StdioClientTransport } from '@modelcontextprotoc
 import type { Browser, Page } from '@playwright/test'
 import type { ChangeItem, ElementState, VerificationResult } from '../../packages/protocol/src/change.ts'
 import type { PendingChanges, VerifyChangesResult } from '../../packages/protocol/src/session.ts'
-import type { RegletTestHandle, TestEditResult } from '../../packages/overlay/src/test-handle.ts'
-import { startReglet, type RegletHandle } from '../../packages/server/src/app.ts'
+import type { PrimpTestHandle, TestEditResult } from '../../packages/overlay/src/test-handle.ts'
+import { startPrimp, type PrimpHandle } from '../../packages/server/src/app.ts'
 import { SESSION_DIR_ENV } from '../../packages/server/src/session-file.ts'
 import { launchBrowser, newPage, type PageRecord } from './browser.ts'
 import { REPO_ROOT, startFixture, TMP_ROOT, type FixtureHandle, type FixtureName } from './fixture.ts'
@@ -63,19 +63,19 @@ export interface Claimed {
   prompt: string
 }
 
-type Method = keyof RegletTestHandle
-type Result<M extends Method> = Awaited<ReturnType<RegletTestHandle[M]>>
+type Method = keyof PrimpTestHandle
+type Result<M extends Method> = Awaited<ReturnType<PrimpTestHandle[M]>>
 
 export interface Loop {
   fixture: FixtureHandle
-  reglet: RegletHandle
+  primp: PrimpHandle
   browser: Browser
   page: Page
   record: PageRecord
   client: Client
-  /** Calls one method of `window.__reglet_test` in the page. */
-  dock<M extends Method>(method: M, ...args: Parameters<RegletTestHandle[M]>): Promise<Result<M>>
-  /** Loads a path through reglet and waits for the dock and for the dev server's HMR socket. */
+  /** Calls one method of `window.__primp_test` in the page. */
+  dock<M extends Method>(method: M, ...args: Parameters<PrimpTestHandle[M]>): Promise<Result<M>>
+  /** Loads a path through primp and waits for the dock and for the dev server's HMR socket. */
   open(path: string): Promise<void>
   tool(name: string, args?: Record<string, unknown>): Promise<CallToolResult>
   takePending(): Promise<PendingChanges>
@@ -115,8 +115,8 @@ export async function startLoop(name: FixtureName, options: LoopOptions = {}): P
   onCleanup(() => rmSync(sessionDir, { recursive: true, force: true }))
 
   const fixture = await startFixture(name)
-  const reglet = await startReglet({ projectRoot: fixture.dir, target: fixture.port, handleSignals: false, sessionDir })
-  onCleanup(() => reglet.close())
+  const primp = await startPrimp({ projectRoot: fixture.dir, target: fixture.port, handleSignals: false, sessionDir })
+  onCleanup(() => primp.close())
   const browser = await launchBrowser()
   const { page, record } = await newPage(browser, { viewport: options.viewport ?? { width: 1280, height: 900 } })
 
@@ -127,15 +127,15 @@ export async function startLoop(name: FixtureName, options: LoopOptions = {}): P
     env: { ...getDefaultEnvironment(), [SESSION_DIR_ENV]: sessionDir },
     stderr: 'pipe',
   })
-  const client = new Client({ name: `reglet-loop-${name}`, version: '0.0.0' })
+  const client = new Client({ name: `primp-loop-${name}`, version: '0.0.0' })
   onCleanup(() => client.close().catch(() => undefined))
   await client.connect(transport)
 
-  const dock = <M extends Method>(method: M, ...args: Parameters<RegletTestHandle[M]>): Promise<Result<M>> =>
+  const dock = <M extends Method>(method: M, ...args: Parameters<PrimpTestHandle[M]>): Promise<Result<M>> =>
     page.evaluate(
       ([name, values]) => {
-        const handle = (window as unknown as { __reglet_test?: Record<string, (...a: unknown[]) => unknown> }).__reglet_test
-        if (handle === undefined) throw new Error('window.__reglet_test is missing: the dock did not load')
+        const handle = (window as unknown as { __primp_test?: Record<string, (...a: unknown[]) => unknown> }).__primp_test
+        if (handle === undefined) throw new Error('window.__primp_test is missing: the dock did not load')
         return (handle[name as string] as (...a: unknown[]) => unknown)(...(values as unknown[]))
       },
       [method, args] as const,
@@ -163,12 +163,12 @@ export async function startLoop(name: FixtureName, options: LoopOptions = {}): P
     `${result.status} (attempt ${result.attempt}; settle ${result.settle?.status ?? '-'} by ${result.settle?.signal ?? '-'} in ${Math.round(result.settle?.ms ?? 0)} ms; files ${result.settle?.filesChanged.join(', ') || 'none'}); checks: ${result.checks.map((check) => `${check.status} expected ${check.expected} actual ${check.actual}`).join(' | ') || 'none'}; hint: ${result.hint}`
 
   const open = async (path: string): Promise<void> => {
-    await page.goto(`${reglet.url}${path}`)
-    await page.waitForFunction(() => (window as unknown as { __reglet_test?: unknown }).__reglet_test !== undefined, undefined, { timeout: 20_000 })
+    await page.goto(`${primp.url}${path}`)
+    await page.waitForFunction(() => (window as unknown as { __primp_test?: unknown }).__primp_test !== undefined, undefined, { timeout: 20_000 })
     await dock('ready')
     // The HMR socket must be open before the first source edit, or the update is missed. A static site has none.
-    if (reglet.framework !== 'static' && reglet.framework !== 'unknown') {
-      await waitFor(() => reglet.hmr.status().live, { what: 'the HMR socket through the proxy', timeoutMs: 15_000 })
+    if (primp.framework !== 'static' && primp.framework !== 'unknown') {
+      await waitFor(() => primp.hmr.status().live, { what: 'the HMR socket through the proxy', timeoutMs: 15_000 })
     }
   }
 
@@ -243,7 +243,7 @@ export async function startLoop(name: FixtureName, options: LoopOptions = {}): P
 
   return {
     fixture,
-    reglet,
+    primp,
     browser,
     page,
     record,
@@ -255,7 +255,7 @@ export async function startLoop(name: FixtureName, options: LoopOptions = {}): P
     verify,
     only,
     describe,
-    itemStatus: (id) => reglet.session.item(id)?.status ?? 'missing',
+    itemStatus: (id) => primp.session.item(id)?.status ?? 'missing',
     shownStatus: async (id) => (await dock('items')).find((item) => item.id === id)?.verification?.status ?? 'none',
     editAndClaim,
     editAndSend,

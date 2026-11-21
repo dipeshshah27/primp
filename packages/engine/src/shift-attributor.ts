@@ -77,11 +77,11 @@ const INDIRECT_PENALTY = 0.1
 const MEDIA_TAGS = new Set(['img', 'video', 'iframe', 'embed', 'object', 'canvas'])
 const STYLE_TAGS = new Set(['style', 'link'])
 const DEV_TAG = /^(vite-error-overlay|nextjs-portal|astro-dev-toolbar|astro-dev-overlay|svelte-inspector.*|wds-.*|nuxt-devtools.*)$/
-const DEV_ID = /^(webpack-dev-server-client-overlay|__next-build-watcher|__next-build-indicator|__nuxt-devtools|vite-plugin-checker|reglet)/
-/** Scripts of dev servers. reglet's own are not in the list: see `callerFrames`. */
+const DEV_ID = /^(webpack-dev-server-client-overlay|__next-build-watcher|__next-build-indicator|__nuxt-devtools|vite-plugin-checker|primp)/
+/** Scripts of dev servers. primp's own are not in the list: see `callerFrames`. */
 const DEV_SCRIPT = /\/@vite\/|\/@react-refresh|\/_next\/static\/chunks\/[^\s)]*(hmr|devtools|react-refresh)|webpack-dev-server|\/@id\/__x00__/i
-/** Everything reglet serves into the page lives under this path (`RESERVED_PREFIX` of the protocol). */
-const OWN_SCRIPT = /\/__reglet\//
+/** Everything primp serves into the page lives under this path (`RESERVED_PREFIX` of the protocol). */
+const OWN_SCRIPT = /\/__primp\//
 /** A stack line that names a script: `at f (http://host/a.js:3:1)`, `at http://host/a.js:3:1`, `f@http://host/a.js:3:1`. */
 const FRAME_URL = /[a-z][a-z0-9+.-]*:\/\/[^\s()]+/i
 
@@ -564,15 +564,15 @@ function isDevNode(node: NodeDescriptor): boolean {
   return (
     DEV_TAG.test(node.tag) ||
     (node.id !== undefined && DEV_ID.test(node.id)) ||
-    node.attrs?.['data-reglet-root'] !== undefined ||
+    node.attrs?.['data-primp-root'] !== undefined ||
     node.attrs?.['data-vite-dev-id'] !== undefined
   )
 }
 
 /**
- * The frames of a recorded DOM-call stack that say who made the call: the stack without reglet's
+ * The frames of a recorded DOM-call stack that say who made the call: the stack without primp's
  * own frames on top of it. The hook records the stack from inside the wrapper it puts around DOM
- * methods, and a wrapper's frame (a script under `/__reglet/`) is on every such stack, whoever
+ * methods, and a wrapper's frame (a script under `/__primp/`) is on every such stack, whoever
  * called; hooks before 2026-11-21 left one in for `insertAdjacentHTML`. Frames that name no
  * script (`at Array.forEach (<anonymous>)`) are skipped as well.
  */
@@ -583,7 +583,7 @@ export function callerFrames(stack: string | undefined): string[] {
   return lines.slice(start)
 }
 
-/** The stack as recorded, minus reglet's own frames at its top. Undefined when nothing is left. */
+/** The stack as recorded, minus primp's own frames at its top. Undefined when nothing is left. */
 function callerStack(stack: string | undefined): string | undefined {
   if (stack === undefined) return undefined
   const first = callerFrames(stack)[0]
@@ -595,7 +595,7 @@ function callerStack(stack: string | undefined): string | undefined {
 /**
  * Development tooling made the change: the node is a dev overlay or a dev-server stylesheet, or
  * the script that called the DOM method is a dev client. Decided on the first frame that is not
- * reglet's own; a stack with no such frame says nothing.
+ * primp's own; a stack with no such frame says nothing.
  */
 function isDevMutation(mutation: ShiftMutationRecord): boolean {
   if (isDevNode(mutation.node)) return true
@@ -968,7 +968,7 @@ function attributeEntry(recording: ShiftRecording, entry: ShiftEntry, previous: 
     return {
       ...base, cause: 'dev-artifact', confidence: 1, geometricMatch: false, victims: toVictims(), scored: false, excluded: 'self-induced',
       trigger: { kind: 'self', detail: entry.selfInduced.reason, t: entry.selfInduced.markedAt },
-      evidence: [`caused by reglet itself: "${entry.selfInduced.reason}" at ${fmt(entry.selfInduced.markedAt)} ms`, ...moves],
+      evidence: [`caused by primp itself: "${entry.selfInduced.reason}" at ${fmt(entry.selfInduced.markedAt)} ms`, ...moves],
     } // prettier-ignore
   }
 
@@ -1247,6 +1247,6 @@ export function cachedResourcesOf(recording: ShiftRecording): string[] {
   const origin = /^[a-z]+:\/\/[^/]+/i.exec(recording.url)?.[0]
   if (origin === undefined) return []
   return recording.resources
-    .filter((resource) => resource.transferSize === 0 && resource.url.startsWith(origin + '/') && !resource.url.includes('/__reglet/'))
+    .filter((resource) => resource.transferSize === 0 && resource.url.startsWith(origin + '/') && !resource.url.includes('/__primp/'))
     .map((resource) => resource.url.slice(origin.length))
 }

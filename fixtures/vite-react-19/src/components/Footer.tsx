@@ -6,7 +6,7 @@ export function Footer() {
         data-label="footer-inner"
         className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-6 text-sm text-slate-500 md:flex-row md:items-center md:justify-between"
       >
-        <p data-label="footer-copy">Lumen is fixture content for reglet tests, not a real product.</p>
+        <p data-label="footer-copy">Lumen is fixture content for primp tests, not a real product.</p>
         <ul data-label="footer-links" className="footer-links">
           <li>
             <a data-label="footer-privacy" href="#privacy">

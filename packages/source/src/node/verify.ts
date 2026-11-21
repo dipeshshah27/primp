@@ -1,7 +1,7 @@
 /**
  * On-disk verification. Pure: works on source text, the caller does the reading.
  *
- * A position that came out of a source map or a debug field is a claim. Before reglet shows
+ * A position that came out of a source map or a debug field is a claim. Before primp shows
  * `file:line` as exact, or puts it in a prompt, the file must hold an opening tag there.
  */
 
