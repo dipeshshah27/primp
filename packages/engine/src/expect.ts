@@ -63,9 +63,14 @@ export function deriveExpectations(input: ItemWithoutExpect | Omit<ChangeItem, '
   } else {
     const now = item.move?.now
     const anchor = (sibling: SiblingAnchor | undefined): SiblingAnchor[] => (sibling === undefined ? [] : [{ label: sibling.label, locator: sibling.locator }])
-    const neighbours = [...anchor(now?.prev), ...anchor(now?.next)]
-    if (neighbours.length > 0) {
-      out.push({ type: 'order', siblings: [...anchor(now?.prev), { label: item.target.label, locator: item.target.locator, self: true }, ...anchor(now?.next)] })
+    const plain = (siblings: readonly SiblingAnchor[]): SiblingAnchor[] => siblings.map((sibling) => ({ label: sibling.label, locator: sibling.locator }))
+    // Every sibling recorded around the element, not just the two next to it: with only the neighbours,
+    // an order in which the element stands somewhere before its next neighbour would pass.
+    const around = item.move?.around
+    const before = around === undefined ? anchor(now?.prev) : plain(around.before)
+    const after = around === undefined ? anchor(now?.next) : plain(around.after)
+    if (before.length + after.length > 0) {
+      out.push({ type: 'order', siblings: [...before, { label: item.target.label, locator: item.target.locator, self: true }, ...after] })
     }
   }
 

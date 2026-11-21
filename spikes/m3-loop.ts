@@ -25,6 +25,12 @@ import { startLoop } from './lib/loop.ts'
 const only = process.argv[2]
 const report = createReport('M3 closed loop: edit in the dock, agent patches source, reglet verifies')
 
+/** The part of an agent prompt about one change: from its heading on. */
+const sectionOf = (prompt: string, id: string): string => {
+  const at = prompt.indexOf(`### \`${id}\``)
+  return at < 0 ? '' : prompt.slice(at)
+}
+
 async function vite(): Promise<void> {
   const loop = await startLoop('vite-react-19', { shimCwd: 'src' })
   const { fixture, page, record, verify, describe, itemStatus } = loop
@@ -246,6 +252,207 @@ async function vite(): Promise<void> {
     return `${describe(result)}\n        in the page: plain plans ${inPage[0]}, featured plan ${inPage[1]}`
   })
 
+  report.section('Vite J. A change made in the :hover state')
+  // The plan CTAs (three instances of one button in PricingTable.tsx) have `.plan__cta { background-color: #0f172a }`
+  // at rest and `.plan__cta:hover { background-color: #1e293b }` in src/styles/site.css.
+  const CTA = '[data-label="plan-cta"]'
+  const restingBackground = (): Promise<string> => page.evaluate((sel) => getComputedStyle(document.querySelector(sel) as Element).backgroundColor, CTA)
+  /** The CTA's background under a real mouse hover, read once the pointer is on it; the pointer is moved off afterwards. */
+  const hoveredBackground = async (): Promise<string> => {
+    await page.hover(CTA)
+    await sleep(100)
+    const value = await page.evaluate((sel) => getComputedStyle(document.querySelector(sel) as Element).backgroundColor, CTA)
+    await page.mouse.move(1, 1)
+    return value
+  }
+  await report.attempt('hover background #1e293b -> #0f172a: the claimed change is for :hover, the prompt names the .plan__cta:hover rule; the agent edits that rule: pass, the resting background is unchanged', async () => {
+    const restingBefore = await restingBackground()
+    const { item: recorded } = await loop.editAndSend(CTA, { property: 'background-color', value: '#0f172a', state: 'hover' })
+    const { items, prompt } = await loop.claim(1)
+    const item = items[0] as ChangeItem
+    expect(item.id === recorded.id, `claimed ${item.id}, recorded ${recorded.id}`)
+    expect(item.kind === 'style' && item.condition.state === 'hover', `condition: ${item.kind === 'style' ? JSON.stringify(item.condition) : item.kind}`)
+    if (item.kind !== 'style') return ''
+    expect(item.before.computed === 'rgb(30, 41, 59)', `the value before, in the hover state: ${item.before.computed}`)
+    expect(item.origin?.via === 'rule' && item.origin.selector === '.plan__cta:hover', `origin: ${JSON.stringify(item.origin)}`)
+    const section = sectionOf(prompt, item.id)
+    expect(section.includes('only in the `:hover` state'), `the prompt does not limit the change to :hover:\n${section}`)
+    expect(section.includes('`.plan__cta:hover`'), `the prompt does not name the .plan__cta:hover rule:\n${section}`)
+    const line = section.split('\n').find((text) => text.startsWith('- Previous value')) ?? ''
+    editFile(fixture, 'src/styles/site.css', replaceOnce('.plan__cta:hover {\n  background-color: #1e293b;', '.plan__cta:hover {\n  background-color: #0f172a;'))
+    const { outcome } = await verify([item.id])
+    const result = one(outcome)
+    expect(result.status === 'pass', `status ${describe(result)}`)
+    expect(outcome.fixup === '', 'a fix-up prompt was returned for a pass')
+    expect(itemStatus(item.id) === 'verified', `item status ${itemStatus(item.id)}`)
+    const forced = (await loop.dock('state')).forced
+    expect(forced === null, `a state is still forced on the page: ${JSON.stringify(forced)}`)
+    const restingAfter = await restingBackground()
+    expect(restingAfter === restingBefore, `the resting background went from ${restingBefore} to ${restingAfter}`)
+    const hovered = await hoveredBackground()
+    expect(hovered === 'rgb(15, 23, 42)', `under a real mouse hover the background is ${hovered}`)
+    return `${describe(result)}\n        prompt: ${line}\n        in the page: resting ${restingAfter} (was ${restingBefore}), real hover ${hovered}`
+  })
+  let hoverItem: ChangeItem | undefined
+  await report.attempt('hover background -> #334155, the agent edits the RESTING .plan__cta rule instead: fail, the hover value is unchanged and the fix-up names the :hover state', async () => {
+    hoverItem = await loop.editAndClaim(CTA, { property: 'background-color', value: '#334155', state: 'hover' })
+    expect(hoverItem.kind === 'style' && hoverItem.condition.state === 'hover', 'not a :hover change')
+    editFile(fixture, 'src/styles/site.css', replaceOnce('  border-radius: 8px;\n  background-color: #0f172a;', '  border-radius: 8px;\n  background-color: #334155;'))
+    const { outcome } = await verify([hoverItem.id])
+    const result = one(outcome)
+    expect(result.status === 'fail', `status ${describe(result)}`)
+    const check = result.checks.find((entry) => entry.expectation.type === 'computed')
+    expect(check?.status === 'fail' && check.actual === 'rgb(15, 23, 42)', `the hover check: ${check?.status} expected ${check?.expected} actual ${check?.actual}`)
+    expect(outcome.fixup.includes('`:hover`'), `the fix-up does not mention the :hover state:\n${outcome.fixup}`)
+    expect(itemStatus(hoverItem.id) === 'failed', `item status ${itemStatus(hoverItem.id)}`)
+    const resting = await restingBackground()
+    expect(resting === 'rgb(51, 65, 85)', `the wrong patch did not reach the page: resting ${resting}`)
+    return `${describe(result)}\n        fix-up: ${outcome.fixup.split('\n').filter((text) => text.includes(':hover')).slice(0, 2).join(' / ')}`
+  })
+  await report.attempt('the agent puts the resting rule back and edits .plan__cta:hover: pass on the next attempt', async () => {
+    expect(hoverItem !== undefined, 'no item from the previous check')
+    const id = (hoverItem as ChangeItem).id
+    editFile(fixture, 'src/styles/site.css', replaceOnce('  border-radius: 8px;\n  background-color: #334155;', '  border-radius: 8px;\n  background-color: #0f172a;'))
+    editFile(fixture, 'src/styles/site.css', replaceOnce('.plan__cta:hover {\n  background-color: #0f172a;', '.plan__cta:hover {\n  background-color: #334155;'))
+    const result = one((await verify([id])).outcome)
+    expect(result.status === 'pass' && result.attempt === 2, `status ${describe(result)}`)
+    expect(itemStatus(id) === 'verified', `item status ${itemStatus(id)}`)
+    const resting = await restingBackground()
+    const hovered = await hoveredBackground()
+    expect(resting === 'rgb(15, 23, 42)' && hovered === 'rgb(51, 65, 85)', `in the page: resting ${resting}, real hover ${hovered}`)
+    return `${describe(result)}\n        in the page: resting ${resting}, real hover ${hovered}`
+  })
+
+  report.section('Vite K. Reordering the pricing plans (rendered by plans.map from src/data/plans.json)')
+  const planNames = (): Promise<string[]> => page.evaluate(() => [...document.querySelectorAll('[data-label="plan-name"]')].map((element) => element.textContent?.trim() ?? ''))
+  /** The agent rewrites plans.json with its entries in this order of ids, one entry per line as the file has them. */
+  const orderPlans = (ids: string[]): void => {
+    editFile(fixture, 'src/data/plans.json', (source) => {
+      const byId = new Map((JSON.parse(source) as { id: string }[]).map((plan) => [plan.id, plan]))
+      return `[\n${ids.map((id) => `  ${JSON.stringify(byId.get(id))}`).join(',\n')}\n]\n`
+    })
+  }
+  await report.attempt('the first plan moved one place later: the prompt says to reorder the data; Send leaves the page as it was; the agent swaps the first two entries of plans.json: pass, the page has the new order', async () => {
+    const { item, prompt } = await loop.reorderAndClaim('[data-label="plan"]', { by: 1 })
+    expect(item.kind === 'structure' && item.move?.fromIndex === 0 && item.move.toIndex === 1, `move: ${item.kind === 'structure' ? JSON.stringify({ from: item.move?.fromIndex, to: item.move?.toIndex }) : item.kind}`)
+    const section = sectionOf(prompt, item.id)
+    expect(section.includes('move this element') && section.includes('change the order of the data'), `the prompt does not say to move the element by reordering the data:\n${section}`)
+    const afterSend = await planNames()
+    expect(afterSend.join() === 'Starter,Team,Scale', `after Send the page shows ${afterSend.join(', ')}, not the original order`)
+    orderPlans(['team', 'starter', 'scale'])
+    const { outcome } = await verify([item.id])
+    const result = one(outcome)
+    expect(result.status === 'pass', `status ${describe(result)}`)
+    expect(outcome.fixup === '', 'a fix-up prompt was returned for a pass')
+    expect(itemStatus(item.id) === 'verified', `item status ${itemStatus(item.id)}`)
+    const inPage = await planNames()
+    expect(inPage.join() === 'Team,Starter,Scale', `the page shows ${inPage.join(', ')}`)
+    const line = section.split('\n').find((text) => text.startsWith('- Do: move')) ?? ''
+    return `${describe(result)}\n        prompt: ${line}\n        in the page: ${inPage.join(', ')}`
+  })
+  let lastPlan: ChangeItem | undefined
+  const at = (text: string, name: string): number => text.indexOf(name)
+  /** True when `text` names the three plans in this order. */
+  const readsInOrder = (text: string, names: string[]): boolean => names.every((name, index) => at(text, name) >= 0 && (index === 0 || at(text, names[index - 1] as string) < at(text, name)))
+  await report.attempt('the last plan (Scale) moved to the front; the agent moves the wrong item (Starter to the end): fail, and the fix-up gives the order found', async () => {
+    const { item } = await loop.reorderAndClaim('[data-label="pricing-grid"] > [data-label="plan"]:last-child', { to: 0 })
+    lastPlan = item
+    expect(item.kind === 'structure' && item.move?.fromIndex === 2 && item.move.toIndex === 0, `move: ${item.kind === 'structure' ? JSON.stringify({ from: item.move?.fromIndex, to: item.move?.toIndex }) : item.kind}`)
+    orderPlans(['team', 'scale', 'starter'])
+    const { outcome } = await verify([item.id])
+    const result = one(outcome)
+    expect(result.status === 'fail', `status ${describe(result)}`)
+    const check = result.checks.find((entry) => entry.expectation.type === 'order')
+    expect(check?.status === 'fail' && readsInOrder(check.actual, ['Team', 'Scale']), `the order check: ${check?.status} expected ${check?.expected} actual ${check?.actual}`)
+    const fixupLine = outcome.fixup.split('\n').find((text) => readsInOrder(text, ['Team', 'Scale'])) ?? ''
+    expect(fixupLine !== '', `the fix-up does not give the order found (Team, then Scale):\n${outcome.fixup}`)
+    expect(itemStatus(item.id) === 'failed', `item status ${itemStatus(item.id)}`)
+    const inPage = await planNames()
+    expect(inPage.join() === 'Team,Scale,Starter', `the page shows ${inPage.join(', ')}`)
+    return `${describe(result)}\n        fix-up: ${fixupLine.trim()}`
+  })
+  await report.attempt('the agent then reverses the original array (Scale, Starter, Team): Scale is first but Team does not follow it as asked: fail', async () => {
+    expect(lastPlan !== undefined, 'no item from the previous check')
+    const id = (lastPlan as ChangeItem).id
+    orderPlans(['scale', 'starter', 'team'])
+    const { outcome } = await verify([id])
+    const result = one(outcome)
+    const inPage = await planNames()
+    expect(inPage.join() === 'Scale,Starter,Team', `the page shows ${inPage.join(', ')}`)
+    expect(result.status === 'fail', `the page reads ${inPage.join(', ')}, the user asked for Scale, Team, Starter: status ${describe(result)}`)
+    const check = result.checks.find((entry) => entry.expectation.type === 'order')
+    // The sentence that reports what was found must give the page's actual order (other lines name the plans in other orders).
+    const found = outcome.fixup.split('\n').find((line) => line.includes('Found:') && line.includes('the order in the page is')) ?? ''
+    const actualPart = found.slice(found.indexOf('the order in the page is'), found.indexOf('the wanted order'))
+    expect(check?.status === 'fail' && readsInOrder(actualPart, ['Scale', 'Starter', 'Team']), `the order check: ${check?.status} actual ${check?.actual}; fix-up:\n${outcome.fixup}`)
+    return describe(result)
+  })
+  await report.attempt('the agent puts Scale in front of Team and Starter: pass', async () => {
+    expect(lastPlan !== undefined, 'no item from the previous check')
+    const id = (lastPlan as ChangeItem).id
+    orderPlans(['scale', 'team', 'starter'])
+    const result = one((await verify([id])).outcome)
+    expect(result.status === 'pass' && result.attempt === 3, `status ${describe(result)}`)
+    expect(itemStatus(id) === 'verified', `item status ${itemStatus(id)}`)
+    const inPage = await planNames()
+    expect(inPage.join() === 'Scale,Team,Starter', `the page shows ${inPage.join(', ')}`)
+    return `${describe(result)}\n        in the page: ${inPage.join(', ')}`
+  })
+
+  report.section('Vite L. Resizing a card by its corner: width and height from one gesture')
+  // The CSS value a border-box size needs is worked out here from the page's own box model, independently of the dock.
+  const CARD = '[data-label="card"]'
+  const cssLength = async (axis: 'width' | 'height', borderBox: number): Promise<string> => {
+    const box = await page.evaluate(([sel, which]) => {
+      const style = getComputedStyle(document.querySelector(sel) as Element)
+      const sides = which === 'width' ? ['left', 'right'] : ['top', 'bottom']
+      const extra = sides.reduce((sum, side) => sum + Number.parseFloat(style.getPropertyValue(`padding-${side}`)) + Number.parseFloat(style.getPropertyValue(`border-${side}-width`)), 0)
+      return { sizing: style.boxSizing, extra }
+    }, [CARD, axis] as const)
+    return `${Math.round(box.sizing === 'border-box' ? borderBox : borderBox - box.extra)}px`
+  }
+  let sized: { width?: ChangeItem; height?: ChangeItem; wantWidth: number; wantHeight: number; cssWidth: string; wrongWidth: string } | undefined
+  await report.attempt('the corner dragged 40px wider and 30px taller: two items (width, height), sent as one batch; the agent gets the width wrong in Card.module.css: width fails, height passes', async () => {
+    const box = await loop.borderBox(CARD)
+    const wantWidth = Math.round(box.width) + 40
+    const wantHeight = Math.round(box.height) + 30
+    const cssWidth = await cssLength('width', wantWidth)
+    const cssHeight = await cssLength('height', wantHeight)
+    const wrongWidth = `${Number.parseFloat(cssWidth) + 12}px`
+    const { recorded, items } = await loop.resizeAndClaim(CARD, { width: wantWidth, height: wantHeight })
+    const byProperty = new Map(items.map((item) => [item.kind === 'style' ? item.property : item.kind, item]))
+    expect(recorded.length === 2 && byProperty.has('width') && byProperty.has('height'), `recorded ${recorded.length}: ${[...byProperty.keys()].join(', ')}`)
+    expect(new Set(items.map((item) => item.batchId)).size === 1 && items[0]?.batchId !== undefined, `batches: ${items.map((item) => item.batchId).join(', ')}`)
+    const width = byProperty.get('width') as ChangeItem
+    const height = byProperty.get('height') as ChangeItem
+    sized = { width, height, wantWidth, wantHeight, cssWidth, wrongWidth }
+    const css = (item: ChangeItem): string => (item.kind === 'style' ? item.after.authored : '')
+    expect(css(width) === cssWidth && css(height) === cssHeight, `recorded width ${css(width)}, height ${css(height)} for a border box of ${wantWidth} x ${wantHeight}; the page's box model gives ${cssWidth} x ${cssHeight}`)
+    // The "agent": the height as asked, the width 12px off.
+    editFile(fixture, 'src/components/Card.module.css', replaceOnce('  background-color: #ffffff;\n}', `  background-color: #ffffff;\n  width: ${wrongWidth};\n  height: ${css(height)};\n}`))
+    const { outcome } = await verify([width.id, height.id])
+    const results = new Map(outcome.results.map((result) => [result.itemId, result]))
+    const w = results.get(width.id)
+    const h = results.get(height.id)
+    expect(w?.status === 'fail', `width: ${w === undefined ? 'no result' : describe(w)}`)
+    expect(h?.status === 'pass', `height: ${h === undefined ? 'no result' : describe(h)}`)
+    expect(outcome.fixup.includes(`### \`${width.id}\``) && !outcome.fixup.includes(`### \`${height.id}\``) && outcome.fixup.includes(`Passed, leave as it is: \`${height.id}\``), `the fix-up should restate the width only and leave the height alone:\n${outcome.fixup}`)
+    expect(itemStatus(width.id) === 'failed' && itemStatus(height.id) === 'verified', `item status width ${itemStatus(width.id)}, height ${itemStatus(height.id)}`)
+    return `asked ${wantWidth} x ${wantHeight} border box (was ${box.width} x ${box.height}): width ${css(width)}, height ${css(height)}\n        width: ${w === undefined ? '-' : describe(w)}\n        height: ${h === undefined ? '-' : describe(h)}`
+  })
+  await report.attempt('the agent corrects the width: both pass, and the card has the dragged border-box size', async () => {
+    expect(sized?.width !== undefined && sized.height !== undefined, 'no items from the previous check')
+    const { width, height, wantWidth, wantHeight, cssWidth, wrongWidth } = sized as { width: ChangeItem; height: ChangeItem; wantWidth: number; wantHeight: number; cssWidth: string; wrongWidth: string }
+    editFile(fixture, 'src/components/Card.module.css', replaceOnce(`  width: ${wrongWidth};`, `  width: ${cssWidth};`))
+    const { outcome } = await verify([width.id, height.id])
+    const statuses = outcome.results.map((result) => `${result.itemId === width.id ? 'width' : 'height'} ${describe(result)}`)
+    expect(outcome.results.length === 2 && outcome.results.every((result) => result.status === 'pass'), statuses.join('\n'))
+    expect(itemStatus(width.id) === 'verified' && itemStatus(height.id) === 'verified', `item status width ${itemStatus(width.id)}, height ${itemStatus(height.id)}`)
+    const box = await loop.borderBox(CARD)
+    expect(Math.round(box.width) === wantWidth && Math.round(box.height) === wantHeight, `the card is ${box.width} x ${box.height}, asked ${wantWidth} x ${wantHeight}`)
+    return `${statuses.join('\n        ')}\n        in the page: ${box.width} x ${box.height}`
+  })
+
   // Closes the tab, so it stays the last scenario of this part.
   report.section('Vite I. No browser, no verdict')
   await report.attempt('with the tab closed a matching source is reported as no_browser, not pass', async () => {
@@ -343,6 +550,51 @@ async function next(): Promise<void> {
     return `broken: ${first.status}; hint: ${first.hint.slice(0, 160)}\n        repaired: ${describe(second)}`
   })
 
+  report.section('Next E. A :hover change where the page has no :hover rule')
+  // The home CTA (`.cta` in app/page.module.css) has a resting background and no :hover rule anywhere.
+  const HOME_CTA = '[data-label="home-hero"] > a'
+  await report.attempt('hover background on the home CTA: the prompt names the resting .cta rule as not limited to :hover; the agent ADDS a .cta:hover rule to page.module.css: pass', async () => {
+    const resting = (): Promise<string> => page.evaluate((sel) => getComputedStyle(document.querySelector(sel) as Element).backgroundColor, HOME_CTA)
+    const restingBefore = await resting()
+    const { item: recorded } = await loop.editAndSend(HOME_CTA, { property: 'background-color', value: '#1d4ed8', state: 'hover' })
+    const { items, prompt } = await loop.claim(1)
+    const item = items[0] as ChangeItem
+    expect(item.id === recorded.id && item.kind === 'style' && item.condition.state === 'hover', `claimed ${item.id} (${item.kind === 'style' ? JSON.stringify(item.condition) : item.kind})`)
+    if (item.kind !== 'style') return ''
+    expect(item.before.computed === restingBefore, `the value before in :hover is ${item.before.computed}, the resting one ${restingBefore}`)
+    expect(item.origin !== undefined && !/:hover/.test(item.origin.selector ?? ''), `origin: ${JSON.stringify(item.origin)}`)
+    const section = sectionOf(prompt, item.id)
+    expect(section.includes('only in the `:hover` state'), `the prompt does not limit the change to :hover:\n${section}`)
+    const line = section.split('\n').find((text) => text.startsWith('- Previous value')) ?? ''
+    expect(!/rule `[^`]*:hover`/.test(section), `the prompt claims an existing :hover rule:\n${section}`)
+    expect(line.includes('not limited to `:hover`') && line.includes('add a `:hover` rule'), `the origin line does not say to add a :hover rule: ${line}`)
+    editFile(fixture, 'app/page.module.css', replaceOnce('  font-weight: 600;\n}\n\n.cardGrid {', '  font-weight: 600;\n}\n\n.cta:hover {\n  background-color: #1d4ed8;\n}\n\n.cardGrid {'))
+    const { outcome } = await verify([item.id], 8000)
+    const result = one(outcome)
+    expect(result.status === 'pass', `status ${describe(result)}`)
+    expect(itemStatus(item.id) === 'verified', `item status ${itemStatus(item.id)}`)
+    const restingAfter = await resting()
+    expect(restingAfter === restingBefore, `the resting background went from ${restingBefore} to ${restingAfter}`)
+    return `${describe(result)}\n        prompt: ${line}`
+  })
+
+  report.section('Next F. Reordering the nav links (NAV_LINKS in app/layout.tsx, a Server Component layout)')
+  const navTexts = (): Promise<string[]> => page.evaluate(() => [...document.querySelectorAll('[data-label="site-nav"] > a')].map((element) => element.textContent?.trim() ?? ''))
+  await report.attempt('"Stream" moved one place earlier: the prompt says to reorder the data; the agent swaps two entries of NAV_LINKS: pass, and the nav has the new order', async () => {
+    const before = await navTexts()
+    const { item, prompt } = await loop.reorderAndClaim('[data-label="site-nav"] > a:nth-child(3)', { by: -1 })
+    expect(item.kind === 'structure' && item.move?.fromIndex === 2 && item.move.toIndex === 1, `move: ${item.kind === 'structure' ? JSON.stringify({ from: item.move?.fromIndex, to: item.move?.toIndex }) : item.kind}`)
+    const section = sectionOf(prompt, item.id)
+    expect(section.includes('move this element') && section.includes('change the order of the data'), `the prompt does not say to reorder the data:\n${section}`)
+    editFile(fixture, 'app/layout.tsx', replaceOnce("  { href: '/actions', text: 'Actions' },\n  { href: '/stream', text: 'Stream' },", "  { href: '/stream', text: 'Stream' },\n  { href: '/actions', text: 'Actions' },"))
+    const result = one((await verify([item.id], 10_000)).outcome)
+    expect(result.status === 'pass', `status ${describe(result)}`)
+    expect(itemStatus(item.id) === 'verified', `item status ${itemStatus(item.id)}`)
+    const after = await navTexts()
+    expect(after.slice(0, 3).join() === 'Home,Stream,Actions', `the nav reads ${after.join(', ')}`)
+    return `${describe(result)}\n        nav: ${before.slice(0, 3).join(', ')} -> ${after.slice(0, 3).join(', ')}`
+  })
+
   report.check('reglet added no CSP violation during the whole Next loop', fromReglet().length === 0, fromReglet().slice(0, 3).join(' | ') || 'none')
 }
 
@@ -372,6 +624,23 @@ async function svelte(): Promise<void> {
     broken.revert()
     expect(result.status === 'build_error', `status ${describe(result)}`)
     return `${result.status}; hint: ${result.hint.slice(0, 200)}`
+  })
+  await report.attempt('a :hover background on the CTA (scoped style, .cta:hover sets only a filter): the agent adds it to .cta:hover in Hero.svelte: pass', async () => {
+    // After the syntax error above, the page must have recovered before the next edit.
+    await sleep(500)
+    const resting = (): Promise<string> => loop.page.evaluate(() => getComputedStyle(document.querySelector('[data-label="hero-cta"]') as Element).backgroundColor)
+    const restingBefore = await resting()
+    const item = await loop.editAndClaim('[data-label="hero-cta"]', { property: 'background-color', value: '#1e3a8a', state: 'hover' })
+    expect(item.kind === 'style' && item.condition.state === 'hover', 'not a :hover change')
+    expect(item.target.source?.file === 'src/lib/components/Hero.svelte', `source ${item.target.source?.file}:${item.target.source?.line}`)
+    editFile(fixture, 'src/lib/components/Hero.svelte', replaceOnce('.cta:hover {\n\t\tfilter: brightness(1.08);', '.cta:hover {\n\t\tfilter: brightness(1.08);\n\t\tbackground-color: #1e3a8a;'))
+    const result = one((await verify([item.id], 8000)).outcome)
+    expect(result.status === 'pass', `status ${describe(result)}`)
+    expect(itemStatus(item.id) === 'verified', `item status ${itemStatus(item.id)}`)
+    const restingAfter = await resting()
+    expect(restingAfter === restingBefore, `the resting background went from ${restingBefore} to ${restingAfter}`)
+    const origin = item.kind === 'style' ? item.origin : undefined
+    return `${describe(result)}; origin ${origin?.via} ${origin?.selector ?? ''}`
   })
 }
 
@@ -416,6 +685,39 @@ async function staticSite(): Promise<void> {
     expect(result.status === 'no_update_observed', `status ${describe(result)}`)
     expect(record.documentRequests.length === loadsBefore, 'the page was reloaded although nothing changed')
     return describe(result)
+  })
+  await report.attempt('a :hover background on .button (css/site.css has .button:hover): the agent edits that rule; pass after reglet reloads the page', async () => {
+    const item = await loop.editAndClaim('[data-label="hero-cta"]', { property: 'background-color', value: '#0b2a1f', state: 'hover' })
+    expect(item.kind === 'style' && item.condition.state === 'hover', 'not a :hover change')
+    const origin = item.kind === 'style' ? item.origin : undefined
+    expect(origin?.via === 'rule' && origin.selector === '.button:hover', `origin: ${JSON.stringify(origin)}`)
+    const loadsBefore = record.documentRequests.length
+    editFile(fixture, 'css/site.css', replaceOnce('.button:hover {\n  background: #1a4131;', '.button:hover {\n  background: #0b2a1f;'))
+    const result = one((await verify([item.id], 1500)).outcome)
+    expect(result.status === 'pass', `status ${describe(result)}`)
+    expect(itemStatus(item.id) === 'verified', `item status ${itemStatus(item.id)}`)
+    expect(record.documentRequests.length > loadsBefore, 'the page was not reloaded before measuring')
+    return `${describe(result)}; origin ${origin?.selector} in ${origin?.sheet}`
+  })
+  await report.attempt('about.html: the second step of ol.about-steps moved to the front; the agent moves the li in about.html: pass after the reload', async () => {
+    await loop.open('/about.html')
+    const steps = (): Promise<string[]> => page.evaluate(() => [...document.querySelectorAll('ol.about-steps > li')].map((element) => element.getAttribute('data-label') ?? ''))
+    const { item, prompt } = await loop.reorderAndClaim('[data-label="about-step-stitch"]', { to: 0 })
+    expect(item.kind === 'structure' && item.move?.fromIndex === 1 && item.move.toIndex === 0, `move: ${item.kind === 'structure' ? JSON.stringify({ from: item.move?.fromIndex, to: item.move?.toIndex }) : item.kind}`)
+    expect(sectionOf(prompt, item.id).includes('move this element'), 'the prompt does not say to move the element')
+    expect(item.target.source?.file === 'about.html', `source ${item.target.source?.file}:${item.target.source?.line}`)
+    editFile(fixture, 'about.html', (source) => {
+      const fold = /\n\s*<li data-label="about-step-fold">[^\n]*/.exec(source)?.[0] ?? ''
+      const stitch = /\n\s*<li data-label="about-step-stitch">[^\n]*/.exec(source)?.[0] ?? ''
+      expect(fold !== '' && stitch !== '', 'the steps are not where the patch expects them')
+      return source.replace(`${fold}${stitch}`, `${stitch}${fold}`)
+    })
+    const result = one((await verify([item.id], 1500)).outcome)
+    expect(result.status === 'pass', `status ${describe(result)}`)
+    expect(itemStatus(item.id) === 'verified', `item status ${itemStatus(item.id)}`)
+    const order = await steps()
+    expect(order.join() === 'about-step-stitch,about-step-fold,about-step-press', `the page has ${order.join(', ')}`)
+    return `${describe(result)}\n        in the page: ${order.join(', ')}`
   })
 }
 

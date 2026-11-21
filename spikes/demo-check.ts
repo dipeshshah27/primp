@@ -6,6 +6,7 @@
  *   agent (MCP)            -> get_layout_shifts names the picture and its line in index.html
  *   agent edits index.html -> verify_layout_shift: pass
  *   an edit in the dock    -> Send, the agent implements it in css/site.css, verify_changes: pass
+ *   a reorder and a :hover -> one Send, the agent edits index.html and css/site.css, verify_changes: both pass
  *
  * The CLI is the real one, started as a child process from source.
  *
@@ -137,6 +138,50 @@ try {
       const shown = (await dock('items')).find((candidate) => candidate.id === (item as ChangeItem).id)?.verification?.status
       expect(shown === 'pass', `the dock shows ${shown}`)
       return `${result.summary} ${verdict?.hint}; the dock shows ${shown}; bystander ${secondary.label} (rule .btn also styles ${origin?.alsoStyles} other element) kept its padding in ${kept.length} checks`
+    })
+
+    report.section('A reorder and a :hover change from the dock, in one batch')
+    await report.attempt('the third bean card moved to the front and a :hover background on the primary button, sent together; the agent edits index.html and css/site.css; both pass after reglet reloads the page', async () => {
+      const beanNames = (): Promise<string[]> => page.evaluate(() => [...document.querySelectorAll('.bean-grid > li h3')].map((element) => element.textContent?.trim() ?? ''))
+      await dock('ready')
+      const before = await beanNames()
+      expect(before.join() === 'Las Nubes,Kiamabara,Fazenda Alta', `the beans read ${before.join(', ')}`)
+      await dock('select', '.bean-grid > li.bean:nth-child(3)')
+      const moved = await dock('reorder', 0)
+      expect(moved.ok && moved.item?.kind === 'structure' && moved.item.op === 'reorder', `the move was not recorded: ${moved.error ?? JSON.stringify(moved.item?.kind)}`)
+      await dock('select', '.btn-primary')
+      const hover = await dock('setStyle', 'background-color', '#0a3f44', { media: null, scope: 'all-instances', state: 'hover' })
+      expect(hover.ok && hover.item?.kind === 'style' && hover.item.condition.state === 'hover', `the :hover edit was not recorded: ${hover.error ?? JSON.stringify(hover.item?.kind)}`)
+      const prompt = await dock('send')
+      expect(prompt.includes('move this element') && prompt.includes('only in the `:hover` state'), 'the prompt does not carry both changes')
+      const afterSend = await beanNames()
+      expect(afterSend.join() === before.join(), `after Send the page shows ${afterSend.join(', ')}: the reorder preview was not put back`)
+      const pending = (await call<PendingChanges>('get_pending_changes')).result
+      const claimed = pending.files.flatMap((group) => group.items)
+      const ids = [(moved.item as ChangeItem).id, (hover.item as ChangeItem).id]
+      expect(claimed.length === 2 && ids.every((id) => claimed.some((item) => item.id === id && item.status === 'claimed')), `claimed: ${claimed.map((item) => `${item.id} ${item.status}`).join(', ')}`)
+      // The "agent": the third <li class="bean"> block goes before the first; a :hover rule for the primary button.
+      const html = join(SITE, 'index.html')
+      const source = readFileSync(html, 'utf8')
+      const blocks = [...source.matchAll(/ {10}<li class="bean">\n[\s\S]*?<\/li>\n/g)].map((match) => match[0])
+      expect(blocks.length === 3 && blocks[2]!.includes('Fazenda Alta'), `found ${blocks.length} bean blocks in index.html`)
+      const reordered = source.replace(`${blocks[0]}${blocks[1]}${blocks[2]}`, `${blocks[2]}${blocks[0]}${blocks[1]}`)
+      expect(reordered !== source, 'the reorder patch did not apply')
+      writeFileSync(html, reordered)
+      const css = join(SITE, 'css/site.css')
+      const sheet = readFileSync(css, 'utf8')
+      const withHover = sheet.replace('.hero-art {', '.btn-primary:hover {\n  background: #0a3f44;\n}\n\n.hero-art {')
+      expect(withHover !== sheet, 'the :hover patch did not apply')
+      writeFileSync(css, withHover)
+      const { result } = await call<VerifyChangesResult>('verify_changes', { ids, waitMs: 2000 })
+      const statuses = result.results.map((verdict) => `${verdict.itemId === ids[0] ? 'reorder' : ':hover'} ${verdict.status}: ${verdict.hint}`)
+      expect(result.results.length === 2 && result.results.every((verdict) => verdict.status === 'pass'), statuses.join(' | '))
+      const after = await beanNames()
+      expect(after.join() === 'Fazenda Alta,Las Nubes,Kiamabara', `the page shows ${after.join(', ')}`)
+      await page.hover('.btn-primary')
+      await waitFor(async () => (await page.evaluate(() => getComputedStyle(document.querySelector('.btn-primary') as Element).backgroundColor)) === 'rgb(10, 63, 68)', { what: 'the hover background under a real mouse hover', timeoutMs: 3000 })
+      await page.mouse.move(1, 1)
+      return `${result.summary}\n        ${statuses.join('\n        ')}\n        in the page: ${after.join(', ')}; real hover on the primary button rgb(10, 63, 68)`
     })
 
     report.section('Stop')

@@ -9,6 +9,10 @@
  *   editFile(loop.fixture, 'src/Card.module.css', replaceOnce(...))   // the "agent"
  *   const result = loop.only((await loop.verify([item.id])).outcome)
  *
+ * The other gestures of the dock have the same shape: `editAndClaim(sel, { ..., state: 'hover' })`
+ * for an edit made in an interaction state, `reorderAndClaim(sel, { by: 1 })` for a move among the
+ * siblings, `resizeAndClaim(sel, { width, height })` for a handle drag (one item per axis).
+ *
  * The dock is driven through `window.__reglet_test` by METHOD NAME (`loop.dock('select', sel)`),
  * never by evaluating source text in the page, so it also works under a strict CSP.
  */
@@ -20,7 +24,7 @@ import { pathToFileURL } from 'node:url'
 import { Client, type CallToolResult } from '@modelcontextprotocol/client'
 import { getDefaultEnvironment, StdioClientTransport } from '@modelcontextprotocol/client/stdio'
 import type { Browser, Page } from '@playwright/test'
-import type { ChangeItem, VerificationResult } from '../../packages/protocol/src/change.ts'
+import type { ChangeItem, ElementState, VerificationResult } from '../../packages/protocol/src/change.ts'
 import type { PendingChanges, VerifyChangesResult } from '../../packages/protocol/src/session.ts'
 import type { RegletTestHandle, TestEditResult } from '../../packages/overlay/src/test-handle.ts'
 import { startReglet, type RegletHandle } from '../../packages/server/src/app.ts'
@@ -40,6 +44,23 @@ export interface StyleEdit {
   value: string
   media?: string
   scope?: 'instance' | 'all-instances'
+  /** The interaction state the edit is for (`hover`, ...). Absent: the resting style, whatever the State control says. */
+  state?: ElementState
+}
+
+/** Where a reorder moves the selection: `by` positions among its siblings (the Move buttons), or `to` an index from 0. */
+export type ReorderRequest = { by: number } | { to: number }
+
+/** A border-box size in CSS px, as a handle drag produces it. */
+export interface SizeRequest {
+  width?: number
+  height?: number
+}
+
+/** A batch the agent took over MCP: its items (all claimed) and the prompt it received. */
+export interface Claimed {
+  items: ChangeItem[]
+  prompt: string
 }
 
 type Method = keyof RegletTestHandle
@@ -69,6 +90,17 @@ export interface Loop {
   editAndClaim(selector: string, edit: StyleEdit | 'remove' | 'hide'): Promise<ChangeItem>
   /** Select, edit and Send, without any agent taking it (the pasted-prompt flow). */
   editAndSend(selector: string, edit: StyleEdit | 'remove' | 'hide'): Promise<{ item: ChangeItem; prompt: string }>
+  /** The agent takes what was sent over MCP: exactly `count` items, all claimed, and a prompt naming each and verify_changes. */
+  claim(count?: number): Promise<Claimed>
+  /** Select, move among the siblings, Send, and have the agent take it. `prompt` is what the agent received. */
+  reorderAndClaim(selector: string, move: ReorderRequest): Promise<{ item: ChangeItem; prompt: string }>
+  /**
+   * Select, resize to a border-box size (as a corner drag would), Send, and have the agent take it.
+   * `recorded` is what the one gesture recorded (one item per axis), `items` what the agent claimed.
+   */
+  resizeAndClaim(selector: string, size: SizeRequest, options?: Pick<StyleEdit, 'media' | 'scope' | 'state'>): Promise<Claimed & { recorded: ChangeItem[] }>
+  /** The border-box size of the first element matching `selector`, in CSS px, as the page lays it out now. */
+  borderBox(selector: string): Promise<{ width: number; height: number }>
 }
 
 export interface LoopOptions {
@@ -143,7 +175,11 @@ export async function startLoop(name: FixtureName, options: LoopOptions = {}): P
   const applyEdit = async (selector: string, edit: StyleEdit | 'remove' | 'hide'): Promise<ChangeItem> => {
     await dock('select', selector)
     const result: TestEditResult =
-      edit === 'remove' ? await dock('remove') : edit === 'hide' ? await dock('hide') : await dock('setStyle', edit.property, edit.value, { media: edit.media ?? null, scope: edit.scope ?? 'all-instances' })
+      edit === 'remove'
+        ? await dock('remove')
+        : edit === 'hide'
+          ? await dock('hide')
+          : await dock('setStyle', edit.property, edit.value, { media: edit.media ?? null, scope: edit.scope ?? 'all-instances', state: edit.state ?? null })
     expect(result.ok && result.item !== null, `the edit was not recorded: ${result.error ?? 'no item'}`)
     return result.item as ChangeItem
   }
@@ -155,16 +191,55 @@ export async function startLoop(name: FixtureName, options: LoopOptions = {}): P
     return { item, prompt }
   }
 
-  const editAndClaim = async (selector: string, edit: StyleEdit | 'remove' | 'hide'): Promise<ChangeItem> => {
-    await editAndSend(selector, edit)
+  const claim = async (count = 1): Promise<Claimed> => {
     const pending = await takePending()
     const items = pending.files.flatMap((group) => group.items)
-    expect(items.length === 1, `expected one claimed change, got ${items.length}`)
-    const item = items[0] as ChangeItem
-    expect(item.status === 'claimed', `the change came back as ${item.status}`)
-    expect(pending.prompt.includes(item.id) && pending.prompt.includes('verify_changes'), 'the agent prompt does not name the change id and the verify tool')
-    return item
+    expect(items.length === count, `expected ${count} claimed change(s), got ${items.length}`)
+    for (const item of items) {
+      expect(item.status === 'claimed', `the change ${item.id} came back as ${item.status}`)
+      expect(pending.prompt.includes(item.id), `the agent prompt does not name the change ${item.id}`)
+    }
+    expect(pending.prompt.includes('verify_changes'), 'the agent prompt does not name the verify tool')
+    return { items, prompt: pending.prompt }
   }
+
+  const editAndClaim = async (selector: string, edit: StyleEdit | 'remove' | 'hide'): Promise<ChangeItem> => {
+    await editAndSend(selector, edit)
+    return (await claim(1)).items[0] as ChangeItem
+  }
+
+  const reorderAndClaim = async (selector: string, move: ReorderRequest): Promise<{ item: ChangeItem; prompt: string }> => {
+    await dock('select', selector)
+    const result = 'by' in move ? await dock('move', move.by) : await dock('reorder', move.to)
+    expect(result.ok && result.item !== null, `the move was not recorded: ${result.error ?? 'no item'}`)
+    const recorded = result.item as ChangeItem
+    expect(recorded.kind === 'structure' && recorded.op === 'reorder', `recorded a ${recorded.kind === 'structure' ? recorded.op : recorded.kind}, not a reorder`)
+    const sent = await dock('send')
+    expect(sent.length > 0, 'Send returned an empty prompt')
+    const { items, prompt } = await claim(1)
+    const item = items[0] as ChangeItem
+    expect(item.id === recorded.id, `claimed ${item.id}, recorded ${recorded.id}`)
+    return { item, prompt }
+  }
+
+  const resizeAndClaim = async (selector: string, size: SizeRequest, options: Pick<StyleEdit, 'media' | 'scope' | 'state'> = {}): Promise<Claimed & { recorded: ChangeItem[] }> => {
+    await dock('select', selector)
+    const result = await dock('resize', size, { media: options.media ?? null, scope: options.scope ?? 'all-instances', state: options.state ?? null })
+    expect(result.ok && result.items !== undefined && result.items.length > 0, `the resize was not recorded: ${result.error ?? 'no items'}`)
+    const recorded = result.items as ChangeItem[]
+    const sent = await dock('send')
+    expect(sent.length > 0, 'Send returned an empty prompt')
+    const claimed = await claim(recorded.length)
+    const ids = new Set(claimed.items.map((item) => item.id))
+    expect(recorded.every((item) => ids.has(item.id)), `claimed ${[...ids].join(', ')}, recorded ${recorded.map((item) => item.id).join(', ')}`)
+    return { ...claimed, recorded }
+  }
+
+  const borderBox = (selector: string): Promise<{ width: number; height: number }> =>
+    page.evaluate((sel) => {
+      const rect = (document.querySelector(sel) as Element).getBoundingClientRect()
+      return { width: rect.width, height: rect.height }
+    }, selector)
 
   return {
     fixture,
@@ -184,5 +259,9 @@ export async function startLoop(name: FixtureName, options: LoopOptions = {}): P
     shownStatus: async (id) => (await dock('items')).find((item) => item.id === id)?.verification?.status ?? 'none',
     editAndClaim,
     editAndSend,
+    claim,
+    reorderAndClaim,
+    resizeAndClaim,
+    borderBox,
   }
 }

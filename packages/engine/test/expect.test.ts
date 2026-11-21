@@ -75,6 +75,15 @@ describe('deriveExpectations: structural changes', () => {
     const kiamabara = sibling('li "Kiamabara"', 0)
     const yirgacheffe = sibling('li "Yirgacheffe"', 2)
 
+    it('checks every recorded sibling around the element, not only its two neighbours', () => {
+      const a = sibling('li "A"', 0)
+      const b = sibling('li "B"', 2)
+      const c = sibling('li "C"', 3)
+      const derived = deriveExpectations(structure({ op: 'reorder', target: gesha, move: move({ toIndex: 1, now: { prev: a, next: b }, around: { before: [a], after: [b, c] } }) }))
+      expect(derived).toEqual<Expectation[]>([{ type: 'order', siblings: [a, self, b, c] }])
+    })
+
+
     it('one `order` from where the element stands now: the neighbour before, the element itself, the neighbour after', () => {
       const derived = deriveExpectations(structure({ op: 'reorder', target: gesha, move: move() }))
       expect(derived).toEqual<Expectation[]>([{ type: 'order', siblings: [kiamabara, self, yirgacheffe] }])

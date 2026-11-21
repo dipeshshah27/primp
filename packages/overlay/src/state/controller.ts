@@ -952,7 +952,18 @@ export function createController(options: ControllerOptions): Controller {
         expect: [],
         kind: 'structure',
         op: 'reorder',
-        move: { fromIndex: index, toIndex, siblingCount: after.length, parent: labelOf(parent).split(' "')[0] ?? parent.localName, was, now: neighboursAt(after, toIndex) },
+        move: {
+          fromIndex: index,
+          toIndex,
+          siblingCount: after.length,
+          parent: labelOf(parent).split(' "')[0] ?? parent.localName,
+          was,
+          now: neighboursAt(after, toIndex),
+          around: {
+            before: after.slice(Math.max(0, toIndex - 5), toIndex).map((sibling) => anchorOf(sibling) as SiblingAnchor),
+            after: after.slice(toIndex + 1, toIndex + 6).map((sibling) => anchorOf(sibling) as SiblingAnchor),
+          },
+        },
       }
       if (effects.partial) item.sideEffectsPartial = true
       item.expect = deriveExpectations(item)

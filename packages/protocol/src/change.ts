@@ -357,6 +357,13 @@ export const StructuralChangeSchema = z.object({
       was: z.object({ prev: SiblingAnchorSchema.optional(), next: SiblingAnchorSchema.optional() }),
       /** The neighbours after the move. */
       now: z.object({ prev: SiblingAnchorSchema.optional(), next: SiblingAnchorSchema.optional() }),
+      /**
+       * The siblings around the element after the move, in the wanted order: up to five before it
+       * (nearest last) and five after it (nearest first). With six or fewer children on each side this
+       * is the parent's whole order, which is what verification checks. Absent in items recorded
+       * before it existed; verification then falls back to `now`.
+       */
+      around: z.object({ before: z.array(SiblingAnchorSchema).max(5), after: z.array(SiblingAnchorSchema).max(5) }).optional(),
     })
     .optional(),
 })
