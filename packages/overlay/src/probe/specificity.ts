@@ -150,6 +150,65 @@ export function hasDynamicState(selector: string): boolean {
 }
 
 /**
+ * ONE complex selector with every `:<state>` written as `replacement` instead: with
+ * `replaceState('.btn:hover > i', 'hover', '[x]')` the result is `.btn[x] > i`. Used to make a
+ * rule apply to an element that is marked as being in a state without the pointer or the focus
+ * being there. Looks inside `:is()`, `:where()`, `:not()` and `:has()` too. Returns null when the
+ * selector does not mention the state, so the caller can leave such rules alone.
+ */
+export function replaceState(selector: string, state: string, replacement: string): string | null {
+  const n = selector.length
+  let out = ''
+  let found = false
+  let i = 0
+  while (i < n) {
+    const ch = selector[i]!
+    if (ch === '\\') {
+      out += selector.slice(i, i + 2)
+      i += 2
+    } else if (ch === '"' || ch === "'") {
+      const end = skipString(selector, i)
+      out += selector.slice(i, end)
+      i = end
+    } else if (ch === '[') {
+      const end = skipGroup(selector, i)
+      out += selector.slice(i, end)
+      i = end
+    } else if (ch === ':') {
+      const start = i++
+      const double = selector[i] === ':'
+      if (double) i++
+      const nameStart = i
+      while (i < n && (selector[i] === '\\' || /[\w-]/.test(selector[i]!) || selector.charCodeAt(i) > 0x7f)) i += selector[i] === '\\' ? 2 : 1
+      const name = selector.slice(nameStart, i).toLowerCase()
+      let args: string | undefined
+      if (selector[i] === '(') {
+        const end = skipGroup(selector, i)
+        args = selector.slice(i + 1, end - 1)
+        i = end
+      }
+      if (!double && args === undefined && name === state) {
+        out += replacement
+        found = true
+      } else if (!double && args !== undefined && (name === 'where' || LIST_PSEUDO_CLASSES.has(name))) {
+        const inner = splitSelectorList(args).map((part) => {
+          const replaced = replaceState(part, state, replacement)
+          if (replaced !== null) found = true
+          return replaced ?? part
+        })
+        out += `:${name}(${inner.join(', ')})`
+      } else {
+        out += selector.slice(start, i)
+      }
+    } else {
+      out += ch
+      i++
+    }
+  }
+  return found ? out : null
+}
+
+/**
  * ONE complex selector without its pseudo-elements and transient states: `.btn:hover::before`
  * becomes `.btn`. What is left matches every element the selector can style, whatever the
  * pointer and the focus are doing. A compound that consisted of nothing else becomes `*`
