@@ -9,8 +9,9 @@ import type { MeasureRequest, Measurement } from './probe/measure.ts'
 import { forcedNow } from './probe/states.ts'
 import { suggestProperties, supportedProperties } from './probe/properties.ts'
 import { summarizeRecorded } from './probe/effects.ts'
-import { summaryKey, type Controller, type EffectsCost, type StyleEditOptions } from './state/controller.ts'
+import { summaryKey, type Controller, type EffectsCost, type SizeRequest, type StyleEdit, type StyleEditOptions } from './state/controller.ts'
 import type { ShiftState, TabName } from './state/store.ts'
+import type { DragState, HandleName, ViewRect } from './ui/handles.ts'
 import type { DockHandle } from './ui/mount.ts'
 
 export interface TestEditResult {
@@ -18,6 +19,8 @@ export interface TestEditResult {
   error?: string
   /** The recorded item after the edit; null when the edit restored the original and the item was deleted. */
   item: ChangeItem | null
+  /** `setStyles` and `resize`: every item the gesture recorded (one per property). */
+  items?: ChangeItem[]
 }
 
 export interface TestState {
@@ -57,6 +60,22 @@ export interface RegletTestHandle {
   setState(state: ElementState | null): Promise<void>
   /** `options.state` makes the edit for that state whatever the State control says; `null` for a resting edit. */
   setStyle(property: string, value: string, options?: StyleEditOptions): Promise<TestEditResult>
+  /** Several properties as one gesture: one side-effect measurement, one undo step, one item per property. */
+  setStyles(edits: StyleEdit[], options?: StyleEditOptions): Promise<TestEditResult>
+  /**
+   * Resizes the selection to a BORDER-BOX size in CSS px (what a handle drag produces): records
+   * `width` / `height` for its box-sizing, in whole px. Refused for inline elements and for a size
+   * that does not change the box.
+   */
+  resize(size: SizeRequest, options?: StyleEditOptions): Promise<TestEditResult>
+  /** Moves the selection by `delta` positions among its siblings: -1 is "Move earlier", +1 "Move later". */
+  move(delta: number): Promise<TestEditResult>
+  /** Moves the selection to `toIndex` (from 0) among its parent's element children. */
+  reorder(toIndex: number): Promise<TestEditResult>
+  /** Viewport rects of the handles shown now (resize: `e`, `s`, `se`; reorder: `grip`), to drive a real mouse drag on them. */
+  handles(): Partial<Record<HandleName, ViewRect>>
+  /** The handle drag in progress: the size shown, or the drop position and its insertion line; null when none. */
+  drag(): DragState | null
   hide(): Promise<TestEditResult>
   remove(): Promise<TestEditResult>
   undo(): Promise<ChangeItem[]>
@@ -95,7 +114,8 @@ export function installTestHandle(c: Controller, dock: DockHandle): RegletTestHa
   const items = (): ChangeItem[] => store.items.value
   const result = async (edit: ReturnType<Controller['setStyle']>): Promise<TestEditResult> => {
     const outcome = await edit
-    return outcome.ok ? { ok: true, item: outcome.item } : { ok: false, error: outcome.error, item: null }
+    if (!outcome.ok) return { ok: false, error: outcome.error, item: null }
+    return outcome.items === undefined ? { ok: true, item: outcome.item } : { ok: true, item: outcome.item, items: outcome.items }
   }
   const find = (id: string): ChangeItem | null => items().find((item) => item.id === id) ?? null
 
@@ -120,6 +140,15 @@ export function installTestHandle(c: Controller, dock: DockHandle): RegletTestHa
       c.setState(state)
     },
     setStyle: (property, value, options) => result(c.setStyle(property, value, options)),
+    setStyles: (edits, options) => result(c.setStyles(edits, options)),
+    resize: (size, options) => result(c.resize(size, options)),
+    move: (delta) => result(c.move(delta)),
+    reorder: (toIndex) => result(c.reorder(toIndex)),
+    handles() {
+      dock.highlighter.flush()
+      return dock.handles.rects()
+    },
+    drag: () => dock.handles.drag(),
     hide: () => result(c.structural('hide')),
     remove: () => result(c.structural('remove')),
     async undo() {

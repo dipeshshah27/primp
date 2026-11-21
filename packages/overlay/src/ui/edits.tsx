@@ -1,6 +1,7 @@
 /**
- * The Edits tab: pick an element, change its styles, hide or remove it, and review the tray of
- * recorded changes with their side effects.
+ * The Edits tab: pick an element, change its styles, hide, remove or move it, and review the
+ * tray of recorded changes with their side effects. (Resizing and dragging to another position
+ * are done on the page, with the handles on the selection: handles.ts.)
  */
 
 import type { ChangeItem, ElementState, SideEffect } from '@reglet/protocol/change'
@@ -408,6 +409,35 @@ function StateControl({ c, selection, state }: { c: Controller; selection: Selec
   )
 }
 
+/** Move earlier / Move later: the keyboard path to reordering (the grip on the page is the pointer's). */
+function MoveButtons({ c, selection }: { c: Controller; selection: Selection }) {
+  const refusal = c.reorderRefusal()
+  const position = selection.position
+  const first = position === null || position.index === 0
+  const last = position === null || position.index === position.count - 1
+  const where = position === null ? '' : `Position ${position.index + 1} of ${position.count} among its siblings.`
+  return (
+    <div class="seg" role="group" aria-label="Move among siblings">
+      <button
+        type="button"
+        disabled={refusal !== null || first}
+        title={refusal ?? (first ? `${where} Already the first.` : `${where} Move it one place earlier.`)}
+        onClick={() => void c.move(-1)}
+      >
+        Move earlier
+      </button>
+      <button
+        type="button"
+        disabled={refusal !== null || last}
+        title={refusal ?? (last ? `${where} Already the last.` : `${where} Move it one place later.`)}
+        onClick={() => void c.move(1)}
+      >
+        Move later
+      </button>
+    </div>
+  )
+}
+
 function SelectionPanel({ c, selection }: { c: Controller; selection: Selection }) {
   const { store } = c
   const source = store.source.value
@@ -533,7 +563,8 @@ function SelectionPanel({ c, selection }: { c: Controller; selection: Selection 
         ) : null}
       </div>
       <AddProperty c={c} custom={custom} />
-      <div class="row">
+      <div class="row wrap">
+        <MoveButtons c={c} selection={selection} />
         <button type="button" class="btn danger" onClick={() => void c.structural('hide')} title="Keep the element in the DOM but do not display it">
           Hide
         </button>

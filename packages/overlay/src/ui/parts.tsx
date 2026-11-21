@@ -45,9 +45,22 @@ export function SourceBadge({ loc, state }: { loc: SourceLoc | null; state?: Sou
   )
 }
 
+/** `Moved: position 2 of 3 in ul.bean-grid (was 3), now after li "Las Nubes"` */
+function MoveLine({ item }: { item: Extract<ChangeItem, { kind: 'structure' }> }) {
+  const move = item.move
+  if (move === undefined) return <div class="change">Move this element among its siblings</div>
+  const near = move.now.prev !== undefined ? `, now after ${move.now.prev.label}` : move.now.next !== undefined ? `, now before ${move.now.next.label}` : ''
+  return (
+    <div class="change" title={`Was ${move.was.prev === undefined ? 'first' : `after ${move.was.prev.label}`}${move.was.next === undefined ? '' : `, before ${move.was.next.label}`}`}>
+      <span class="p">Moved</span>: position <ins>{move.toIndex + 1}</ins> of {move.siblingCount} in {move.parent} (was {move.fromIndex + 1}){near}
+    </div>
+  )
+}
+
 /** `padding: 20px -> 28px`, `background-color on :hover: old -> new`, or what a structural change does. */
 export function ChangeLine({ item }: { item: ChangeItem }) {
   if (item.kind === 'structure') {
+    if (item.op === 'reorder') return <MoveLine item={item} />
     return <div class="change">{item.op === 'remove' ? 'Remove this element from the source' : 'Hide this element (keep it in the DOM)'}</div>
   }
   const before = item.before.authored ?? item.before.computed

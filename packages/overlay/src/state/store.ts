@@ -30,6 +30,8 @@ export interface Selection {
   /** Ancestors from the outermost shown one down to the element itself. */
   crumbs: Crumb[]
   hasChild: boolean
+  /** Where it stands among its parent's element children; null without a parent element. */
+  position: { index: number; count: number } | null
 }
 
 export interface ShiftState {

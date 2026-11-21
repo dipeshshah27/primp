@@ -14,13 +14,20 @@
  *     waits for a frame;
  *   - while a state is chosen (`store.state`) the selected element is held in it with
  *     `forceState` (probe/states.ts). `holdState()` is the one function that brings the page in
- *     line with the State control; it is called after everything that could put them apart.
+ *     line with the State control; it is called after everything that could put them apart;
+ *   - a gesture is one undo step: `setStyles` (and `resize`, which is `setStyles` of width and
+ *     height) records one item per property after ONE side-effect measurement; `setStyle` is
+ *     its single-property case. While a handle is dragged only `previewSize` runs (one preview
+ *     rule, nothing recorded or sent);
+ *   - a reorder (`reorder`, `move`) moves the element among the element children of its parent
+ *     only, with a preview that really moves the node (probe/preview.ts) and is put back for
+ *     every measurement and on Send. It ignores the State control.
  */
 
 import { batch, effect } from '@preact/signals'
 import { deriveExpectations } from '@reglet/engine/expect'
 import { editKey, emptyHistory, historyReducer, upsertEdit } from '@reglet/engine/items'
-import type { ChangeItem, Condition, ElementState, SideEffect, SourceLoc, StructuralChange, StyleChange } from '@reglet/protocol/change'
+import type { ChangeItem, Condition, ElementState, SideEffect, SiblingAnchor, SourceLoc, StructuralChange, StyleChange } from '@reglet/protocol/change'
 import type { ServerMessage, SessionInfo } from '@reglet/protocol/messages'
 import { collectEvidence } from '@reglet/source/browser/index'
 import type { RegletBus } from '../bus.ts'
@@ -29,14 +36,28 @@ import { measureEffects, type EffectsResult } from '../probe/effects.ts'
 import { measure, type MeasureRequest, type Measurement } from '../probe/measure.ts'
 import { createPreview, type Preview, type PreviewSpec } from '../probe/preview.ts'
 import { computedLonghands, computedValue, isCustomProperty, isSupportedProperty, isValidValue } from '../probe/properties.ts'
-import { buildRef, elementOfUid, labelOf, locate, setUidPrefix, uidOf } from '../probe/ref.ts'
+import { elementChildren, positionOf, reorderRefusal } from '../probe/order.ts'
+import { buildRef, elementOfUid, labelOf, locate, locatorOf, setUidPrefix, uidOf } from '../probe/ref.ts'
 import { createPicker, neighbour, type Picker } from '../probe/select.ts'
+import { boxModelOf, cssSizeFor, resizeRefusal } from '../probe/size.ts'
 import { forcedNow, forceState } from '../probe/states.ts'
 import { originOf, readStyles, statesCovering, type ElementStyles } from '../probe/styles.ts'
 import { createStore, type Crumb, type Selection, type ShiftState, type Store } from './store.ts'
 import { bySeq, diffLists, reconcile, withServerTruth } from './sync.ts'
 
-export type EditResult = { ok: true; item: ChangeItem | null } | { ok: false; error: string }
+/** `items`: every item a gesture of several edits recorded (`setStyles`, `resize`); `item` is the first of them. */
+export type EditResult = { ok: true; item: ChangeItem | null; items?: ChangeItem[] } | { ok: false; error: string }
+
+export interface StyleEdit {
+  property: string
+  value: string
+}
+
+/** The border-box size wanted, in CSS px: what a handle drag produces. */
+export interface SizeRequest {
+  width?: number
+  height?: number
+}
 
 export type EffectsCost = Pick<EffectsResult, 'ms' | 'parts' | 'elements' | 'partial'>
 
@@ -70,6 +91,24 @@ export interface Controller {
    */
   setState(state: ElementState | null): void
   setStyle(property: string, value: string, options?: StyleEditOptions): Promise<EditResult>
+  /** Several properties as one gesture: one side-effect measurement, one undo step, one item per property. */
+  setStyles(edits: readonly StyleEdit[], options?: StyleEditOptions): Promise<EditResult>
+  /**
+   * Resizes the selected element to a border-box size (CSS px) by recording `width` and / or
+   * `height` for its `box-sizing`, in whole px, as one gesture. Refuses inline elements and a
+   * size that does not change the element's box.
+   */
+  resize(size: SizeRequest, options?: StyleEditOptions): Promise<EditResult>
+  /** During a handle drag: shows a size on the page and records nothing; null takes it away. */
+  previewSize(size: SizeRequest | null): void
+  /** Moves the selected element to `toIndex` among its parent's element children (from 0). */
+  reorder(toIndex: number): Promise<EditResult>
+  /** Moves the selected element by `delta` positions among its siblings (-1: earlier, +1: later). */
+  move(delta: number): Promise<EditResult>
+  /** Why the selected element cannot be moved among its siblings; null when it can. Reads signals, so a component re-renders with it. */
+  reorderRefusal(): string | null
+  /** Why the selected element cannot be resized; null when it can. */
+  resizeRefusal(): string | null
   structural(op: 'hide' | 'remove'): Promise<EditResult>
   deleteItem(id: string): void
   setVerdict(id: string, effectIndex: number, verdict: SideEffect['verdict']): void
@@ -148,9 +187,11 @@ export function specOf(item: ChangeItem): PreviewSpec {
     uid: item.target.uid,
     locator: item.target.locator,
     scope: item.kind === 'style' ? item.scope : 'instance',
-    declarations: item.kind === 'style' ? [{ property: item.property, value: item.after.authored }] : [{ property: 'display', value: 'none' }],
+    declarations: item.kind === 'style' ? [{ property: item.property, value: item.after.authored }] : item.op === 'reorder' ? [] : [{ property: 'display', value: 'none' }],
     seq: item.seq,
   }
+  // A reorder moves the node (probe/preview.ts); without `move` it is a draft that says nothing to show.
+  if (item.kind === 'structure' && item.op === 'reorder' && item.move !== undefined) spec.move = { toIndex: item.move.toIndex }
   if (item.kind === 'style' && item.condition.media !== undefined && item.condition.media !== '') spec.media = item.condition.media
   if (item.kind === 'style' && item.condition.state !== undefined) spec.state = item.condition.state
   return spec
@@ -323,6 +364,7 @@ export function createController(options: ControllerOptions): Controller {
 
   const describe = (element: Element): Selection => {
     const ref = buildRef(element, sources.get(element) ?? null)
+    const position = positionOf(element)
     return {
       element,
       ref,
@@ -330,6 +372,7 @@ export function createController(options: ControllerOptions): Controller {
       instances: ref.instanceCount,
       crumbs: crumbsOf(element),
       hasChild: neighbour(element, 'ArrowDown') !== null,
+      position: position === null ? null : { index: position.index, count: position.siblings.length },
     }
   }
 
@@ -561,66 +604,110 @@ export function createController(options: ControllerOptions): Controller {
     return store.selection.value
   }
 
-  const setStyle = (rawProperty: string, rawValue: string, edit: StyleEditOptions = {}): Promise<EditResult> =>
-    enqueue(async () => {
-      store.error.value = null
-      const selection = target()
-      if (selection === null) return fail('Select an element first.')
-      const element = selection.element
-      const typed = rawProperty.trim()
-      const property = isCustomProperty(typed) ? typed : typed.toLowerCase()
-      const value = rawValue.trim().replace(/;+$/, '').trim()
-      if (!isSupportedProperty(property)) return fail(`"${typed}" is not a CSS property this browser knows.`)
-      if (!isValidValue(property, value)) return fail(`"${value}" is not a valid value for ${property}.`)
-      const media = edit.media === undefined ? store.media.value : edit.media
-      const scope = edit.scope ?? store.scope.value
-      const state = edit.state === undefined ? store.state.value : edit.state
-      if (media !== null && media !== '' && !mediaMatches(media)) {
-        return fail(`The viewport does not match @media ${media}. Resize the window until it does to edit under it.`)
+  /** The element's recorded hide or remove, if it has one. */
+  const hiddenBy = (uid: string): 'hide' | 'remove' | undefined => {
+    const item = present().find((other): other is StructuralChange => other.kind === 'structure' && other.status === 'draft' && other.target.uid === uid && other.op !== 'reorder')
+    return item?.op === 'hide' || item?.op === 'remove' ? item.op : undefined
+  }
+
+  /**
+   * One gesture of style edits on the selected element: several properties (a resize sets width
+   * and height), ONE side-effect measurement, ONE undo step, one item per property. Every item is
+   * an ordinary style change, made exactly as a single `setStyle` is (validation, the state the
+   * element is held in for it, media, scope, bystanders, longhands). The side effects belong to
+   * the gesture as a whole, so each of its items carries the same list.
+   *
+   * `make` gives the edits once the element is in the state the gesture is for (a resize reads
+   * the element's padding there). With `sized`, the edits are border-box sizes from `resize`:
+   * each is first tried on the page without a frame being drawn, and one that does not change
+   * the box (an item a flex or grid container sizes) is not recorded but reported.
+   */
+  const styleGesture = async (make: (element: Element) => StyleEdit[] | string, edit: StyleEditOptions, sized?: Partial<Record<'width' | 'height', number>>): Promise<EditResult> => {
+    store.error.value = null
+    const selection = target()
+    if (selection === null) return fail('Select an element first.')
+    const element = selection.element
+    const media = edit.media === undefined ? store.media.value : edit.media
+    const scope = edit.scope ?? store.scope.value
+    const state = edit.state === undefined ? store.state.value : edit.state
+    if (media !== null && media !== '' && !mediaMatches(media)) {
+      return fail(`The viewport does not match @media ${media}. Resize the window until it does to edit under it.`)
+    }
+
+    // From here until everything is measured the element is in the state the edit is for (at rest
+    // for a resting edit), whatever the State control is set to meanwhile: before and after
+    // values, longhands and side effects are then read by the same code as for any other edit.
+    pinned = true
+    try {
+      const held = forcedNow()
+      if (state === null) held?.release()
+      else if (held !== undefined && held.element === element && held.state === state) held.refresh()
+      else forceState(element, state)
+
+      const made = make(element)
+      if (typeof made === 'string') return fail(made)
+      const wanted = new Map<string, string>()
+      for (const raw of made) {
+        const typed = raw.property.trim()
+        const property = isCustomProperty(typed) ? typed : typed.toLowerCase()
+        const value = raw.value.trim().replace(/;+$/, '').trim()
+        if (!isSupportedProperty(property)) return fail(`"${typed}" is not a CSS property this browser knows.`)
+        if (!isValidValue(property, value)) return fail(`"${value}" is not a valid value for ${property}.`)
+        // The same property twice in one gesture: the last value counts.
+        wanted.delete(property)
+        wanted.set(property, value)
       }
+      if (wanted.size === 0) return fail('There is nothing to change.')
 
       const uid = uidOf(element)
-      const draft: StyleChange = {
-        id: '',
-        seq: nextSeq(),
-        createdAt: Date.now(),
-        page,
-        status: 'draft',
-        target: { ...selection.ref, uid },
-        sideEffects: [],
-        expect: [],
-        kind: 'style',
-        property,
-        scope,
-        before: { computed: '' },
-        after: { authored: value, computed: '' },
-        condition: condition(media, state),
-        stylingSystem: selection.styles.system,
+      const existingOf = new Map<string, StyleChange>()
+      let drafts: StyleChange[] = [...wanted].map(([property, value], index) => {
+        const draft: StyleChange = {
+          id: '',
+          seq: nextSeq() + index,
+          createdAt: Date.now(),
+          page,
+          status: 'draft',
+          target: { ...selection.ref, uid },
+          sideEffects: [],
+          expect: [],
+          kind: 'style',
+          property,
+          scope,
+          before: { computed: '' },
+          after: { authored: value, computed: '' },
+          condition: condition(media, state),
+          stylingSystem: selection.styles.system,
+        }
+        const key = editKey(draft)
+        const existing = present().find((item): item is StyleChange => item.kind === 'style' && item.status === 'draft' && editKey(item) === key)
+        draft.id = existing?.id ?? newId('c')
+        if (existing !== undefined) existingOf.set(draft.id, existing)
+        return draft
+      })
+
+      if (sized !== undefined) {
+        const tried = trySizes(element, drafts, sized, existingOf, selection.styles)
+        if (typeof tried === 'string') return fail(tried)
+        drafts = tried.kept
+        if (drafts.length === 0) return { ok: true, item: null, items: [] }
+        if (tried.note !== undefined) store.error.value = tried.note
       }
-      const key = editKey(draft)
-      const existing = present().find((item): item is StyleChange => item.kind === 'style' && item.status === 'draft' && editKey(item) === key)
-      draft.id = existing?.id ?? newId('c')
 
-      // From here until everything is measured the element is in the state the edit is for (at rest
-      // for a resting edit), whatever the State control is set to meanwhile: before and after
-      // values, longhands and side effects are then read by the same code as for any other edit.
-      pinned = true
-      try {
-        const held = forcedNow()
-        if (state === null) held?.release()
-        else if (held !== undefined && held.element === element && held.state === state) held.refresh()
-        else forceState(element, state)
-
-        const where = originOf(selection.styles, property, state)
-        // Measure "before" on the page without this edit's own earlier preview. For a state whose own
-        // rule sets the property, also without a resting draft of that property: its preview is
-        // `!important` and would cover the page's rule for the state, which in the source it cannot.
-        const covered =
-          state !== null && (where.ruleStates?.length ?? 0) > 0
-            ? present().filter((item) => item.kind === 'style' && item.status === 'draft' && item.target.uid === uid && item.property === property && item.condition.state === undefined)
-            : []
-        preview.mute([draft.id, ...covered.map((item) => item.id)])
-        const styleBefore = getComputedStyle(element)
+      // Measure "before" on the page without this gesture's own earlier previews. For a state whose own
+      // rule sets the property, also without a resting draft of that property: its preview is
+      // `!important` and would cover the page's rule for the state, which in the source it cannot.
+      const origins = new Map(drafts.map((draft) => [draft.id, originOf(selection.styles, draft.property, state)]))
+      const covered = drafts.flatMap((draft) =>
+        state !== null && (origins.get(draft.id)?.ruleStates?.length ?? 0) > 0
+          ? present().filter((item) => item.kind === 'style' && item.status === 'draft' && item.target.uid === uid && item.property === draft.property && item.condition.state === undefined).map((item) => item.id)
+          : [],
+      )
+      preview.mute([...drafts.map((draft) => draft.id), ...covered])
+      const styleBefore = getComputedStyle(element)
+      const prepared = drafts.map((draft) => {
+        const property = draft.property
+        const where = origins.get(draft.id)!
         draft.before = { computed: computedValue(element, property, styleBefore) }
         const longhandsBefore = computedLonghands(element, property, styleBefore)
         if (where.authored !== undefined) draft.before.authored = where.authored
@@ -631,22 +718,26 @@ export function createController(options: ControllerOptions): Controller {
         const witnessed = longhandsBefore === undefined ? [property] : Object.keys(longhandsBefore)
         const others = state === null && where.origin.via === 'rule' && where.ruleSelector !== undefined ? findBystanders(where.ruleSelector, element, scope) : null
         const bystanders = (others?.elements ?? []).map((other) => ({ element: other, record: describeBystander(other, witnessed) }))
+        return { draft, where, longhandsBefore, witnessed, others, bystanders, spec: specFor(draft, selection.styles) }
+      })
 
-        const spec = specFor(draft, selection.styles)
-        const effects = await measureEffects(() => {
-          const elements = preview.apply(spec, element)
-          preview.mute(null)
-          return elements
-        })
+      const effects = await measureEffects(() => {
+        const elements = new Set<Element>()
+        for (const { spec } of prepared) for (const one of preview.apply(spec, element)) elements.add(one)
+        preview.mute(null)
+        return [...elements]
+      })
 
-        const styleAfter = getComputedStyle(element)
+      const styleAfter = getComputedStyle(element)
+      for (const { draft, where, longhandsBefore, witnessed, others, bystanders } of prepared) {
+        const property = draft.property
         draft.after.computed = computedValue(element, property, styleAfter)
         const longhandsAfter = computedLonghands(element, property, styleAfter)
         if (longhandsBefore !== undefined && longhandsAfter !== undefined) {
           draft.longhands = {}
           for (const name of Object.keys(longhandsAfter)) draft.longhands[name] = { before: longhandsBefore[name] ?? '', after: longhandsAfter[name] ?? '' }
         }
-        draft.sideEffects = effects.sideEffects
+        draft.sideEffects = effects.sideEffects.map((effect) => ({ ...effect }))
         if (effects.partial) draft.sideEffectsPartial = true
         draft.target = withKnownSource(draft.target, element)
         if (others !== null) {
@@ -661,19 +752,228 @@ export function createController(options: ControllerOptions): Controller {
           }
         }
         draft.expect = deriveExpectations(draft)
-
-        const next = upsertEdit(present(), draft)
-        const stored = next.find((item) => item.id === draft.id) ?? null
-        commit(next)
-        if (stored === null) forget(draft.id)
-        else remember(stored, effects)
-        refresh()
-        return { ok: true, item: stored }
-      } finally {
-        preview.mute(null)
-        pinned = false
-        holdState()
       }
+
+      // One commit: one undo step for the whole gesture.
+      let next = present()
+      for (const { draft } of prepared) next = upsertEdit(next, draft)
+      const stored = prepared.map(({ draft }) => next.find((item) => item.id === draft.id) ?? null)
+      commit(next)
+      prepared.forEach(({ draft }, index) => {
+        const item = stored[index]
+        if (item === null || item === undefined) forget(draft.id)
+        else remember(item, effects)
+      })
+      refresh()
+      const items = stored.filter((item): item is ChangeItem => item !== null && item !== undefined)
+      return { ok: true, item: stored[0] ?? null, items }
+    } finally {
+      preview.mute(null)
+      pinned = false
+      holdState()
+    }
+  }
+
+  /**
+   * Resize only: applies the gesture's previews, reads the border box and puts the previews back
+   * as they were, all in one task (no frame is drawn, so nothing is seen and nothing shifts).
+   * Keeps a size that takes effect, drops one the user did not change (without an earlier draft
+   * of it), and drops with a reason one that changes nothing on the page.
+   */
+  const trySizes = (
+    element: Element,
+    drafts: StyleChange[],
+    sized: Partial<Record<'width' | 'height', number>>,
+    existingOf: ReadonlyMap<string, StyleChange>,
+    styles: ElementStyles,
+  ): { kept: StyleChange[]; note?: string } | string => {
+    const ids = drafts.map((draft) => draft.id)
+    preview.mute(ids)
+    const before = element.getBoundingClientRect()
+    for (const draft of drafts) preview.apply(specFor(draft, styles), element)
+    preview.mute(null)
+    const after = element.getBoundingClientRect()
+    // Back as it was: earlier drafts show their own value again, new ones go.
+    for (const draft of drafts) {
+      const existing = existingOf.get(draft.id)
+      if (existing === undefined) forget(draft.id)
+      else syncPreview(existing)
+    }
+    const kept: StyleChange[] = []
+    const noEffect: string[] = []
+    for (const draft of drafts) {
+      const axis = draft.property === 'width' || draft.property === 'height' ? draft.property : undefined
+      const want = axis === undefined ? undefined : sized[axis]
+      if (axis === undefined || want === undefined) {
+        kept.push(draft)
+        continue
+      }
+      const was = axis === 'width' ? before.width : before.height
+      const now = axis === 'width' ? after.width : after.height
+      if (Math.abs(want - was) < 0.5 && !existingOf.has(draft.id)) continue
+      if (Math.abs(now - was) < 0.5 && Math.abs(now - want) > 1) noEffect.push(axis)
+      else kept.push(draft)
+    }
+    if (noEffect.length === 0) return { kept }
+    const which = noEffect.join(' and ')
+    const reason = `The ${which} of this element did not change when ${noEffect.length === 1 ? 'it was' : 'they were'} set: its size is decided by its container (a flex or grid layout) or by a min or max size. Resize the container, or change how it sizes this element.`
+    if (kept.length === 0) return reason
+    return { kept, note: `Only the ${kept.map((draft) => draft.property).join(' and ')} was recorded. ${reason}` }
+  }
+
+  const setStyles = (edits: readonly StyleEdit[], options: StyleEditOptions = {}): Promise<EditResult> => enqueue(() => styleGesture(() => [...edits], options))
+
+  const setStyle = (property: string, value: string, options: StyleEditOptions = {}): Promise<EditResult> => setStyles([{ property, value }], options)
+
+  // -------------------------------------------------------------------------
+  // Resize
+  // -------------------------------------------------------------------------
+
+  /** The CSS width / height that give the element the border-box size wanted, read in the state it is shown in now. */
+  const sizeEdits = (element: Element, size: SizeRequest): StyleEdit[] | string => {
+    const style = getComputedStyle(element)
+    const edits: StyleEdit[] = []
+    for (const axis of ['width', 'height'] as const) {
+      const wanted = size[axis]
+      if (wanted === undefined) continue
+      if (typeof wanted !== 'number' || !Number.isFinite(wanted) || wanted < 0) return `The ${axis} to resize to must be a number of px, 0 or more.`
+      edits.push({ property: axis, value: `${cssSizeFor(wanted, boxModelOf(style, axis))}px` })
+    }
+    return edits.length === 0 ? 'Give a width or a height to resize to.' : edits
+  }
+
+  /** The preview of a handle drag in progress: one rule, no item, no history, nothing sent. */
+  const LIVE_SIZE = 'reglet-live-size'
+
+  const previewSize = (size: SizeRequest | null): void => {
+    const selection = store.selection.peek()
+    if (size === null || selection === null || !selection.element.isConnected) {
+      if (preview.has(LIVE_SIZE)) forget(LIVE_SIZE)
+      return
+    }
+    const edits = sizeEdits(selection.element, size)
+    if (typeof edits === 'string') return
+    const media = store.media.peek()
+    const state = store.state.peek()
+    const spec: PreviewSpec = {
+      itemId: LIVE_SIZE,
+      uid: uidOf(selection.element),
+      locator: selection.ref.locator,
+      scope: store.scope.peek(),
+      declarations: edits,
+      // After every recorded preview: the drag shows what the release will record.
+      seq: Number.MAX_SAFE_INTEGER,
+    }
+    if (media !== null && media !== '' && mediaMatches(media)) spec.media = media
+    if (state !== null) spec.state = state
+    preview.apply(spec, selection.element)
+  }
+
+  const resize = (size: SizeRequest, options: StyleEditOptions = {}): Promise<EditResult> =>
+    enqueue(() => {
+      // A drag's live preview goes in the same task as the measurement starts: no frame shows the old size in between.
+      if (preview.has(LIVE_SIZE)) forget(LIVE_SIZE)
+      const selection = target()
+      if (selection === null) return Promise.resolve(fail('Select an element first.'))
+      const refusal = resizeRefusal(selection.element)
+      if (refusal !== null) return Promise.resolve(fail(refusal))
+      const sized: Partial<Record<'width' | 'height', number>> = {}
+      if (size.width !== undefined) sized.width = size.width
+      if (size.height !== undefined) sized.height = size.height
+      return styleGesture((element) => sizeEdits(element, size), options, sized)
+    })
+
+  // -------------------------------------------------------------------------
+  // Reorder
+  // -------------------------------------------------------------------------
+
+  const reorderRefusalOf = (element: Element): string | null => reorderRefusal(element, hiddenBy(uidOf(element)))
+
+  const anchorOf = (element: Element | undefined): SiblingAnchor | undefined => (element === undefined ? undefined : { label: labelOf(element), locator: locatorOf(element) })
+  const neighboursAt = (siblings: readonly Element[], index: number): { prev?: SiblingAnchor; next?: SiblingAnchor } => {
+    const out: { prev?: SiblingAnchor; next?: SiblingAnchor } = {}
+    const prev = anchorOf(siblings[index - 1])
+    const next = anchorOf(siblings[index + 1])
+    if (prev !== undefined) out.prev = prev
+    if (next !== undefined) out.next = next
+    return out
+  }
+
+  /**
+   * Moves the selected element among the element children of its parent, to the index `pick`
+   * returns (or refuses with the text it returns). The moved element is the primary change; its
+   * siblings sliding along IS the reorder, so they are not side effects (and so never become a
+   * "must not move" by default); what moves outside the parent (it grew because a taller element
+   * now ends a row) is listed as for any other edit. The target is recorded again after the move:
+   * its position changed on purpose, and verification looks for it at the new place.
+   */
+  const reorderWith = (pick: (index: number, count: number) => number | string): Promise<EditResult> =>
+    enqueue(async () => {
+      store.error.value = null
+      const selection = target()
+      if (selection === null) return fail('Select an element first.')
+      const element = selection.element
+      const refusal = reorderRefusalOf(element)
+      const position = positionOf(element)
+      if (refusal !== null || position === null) return fail(refusal ?? 'This element cannot be moved.')
+      const { parent, siblings, index } = position
+      const wanted = pick(index, siblings.length)
+      if (typeof wanted === 'string') return fail(wanted)
+      if (!Number.isInteger(wanted) || wanted < 0 || wanted >= siblings.length) {
+        return fail(`There is no position ${Number.isFinite(wanted) ? wanted + 1 : wanted} to move to: ${labelOf(parent).split(' "')[0]} has ${siblings.length} elements (positions 1 to ${siblings.length}).`)
+      }
+      const uid = uidOf(element)
+      const existing = present().find((item): item is StructuralChange => item.kind === 'structure' && item.status === 'draft' && item.op === 'reorder' && item.target.uid === uid)
+      if (wanted === index) return { ok: true, item: existing ?? null }
+
+      const was = neighboursAt(siblings, index)
+      const id = existing?.id ?? newId('c')
+      const seq = existing?.seq ?? nextSeq()
+      const spec: PreviewSpec = { itemId: id, uid, locator: selection.ref.locator, scope: 'instance', declarations: [], seq, move: { toIndex: wanted } }
+      const effects = await measureEffects(() => {
+        preview.apply(spec, element)
+        return elementChildren(parent)
+      })
+      const after = elementChildren(parent)
+      const toIndex = after.indexOf(element)
+      if (toIndex < 0) {
+        if (existing === undefined) forget(id)
+        else syncPreview(existing)
+        return fail('The page changed while the move was being measured. Try again.')
+      }
+      const item: StructuralChange = {
+        id,
+        seq,
+        createdAt: Date.now(),
+        page,
+        status: 'draft',
+        target: withKnownSource({ ...buildRef(element, sources.get(element) ?? null), uid }, element),
+        sideEffects: effects.sideEffects,
+        expect: [],
+        kind: 'structure',
+        op: 'reorder',
+        move: { fromIndex: index, toIndex, siblingCount: after.length, parent: labelOf(parent).split(' "')[0] ?? parent.localName, was, now: neighboursAt(after, toIndex) },
+      }
+      if (effects.partial) item.sideEffectsPartial = true
+      item.expect = deriveExpectations(item)
+      // A second move of the same element replaces the first (the engine keeps where it started); back at the start, no draft.
+      const next = upsertEdit(present(), item)
+      const stored = next.find((other) => other.id === id) ?? null
+      commit(next)
+      if (stored === null) forget(id)
+      else remember(stored, effects)
+      refresh()
+      return { ok: true, item: stored }
+    })
+
+  const reorder = (toIndex: number): Promise<EditResult> => reorderWith(() => toIndex)
+
+  const move = (delta: number): Promise<EditResult> =>
+    reorderWith((index, count) => {
+      if (!Number.isInteger(delta) || delta === 0) return 'Move by a whole number of positions, such as -1 or +1.'
+      if (delta < 0 && index === 0) return 'This element is already the first of its siblings.'
+      if (delta > 0 && index === count - 1) return 'This element is already the last of its siblings.'
+      return Math.max(0, Math.min(count - 1, index + delta))
     })
 
   const structural = (op: 'hide' | 'remove'): Promise<EditResult> =>
@@ -683,7 +983,8 @@ export function createController(options: ControllerOptions): Controller {
       if (selection === null) return fail('Select an element first.')
       const element = selection.element
       const uid = uidOf(element)
-      const earlier = present().filter((item): item is StructuralChange => item.kind === 'structure' && item.status === 'draft' && item.target.uid === uid)
+      // A reorder of the same element is another change and stays.
+      const earlier = present().filter((item): item is StructuralChange => item.kind === 'structure' && item.status === 'draft' && item.target.uid === uid && item.op !== 'reorder')
       const same = earlier.find((item) => item.op === op)
       if (same !== undefined) return { ok: true, item: same }
       // Hide and remove of one element replace each other.
@@ -1037,6 +1338,20 @@ export function createController(options: ControllerOptions): Controller {
     setPickMode,
     setState,
     setStyle,
+    setStyles,
+    resize,
+    previewSize,
+    reorder,
+    move,
+    reorderRefusal() {
+      const selection = store.selection.value
+      void store.items.value
+      return selection === null ? 'Select an element first.' : reorderRefusalOf(selection.element)
+    },
+    resizeRefusal() {
+      const selection = store.selection.value
+      return selection === null ? 'Select an element first.' : resizeRefusal(selection.element)
+    },
     structural,
     deleteItem,
     setVerdict,

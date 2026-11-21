@@ -4,6 +4,7 @@ import type {
   SettleOverlayReport,
   SettleServerMessage,
 } from '../../../server/src/settle.ts'
+import { isOwnMoveRecord } from './own-moves.ts'
 
 /**
  * Browser half of settle detection (the server half is
@@ -37,7 +38,8 @@ import type {
  * tree, which a document-level observer does not see. So are reglet's own
  * marks on the page: the `data-reglet-id` attribute of a previewed element, the
  * `data-reglet-force` attribute of an element held in `:hover` or another state,
- * and the insertion or removal of a node that carries `data-reglet-root`.
+ * the insertion or removal of a node that carries `data-reglet-root`, and a reorder
+ * preview moving an element among its siblings (own-moves.ts).
  */
 
 export interface SettleTransport {
@@ -110,6 +112,8 @@ function isRegletNode(node: Node): boolean {
 function isOwnRecord(record: MutationRecord): boolean {
   if (record.type === 'attributes') return record.attributeName === MARK_ATTR || record.attributeName === FORCE_ATTR
   if (record.type !== 'childList') return false
+  // A reorder preview moving an element among its siblings, or putting it back.
+  if (isOwnMoveRecord(record)) return true
   for (const node of record.addedNodes) if (!isRegletNode(node)) return false
   for (const node of record.removedNodes) if (!isRegletNode(node)) return false
   return record.addedNodes.length + record.removedNodes.length > 0

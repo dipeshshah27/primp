@@ -10,13 +10,15 @@
  * was hidden; for that single check the same bundles run against a small fake session server
  * (m1-overlay-assets/fake-session.ts).
  *
- * Fixtures: vite-react-19 (most checks, and the :hover state), next-16-turbopack (strict nonce
+ * Fixtures: vite-react-19 (most checks, the :hover state, reorder of the pricing plans and resize
+ * of a card, both also by real mouse drags on the handles), next-16-turbopack (strict nonce
  * CSP), static-html (also :focus-visible, and a stylesheet from another origin that cannot be
  * read), and one positive page of cls-corpus (the Shifts tab).
  *
  * Run: pnpm spike:m1-overlay                  (exit 0 = every check passed)
  *      pnpm spike:m1-overlay vite next ...    only these sections: vite, next, static, cls, shots
- *                                             (vite-states: only the :hover checks of vite)
+ *                                             (vite-states: only the :hover checks of vite;
+ *                                              vite-moves: only its reorder and resize checks)
  * Screenshots go to .tmp/m1-overlay-shots/.
  */
 
@@ -25,7 +27,7 @@ import { createServer } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { join } from 'node:path'
 import type { Browser } from '@playwright/test'
-import type { ChangeItem, Expectation, StyleChange } from '../packages/protocol/src/change.ts'
+import type { ChangeItem, Expectation, StructuralChange, StyleChange } from '../packages/protocol/src/change.ts'
 import type { ShiftReport } from '../packages/protocol/src/shift.ts'
 import { createReport, editFile, expect, launchBrowser, newPage, onCleanup, replaceOnce, runCleanups, sleep, TMP_ROOT, waitFor } from './lib/index.ts'
 import { buildBundles, computed, computedAll, items, marks, openDock, px, rect, restartReglet, startFakeLane, startLane, testState, type Bundles, type DockPage, type Lane } from './m1-overlay-assets/harness.ts'
@@ -1341,6 +1343,377 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
 }
 
 /** A server on another port that serves one stylesheet without CORS headers: the page may use it but not read it. */
+// ---------------------------------------------------------------------------
+// Reorder and resize (vite-react-19)
+// ---------------------------------------------------------------------------
+
+const PLAN = '[data-label="plan"]'
+const PLAN_NAMES = ['Starter', 'Team', 'Scale']
+
+/** The plan names in document order. */
+function planOrder(page: DockPage['page']): Promise<string[]> {
+  return page.evaluate((selector) => [...document.querySelectorAll(selector)].map((plan) => plan.querySelector('[data-label="plan-name"]')?.textContent?.trim() ?? '?'), PLAN)
+}
+
+const structure = (item: ChangeItem | null | undefined): StructuralChange => {
+  if (item === null || item === undefined || item.kind !== 'structure') throw new Error(`expected a structural change, got ${JSON.stringify(item)?.slice(0, 160)}`)
+  return item
+}
+
+/** Counts the app's own pointer, mouse and click handlers firing on `selector` and on the document (bubble phase, as an app listens). */
+function countAppEvents(page: DockPage['page'], selector: string): Promise<void> {
+  return page.evaluate((sel) => {
+    const counts: Record<string, number> = {}
+    ;(window as unknown as { __appEvents: Record<string, number> }).__appEvents = counts
+    const count = (event: Event): void => {
+      counts[event.type] = (counts[event.type] ?? 0) + 1
+    }
+    const types = ['click', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'pointerover', 'mouseover', 'dblclick', 'contextmenu']
+    for (const element of document.querySelectorAll(sel)) for (const type of types) element.addEventListener(type, count)
+    for (const type of types) document.addEventListener(type, count)
+  }, selector)
+}
+
+/** Forgets what was counted (the pointer travelling to a handle passes over the page, as it does without reglet). */
+const resetAppEvents = (page: DockPage['page']): Promise<void> =>
+  page.evaluate(() => {
+    const counts = (window as unknown as { __appEvents: Record<string, number> }).__appEvents
+    for (const key of Object.keys(counts)) delete counts[key]
+  })
+
+const appEvents = (page: DockPage['page']): Promise<Record<string, number>> => page.evaluate(() => ({ ...(window as unknown as { __appEvents: Record<string, number> }).__appEvents }))
+
+const centre = (box: { x: number; y: number; width: number; height: number }): { x: number; y: number } => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 })
+
+async function viteReorder(browser: Browser, lane: Lane): Promise<void> {
+  const page = await openDock(browser, lane, '/')
+  const t = page.page
+  const first = `${PLAN}:nth-of-type(1)`
+  const reverts: (() => void)[] = []
+  let itemId = ''
+  try {
+    await waitFor(() => page.record.webSockets.some((url) => !url.includes('/__reglet/')) && lane.reglet.hmr.status().live, { what: 'the HMR socket' })
+    await t.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), PLAN)
+    await sleep(100)
+    const shiftsBefore = await unmarkedShifts(t)
+
+    await report.attempt('reorder refusals: the first cannot move earlier, a position out of range, an only child, an element hidden by a recorded change', async () => {
+      await t.evaluate((selector) => window.__reglet_test!.select(selector), first)
+      const earlier = await t.evaluate(() => window.__reglet_test!.move(-1))
+      const outside = await t.evaluate(() => window.__reglet_test!.reorder(3))
+      const buttons = await page.dock.evaluate(() => [...document.querySelectorAll('[aria-label="Move among siblings"] button')].map((button) => ({ text: button.textContent, disabled: (button as HTMLButtonElement).disabled })))
+      await t.evaluate(() => window.__reglet_test!.select('.plan__period'))
+      const only = await t.evaluate(() => window.__reglet_test!.move(1))
+      const onlyButtons = await page.dock.evaluate(() => [...document.querySelectorAll('[aria-label="Move among siblings"] button')].every((button) => (button as HTMLButtonElement).disabled))
+      const onlyHandles = await t.evaluate(() => window.__reglet_test!.handles())
+      await t.evaluate(() => window.__reglet_test!.select('[data-label="plan-features"] li'))
+      await t.evaluate(() => window.__reglet_test!.hide())
+      const hidden = await t.evaluate(() => window.__reglet_test!.move(1))
+      await t.evaluate(() => window.__reglet_test!.undo())
+      expect(!earlier.ok && earlier.error?.includes('already the first') === true, `move(-1) on the first plan: ${JSON.stringify(earlier)}`)
+      expect(!outside.ok && outside.error?.includes('positions 1 to 3') === true, `reorder(3): ${JSON.stringify(outside)}`)
+      expect(buttons.length === 2 && buttons[0]?.disabled === true && buttons[1]?.disabled === false, `buttons on the first plan: ${JSON.stringify(buttons)}`)
+      expect(!only.ok && only.error?.includes('only child') === true && onlyButtons && onlyHandles.grip === undefined, `only child: ${JSON.stringify(only)}, buttons disabled ${onlyButtons}, handles ${JSON.stringify(onlyHandles)}`)
+      expect(!hidden.ok && hidden.error?.includes('hidden by a recorded change') === true, `hidden: ${JSON.stringify(hidden)}`)
+      expect((await items(t)).length === 0 && JSON.stringify(await planOrder(t)) === JSON.stringify(PLAN_NAMES), 'something was recorded or moved')
+      return `"${earlier.error}"; "${outside.error}"; "${only.error}"; "${hidden.error}"; Move earlier disabled on the first plan, both disabled and no grip for the only child`
+    })
+
+    await report.attempt('Move later on the first pricing plan: a reorder item with indexes, anchors and an order check; the DOM order changes; the tray says where', async () => {
+      await t.evaluate((selector) => window.__reglet_test!.select(selector), first)
+      await waitFor(async () => (await testState(t)).source?.state === 'done', { timeoutMs: 5000 })
+      const result = await t.evaluate(() => window.__reglet_test!.move(1))
+      expect(result.ok, `refused: ${result.error}`)
+      const item = structure(result.item)
+      itemId = item.id
+      const move = item.move
+      expect(item.op === 'reorder' && move !== undefined, `item: ${JSON.stringify(item).slice(0, 300)}`)
+      expect(move.fromIndex === 0 && move.toIndex === 1 && move.siblingCount === 3 && move.parent === 'div.pricing-grid', `move: ${JSON.stringify({ ...move, was: undefined, now: undefined })}`)
+      expect(move.was.prev === undefined && move.was.next?.label.includes('Team') === true && move.now.prev?.label.includes('Team') === true && move.now.next?.label.includes('Scale') === true, `anchors: was ${JSON.stringify([move.was.prev?.label, move.was.next?.label])}, now ${JSON.stringify([move.now.prev?.label, move.now.next?.label])}`)
+      expect(move.now.prev?.locator.indexPath.at(-1) === 0 && move.was.next?.locator.indexPath.at(-1) === 1, `anchor locators: was.next ${JSON.stringify(move.was.next?.locator.indexPath)}, now.prev ${JSON.stringify(move.now.prev?.locator.indexPath)}`)
+      expect(item.target.label.includes('Starter') && item.target.locator.indexPath.at(-1) === 1 && item.target.source?.file === 'src/components/PricingTable.tsx', `target recorded after the move: ${item.target.label} at ${JSON.stringify(item.target.locator.indexPath)}, source ${JSON.stringify(item.target.source)}`)
+      const order = item.expect.find((entry) => entry.type === 'order')
+      expect(order?.type === 'order' && order.siblings.map((sibling) => `${sibling.self === true ? '*' : ''}${sibling.label.split(' "')[1]?.slice(0, 5)}`).join(',') === 'Team ,*Start,Scale' && item.expect.length === 1, `expect: ${JSON.stringify(item.expect).slice(0, 400)}`)
+      const plans = await planOrder(t)
+      expect(JSON.stringify(plans) === JSON.stringify(['Team', 'Starter', 'Scale']), `DOM order ${plans.join(', ')}`)
+      // The siblings sliding along are the reorder itself, not side effects.
+      const siblingEffects = item.sideEffects.filter((effect) => effect.label.startsWith('div.plan'))
+      expect(siblingEffects.length === 0, `siblings listed as side effects: ${siblingEffects.map((effect) => effect.label).join(', ')}`)
+      const line = await waitFor(() => page.dock.evaluate(() => document.querySelector('.tray .item .change')?.textContent ?? undefined), { timeoutMs: 3000, what: 'the tray line' })
+      expect(line.startsWith('Moved: position 2 of 3 in div.pricing-grid (was 1), now after div.plan "Team'), `tray: "${line}"`)
+      const stored = await waitFor(() => lane.reglet.session.item(item.id), { timeoutMs: 3000, what: 'the server to store the item' })
+      expect(stored.kind === 'structure' && stored.op === 'reorder' && stored.move?.toIndex === 1, `stored: ${JSON.stringify(stored).slice(0, 200)}`)
+      const css = (await testState(t)).previewCss
+      expect(css === '' && (await marks(t)) === 1, `preview css "${css}", ${await marks(t)} marks`)
+      return `fromIndex 0 -> toIndex 1 of 3 in ${move.parent}; was next ${move.was.next?.label}; now between ${move.now.prev?.label} and ${move.now.next?.label}; order check over ${order.siblings.length} siblings; target re-recorded at index ${item.target.locator.indexPath.at(-1)}; DOM ${plans.join(', ')}; ${item.sideEffects.length} side effects, no plan among them; tray "${line}"`
+    })
+
+    await report.attempt('reorder: undo puts the plan back, redo moves it again; a second move is one item that keeps where it started; back at the start there is no item', async () => {
+      await t.evaluate(() => window.__reglet_test!.undo())
+      const undone = await planOrder(t)
+      const afterUndo = await items(t)
+      const marksUndone = await marks(t)
+      await t.evaluate(() => window.__reglet_test!.redo())
+      const redone = await planOrder(t)
+      expect(JSON.stringify(undone) === JSON.stringify(PLAN_NAMES) && afterUndo.length === 0 && marksUndone === 0, `after undo: ${undone.join(', ')}, ${afterUndo.length} items, ${marksUndone} marks`)
+      expect(JSON.stringify(redone) === JSON.stringify(['Team', 'Starter', 'Scale']) && (await items(t)).length === 1, `after redo: ${redone.join(', ')}`)
+      const second = structure((await t.evaluate(() => window.__reglet_test!.reorder(2))).item)
+      const secondOrder = await planOrder(t)
+      expect(second.id === itemId && second.move?.fromIndex === 0 && second.move.toIndex === 2 && second.move.was.next?.label.includes('Team') === true && second.move.now.prev?.label.includes('Scale') === true, `second move: ${JSON.stringify(second.move).slice(0, 300)}`)
+      expect(JSON.stringify(secondOrder) === JSON.stringify(['Team', 'Scale', 'Starter']) && (await items(t)).length === 1, `after reorder(2): ${secondOrder.join(', ')}`)
+      const back = await t.evaluate(() => window.__reglet_test!.reorder(0))
+      const backOrder = await planOrder(t)
+      expect(back.ok && back.item === null && (await items(t)).length === 0 && JSON.stringify(backOrder) === JSON.stringify(PLAN_NAMES) && (await marks(t)) === 0, `moved back: ${JSON.stringify(back).slice(0, 200)}, ${backOrder.join(', ')}`)
+      await waitFor(() => lane.reglet.session.items().length === 0, { timeoutMs: 3000, what: 'the server to drop the item' })
+      // Again, for the checks that follow.
+      itemId = structure((await t.evaluate(() => window.__reglet_test!.move(1))).item).id
+      return `undo: ${undone.join(', ')} (0 items, no mark); redo: ${redone.join(', ')}; reorder(2): one item, fromIndex still 0, ${secondOrder.join(', ')}; reorder(0): item deleted, ${backOrder.join(', ')}`
+    })
+
+    await report.attempt('moving, undoing, redoing and moving back added no layout-shift entry that is not tagged as reglet\'s own', async () => {
+      const after = await unmarkedShifts(t)
+      expect(after.unmarked === shiftsBefore.unmarked, `untagged entries: ${shiftsBefore.unmarked} before, ${after.unmarked} after`)
+      return `${after.unmarked - shiftsBefore.unmarked} untagged entries added; ${after.own - shiftsBefore.own} tagged as reglet's own`
+    })
+    await report.attempt('reorder: hot updates of PricingTable.tsx do not throw; the move preview stays applied, and follows nodes React replaces', async () => {
+      const errorsBefore = page.record.pageErrors.length
+      reverts.push(editFile(lane.fixture, 'src/components/PricingTable.tsx', replaceOnce('className="pricing__lead"', 'className="pricing__lead" data-rev="2"')).revert)
+      await waitFor(() => t.evaluate(() => document.querySelector('[data-rev="2"]') !== null), { what: 'the hot update' })
+      await sleep(300)
+      const inPlace = await planOrder(t)
+      const state = await testState(t)
+      expect(JSON.stringify(inPlace) === JSON.stringify(['Team', 'Starter', 'Scale']) || state.detached.includes(itemId), `after a re-render: ${inPlace.join(', ')}, detached ${state.detached.join(',')}`)
+      await t.evaluate((selector) => {
+        ;(window as unknown as { __oldPlan: Element | null }).__oldPlan = document.querySelector(selector)
+      }, PLAN)
+      reverts.push(editFile(lane.fixture, 'src/components/PricingTable.tsx', replaceOnce('key={plan.id}', "key={plan.id + '-remounted'}")).revert)
+      await waitFor(() => t.evaluate(() => (window as unknown as { __oldPlan: Element | null }).__oldPlan?.isConnected === false), { what: 'React to replace the plan nodes' })
+      const followed = await waitFor(async () => {
+        const order = await planOrder(t)
+        const detached = (await testState(t)).detached
+        return JSON.stringify(order) === JSON.stringify(['Team', 'Starter', 'Scale']) || detached.includes(itemId) ? { order, detached } : undefined
+      }, { timeoutMs: 4000, what: 'the move to be made again on the new nodes, or the item flagged detached' })
+      expect(page.record.pageErrors.length === errorsBefore, `page errors: ${page.record.pageErrors.slice(errorsBefore).join(' | ')}`)
+      expect(page.record.documentRequests.length === 1, 'the page reloaded')
+      expect((await items(t)).length === 1, 'the item was lost')
+      for (const revert of reverts.splice(0).reverse()) revert()
+      await waitFor(() => t.evaluate(() => document.querySelector('[data-rev="2"]') === null), { what: 'the fixture source to be restored' })
+      const restored = await waitFor(async () => {
+        const order = await planOrder(t)
+        return JSON.stringify(order) === JSON.stringify(['Team', 'Starter', 'Scale']) ? order : undefined
+      }, { timeoutMs: 4000, what: 'the move after the source was restored' })
+      return `re-render in place: ${inPlace.join(', ')}, nothing detached; new keys (every plan node replaced): ${followed.detached.includes(itemId) ? 'flagged detached' : `the new Starter node moved again: ${followed.order.join(', ')}`}; no page error, no reload; source restored: ${restored.join(', ')}`
+    })
+
+    await report.attempt('measure an order check: fail while the page still has its own order (the preview is suspended for it), pass once plans.json has the new order', async () => {
+      const item = structure((await items(t)).find((entry) => entry.id === itemId))
+      const ask = async () => {
+        const outcome = await lane.reglet.session.measure([item], 5000)
+        if (outcome.status !== 'measured') throw new Error(`session.measure: ${outcome.status}`)
+        return outcome.results[0]!.checks.find((check) => check.expectation.type === 'order')!
+      }
+      const before = await ask()
+      const shown = await planOrder(t)
+      expect(before.status === 'fail' && JSON.parse(before.expected).length === 3 && JSON.stringify((JSON.parse(before.actual) as string[]).map((label) => label.split('"')[1]?.split(/[$ ]/)[0])) === JSON.stringify(PLAN_NAMES), `before the source edit: ${JSON.stringify(before)}`)
+      expect(JSON.stringify(shown) === JSON.stringify(['Team', 'Starter', 'Scale']), `the preview did not come back after measuring: ${shown.join(', ')}`)
+      // Send first: the agent's edit must land on the page's own order.
+      const shiftsBeforeSend = await unmarkedShifts(t)
+      const prompt = await t.evaluate(() => window.__reglet_test!.send())
+      const afterSend = await planOrder(t)
+      await sleep(200)
+      const shiftsAfterSend = await unmarkedShifts(t)
+      expect(shiftsAfterSend.unmarked === shiftsBeforeSend.unmarked && shiftsAfterSend.own > shiftsBeforeSend.own, `putting the plans back on Send: untagged ${shiftsBeforeSend.unmarked} -> ${shiftsAfterSend.unmarked}, tagged ${shiftsBeforeSend.own} -> ${shiftsAfterSend.own}`)
+      const state = await testState(t)
+      expect(JSON.stringify(afterSend) === JSON.stringify(PLAN_NAMES) && (await marks(t)) === 0 && state.detached.length === 0, `after Send: ${afterSend.join(', ')}, ${await marks(t)} marks`)
+      expect(prompt.includes('reorder the data') || prompt.toLowerCase().includes('move'), `prompt: ${prompt.slice(0, 400)}`)
+      reverts.push(
+        editFile(lane.fixture, 'src/data/plans.json', (source) => {
+          const lines = source.split('\n')
+          const starter = lines.findIndex((text) => text.includes('"id": "starter"'))
+          const team = lines.findIndex((text) => text.includes('"id": "team"'))
+          const swapped = [...lines]
+          swapped[starter] = lines[team]!.replace(/,\s*$/, '') + ','
+          swapped[team] = lines[starter]!.replace(/,\s*$/, '') + ','
+          return swapped.join('\n')
+        }).revert,
+      )
+      await waitFor(async () => JSON.stringify(await planOrder(t)) === JSON.stringify(['Team', 'Starter', 'Scale']), { timeoutMs: 8000, what: 'the data change to reach the page' })
+      const after = await ask()
+      expect(after.status === 'pass' && after.expected === before.expected && after.actual === after.expected, `after the source edit: ${JSON.stringify(after)}`)
+      return `before: fail, actual ${after.expected === before.actual ? '' : before.actual} (measured with the preview off; the page showed ${shown.join(', ')} again right after); Send put the plans back (${afterSend.join(', ')}) before any edit; plans.json reordered: pass, actual = expected = ${after.actual}`
+    })
+    for (const revert of reverts.splice(0).reverse()) revert()
+    await waitFor(async () => JSON.stringify(await planOrder(t)) === JSON.stringify(PLAN_NAMES), { timeoutMs: 8000, what: 'plans.json to be restored' })
+
+  } finally {
+    for (const revert of reverts.reverse()) revert()
+    await page.close()
+  }
+}
+
+async function viteDrags(browser: Browser, lane: Lane): Promise<void> {
+  mkdirSync(SHOTS, { recursive: true })
+  const page = await openDock(browser, lane, '/')
+  const t = page.page
+  try {
+    await t.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), PLAN)
+    await t.mouse.move(2, 2)
+    await sleep(100)
+    const shiftsBefore = await unmarkedShifts(t)
+
+    await report.attempt('reorder by a REAL mouse drag on the grip: an insertion line between the plans, the drop index it shows is recorded, the app gets no pointer or click event', async () => {
+      await t.evaluate((selector) => window.__reglet_test!.select(selector), `${PLAN}:nth-of-type(1)`)
+      await countAppEvents(t, `${PLAN}, ${PLAN_CTA}`)
+      const handles = await t.evaluate(() => window.__reglet_test!.handles())
+      const grip = handles.grip
+      expect(grip !== undefined && handles.se !== undefined, `handles shown: ${JSON.stringify(handles)}`)
+      const team = await t.evaluate((selector) => document.querySelectorAll(selector)[1]!.getBoundingClientRect().toJSON() as DOMRect, PLAN)
+      const scale = await t.evaluate((selector) => document.querySelectorAll(selector)[2]!.getBoundingClientRect().toJSON() as DOMRect, PLAN)
+      const cta = await t.evaluate((selector) => document.querySelectorAll(selector)[2]!.getBoundingClientRect().toJSON() as DOMRect, PLAN_CTA)
+      const start = centre(grip)
+      await t.mouse.move(start.x, start.y)
+      await resetAppEvents(t)
+      await t.mouse.down()
+      // Over the third plan's button first (it must not be pressed), then into the gap between Team and Scale.
+      await t.mouse.move(cta.x + cta.width / 2, cta.y + cta.height / 2, { steps: 8 })
+      const overButton = await t.evaluate(() => window.__reglet_test!.drag())
+      const gap = { x: (team.right + scale.left) / 2, y: team.top + team.height / 2 }
+      await t.mouse.move(gap.x, gap.y, { steps: 8 })
+      const dragging = await t.evaluate(() => window.__reglet_test!.drag())
+      await sleep(150)
+      await t.screenshot({ path: join(SHOTS, 'reorder-drag-light.png') })
+      await t.mouse.up()
+      await t.evaluate(() => window.__reglet_overlay!.controller.idle())
+      await sleep(100)
+      const all = await items(t)
+      const order = await planOrder(t)
+      const events = await appEvents(t)
+      expect(overButton?.kind === 'reorder' && overButton.toIndex === 2, `over the third plan's button: ${JSON.stringify(overButton)}`)
+      expect(dragging?.kind === 'reorder' && dragging.toIndex === 1 && dragging.line !== null && dragging.line.width === 2 && Math.abs(dragging.line.x + 1 - gap.x) < 2, `in the gap: ${JSON.stringify(dragging)} (gap at x ${gap.x})`)
+      const item = structure(all[0])
+      expect(all.length === 1 && item.move?.fromIndex === 0 && item.move.toIndex === dragging.toIndex && JSON.stringify(order) === JSON.stringify(['Team', 'Starter', 'Scale']), `after the drop: ${all.length} items, move ${JSON.stringify(item.move).slice(0, 120)}, order ${order.join(', ')}`)
+      expect(Object.keys(events).length === 0, `the app saw: ${JSON.stringify(events)}`)
+      expect((await t.evaluate(() => window.__reglet_test!.drag())) === null, 'the drag did not end')
+      return `grip at ${Math.round(start.x)},${Math.round(start.y)}; over the third plan's button the line stood for position 3; in the gap between Team and Scale a 2px vertical line at x ${dragging.line.x + 1} for position ${dragging.toIndex + 1}; dropped: one reorder 0 -> ${item.move.toIndex}, order ${order.join(', ')}; the app's handlers on the plans, their buttons and the document saw nothing`
+    })
+    await t.evaluate(() => window.__reglet_test!.undo())
+
+    await report.attempt('resize by a REAL mouse drag on the corner handle of a card: width and height, one undo step, the border box is the dragged size; Escape during a drag cancels', async () => {
+      const card = `${CARD}:nth-of-type(1)`
+      await t.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), card)
+      await t.mouse.move(2, 2)
+      await t.evaluate((selector) => window.__reglet_test!.select(selector), card)
+      await waitFor(async () => (await testState(t)).source?.state === 'done', { timeoutMs: 5000 })
+      await countAppEvents(t, CARD)
+      const startBox = await rect(t, card)
+      const boxSizing = await computed(t, card, 'box-sizing')
+      const handles = await t.evaluate(() => window.__reglet_test!.handles())
+      expect(handles.se !== undefined && handles.e !== undefined && handles.s !== undefined && handles.grip !== undefined, `handles: ${JSON.stringify(handles)}`)
+      await t.screenshot({ path: join(SHOTS, 'handles-light.png') })
+      const corner = centre(handles.se)
+      const [dx, dy] = [44, 31]
+      await t.mouse.move(corner.x, corner.y)
+      await resetAppEvents(t)
+      await t.mouse.down()
+      await t.mouse.move(corner.x + dx, corner.y + dy, { steps: 10 })
+      const live = await t.evaluate(() => window.__reglet_test!.drag())
+      const liveBox = await rect(t, card)
+      const midHistory = (await items(t)).length
+      await t.mouse.up()
+      await t.evaluate(() => window.__reglet_overlay!.controller.idle())
+      await sleep(100)
+      const all = await items(t)
+      const box = await rect(t, card)
+      const width = style(all.find((item) => item.kind === 'style' && item.property === 'width'))
+      const height = style(all.find((item) => item.kind === 'style' && item.property === 'height'))
+      const want = { w: Math.round(startBox.w + dx), h: Math.round(startBox.h + dy) }
+      expect(live?.kind === 'resize' && live.size.width === want.w && live.size.height === want.h && near(liveBox.w, want.w) && midHistory === 0, `during the drag: ${JSON.stringify(live)}, box ${liveBox.w} x ${liveBox.h}, ${midHistory} items`)
+      expect(all.length === 2 && Math.abs(box.w - want.w) <= 1 && Math.abs(box.h - want.h) <= 1, `${all.length} items; border box ${box.w} x ${box.h}, wanted ${want.w} x ${want.h}`)
+      const extra = boxSizing === 'border-box' ? { w: 0, h: 0 } : { w: 42, h: 42 }
+      expect(Number.parseFloat(width.after.authored) + extra.w === want.w && Number.parseFloat(height.after.authored) + extra.h === want.h, `values ${width.after.authored} / ${height.after.authored} (box-sizing ${boxSizing}) for a ${want.w} x ${want.h} border box`)
+      expect(width.after.computed === `${want.w}px` && width.expect.some((entry) => entry.type === 'computed' && entry.property === 'width') && height.expect.some((entry) => entry.type === 'computed' && entry.property === 'height'), `computed ${width.after.computed}; expect ${JSON.stringify(width.expect.map((entry) => entry.type))}`)
+      // One undo step takes both away.
+      await t.evaluate(() => window.__reglet_test!.undo())
+      const undone = await items(t)
+      const undoneBox = await rect(t, card)
+      const canUndo = (await testState(t)).canUndo
+      await t.evaluate(() => window.__reglet_test!.redo())
+      expect(undone.length === 0 && near(undoneBox.w, startBox.w) && near(undoneBox.h, startBox.h) && !canUndo && (await items(t)).length === 2, `undo: ${undone.length} items, box ${undoneBox.w} x ${undoneBox.h}, canUndo ${canUndo}`)
+      // Escape during a drag: the size shown goes back, nothing is recorded.
+      const before = await rect(t, card)
+      const se = centre((await t.evaluate(() => window.__reglet_test!.handles())).se!)
+      await t.mouse.move(se.x, se.y)
+      const seenBefore = await appEvents(t)
+      await t.mouse.down()
+      await t.mouse.move(se.x + 60, se.y + 50, { steps: 6 })
+      const grown = await rect(t, card)
+      await t.keyboard.press('Escape')
+      await sleep(50)
+      const cancelled = await rect(t, card)
+      await t.mouse.up()
+      await t.evaluate(() => window.__reglet_overlay!.controller.idle())
+      await sleep(100)
+      const kept = await items(t)
+      const events = await appEvents(t)
+      // The move to the second press is the page's (the pointer passes over the card): only what came after it counts.
+      for (const [type, count] of Object.entries(seenBefore)) {
+        events[type] = (events[type] ?? 0) - count
+        if (events[type] === 0) delete events[type]
+      }
+      expect(grown.w > before.w + 50 && near(cancelled.w, before.w) && near(cancelled.h, before.h) && kept.length === 2 && style(kept.find((item) => item.kind === 'style' && item.property === 'width')).after.authored === width.after.authored, `Escape: ${before.w} -> ${grown.w} during the drag -> ${cancelled.w} after Escape; ${kept.length} items`)
+      expect(Object.keys(events).length === 0, `the app saw: ${JSON.stringify(events)}`)
+      return `box-sizing ${boxSizing}; dragged +${dx},+${dy} from ${startBox.w} x ${startBox.h}: live preview ${liveBox.w} x ${liveBox.h} with nothing recorded, then width ${width.after.authored} and height ${height.after.authored} in one undo step, border box ${box.w} x ${box.h}; Escape mid-drag: ${grown.w} back to ${cancelled.w}, still 2 items; the card's and document's handlers saw nothing`
+    })
+
+    await report.attempt('resize refusals: an inline element (no handles either), and a size the layout does not let change', async () => {
+      await t.evaluate(() => window.__reglet_test!.select('.plan__period'))
+      const inline = await t.evaluate(() => window.__reglet_test!.resize({ width: 120 }))
+      const inlineHandles = await t.evaluate(() => window.__reglet_test!.handles())
+      // A table row: width does not apply to it.
+      const row = '[data-label="pricing-compare-support"]'
+      await t.evaluate((selector) => window.__reglet_test!.select(selector), row)
+      const box = await rect(t, row)
+      const cssBefore = (await testState(t)).previewCss
+      const wide = await t.evaluate((w) => window.__reglet_test!.resize({ width: w }), box.w + 80)
+      const after = await rect(t, row)
+      const css = (await testState(t)).previewCss
+      expect(!inline.ok && inline.error?.includes('inline element') === true && inlineHandles.se === undefined && inlineHandles.e === undefined, `inline: ${JSON.stringify(inline)}, handles ${JSON.stringify(inlineHandles)}`)
+      expect(!wide.ok && wide.error?.includes('did not change') === true && near(after.w, box.w) && css === cssBefore, `table row: ${JSON.stringify(wide)}; width ${box.w} -> ${after.w}; preview css "${css}"`)
+      expect((await items(t)).length === 2, `items: ${(await items(t)).length}`)
+      return `"${inline.error}"; a table row: "${wide.error}"; nothing recorded, no preview left`
+    })
+
+    await report.attempt('the handles and the drags added no layout-shift entry that is not tagged as reglet\'s own', async () => {
+      // Handles coming and going: pick mode, another selection, none.
+      await t.evaluate(() => window.__reglet_test!.pick(true))
+      await sleep(150)
+      const inPick = await t.evaluate(() => window.__reglet_test!.handles())
+      await t.evaluate(() => window.__reglet_test!.pick(false))
+      await t.evaluate((selector) => window.__reglet_test!.select(selector), `${PLAN}:nth-of-type(2)`)
+      await sleep(150)
+      await t.evaluate(() => window.__reglet_overlay!.controller.select(null))
+      await sleep(150)
+      const none = await t.evaluate(() => window.__reglet_test!.handles())
+      const after = await unmarkedShifts(t)
+      expect(Object.keys(inPick).length === 0 && Object.keys(none).length === 0, `handles in pick mode ${JSON.stringify(inPick)}, without a selection ${JSON.stringify(none)}`)
+      expect(after.unmarked === shiftsBefore.unmarked, `untagged entries: ${shiftsBefore.unmarked} before, ${after.unmarked} after (${after.own - shiftsBefore.own} tagged)`)
+      return `no handles in pick mode or without a selection; ${after.unmarked - shiftsBefore.unmarked} untagged entries added over two drags, a resize and handles shown and hidden; ${after.own - shiftsBefore.own} tagged as reglet's own (the previews)`
+    })
+
+    await report.attempt('screenshots: the selection with its handles, a reorder drag with its insertion line, and the tray with a move and a resize', async () => {
+      await t.evaluate((selector) => window.__reglet_test!.select(selector), `${PLAN}:nth-of-type(1)`)
+      await t.evaluate(() => window.__reglet_test!.move(1))
+      await sleep(300)
+      await page.dock.evaluate(() => document.querySelector('#panel')?.scrollTo(0, 100000))
+      await sleep(200)
+      await t.screenshot({ path: join(SHOTS, 'reorder-tray-light.png') })
+      return 'handles-light.png, reorder-drag-light.png, reorder-tray-light.png in .tmp/m1-overlay-shots/'
+    })
+  } finally {
+    await page.close()
+  }
+}
+
 async function foreignStylesheet(css: string): Promise<{ url: string; close(): Promise<void> }> {
   const server = createServer((_request, response) => {
     response.writeHead(200, { 'content-type': 'text/css; charset=utf-8', 'cache-control': 'no-store' })
@@ -1798,12 +2171,21 @@ async function main(): Promise<void> {
     await viteKeyboardAndConnection(browser, vite)
     await viteBigPage(browser, vite)
     await viteStates(browser, vite)
+    await viteReorder(browser, vite)
+    await viteDrags(browser, vite)
   }
   // Only the state checks of vite-react-19 (they also run as part of `vite`).
   if (only.includes('vite-states') && !wants('vite')) {
     report.section('vite-react-19 states')
     vite = await startLane('vite-react-19')
     await viteStates(browser, vite)
+  }
+  // Only the reorder and resize checks of vite-react-19 (they also run as part of `vite`).
+  if (only.includes('vite-moves') && !wants('vite')) {
+    report.section('vite-react-19 reorder and resize')
+    vite ??= await startLane('vite-react-19')
+    await viteReorder(browser, vite)
+    await viteDrags(browser, vite)
   }
   if (wants('next')) {
     report.section('next-16-turbopack')

@@ -42,8 +42,38 @@ export const HOST_CSS = `
 }
 .box.previous span, .box.current span { background: #c2410c; }
 .box.culprit span { background: #be123c; }
+/* Handles on the selection (handles.ts): the only things in the layer that take the pointer. The visible
+   square is smaller than the hit area. Above the boxes, which come and go in the same layer. */
+.handle, .grip {
+  position: absolute; left: 0; top: 0; display: none; z-index: 2; box-sizing: border-box;
+  pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.handle { width: 14px; height: 14px; }
+.handle::before {
+  content: ""; position: absolute; inset: 3px; border-radius: 2px; background: #fff;
+  border: 1.5px solid #2f6fed; box-shadow: 0 0 0 1px rgb(255 255 255 / 0.7), 0 1px 2px rgb(15 23 42 / 0.25);
+}
+.handle:hover::before, .handle.active::before { background: #2f6fed; }
+.handle.e { cursor: ew-resize; } .handle.s { cursor: ns-resize; } .handle.se { cursor: nwse-resize; }
+.grip {
+  width: 26px; height: 16px; padding: 4px 4px; border-radius: 5px; cursor: grab;
+  /* Two rows of three dots on the accent colour. */
+  background: radial-gradient(circle, rgb(255 255 255 / 0.95) 1.2px, transparent 1.7px) content-box 0 0 / 6px 4px repeat, #2f6fed;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.85), 0 1px 3px rgb(15 23 42 / 0.3);
+}
+.grip:hover, .grip.active { background-color: #2459c9; }
+.grip.active { cursor: grabbing; }
+.insert {
+  position: absolute; left: 0; top: 0; display: none; z-index: 3; pointer-events: none; border-radius: 1px;
+  background: #2f6fed; box-shadow: 0 0 0 1px rgb(255 255 255 / 0.9);
+}
+.drag-tag {
+  position: absolute; left: 0; top: 0; display: none; z-index: 3; pointer-events: none; padding: 1px 6px; border-radius: 3px;
+  background: #2f6fed; color: #fff; white-space: pre; font: 500 11px/1.4 ui-sans-serif, system-ui, sans-serif;
+}
+/* The dock stays above the handles and the insertion line. */
 iframe {
-  position: absolute; left: 0; top: 0; display: block; border: 0; margin: 0; padding: 0;
+  position: absolute; left: 0; top: 0; z-index: 5; display: block; border: 0; margin: 0; padding: 0;
   pointer-events: auto; background: transparent; color-scheme: normal;
   border-radius: 12px;
   box-shadow: 0 0 0 1px rgb(15 23 42 / 0.10), 0 10px 30px rgb(15 23 42 / 0.20), 0 2px 6px rgb(15 23 42 / 0.10);

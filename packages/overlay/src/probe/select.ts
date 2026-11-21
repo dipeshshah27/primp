@@ -34,7 +34,11 @@ export interface Picker {
   active(): boolean
 }
 
-const SWALLOWED = [
+/**
+ * The events the page must not get while reglet holds the pointer: in pick mode, and during a
+ * drag of a handle on the selection (ui/handles.ts). Stopped at the window in the capture phase.
+ */
+export const SWALLOWED = [
   'pointerdown',
   'pointerup',
   'mousedown',

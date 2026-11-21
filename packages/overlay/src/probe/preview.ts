@@ -27,9 +27,26 @@
  * A framework re-render or a hot update may replace a marked node. A MutationObserver notices,
  * finds the element again by its locator and marks the new node; when it cannot be found the
  * preview is reported as detached (and tried again on later mutations), never dropped.
+ *
+ * REORDER is the one preview that changes the DOM structure: a spec with `move` puts its element
+ * at `move.toIndex` among the element children of the SAME parent with `parent.insertBefore`
+ * (every node stays a child of its parent, which a framework that owns the list survives). Each
+ * applied move remembers the node that followed the element before it was moved, and the moves
+ * are kept as a stack in the order they were made: they are put back in reverse order, so the
+ * page's own order comes back exactly. A move is put back when its preview is removed (undo,
+ * delete, Send), while previews are suspended (a measurement must see the page's own order;
+ * `resume` moves it again), while it is muted, and on dispose. When the page changed the
+ * children of a parent with a moved element (a re-render inserted or replaced siblings), the
+ * moves in it are put back as far as the remembered nodes allow (else by index) and made again
+ * from what is there now; an element that is gone is found again by its locator, or its
+ * preview is reported as detached, as for a style preview. Nothing here throws into the page.
+ * Every move is announced with `markSelf` first and noted in own-moves.ts, so the settle client
+ * and this module's own observer do not take it for the page changing.
  */
 
 import type { ElementState, Locator } from '@reglet/protocol/change'
+import { elementChildren, siblingPicker } from './order.ts'
+import { isOwnMoveRecord, noteOwnMove } from './own-moves.ts'
 import { adoptUid, elementOfUid, instancesOf, locate, MARK_ATTR, uidOf } from './ref.ts'
 import { ELEMENT_STATES } from './specificity.ts'
 import { FORCE_ATTR, ignoreSheet } from './styles.ts'
@@ -50,8 +67,10 @@ export interface PreviewSpec {
    */
   exceptIn?: ElementState[]
   declarations: { property: string; value: string }[]
-  /** Orders the rules. */
+  /** Orders the rules, and the moves. */
   seq: number
+  /** A reorder: the element is moved to this index among its parent's element children (same parent). Carries no declarations. */
+  move?: { toIndex: number }
 }
 
 export interface PreviewOptions {
@@ -92,6 +111,18 @@ interface Entry {
   primary: Element | null
   elements: Element[]
   detached: boolean
+}
+
+/** A move that is in effect: what it moved, and what is needed to put it back. */
+interface Applied {
+  entry: Entry
+  node: Element
+  parent: Element
+  /** The node that followed `node` before it was moved (null: it was the last child). */
+  next: Node | null
+  /** Its index among the element children before it was moved: the way back when `next` is gone. */
+  index: number
+  toIndex: number
 }
 
 const CHECK_DELAY_MS = 40
@@ -141,6 +172,10 @@ export function createPreview(options: PreviewOptions = {}): Preview {
   let muted: readonly string[] = []
   let text = ''
   let timer: number | undefined
+  /** Moves in effect, in the order they were made. */
+  let applied: Applied[] = []
+  /** The element children of each parent with a moved element, as the moves left them. */
+  const layouts = new Map<Element, Element[]>()
 
   const adopt = (): void => {
     if (!doc.adoptedStyleSheets.includes(sheet)) doc.adoptedStyleSheets = [...doc.adoptedStyleSheets, sheet]
@@ -168,6 +203,81 @@ export function createPreview(options: PreviewOptions = {}): Preview {
     } catch {
       // A value the browser refuses at this point was validated before; leave the sheet as it was.
     }
+  }
+
+  // --- moves -----------------------------------------------------------------
+
+  const sameList = (a: readonly Element[], b: readonly Element[] | undefined): boolean => b !== undefined && a.length === b.length && a.every((element, index) => element === b[index])
+
+  const write = (node: Element, parent: Element, ref: Node | null, reason: string): void => {
+    if (node.nextSibling === ref && node.parentNode === parent) return
+    markSelf(reason)
+    noteOwnMove(node)
+    parent.insertBefore(node, ref)
+  }
+
+  const putBack = (move: Applied): void => {
+    try {
+      if (move.node.parentNode !== move.parent) return
+      if (move.next === null || move.next.parentNode === move.parent) {
+        write(move.node, move.parent, move.next, 'preview: put a moved element back')
+        return
+      }
+      // The node that followed it is gone: back to the index it had.
+      const others = elementChildren(move.parent).filter((element) => element !== move.node)
+      const ref = others[move.index] ?? (others.length === 0 ? null : others[others.length - 1]!.nextSibling)
+      write(move.node, move.parent, ref, 'preview: put a moved element back')
+    } catch {
+      // The page rebuilt this part of the tree in the meantime: nothing to put back.
+    }
+  }
+
+  const place = (entry: Entry): Applied | null => {
+    const node = entry.primary
+    const toIndex = entry.spec.move?.toIndex
+    const parent = node?.parentElement ?? null
+    if (node === null || toIndex === undefined || parent === null) return null
+    try {
+      const siblings = elementChildren(parent)
+      const index = siblings.indexOf(node)
+      if (index < 0) return null
+      const move: Applied = { entry, node, parent, next: node.nextSibling, index, toIndex }
+      const target = Math.max(0, Math.min(siblings.length - 1, toIndex))
+      if (target !== index) {
+        const others = siblings.filter((element) => element !== node)
+        const ref = target < others.length ? others[target]! : others[others.length - 1]!.nextSibling
+        write(node, parent, ref, 'preview: move element')
+      }
+      return move
+    } catch {
+      return null
+    }
+  }
+
+  /** Brings the moves in effect in line with the entries: the ones still right stay, the rest is put back and made again. */
+  const placeMoves = (): void => {
+    const wanted =
+      depth > 0
+        ? []
+        : [...entries.values()]
+            .filter((entry) => entry.spec.move !== undefined && entry.primary !== null && entry.primary.isConnected && !muted.includes(entry.spec.itemId))
+            .sort((a, b) => a.spec.seq - b.spec.seq)
+    let keep = 0
+    for (; keep < applied.length && keep < wanted.length; keep++) {
+      const move = applied[keep]!
+      const entry = wanted[keep]!
+      const intact = move.entry === entry && move.node === entry.primary && move.toIndex === entry.spec.move?.toIndex && move.node.parentElement === move.parent
+      if (!intact || !sameList(elementChildren(move.parent), layouts.get(move.parent))) break
+    }
+    if (keep === applied.length && keep === wanted.length) return
+    for (let index = applied.length - 1; index >= keep; index--) putBack(applied[index]!)
+    applied = applied.slice(0, keep)
+    for (const entry of wanted.slice(keep)) {
+      const move = place(entry)
+      if (move !== null) applied.push(move)
+    }
+    layouts.clear()
+    for (const move of applied) layouts.set(move.parent, elementChildren(move.parent))
   }
 
   const mark = (element: Element, uid: string): void => {
@@ -224,6 +334,8 @@ export function createPreview(options: PreviewOptions = {}): Preview {
     // taken off when the edit was undone and the edit is now redone.
     const known = entry.primary ?? elementOfUid(entry.spec.uid)
     if (known !== null && known.isConnected) return known
+    // A moved element is not recognised by its position: the sibling now at the recorded index would win on it.
+    if (entry.spec.move !== undefined) return locate(entry.spec.locator, { document: doc, picker: siblingPicker }).element
     return locate(entry.spec.locator, { document: doc, anyInstance: entry.spec.scope === 'all-instances' }).element
   }
 
@@ -248,10 +360,13 @@ export function createPreview(options: PreviewOptions = {}): Preview {
       if (before.length !== entry.elements.length || before.some((element, index) => element !== entry.elements[index])) changed = true
     }
     if (changed) rebuild('preview: re-attach after the page changed')
+    placeMoves()
   }
 
-  const observer = new view.MutationObserver(() => {
+  const observer = new view.MutationObserver((records) => {
     if (timer !== undefined || (entries.size === 0 && options.onPageChange === undefined)) return
+    // A move of reglet's own is not the page changing.
+    if (records.every(isOwnMoveRecord)) return
     // A timer, not an animation frame: frames do not run in a hidden tab.
     timer = view.setTimeout(() => {
       check()
@@ -274,6 +389,7 @@ export function createPreview(options: PreviewOptions = {}): Preview {
       const entry = register(spec)
       attach(entry, element)
       rebuild('preview: apply')
+      placeMoves()
       return entry.elements
     },
     restore(spec) {
@@ -281,10 +397,12 @@ export function createPreview(options: PreviewOptions = {}): Preview {
       const found = findAgain(entry)
       if (found === null) {
         detach(entry)
+        placeMoves()
         return null
       }
       attach(entry, found)
       rebuild('preview: restore')
+      placeMoves()
       return entry.elements
     },
     remove(itemId) {
@@ -293,6 +411,7 @@ export function createPreview(options: PreviewOptions = {}): Preview {
       entries.delete(itemId)
       if (muted.includes(itemId)) muted = muted.filter((id) => id !== itemId)
       rebuild('preview: remove')
+      placeMoves()
       unmark(entry.elements)
     },
     has: (itemId) => entries.has(itemId),
@@ -302,15 +421,18 @@ export function createPreview(options: PreviewOptions = {}): Preview {
     suspend(reason = 'preview: suspend') {
       depth++
       rebuild(reason)
+      placeMoves()
     },
     resume(reason = 'preview: resume') {
       if (depth > 0) depth--
       rebuild(reason)
+      placeMoves()
     },
     suspended: () => depth > 0,
     mute(itemId) {
       muted = itemId === null ? [] : typeof itemId === 'string' ? [itemId] : [...itemId]
       rebuild('preview: measure without one edit')
+      placeMoves()
     },
     check,
     css: () => text,
@@ -320,6 +442,7 @@ export function createPreview(options: PreviewOptions = {}): Preview {
       const all = [...entries.values()].flatMap((entry) => entry.elements)
       entries.clear()
       rebuild('preview: dispose')
+      placeMoves()
       unmark(all)
       doc.adoptedStyleSheets = doc.adoptedStyleSheets.filter((other) => other !== sheet)
     },

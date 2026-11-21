@@ -5,6 +5,9 @@
  * They live in the overlay layer (the dock host's shadow root), never in the page. A box is
  * placed with `transform` and sized with width/height only: neither moves its layout position,
  * so drawing and moving boxes adds no layout-shift entry to the page being measured.
+ *
+ * The handles on the selection (handles.ts) are placed on every draw from the selected box:
+ * `onSelection` gets it in viewport coordinates, or null when there is nothing to put them on.
  */
 
 import { effect } from '@preact/signals'
@@ -20,8 +23,10 @@ interface Box {
 }
 
 export interface Highlighter {
-  /** Re-reads positions now (after the page changed without scrolling). */
+  /** Re-reads positions on the next frame (after the page changed without scrolling). */
   update(): void
+  /** Draws now, synchronously (for tests that read what is drawn). */
+  flush(): void
   dispose(): void
 }
 
@@ -47,7 +52,12 @@ function boxOf(outline: Outline, view: Window): Box | undefined {
   return box
 }
 
-export function createHighlighter(layer: HTMLElement, store: Store, view: Window = window): Highlighter {
+export interface HighlighterOptions {
+  /** Called on every draw with the selected element's box (viewport coordinates), or null. */
+  onSelection?(box: { x: number; y: number; width: number; height: number } | null): void
+}
+
+export function createHighlighter(layer: HTMLElement, store: Store, view: Window = window, options: HighlighterOptions = {}): Highlighter {
   const doc = layer.ownerDocument
   const pool: HTMLElement[] = []
   let scheduled = false
@@ -69,9 +79,11 @@ export function createHighlighter(layer: HTMLElement, store: Store, view: Window
     outlines.push(...store.outlines.peek())
 
     let used = 0
+    let selected: Box | undefined
     for (const outline of outlines) {
       const box = boxOf(outline, view)
       if (box === undefined) continue
+      if (outline.kind === 'selected' && outline.element === selection?.element) selected = box
       let node = pool[used]
       if (node === undefined) {
         node = doc.createElement('div')
@@ -92,6 +104,7 @@ export function createHighlighter(layer: HTMLElement, store: Store, view: Window
       tag.style.transform = box.y < 20 ? 'translate(0, 2px)' : 'translate(0, -100%)'
     }
     for (let i = used; i < pool.length; i++) pool[i]!.style.display = 'none'
+    options.onSelection?.(selected === undefined ? null : { x: selected.x, y: selected.y, width: selected.width, height: selected.height })
   }
 
   const schedule = (): void => {
@@ -118,6 +131,8 @@ export function createHighlighter(layer: HTMLElement, store: Store, view: Window
     // A forced :hover or :focus can change the size of the selected element.
     void store.state.value
     void store.pickMode.value
+    // The handles on the selection are hidden while an action runs.
+    void store.busy.value
     schedule()
   })
 
@@ -130,6 +145,7 @@ export function createHighlighter(layer: HTMLElement, store: Store, view: Window
 
   return {
     update: schedule,
+    flush: draw,
     dispose() {
       stop()
       resized.disconnect()

@@ -23,15 +23,25 @@
  * note that starts with `STATE_NOT_EMULATED`. A state the dock itself holds forced for its
  * selection is let go for the whole measurement and put back afterwards.
  *
+ * An `order` expectation (after a reorder) locates each listed sibling with `locate()` and the
+ * moved element (`self`) with the item's own locator. Previews are suspended, which puts every
+ * reorder preview's element back where the page has it, so the page's own order is what is
+ * read. Wire convention (packages/server/src/verify.ts, `toMeasured`): `expected` is the JSON
+ * array of the listed labels in the wanted order, `actual` the JSON array of the labels of those
+ * found, in document order; `unresolved` when the moved element was not found or fewer than two
+ * listed elements were, else `pass` when the found ones stand in the wanted relative order as
+ * children of one parent, else `fail`.
+ *
  * Everything happens in one task, so no frame is rendered between switching the previews off
  * and on again.
  */
 
-import type { Measured as EngineMeasured } from '@reglet/engine/judge'
+import { ORDER_NEIGHBOURS_LOST, type Measured as EngineMeasured } from '@reglet/engine/judge'
 import type { CheckResult, Expectation, Rect } from '@reglet/protocol/change'
 import type { ClientMessage, ServerMessage } from '@reglet/protocol/messages'
 import type { Preview } from './preview.ts'
 import { longhandsOf } from './properties.ts'
+import { locateAmongSiblings } from './order.ts'
 import { buildSelector, locate, rectOf, type LocateResult } from './ref.ts'
 import { forcedNow, forceState, withState } from './states.ts'
 import { ignoreSheet } from './styles.ts'
@@ -153,10 +163,7 @@ export function measureExpectation(target: LocateResult, expectation: Expectatio
   }
   const element = target.element
   const base = { found: element !== null, locatorConfidence: target.confidence }
-  if (expectation.type === 'order') {
-    // Not implemented in this build: nothing is located and nothing is compared.
-    return { found: false, locatorConfidence: target.confidence }
-  }
+  if (expectation.type === 'order') return measureOrder(target, expectation, doc)
   if (expectation.type === 'computed') {
     const mediaMatches = matches(expectation.condition.media, view)
     if (element === null || !mediaMatches) return { ...base, mediaMatches }
@@ -199,6 +206,38 @@ export function measureExpectation(target: LocateResult, expectation: Expectatio
   if (element !== null) return { ...base, present: true, rendered: isRendered(element) }
   // Two candidates too close to call: the element may well be there.
   return target.reason === 'ambiguous' ? base : { ...base, present: false }
+}
+
+/**
+ * The order of a moved element and its listed siblings as the page has them. `found` is about the
+ * moved element; `order.actual` lists the labels of the elements found, in document order. An
+ * element found for two entries (siblings that look alike) counts for the first only.
+ *
+ * Every entry, the moved element too (its locator is the item's target locator), is found again
+ * WITHOUT its position among its siblings (order.ts `siblingPicker`): the position is what is
+ * being measured, and recognising an element by it would make the check agree with itself.
+ * `target` (the item's element as `measure` located it) is not used for that reason.
+ */
+export function measureOrder(target: LocateResult, expectation: Extract<Expectation, { type: 'order' }>, doc: Document = document): Measured {
+  const seen = new Set<Element>()
+  const found: { wanted: number; label: string; element: Element }[] = []
+  expectation.siblings.forEach((sibling, wanted) => {
+    let element: Element | null
+    try {
+      element = locateAmongSiblings(sibling.locator, doc).element
+    } catch {
+      element = null
+    }
+    if (element === null || seen.has(element)) return
+    seen.add(element)
+    found.push({ wanted, label: sibling.label, element })
+  })
+  found.sort((a, b) => (a.element === b.element ? 0 : a.element.compareDocumentPosition(b.element) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+  const parent = found[0]?.element.parentElement ?? null
+  const oneParent = parent !== null && found.every((entry) => entry.element.parentElement === parent)
+  const inOrder = oneParent && found.every((entry, index) => index === 0 || found[index - 1]!.wanted < entry.wanted)
+  const selfFound = found.some((entry) => expectation.siblings[entry.wanted]?.self === true)
+  return { found: selfFound, locatorConfidence: target.confidence, order: { actual: found.map((entry) => entry.label), inOrder } }
 }
 
 /** Runs `read` with nothing forced, then forces again what was (the same element in the same state). */
@@ -254,8 +293,13 @@ export function toCheck(expectation: Expectation, measured: Measured, view: Wind
       if (!measured.found || measured.actual === undefined) return { expectation, status: 'unresolved', expected, actual: '', note: `${expectation.label} was not found again` }
       return { expectation, status: measured.actual === expected ? 'pass' : 'fail', expected, actual: measured.actual }
     }
-    case 'order':
-      return { expectation, status: 'unresolved', expected: expectation.siblings.map((sibling) => sibling.label).join(' | '), actual: '', note: 'order checks are not implemented in this build' }
+    case 'order': {
+      const expected = JSON.stringify(expectation.siblings.map((sibling) => sibling.label))
+      const actual = JSON.stringify(measured.order?.actual ?? [])
+      if (!measured.found || measured.order === undefined) return { expectation, status: 'unresolved', expected, actual, note: 'the moved element was not found again' }
+      if (measured.order.actual.length < 2) return { expectation, status: 'unresolved', expected, actual, note: ORDER_NEIGHBOURS_LOST }
+      return { expectation, status: measured.order.inOrder === true ? 'pass' : 'fail', expected, actual }
+    }
   }
 }
 

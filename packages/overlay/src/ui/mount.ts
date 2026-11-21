@@ -3,7 +3,7 @@
  *
  *   <reglet-root data-reglet-root popover="manual">      one custom element, appended to <html>
  *     #shadow-root
- *       <div class="layer">     highlight boxes (see highlight.ts)
+ *       <div class="layer">     highlight boxes (see highlight.ts) and the handles on the selection (handles.ts)
  *       <iframe>                the dock itself: its own document, rendered by Preact
  *
  * Why the dock has a document of its own: an element that moves inside a shadow tree is a layout
@@ -28,6 +28,7 @@ import type { Controller } from '../state/controller.ts'
 import type { TabName } from '../state/store.ts'
 import { DOCK_CSS, HOST_CSS } from './css.ts'
 import { Dock, type DockUi } from './dock.tsx'
+import { createHandles, type Handles } from './handles.ts'
 import { createHighlighter, type Highlighter } from './highlight.ts'
 
 export const HOST_TAG = 'reglet-root'
@@ -61,6 +62,8 @@ export interface DockHandle {
   host: HTMLElement
   frame: HTMLIFrameElement
   highlighter: Highlighter
+  /** The resize handles and the reorder grip on the selection. */
+  handles: Handles
   /** True once the dock has rendered into its document. */
   mounted(): boolean
   /** Writes to the clipboard from whichever document is allowed to. */
@@ -273,7 +276,11 @@ export function mountDock(c: Controller): DockHandle {
     save(state)
   })
 
-  const highlighter = createHighlighter(layer, c.store)
+  // The handles redraw the boxes while they resize the selection; the boxes place the handles on every draw.
+  let redraw = (): void => undefined
+  const handles = createHandles(layer, c, { redraw: () => redraw(), keyTargets: () => [frame.contentWindow] })
+  const highlighter = createHighlighter(layer, c.store, window, { onSelection: (box) => handles.place(box) })
+  redraw = highlighter.update
 
   const copy = async (text: string): Promise<boolean> => {
     // The click that asked for the copy happened in the dock's document; try it first.
@@ -293,6 +300,7 @@ export function mountDock(c: Controller): DockHandle {
     host,
     frame,
     highlighter,
+    handles,
     mounted: () => mountedIn !== null,
     copy,
     setCollapsed: ui.setCollapsed,

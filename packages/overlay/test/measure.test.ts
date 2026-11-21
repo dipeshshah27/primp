@@ -1,5 +1,7 @@
 import type { Expectation } from '@reglet/protocol/change'
 import { describe, expect, it } from 'vitest'
+import { isNeighboursLost, judgeCheck, ORDER_NEIGHBOURS_LOST, ORDER_NOT_AS_LABELLED } from '@reglet/engine/judge'
+import { toMeasured } from '../../server/src/verify.ts'
 import { emulatedNote, STATE_NOT_EMULATED, toCheck, type Measured } from '../src/probe/measure.ts'
 
 const view = { innerWidth: 600, innerHeight: 800 } as Window
@@ -56,10 +58,55 @@ describe('toCheck: a raw measurement on the wire', () => {
     expect(toCheck(focus, { ...missing, mediaMatches: true }, view).status).toBe('unresolved')
   })
 
-  it('order: not implemented in this build, and never a pass', () => {
+  describe('order: the wire convention of packages/server/src/verify.ts', () => {
     const locator = { tag: 'li', indexPath: [0], ancestors: ['body'] }
-    const order: Expectation = { type: 'order', siblings: [{ label: 'li "A"', locator, self: true }, { label: 'li "B"', locator }] }
-    expect(toCheck(order, found(), view)).toMatchObject({ status: 'unresolved', expected: 'li "A" | li "B"', note: 'order checks are not implemented in this build' })
+    // Wanted: B, then the moved A, then C.
+    const order: Expectation = { type: 'order', siblings: [{ label: 'li "B"', locator }, { label: 'li "A"', locator, self: true }, { label: 'li "C"', locator }] }
+    const wanted = JSON.stringify(['li "B"', 'li "A"', 'li "C"'])
+    const item = { itemId: 'x', locatorConfidence: 1, found: true, checks: [] }
+    const judged = (measured: Measured) => {
+      const raw = toCheck(order, measured, view)
+      return { raw, judged: judgeCheck(order, toMeasured(raw, item)) }
+    }
+
+    it('pass: every listed element found, in the wanted order under one parent; expected and actual are JSON label arrays', () => {
+      const { raw, judged: result } = judged(found({ order: { actual: ['li "B"', 'li "A"', 'li "C"'], inOrder: true } }))
+      expect(raw).toMatchObject({ status: 'pass', expected: wanted, actual: wanted })
+      expect(result.status).toBe('pass')
+    })
+
+    it('pass with a neighbour missing: the ones found are in order', () => {
+      const { raw, judged: result } = judged(found({ order: { actual: ['li "A"', 'li "C"'], inOrder: true } }))
+      expect(raw).toMatchObject({ status: 'pass', actual: JSON.stringify(['li "A"', 'li "C"']) })
+      expect(result.status).toBe('pass')
+      expect(result.note).toContain('1 of 2 neighbours')
+    })
+
+    it('fail: found in another order (the page still has the old order)', () => {
+      const { raw, judged: result } = judged(found({ order: { actual: ['li "A"', 'li "B"', 'li "C"'], inOrder: false } }))
+      expect(raw).toMatchObject({ status: 'fail', expected: wanted, actual: JSON.stringify(['li "A"', 'li "B"', 'li "C"']) })
+      expect(result.status).toBe('fail')
+    })
+
+    it('fail although the labels read in order: the probe compares elements and parents, not labels', () => {
+      const { raw, judged: result } = judged(found({ order: { actual: ['li "B"', 'li "A"', 'li "C"'], inOrder: false } }))
+      expect(raw.status).toBe('fail')
+      expect(result).toMatchObject({ status: 'fail', note: ORDER_NOT_AS_LABELLED })
+    })
+
+    it('unresolved: the moved element itself was not found', () => {
+      const { raw, judged: result } = judged({ found: false, locatorConfidence: 0.2, order: { actual: ['li "B"', 'li "C"'], inOrder: true } })
+      expect(raw).toMatchObject({ status: 'unresolved', expected: wanted, actual: JSON.stringify(['li "B"', 'li "C"']) })
+      expect(result.status).toBe('unresolved')
+      expect(isNeighboursLost(result)).toBe(false)
+    })
+
+    it('unresolved: the moved element was found but fewer than two listed elements were', () => {
+      const { raw, judged: result } = judged(found({ order: { actual: ['li "A"'], inOrder: true } }))
+      expect(raw).toMatchObject({ status: 'unresolved', actual: JSON.stringify(['li "A"']), note: ORDER_NEIGHBOURS_LOST })
+      expect(result.status).toBe('unresolved')
+      expect(isNeighboursLost(result)).toBe(true)
+    })
   })
 
   it('absent and hidden report absent | hidden | rendered', () => {
