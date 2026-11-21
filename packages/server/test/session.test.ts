@@ -723,3 +723,14 @@ describe('prompt rendering', () => {
     }
   })
 })
+
+describe('projectRelative', () => {
+  it('makes a stylesheet path inside the project relative and leaves everything else alone', async () => {
+    const { projectRelative } = await import('../src/session.ts')
+    expect(projectRelative('/work/app/src/styles/site.css', '/work/app')).toBe('src/styles/site.css')
+    expect(projectRelative('/work/app/src/Card.module.css?direct', '/work/app/')).toBe('src/Card.module.css?direct')
+    expect(projectRelative('/work/application/a.css', '/work/app')).toBe('/work/application/a.css')
+    expect(projectRelative('http://localhost:5173/src/a.css', '/work/app')).toBe('http://localhost:5173/src/a.css')
+    expect(projectRelative('/work/app/a.css', undefined)).toBe('/work/app/a.css')
+  })
+})

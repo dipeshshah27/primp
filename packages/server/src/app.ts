@@ -164,6 +164,7 @@ export async function startReglet(options: StartRegletOptions): Promise<RegletHa
 
     const session = createSession({
       info: { target: origin, framework, projectName: basename(projectRoot), version: options.version ?? '0.0.0' },
+      projectRoot,
       resolver: {
         resolve(evidence) {
           refresh()

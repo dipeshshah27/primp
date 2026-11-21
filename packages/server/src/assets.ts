@@ -73,7 +73,8 @@ export const DEFAULT_OVERLAY_ENTRY = resolve(HERE, '../../overlay/src/entry/over
 /** `dist/assets/` when this module is part of the bundled CLI. */
 export const DEFAULT_PREBUILT_DIR = join(HERE, 'assets')
 
-const DEFAULT_DEFINE: Record<string, string> = { __REGLET_HOOK_STACKS__: 'true' }
+// The settle client is started by the hook entry on the shared socket, never by its own starter code.
+const DEFAULT_DEFINE: Record<string, string> = { __REGLET_HOOK_STACKS__: 'true', __REGLET_SETTLE_AUTOSTART__: 'false' }
 const SCRIPT_TYPE = 'text/javascript; charset=utf-8'
 
 function isFile(path: string): boolean {

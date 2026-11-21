@@ -49,6 +49,11 @@ export interface SessionOptions {
   culprits?: (issue: ShiftIssue, recording: ShiftRecording) => Promise<SourceLoc | undefined>
   /** The settle detector's `mark`: recorded on a batch when an agent claims it. */
   mark?: () => JournalPosition
+  /**
+   * Absolute path of the project. A stylesheet identity under it (Vite puts the absolute file path in
+   * `data-vite-dev-id`) is stored project-relative, which is what an agent can use and what belongs in a prompt.
+   */
+  projectRoot?: string
   /** Epoch milliseconds. Default `Date.now`. */
   now?: () => number
   /** Makes batch and request ids. Default: random hex. */
@@ -206,6 +211,13 @@ function isEvidence(value: unknown): value is Evidence {
   return typeof context === 'object' && context !== null && typeof (context as { tag?: unknown }).tag === 'string' && Array.isArray((value as { hints?: unknown }).hints)
 }
 
+/** `/abs/project/src/a.css?x` -> `src/a.css?x` when it lies inside the project; anything else unchanged. */
+export function projectRelative(sheet: string, projectRoot: string | undefined): string {
+  if (projectRoot === undefined || projectRoot === '') return sheet
+  const root = projectRoot.endsWith('/') ? projectRoot : `${projectRoot}/`
+  return sheet.startsWith(root) ? sheet.slice(root.length) : sheet
+}
+
 export function createSession(options: SessionOptions): Session {
   const now = options.now ?? Date.now
   const log: SessionLogger = options.log ?? (() => {})
@@ -347,6 +359,7 @@ export function createSession(options: SessionOptions): Session {
       return
     }
     const item: ChangeItem = { ...incoming, status: 'draft', seq: existing?.seq ?? 0 }
+    if (item.kind === 'style' && item.origin?.sheet !== undefined) item.origin = { ...item.origin, sheet: projectRelative(item.origin.sheet, options.projectRoot) }
     delete item.batchId
     delete item.claimedAt
     delete item.verification
