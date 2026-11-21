@@ -181,7 +181,7 @@ export async function startReglet(options: StartRegletOptions): Promise<RegletHa
 
     // Verification: on an agent's request (verify_changes), on the dock's (session:reverify), and by itself
     // after source edits for batches that were pasted as a prompt.
-    const verifier = createVerifier({ session, detector })
+    const verifier = createVerifier({ session, detector, hotReload: () => hmr.status().live })
     const shiftTools = createShiftTools({ session })
     undo.push(startAutoVerify({ session, detector, verifier, log: (message, error) => log('warn', message, error) }))
     undo.push(

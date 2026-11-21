@@ -10,6 +10,9 @@ function fakeSession(initial: ChangeItem[], measure: (items: readonly ChangeItem
   const items = new Map(initial.map((item) => [item.id, item]))
   const batches = new Map<string, SessionBatch>()
   const measured: string[][] = []
+  const reloads: string[] = []
+  const canReload = true
+  let docs = ['doc-1']
   const session = {
     items: () => [...items.values()],
     item: (id: string) => items.get(id),
@@ -18,6 +21,13 @@ function fakeSession(initial: ChangeItem[], measure: (items: readonly ChangeItem
       measured.push(wanted.map((item) => item.id))
       return measure(wanted)
     },
+    documents: () => docs.map((doc) => ({ doc, connectedAt: 1000 })),
+    reload: (reason: string) => {
+      reloads.push(reason)
+      // The tab comes back as a new document.
+      docs = [`doc-${reloads.length + 1}`]
+      return canReload
+    },
     patchItem: (id: string, patch: Partial<ChangeItem>) => {
       const item = items.get(id)
       if (item === undefined) return false
@@ -25,7 +35,7 @@ function fakeSession(initial: ChangeItem[], measure: (items: readonly ChangeItem
       return true
     },
   } as unknown as Session
-  return { session, items, batches, measured }
+  return { session, items, batches, measured, reloads }
 }
 
 const settled = (over: Partial<SettleResult> = {}): SettleResult => ({
@@ -47,13 +57,15 @@ function fakeDetector(result: SettleResult | (() => SettleResult)) {
     calls,
     entries,
     detector: {
+      mark: () => ({ seq: 99, at: 9999 }),
       waitForSettle: async (options: { since?: unknown; timeoutMs: number }) => {
         calls.push({ since: options.since, timeoutMs: options.timeoutMs })
         return typeof result === 'function' ? result() : result
       },
       journal: (since?: unknown) => {
-        const from = since === undefined ? -1 : (since as { seq: number }).seq
-        return entries.filter((entry) => entry.seq > from)
+        if (since === undefined) return [...entries]
+        if (typeof since === 'number') return entries.filter((entry) => entry.at >= since)
+        return entries.filter((entry) => entry.seq > (since as { seq: number }).seq)
       },
     },
   }
@@ -230,6 +242,59 @@ describe('createVerifier', () => {
     }
     expect(await run('16px')).toBe('no_update_observed')
     expect(await run('24px')).toBe('pass')
+  })
+
+  it('reloads a page that has no hot reload when the source changed, then measures the new page', async () => {
+    const answers = [
+      settled({ status: 'no_update_observed', signal: 'timeout', domChanged: false, filesChanged: ['css/site.css'], reason: 'files changed but the page did not' }),
+      settled({ signal: 'mutation-quiet', filesChanged: [], reason: 'the page loaded and is quiet' }),
+    ]
+    const { session, reloads, items } = fakeSession([claimed('c1')], (wanted) => measuredWith(wanted.map((it) => answer(it, [rawComputed(it.expect[0] as Expectation, '24px', 'pass')]))))
+    const fake = fakeDetector(() => answers.shift() as SettleResult)
+    const outcome = await createVerifier({ session, detector: fake.detector, sleep: noSleep }).verify()
+    expect(reloads).toHaveLength(1)
+    expect(fake.calls[1]).toEqual({ since: { seq: 99, at: 9999 }, timeoutMs: 1500 })
+    expect(outcome.results[0]?.status).toBe('pass')
+    expect(outcome.results[0]?.settle?.status).toBe('settled')
+    expect(outcome.results[0]?.settle?.filesChanged).toEqual(['css/site.css'])
+    expect(items.get('c1')?.status).toBe('verified')
+  })
+
+  it('after such a reload a value that is still wrong is a fail, not "no update"', async () => {
+    const answers = [settled({ status: 'no_update_observed', signal: 'timeout', domChanged: false, filesChanged: ['css/site.css'] }), settled({ status: 'no_update_observed', signal: 'timeout', domChanged: false, filesChanged: [] })]
+    const { session } = fakeSession([claimed('c1')], (wanted) => measuredWith(wanted.map((it) => answer(it, [rawComputed(it.expect[0] as Expectation, '20px')]))))
+    const fake = fakeDetector(() => answers.shift() as SettleResult)
+    const outcome = await createVerifier({ session, detector: fake.detector, sleep: noSleep }).verify()
+    expect(outcome.results[0]?.status).toBe('fail')
+  })
+
+  it('on a server without hot reload it reloads at once when a source file is newer than the page, without waiting out the settle timeout', async () => {
+    const { session, reloads } = fakeSession([claimed('c1')], (wanted) => measuredWith(wanted.map((it) => answer(it, [rawComputed(it.expect[0] as Expectation, '24px', 'pass')]))))
+    const fake = fakeDetector(settled({ signal: 'mutation-quiet', filesChanged: [] }))
+    fake.entries.push({ seq: 1, at: 1_750_000_001_000, source: 'fs', event: 'change', path: 'css/site.css', mtimeMs: 1_750_000_000_990 })
+    const outcome = await createVerifier({ session, detector: fake.detector, sleep: noSleep, hotReload: () => false }).verify()
+    expect(reloads).toHaveLength(1)
+    // One wait only: for the reloaded page. The ordinary settle wait was skipped.
+    expect(fake.calls).toEqual([{ since: { seq: 99, at: 9999 }, timeoutMs: 1500 }])
+    expect(outcome.results[0]?.status).toBe('pass')
+    expect(outcome.results[0]?.settle).toMatchObject({ status: 'settled', signal: 'fs', filesChanged: ['css/site.css'] })
+  })
+
+  it('on a server without hot reload it does not reload a page that is newer than the last source change', async () => {
+    const { session, reloads } = fakeSession([claimed('c1')], (wanted) => measuredWith(wanted.map((it) => answer(it, [rawComputed(it.expect[0] as Expectation, '24px', 'pass')]))))
+    const fake = fakeDetector(settled({ signal: 'mutation-quiet' }))
+    // Journalled inside the window, but written before the document in the tab connected (at 1000 in this fake).
+    fake.entries.push({ seq: 1, at: 1_750_000_001_000, source: 'fs', event: 'change', path: 'css/site.css', mtimeMs: 500 })
+    await createVerifier({ session, detector: fake.detector, sleep: noSleep, hotReload: () => false }).verify()
+    expect(reloads).toHaveLength(0)
+  })
+
+  it('does not reload when no source file changed', async () => {
+    const { session, reloads } = fakeSession([claimed('c1')], (wanted) => measuredWith(wanted.map((it) => answer(it, [rawComputed(it.expect[0] as Expectation, '16px')]))))
+    const fake = fakeDetector(settled({ status: 'no_update_observed', signal: 'timeout', domChanged: false, filesChanged: [] }))
+    const outcome = await createVerifier({ session, detector: fake.detector, sleep: noSleep }).verify()
+    expect(reloads).toHaveLength(0)
+    expect(outcome.results[0]?.status).toBe('no_update_observed')
   })
 
   it('reports unresolved when the element was not found again', async () => {

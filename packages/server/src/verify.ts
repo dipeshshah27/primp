@@ -9,7 +9,7 @@ import {
 } from '@reglet/engine'
 import type { ChangeItem, CheckResult, Expectation, ItemStatus, Rect, VerificationResult, VerificationStatus } from '@reglet/protocol/change'
 import type { MeasuredItem, Session } from './session.ts'
-import type { JournalPosition, SettleDetector, SettleResult } from './settle.ts'
+import type { JournalEntry, JournalPosition, SettleDetector, SettleResult } from './settle.ts'
 
 /**
  * Closed-loop verification: after an agent (or a person) edited the source,
@@ -43,8 +43,12 @@ export interface VerifyOutcome {
 
 export interface VerifierOptions {
   session: Session
-  detector: Pick<SettleDetector, 'waitForSettle' | 'journal'>
+  detector: Pick<SettleDetector, 'waitForSettle' | 'journal' | 'mark'>
   now?: () => number
+  /** Whether the dev server pushes updates into the page (an open HMR socket). Default: assumed true. */
+  hotReload?: () => boolean
+  /** How long a reloaded page may take to load, for sites without hot reload. Default 8000. */
+  reloadTimeoutMs?: number
   /** Time given to the watcher to report a write made just before the call. Default 150. */
   graceMs?: number
   /** How long the browser may take to answer a measurement. Default 5000. */
@@ -136,6 +140,7 @@ export function createVerifier(options: VerifierOptions): Verifier {
   const sleep = options.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)))
   const graceMs = options.graceMs ?? 150
   const measureTimeoutMs = options.measureTimeoutMs ?? 5000
+  const reloadTimeoutMs = options.reloadTimeoutMs ?? 8000
 
   /** Start of the settle window of an item: when its batch was claimed, else when it was sent. */
   const windowStart = (item: ChangeItem): number | JournalPosition => {
@@ -167,11 +172,58 @@ export function createVerifier(options: VerifierOptions): Verifier {
     await sleep(graceMs)
     // The earliest window start: everything any of these items could have caused is inside it.
     const since = items.map(windowStart).reduce((a, b) => (startTime(b) < startTime(a) ? b : a))
-    const settle = await detector.waitForSettle({ since, timeoutMs: params.waitMs ?? 5000 })
+    /** Reloads the tab and waits for the new document. False when no tab could be reloaded or none came back. */
+    const reloadPage = async (reason: string): Promise<{ ok: boolean; quiet?: SettleResult }> => {
+      const before = new Set(session.documents().map((document) => document.doc))
+      const mark = detector.mark()
+      if (!session.reload(reason)) return { ok: false }
+      const deadline = now() + reloadTimeoutMs
+      const isBack = (): boolean => session.documents().some((document) => !before.has(document.doc))
+      while (now() < deadline && !isBack()) await sleep(50)
+      if (!isBack()) return { ok: false }
+      // Gives the new page time to finish loading; only a build error in it changes the verdict.
+      return { ok: true, quiet: await detector.waitForSettle({ since: mark, timeoutMs: 1500 }) }
+    }
+    const afterReload = (base: Pick<SettleResult, 'ms' | 'filesChanged'>, quiet: SettleResult): SettleResult =>
+      quiet.status === 'build_error'
+        ? { ...quiet, filesChanged: base.filesChanged }
+        : { ...quiet, status: 'settled', signal: 'fs', domChanged: true, ms: base.ms + quiet.ms, filesChanged: base.filesChanged, reason: 'no hot reload here: reglet reloaded the page after the source changed' }
+
+    let reloaded = false
+    let settle: SettleResult | undefined
+    // A site without hot reload (plain HTML, templates rendered by a server) never updates by itself:
+    // when a source file is newer than the page in the tab, reload it, as the developer would.
+    if (options.hotReload?.() === false) {
+      const changes = detector.journal(since).filter((entry): entry is Extract<JournalEntry, { source: 'fs' }> => entry.source === 'fs')
+      const lastChange = Math.max(...changes.map((entry) => entry.mtimeMs ?? entry.at))
+      const pageFrom = Math.max(...session.documents().map((document) => document.connectedAt))
+      if (changes.length > 0 && lastChange > pageFrom) {
+        const started = now()
+        const result = await reloadPage('source files changed and this dev server has no hot reload')
+        if (result.ok && result.quiet !== undefined) {
+          reloaded = true
+          settle = afterReload({ ms: now() - started - result.quiet.ms, filesChanged: [...new Set(changes.map((entry) => entry.path))] }, result.quiet)
+        }
+      }
+    }
+    settle ??= await detector.waitForSettle({ since, timeoutMs: params.waitMs ?? 5000 })
+    // The same for a dev server whose hot reload did not reach this page: the source changed, the page did not.
+    if (!reloaded && settle.status === 'no_update_observed' && settle.filesChanged.length > 0 && !settle.domChanged) {
+      const result = await reloadPage('source files changed and the dev server did not update the page')
+      if (result.ok && result.quiet !== undefined) {
+        reloaded = true
+        settle = afterReload(settle, result.quiet)
+      }
+    }
     const settleInfo = toSettleInfo(settle)
 
     // A broken build renders an error overlay or a stale page: nothing measured there says anything about the edit.
-    const measured = settle.status === 'build_error' ? undefined : await session.measure(items, measureTimeoutMs)
+    let measured = settle.status === 'build_error' ? undefined : await session.measure(items, measureTimeoutMs)
+    // A page that was just reloaded may not have its dock up yet: ask once more.
+    if (reloaded && measured !== undefined && measured.status !== 'measured') {
+      await sleep(1000)
+      measured = await session.measure(items, measureTimeoutMs)
+    }
     const at = now()
     const results: VerificationResult[] = []
     for (const item of items) {

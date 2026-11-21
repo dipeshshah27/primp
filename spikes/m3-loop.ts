@@ -11,11 +11,11 @@
  * Passes when each kind of patch gets the status the plan names for it, and nothing
  * is ever reported as pass without the source having been edited to match.
  *
- * Part 1 runs on Vite + React 19, part 2 on Next 16 with Turbopack, Server Components
- * and a strict nonce CSP.
+ * Parts: Vite + React 19; Next 16 with Turbopack, Server Components and a strict nonce CSP;
+ * SvelteKit with Svelte 5; plain HTML with no hot reload.
  *
- *   pnpm spike:m3-loop            both parts
- *   pnpm spike:m3-loop vite       one part (the run then counts as incomplete)
+ *   pnpm spike:m3-loop            all parts
+ *   pnpm spike:m3-loop vite       one part: vite | next | svelte | static (the run then counts as incomplete)
  */
 
 import type { ChangeItem } from '../packages/protocol/src/change.ts'
@@ -270,11 +270,88 @@ async function next(): Promise<void> {
   report.check('reglet added no CSP violation during the whole Next loop', fromReglet().length === 0, fromReglet().slice(0, 3).join(' | ') || 'none')
 }
 
+async function svelte(): Promise<void> {
+  const loop = await startLoop('sveltekit-svelte-5')
+  const { fixture, verify, describe, itemStatus } = loop
+  const one = loop.only
+
+  report.section('SvelteKit + Svelte 5')
+  await report.attempt('a scoped component style (Hero.svelte): wrong patch fails, right patch passes, source is Hero.svelte', async () => {
+    await loop.open('/')
+    const item = await loop.editAndClaim('[data-label="hero-title"]', { property: 'font-size', value: '52px' })
+    expect(item.target.source?.file === 'src/lib/components/Hero.svelte', `source ${item.target.source?.file}:${item.target.source?.line} (${item.target.source?.level})`)
+    editFile(fixture, 'src/lib/components/Hero.svelte', replaceOnce('font-size: 44px;', 'font-size: 47px;'))
+    const wrong = one((await verify([item.id], 8000)).outcome)
+    expect(wrong.status === 'fail', `wrong patch: ${describe(wrong)}`)
+    editFile(fixture, 'src/lib/components/Hero.svelte', replaceOnce('font-size: 47px;', 'font-size: 52px;'))
+    const right = one((await verify([item.id], 8000)).outcome)
+    expect(right.status === 'pass', `right patch: ${describe(right)}`)
+    expect(itemStatus(item.id) === 'verified', `item status ${itemStatus(item.id)}`)
+    return `source ${item.target.source?.file}:${item.target.source?.line} (${item.target.source?.level})\n        wrong: ${describe(wrong)}\n        right: ${describe(right)}`
+  })
+  await report.attempt('a syntax error in a Svelte component: build_error', async () => {
+    const item = await loop.editAndClaim('[data-label="hero-lede"]', { property: 'font-size', value: '21px' })
+    const broken = editFile(fixture, 'src/lib/components/Hero.svelte', replaceOnce('<p class="lede" data-label="hero-lede">{lede}</p>', '<p class="lede" data-label="hero-lede">{lede</p>'))
+    const result = one((await verify([item.id], 8000)).outcome)
+    broken.revert()
+    expect(result.status === 'build_error', `status ${describe(result)}`)
+    return `${result.status}; hint: ${result.hint.slice(0, 200)}`
+  })
+}
+
+async function staticSite(): Promise<void> {
+  const loop = await startLoop('static-html')
+  const { fixture, page, record, verify, describe, itemStatus } = loop
+  const one = loop.only
+
+  report.section('Plain HTML, no build step and no hot reload')
+  await report.attempt('the agent edits css/site.css; reglet reloads the page by itself and then judges: fail, then pass', async () => {
+    await loop.open('/')
+    const item = await loop.editAndClaim('[data-label="hero-title"]', { property: 'font-size', value: '52px' })
+    expect(item.target.source?.file === 'index.html', `source ${item.target.source?.file}:${item.target.source?.line} (${item.target.source?.level})`)
+    const loadsBefore = record.documentRequests.length
+    editFile(fixture, 'css/site.css', replaceOnce('  font-size: 46px;', '  font-size: 48px;'))
+    const wrong = one((await verify([item.id], 1500)).outcome)
+    expect(wrong.status === 'fail', `wrong patch: ${describe(wrong)}`)
+    expect(wrong.checks[0]?.actual === '48px', `the page was not reloaded before measuring: actual ${wrong.checks[0]?.actual}`)
+    editFile(fixture, 'css/site.css', replaceOnce('  font-size: 48px;', '  font-size: 52px;'))
+    const right = one((await verify([item.id], 1500)).outcome)
+    expect(right.status === 'pass', `right patch: ${describe(right)}`)
+    expect(itemStatus(item.id) === 'verified', `item status ${itemStatus(item.id)}`)
+    const reloads = record.documentRequests.length - loadsBefore
+    expect(reloads === 2, `the page was loaded ${reloads} times for two verifications`)
+    const shown = await loop.shownStatus(item.id)
+    expect(shown === 'pass', `after the reload the dock shows ${shown}`)
+    return `source ${item.target.source?.file}:${item.target.source?.line} (${item.target.source?.level}); ${reloads} reloads by reglet\n        wrong: ${describe(wrong)}\n        right: ${describe(right)}`
+  })
+  await report.attempt('removing an element from index.html: pass after the reload', async () => {
+    const item = await loop.editAndClaim('[data-label="hero-emphasis"]', 'remove')
+    editFile(fixture, 'index.html', (source) => source.replace(/<em data-label="hero-emphasis">([^<]*)<\/em>/, '$1'))
+    const result = one((await verify([item.id], 1500)).outcome)
+    expect(result.status === 'pass', `status ${describe(result)}`)
+    const present = await page.evaluate(() => document.querySelector('[data-label="hero-emphasis"]') !== null)
+    expect(!present, 'the element is still in the page')
+    return describe(result)
+  })
+  await report.attempt('without a source edit: no_update_observed and no reload', async () => {
+    const item = await loop.editAndClaim('[data-label="hero-lede"]', { property: 'font-size', value: '21px' })
+    const loadsBefore = record.documentRequests.length
+    const result = one((await verify([item.id], 1200)).outcome)
+    expect(result.status === 'no_update_observed', `status ${describe(result)}`)
+    expect(record.documentRequests.length === loadsBefore, 'the page was reloaded although nothing changed')
+    return describe(result)
+  })
+}
+
+const PARTS: Record<string, () => Promise<void>> = { vite, next, svelte, static: staticSite }
+
 try {
-  if (only === undefined || only === 'vite') await vite()
-  await runCleanups()
-  if (only === undefined || only === 'next') await next()
-  if (only !== undefined) report.skip('both fixtures', `only "${only}" was run, so the spike is incomplete`)
+  for (const [name, run] of Object.entries(PARTS)) {
+    if (only !== undefined && only !== name) continue
+    await run()
+    await runCleanups()
+  }
+  if (only !== undefined) report.skip('all four fixtures', `only "${only}" was run, so the spike is incomplete`)
 } catch (error) {
   report.check('spike ran to completion', false, error instanceof Error ? (error.stack ?? error.message) : String(error))
 } finally {
