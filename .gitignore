@@ -9,3 +9,6 @@ test-results/
 playwright-report/
 .tmp/
 spikes/.out/
+packages/cli/README.md
+packages/cli/LICENSE
+packages/cli/NOTICE

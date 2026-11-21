@@ -21,7 +21,9 @@
     "spike:m1-overlay": "tsx spikes/m1-overlay.ts",
     "spike:m1-server": "tsx spikes/m1-server.ts",
     "spike:m3-loop": "tsx spikes/m3-loop.ts",
-    "spike:m4-shifts": "tsx spikes/m4-shifts.ts"
+    "spike:m4-shifts": "tsx spikes/m4-shifts.ts",
+    "build": "pnpm --filter reglet build",
+    "spike:pack": "tsx spikes/pack-check.ts"
   },
   "devDependencies": {
     "@jridgewell/trace-mapping": "0.3.31",

@@ -8,7 +8,10 @@
     "reglet": "./dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
   ],
   "engines": {
     "node": "^22.22.0 || >=24.11.0"
@@ -19,5 +22,19 @@
     "@reglet/source": "workspace:*",
     "@reglet/server": "workspace:*",
     "@reglet/overlay": "workspace:*"
-  }
+  },
+  "scripts": {
+    "build": "tsx build.ts",
+    "prepack": "tsx build.ts"
+  },
+  "keywords": [
+    "css",
+    "visual-editor",
+    "layout-shift",
+    "cls",
+    "mcp",
+    "ai",
+    "coding-agent",
+    "devtools"
+  ]
 }
