@@ -73,16 +73,24 @@ export interface ProxyOptions {
   /** How to deal with the page's Content-Security-Policy. Default `nonce`. */
   cspMode?: CspMode
   /**
-   * Asked for every request. While it returns true the browser cache is taken
-   * out of the picture, so that a reload is a cold load (layout-shift replay):
-   * conditional request headers are not forwarded, every response is sent
-   * `Cache-Control: no-store` without validators, and documents also carry
-   * `Clear-Site-Data: "cache"` to drop what was cached before. Spike S7 showed
-   * this re-fetches every same-origin resource on `location.reload()` without
-   * the DevTools protocol. Resources from other origins never pass through
-   * here and stay cached.
+   * Asked for every request. While it returns true the browser cache is kept out of the picture:
+   * conditional request headers are not forwarded, and every response is sent
+   * `Cache-Control: no-store` without validators.
+   *
+   * reglet runs with this on all the time. A page load is then always a first visit, which is the
+   * load whose layout shifts matter, and a reload after a source edit never shows a stale stylesheet
+   * or image. Switching it on only for a replay is not enough: what the browser cached before stays
+   * fresh, and `location.reload()` does not revalidate fresh subresources (spike S7, and the demo
+   * check, which found replays that were "cold" in name only). Resources from other origins never
+   * pass through here and stay cached.
    */
   cold?: () => boolean
+  /**
+   * Asked for every document response. While it returns true the response also carries
+   * `Clear-Site-Data: "cache"`, which empties what an earlier, cacheable session left behind for
+   * this origin. Only a document response can do that.
+   */
+  clearCache?: () => boolean
   /** Sees every WebSocket message of every tunnelled upgrade. Read-only. */
   onUpgradeFrame?: UpgradeFrameHandler
   /** Receives the overlay's own WebSocket connections (upgrades under the reserved prefix). */
@@ -356,11 +364,8 @@ export async function createProxy(options: ProxyOptions): Promise<ProxyServer> {
       else if (cold && CACHE_RESPONSE.has(lower)) continue
       if (value !== undefined) out.push(name, value)
     }
-    if (cold) {
-      out.push('Cache-Control', 'no-store')
-      // Drops what an earlier, cacheable load left behind. Only a document response can do that.
-      if (document) out.push('Clear-Site-Data', '"cache"')
-    }
+    if (cold) out.push('Cache-Control', 'no-store')
+    if (document && options.clearCache?.() === true) out.push('Clear-Site-Data', '"cache"')
 
     // Pass the dev server's headers as they are; do not add a Date of our own.
     res.sendDate = false

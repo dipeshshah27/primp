@@ -191,6 +191,7 @@ export async function startReglet(options: StartRegletOptions): Promise<RegletHa
       }),
     )
 
+    let clearedOnce = false
     const startProxy = (port: number): Promise<ProxyServer> =>
       createProxy({
         target,
@@ -198,7 +199,15 @@ export async function startReglet(options: StartRegletOptions): Promise<RegletHa
         assets: assets.assets,
         headScripts: assets.headScripts,
         cspMode: options.cspMode,
-        cold: () => shiftTools.cold(),
+        // Always: every load through reglet is a first visit, and no edit is hidden by a cached copy.
+        cold: () => true,
+        // During a layout-shift replay, and for the first page of the session (leftovers of an earlier run on this port).
+        clearCache: () => {
+          if (shiftTools.cold()) return true
+          if (clearedOnce) return false
+          clearedOnce = true
+          return true
+        },
         onUpgradeFrame: (direction, tunnel, message) => hmr.onFrame(direction, tunnel, message),
         onWebSocket(socket, request) {
           if ((request.url ?? '').split('?', 1)[0] !== OVERLAY_SOCKET_PATH) {

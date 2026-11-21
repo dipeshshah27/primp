@@ -79,6 +79,44 @@ const doctor = defineCommand({
   },
 })
 
+const demo = defineCommand({
+  meta: { name: 'demo', description: 'Try reglet on a small demo site with one seeded layout shift (copied to ./reglet-demo)' },
+  args: {
+    dir: { type: 'string', valueHint: 'directory', description: 'Where to put the demo site (default: ./reglet-demo)' },
+    open: { type: 'boolean', default: true, description: 'Open the browser on the demo', negativeDescription: 'Do not open the browser' },
+  },
+  async run({ args }) {
+    subcommandRan = true
+    const { DemoError, demoGuide, prepareDemo, startDemoServer } = await import('./demo.ts')
+    const { CliError, runReglet } = await import('./run.ts')
+    let closers: (() => Promise<void>)[] = []
+    let stopping = false
+    const stop = (code: number): void => {
+      if (stopping) return
+      stopping = true
+      const pending = closers
+      closers = []
+      void Promise.allSettled(pending.map((close) => close())).finally(() => process.exit(code))
+    }
+    process.on('SIGINT', () => stop(130))
+    process.on('SIGTERM', () => stop(143))
+    process.on('SIGHUP', () => stop(129))
+    try {
+      const site = prepareDemo(args.dir || 'reglet-demo')
+      const server = await startDemoServer(site.dir)
+      closers.push(() => server.close())
+      process.stdout.write(`reglet: demo site ${site.created ? 'created in' : 'found in'} ${site.dir}, served at ${server.url}\n`)
+      const running = await runReglet({ project: site.dir, target: String(server.port), open: args.open, version: pkg.version })
+      closers.push(() => running.close())
+      process.stdout.write(`\n${demoGuide(site.dir)}\n`)
+    } catch (error) {
+      if (!(error instanceof CliError) && !(error instanceof DemoError)) throw error
+      process.stderr.write(`${error.message}\n`)
+      stop(1)
+    }
+  },
+})
+
 const main = defineCommand({
   meta: { name: 'reglet', version: pkg.version, description: pkg.description },
   args: {
@@ -88,7 +126,7 @@ const main = defineCommand({
     project: projectArg,
     open: { type: 'boolean', default: true, description: 'Open the browser on the proxy URL', negativeDescription: 'Do not open the browser' },
   },
-  subCommands: { mcp, setup, doctor },
+  subCommands: { demo, mcp, setup, doctor },
   async run({ args }) {
     if (subcommandRan) return
     const { CliError, runReglet } = await import('./run.ts')

@@ -77,7 +77,7 @@ export interface ShiftToolsOptions {
 export interface ShiftTools {
   getLayoutShifts(params?: { minValue?: number }): LayoutShiftsResult
   verifyLayoutShift(params: { id: string }): Promise<ShiftVerification>
-  /** True while a replay is running: the proxy then takes the browser cache out of the picture. */
+  /** True while a replay is running: document responses then also clear what the browser cached earlier. */
   cold(): boolean
 }
 

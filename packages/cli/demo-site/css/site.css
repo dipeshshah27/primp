@@ -1,0 +1,176 @@
+:root {
+  --ink: #1c2530;
+  --ink-soft: #55616f;
+  --paper: #fbf8f3;
+  --line: #e4ddd1;
+  --accent: #0f5c63;
+  --accent-ink: #ffffff;
+  --radius: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 17px/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+.site-header,
+main,
+.site-footer {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.brand {
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 19px;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.site-nav a {
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.site-nav a:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+
+.hero {
+  display: grid;
+  gap: 16px;
+  padding: 40px 0 28px;
+}
+
+.hero-title {
+  max-width: 18ch;
+  font-size: 44px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.hero-lede {
+  max-width: 52ch;
+  color: var(--ink-soft);
+  font-size: 19px;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #ffffff;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.btn-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.hero-art {
+  display: block;
+  width: 100%;
+  border-radius: 16px;
+}
+
+.beans {
+  padding: 40px 0;
+}
+
+.bean-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bean {
+  display: grid;
+  gap: 8px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #ffffff;
+}
+
+.bean p {
+  color: var(--ink-soft);
+}
+
+.bean .price {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.price span {
+  color: var(--ink-soft);
+  font-weight: 400;
+}
+
+.subscribe {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: 32px;
+  border-radius: 16px;
+  background: #eaf3f2;
+}
+
+.site-footer {
+  padding-top: 32px;
+  padding-bottom: 48px;
+  color: var(--ink-soft);
+}
+
+@media (min-width: 720px) {
+  .bean-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .hero-title {
+    font-size: 56px;
+  }
+}

@@ -27,7 +27,7 @@ const cacheable = () =>
     res.end(html ? '<!doctype html><html><head><title>t</title></head><body>hi</body></html>' : 'PNGDATA')
   })
 
-describe('cold mode (layout-shift replay)', () => {
+describe('cold mode (the browser cache kept out of the picture)', () => {
   it('changes nothing while it is off', async () => {
     const upstream = await cacheable()
     const proxy = await startProxy(upstream.port, { cold: () => false })
@@ -67,14 +67,21 @@ describe('cold mode (layout-shift replay)', () => {
     expect(response.headers['content-type']).toBe('image/png')
   })
 
-  it('adds Clear-Site-Data: "cache" to documents only, and still injects the hook', async () => {
+  it('adds Clear-Site-Data: "cache" to documents only when asked to, and still injects the hook', async () => {
     const upstream = await cacheable()
-    const proxy = await startProxy(upstream.port, { cold: () => true })
+    let clear = true
+    const proxy = await startProxy(upstream.port, { cold: () => true, clearCache: () => clear })
     const page = await send(proxy.port, { path: '/page', headers: NAVIGATE })
     expect(page.status).toBe(200)
     expect(page.headers['clear-site-data']).toBe('"cache"')
     expect(rawValues(page.rawHeaders, 'cache-control')).toEqual(['no-store'])
     expect(page.text).toContain('/__reglet/hook.js')
+    // A subresource cannot clear the cache, and must not try.
+    expect((await send(proxy.port, { path: '/hero.png', headers: IMAGE })).headers['clear-site-data']).toBeUndefined()
+    clear = false
+    const later = await send(proxy.port, { path: '/page', headers: NAVIGATE })
+    expect(later.headers['clear-site-data']).toBeUndefined()
+    expect(rawValues(later.rawHeaders, 'cache-control')).toEqual(['no-store'])
   })
 
   it('is asked per request, so it can be switched on for a replay and off again', async () => {

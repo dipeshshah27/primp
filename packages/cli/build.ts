@@ -8,7 +8,7 @@
  * prebuilt assets next to cli.js are used (see packages/server/src/assets.ts).
  */
 
-import { copyFileSync, mkdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { copyFileSync, cpSync, mkdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build } from 'esbuild'
@@ -43,6 +43,9 @@ const result = await build({
 const assets = await buildOverlayAssets({ prebuiltDir: false })
 writeFileSync(join(DIST, 'assets/hook.js'), assets.hook.code)
 writeFileSync(join(DIST, 'assets/overlay.js'), assets.overlay.code)
+
+// The site `reglet demo` copies out.
+cpSync(join(HERE, 'demo-site'), join(DIST, 'demo'), { recursive: true })
 
 // npm packs these from the package directory; they are copies, kept out of git.
 for (const file of ['README.md', 'LICENSE', 'NOTICE']) copyFileSync(join(REPO, file), join(HERE, file))
