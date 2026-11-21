@@ -1,0 +1,49 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  unit:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      # Some suites start headless Chromium (the proxy and dock tests).
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test
+      - run: pnpm build
+
+  # The end-to-end checks have only ever been run on macOS; they start real dev servers.
+  end-to-end:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install chromium
+      - name: Install fixtures
+        run: |
+          for fixture in vite-react-19 next-16-turbopack sveltekit-svelte-5; do
+            (cd "fixtures/$fixture" && pnpm install --ignore-workspace --frozen-lockfile)
+          done
+      - run: pnpm spike:m3-loop
+      - run: pnpm spike:m4-shifts
+      - run: pnpm spike:pack
+      - run: pnpm spike:demo
