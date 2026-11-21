@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ada Okonkwo (@adaok) · Relay</title>
+<link rel="stylesheet" href="profile.css">
+</head>
+<body>
+<header class="appbar">
+  <div class="appbar-inner">
+    <a class="appbar-brand" href="#"><img src="/assets/img/logo-mark.svg" width="28" height="28" alt=""> Relay</a>
+    <nav class="appbar-nav" aria-label="Main">
+      <a href="#">Feed</a>
+      <a href="#">Explore</a>
+      <a href="#">Projects</a>
+      <a href="#">Events</a>
+    </nav>
+    <input class="appbar-search" type="search" placeholder="Search people and projects" aria-label="Search">
+    <a class="appbar-me" href="#"><img src="/assets/img/avatar-160.svg" width="32" height="32" alt="Your profile"></a>
+  </div>
+</header>
+
+<div class="cover">
+  <img class="cover-photo" src="/delay/600/assets/img/hero-1200x400.png" width="1200" height="400" alt="">
+</div>
+
+<main class="page">
+  <section class="profile-head" aria-label="Profile">
+    <img class="avatar" src="/delay/600/assets/img/avatar-160.svg" alt="Ada Okonkwo">
+    <div class="identity">
+      <h1>Ada Okonkwo <span class="presence" id="presence" title="Offline"></span></h1>
+      <div class="handle">@adaok · she/her · Lagos, Nigeria</div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" id="follow" type="button" aria-pressed="false">Follow</button>
+      <button class="btn" type="button">Message</button>
+      <button class="btn btn-icon" type="button" aria-label="More">⋯</button>
+    </div>
+  </section>
+
+  <p class="profile-bio">Firmware engineer turned maintainer. I write about low-power radios, mesh networks that survive weather, and the documentation nobody wants to write. Currently rebuilding the Relay bootloader in the open.</p>
+
+  <ul class="profile-meta">
+    <li><strong>1,284</strong> followers</li>
+    <li><strong>212</strong> following</li>
+    <li><strong>37</strong> projects</li>
+    <li>Joined March 2019</li>
+    <li><a href="#">adaok.example</a></li>
+  </ul>
+
+  <nav class="tabs" aria-label="Profile sections">
+    <a class="tab is-active" href="#">Overview</a>
+    <a class="tab" href="#">Projects <span class="pill">37</span></a>
+    <a class="tab" href="#">Posts <span class="pill">118</span></a>
+    <a class="tab" href="#">Talks</a>
+    <a class="tab" href="#">Sponsors</a>
+  </nav>
+
+  <div class="profile-columns">
+    <div class="col-main">
+      <section class="panel">
+        <div class="panel-head"><h2>Pinned projects</h2><a href="#">Customise</a></div>
+        <div class="pins">
+          <article class="pin">
+            <h3><a href="#">relay-boot</a></h3>
+            <p>A 4 kB bootloader for sub-GHz radios with signed over-the-air updates.</p>
+            <div class="pin-meta"><span class="lang lang-c">C</span><span>★ 2.1k</span><span>184 forks</span></div>
+          </article>
+          <article class="pin">
+            <h3><a href="#">meshweather</a></h3>
+            <p>Simulate packet loss from rain fade before you climb the mast.</p>
+            <div class="pin-meta"><span class="lang lang-rs">Rust</span><span>★ 640</span><span>41 forks</span></div>
+          </article>
+          <article class="pin">
+            <h3><a href="#">docs-that-ship</a></h3>
+            <p>Templates and a linter for hardware documentation.</p>
+            <div class="pin-meta"><span class="lang lang-md">Markdown</span><span>★ 388</span><span>29 forks</span></div>
+          </article>
+          <article class="pin">
+            <h3><a href="#">tinylog</a></h3>
+            <p>Structured logging in 300 bytes of flash.</p>
+            <div class="pin-meta"><span class="lang lang-c">C</span><span>★ 1.4k</span><span>97 forks</span></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2>Activity</h2><span class="muted">Last 20 weeks</span></div>
+        <div class="heatmap" id="heatmap" aria-label="Contribution heatmap"></div>
+        <ul class="feed">
+          <li><time datetime="2026-03-10">10 Mar</time> Published <a href="#">“Why your mesh dies at dusk”</a></li>
+          <li><time datetime="2026-03-07">7 Mar</time> Merged 6 pull requests in <a href="#">relay-boot</a></li>
+          <li><time datetime="2026-03-02">2 Mar</time> Released <a href="#">tinylog 0.9.2</a></li>
+          <li><time datetime="2026-02-24">24 Feb</time> Spoke at <a href="#">Embedded Lagos</a></li>
+        </ul>
+      </section>
+    </div>
+
+    <aside class="col-side">
+      <section class="panel">
+        <div class="panel-head"><h2>Followers you know</h2></div>
+        <ul class="people">
+          <li><img src="/assets/img/avatar-160.svg" width="36" height="36" alt=""><span>Jonas Feld</span></li>
+          <li><img src="/assets/img/avatar-160.svg" width="36" height="36" alt=""><span>Priya Raman</span></li>
+          <li><img src="/assets/img/avatar-160.svg" width="36" height="36" alt=""><span>Chen Wei</span></li>
+          <li><img src="/assets/img/avatar-160.svg" width="36" height="36" alt=""><span>Lucía Ortega</span></li>
+        </ul>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Badges</h2></div>
+        <div class="badges">
+          <span class="badge">Maintainer</span>
+          <span class="badge">Speaker</span>
+          <span class="badge">Top reviewer 2025</span>
+        </div>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">© 2026 Relay Collective · <a href="#">Guidelines</a> · <a href="#">Status</a> · <a href="#">Privacy</a></div>
+</footer>
+
+<script>
+  // Contribution heatmap: 20 weeks by 7 days.
+  setTimeout(function () {
+    var map = document.getElementById('heatmap');
+    var seed = 7;
+    for (var i = 0; i < 140; i++) {
+      seed = (seed * 31 + 11) % 97;
+      var cell = document.createElement('i');
+      cell.className = 'cell level-' + (seed % 5);
+      map.appendChild(cell);
+    }
+  }, 300);
+
+  // Presence comes from the realtime service.
+  setTimeout(function () {
+    var dot = document.getElementById('presence');
+    dot.classList.add('is-online');
+    dot.title = 'Online now';
+  }, 600);
+
+  document.getElementById('follow').addEventListener('click', function () {
+    var on = this.getAttribute('aria-pressed') === 'true';
+    this.setAttribute('aria-pressed', String(!on));
+    this.classList.toggle('btn-primary', on);
+  });
+</script>
+</body>
+</html>

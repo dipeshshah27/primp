@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overnight olive oil focaccia | Saltwater Kitchen</title>
+<style>
+  :root { --cream: #fffaf2; --ink: #2a2118; --muted: #7a6c5d; --line: #eadfce; --tomato: #c8452b; --olive: #5d6b2f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--cream); color: var(--ink); font: 16px/1.55 "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  a { color: var(--tomato); }
+  h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 700; }
+  .container { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+  .site-header { border-bottom: 1px solid var(--line); background: #fff; }
+  .site-header .container { display: flex; align-items: center; height: 64px; gap: 32px; }
+  .logo { font: italic 700 24px Georgia, serif; color: var(--ink); text-decoration: none; }
+  .logo b { color: var(--tomato); font-style: normal; }
+  .main-nav { display: flex; gap: 22px; font-size: 14px; }
+  .main-nav a { color: var(--ink); text-decoration: none; padding: 4px 0; border-bottom: 2px solid transparent; transition: border-color 150ms; }
+  .main-nav a:hover { border-bottom-color: var(--tomato); }
+  .header-tools { margin-left: auto; display: flex; gap: 10px; }
+  .header-tools input { width: 220px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; font: inherit; font-size: 14px; background: var(--cream); }
+  .header-tools button { padding: 8px 16px; border: 0; border-radius: 999px; background: var(--ink); color: #fff; font: inherit; font-size: 14px; cursor: pointer; }
+
+  .crumbs { font-size: 13px; color: var(--muted); padding: 18px 0 0; }
+  .crumbs a { color: inherit; }
+
+  .intro { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 36px; align-items: center; padding: 14px 0 26px; }
+  .intro h1 { font-size: 40px; line-height: 1.1; margin: 0 0 10px; letter-spacing: -0.5px; }
+  .intro .dek { font-size: 18px; color: #4b3f33; margin: 0 0 16px; }
+  .author { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+  .author img { border-radius: 50%; }
+  .stars { color: #d79a1e; letter-spacing: 2px; }
+  .facts { display: flex; gap: 0; margin: 0; padding: 0; list-style: none; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+  .facts li { flex: 1; padding: 10px 14px; border-right: 1px solid var(--line); }
+  .facts li:last-child { border-right: 0; }
+  .facts span { display: block; font-size: 11px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); }
+  .facts strong { font-size: 16px; }
+  .intro-photo { display: block; width: 100%; height: auto; border-radius: 14px; background: #eadfce; }
+
+  .watch { padding: 4px 0 26px; }
+  .watch h2 { font-size: 22px; margin: 0 0 12px; }
+  .embed-frame { background: #1d1712; border-radius: 12px; overflow: hidden; }
+  .video-embed { display: block; width: 100%; border: 0; }
+  .watch .caption { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+
+  .recipe-columns { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 40px; align-items: start; padding-bottom: 40px; }
+  .ingredients { position: sticky; top: 16px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; }
+  .ingredients h2, .method h2 { font-size: 24px; margin: 0 0 12px; }
+  .servings { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 14px; }
+  .servings button { width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 50%; background: var(--cream); font-size: 16px; cursor: pointer; }
+  .servings output { display: inline-block; width: 2ch; text-align: center; font-weight: 700; }
+  .ingredients ul { margin: 0; padding: 0; list-style: none; }
+  .ingredients li { display: flex; gap: 10px; padding: 8px 0; border-top: 1px dashed var(--line); }
+  .qty { flex: none; width: 5.5em; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .units { display: flex; gap: 6px; margin-top: 14px; }
+  .units button { flex: 1; padding: 6px; border: 1px solid var(--line); background: #fff; border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; }
+  .units button[aria-pressed="true"] { background: var(--olive); color: #fff; border-color: var(--olive); }
+
+  .method ol { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+  .method li { counter-increment: step; position: relative; padding: 0 0 22px 54px; }
+  .method li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 36px; height: 36px; border-radius: 50%; background: var(--tomato); color: #fff; font-weight: 700; text-align: center; line-height: 36px; }
+  .method h3 { font-size: 18px; margin: 4px 0 4px; }
+  .method p { margin: 0; }
+  .timer { display: inline-block; margin-top: 8px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font: inherit; font-size: 13px; cursor: pointer; }
+  .tip { margin: 6px 0 0 54px; padding: 14px 16px; border-left: 4px solid var(--olive); background: #f3f0e2; border-radius: 0 8px 8px 0; font-size: 15px; }
+
+  .nutrition { width: 100%; border-collapse: collapse; margin: 30px 0 0; font-size: 14px; }
+  .nutrition caption { text-align: left; font: 700 18px Georgia, serif; padding-bottom: 8px; }
+  .nutrition th, .nutrition td { padding: 7px 10px; border-top: 1px solid var(--line); text-align: left; }
+
+  .site-footer { border-top: 1px solid var(--line); background: #fff; font-size: 13px; color: var(--muted); }
+  .site-footer .container { padding-top: 22px; padding-bottom: 22px; display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="container">
+    <a class="logo" href="#">Saltwater <b>Kitchen</b></a>
+    <nav class="main-nav" aria-label="Main">
+      <a href="#">Recipes</a>
+      <a href="#">Baking</a>
+      <a href="#">Weeknights</a>
+      <a href="#">Techniques</a>
+      <a href="#">Shop</a>
+    </nav>
+    <div class="header-tools">
+      <input type="search" placeholder="Search 2,400 recipes" aria-label="Search recipes">
+      <button type="button">Save recipe</button>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <div class="crumbs"><a href="#">Recipes</a> › <a href="#">Bread</a> › Focaccia</div>
+
+  <section class="intro">
+    <div>
+      <h1>Overnight olive oil focaccia</h1>
+      <p class="dek">A wet dough, a cold night in the fridge and four folds. No kneading, no mixer.</p>
+      <div class="author">
+        <img src="/assets/img/avatar-160.svg" width="36" height="36" alt="">
+        <span>By Inés Marlowe · Tested 14 times · <span class="stars" id="stars" aria-label="Rated 4.7 out of 5">★★★★★</span> 4.7 (1,902)</span>
+      </div>
+      <ul class="facts">
+        <li><span>Hands-on</span><strong>20 min</strong></li>
+        <li><span>Rest</span><strong>12–18 h</strong></li>
+        <li><span>Bake</span><strong>25 min</strong></li>
+        <li><span>Makes</span><strong>1 tray</strong></li>
+      </ul>
+    </div>
+    <img class="intro-photo" src="/delay/800/assets/img/card-600x400.png" width="600" height="400" alt="Golden focaccia in a tray, dimpled and glossy with oil">
+  </section>
+
+  <section class="watch" aria-label="Video">
+    <h2>Watch: the four folds in ninety seconds</h2>
+    <div class="embed-frame">
+      <iframe class="video-embed" src="/delay/800/recipe-saltwater-kitchen/embed.html" title="Video: folding focaccia dough" allow="fullscreen"></iframe>
+    </div>
+    <p class="caption">Filmed in our test kitchen. The dough in the video is at 80% hydration, the same as this recipe.</p>
+  </section>
+
+  <div class="recipe-columns">
+    <aside class="ingredients">
+      <h2>Ingredients</h2>
+      <div class="servings">
+        Trays
+        <button type="button" id="less" aria-label="Fewer">−</button>
+        <output id="trays">1</output>
+        <button type="button" id="more" aria-label="More">+</button>
+      </div>
+      <ul id="ingredient-list">
+        <li><span class="qty" data-g="500">500 g</span> strong white bread flour</li>
+        <li><span class="qty" data-g="400">400 g</span> water, lukewarm</li>
+        <li><span class="qty" data-g="10">10 g</span> fine sea salt</li>
+        <li><span class="qty" data-g="4">4 g</span> instant dried yeast</li>
+        <li><span class="qty" data-g="60">60 g</span> extra virgin olive oil</li>
+        <li><span class="qty" data-g="5">5 g</span> flaky salt, to finish</li>
+        <li><span class="qty" data-g="8">8 g</span> rosemary needles</li>
+      </ul>
+      <div class="units">
+        <button type="button" aria-pressed="true">Metric</button>
+        <button type="button" aria-pressed="false">US cups</button>
+      </div>
+    </aside>
+
+    <section class="method">
+      <h2>Method</h2>
+      <ol>
+        <li>
+          <h3>Mix</h3>
+          <p>Stir the flour, water, salt and yeast in a large bowl until no dry flour remains. The dough will look rough and far too wet. Cover and leave for 30 minutes.</p>
+          <button class="timer" type="button" data-minutes="30">Start 30 min timer</button>
+        </li>
+        <li>
+          <h3>Fold</h3>
+          <p>With a wet hand, lift one edge of the dough, stretch it up and fold it over the middle. Turn the bowl a quarter and repeat four times. Do this three more times, half an hour apart.</p>
+        </li>
+        <li>
+          <h3>Chill</h3>
+          <p>Pour half the oil over the dough, turn to coat, cover tightly and refrigerate for 12 to 18 hours.</p>
+        </li>
+        <li>
+          <h3>Shape and proof</h3>
+          <p>Tip the cold dough into an oiled 23 × 33 cm tray. Let it relax, then ease it into the corners. Leave somewhere warm until puffy and doubled, about 2 hours.</p>
+          <button class="timer" type="button" data-minutes="120">Start 2 h timer</button>
+        </li>
+        <li>
+          <h3>Dimple and bake</h3>
+          <p>Heat the oven to 230°C. Oil your fingers and press straight down to the tray all over the dough. Scatter with rosemary and flaky salt, pour over the remaining oil, and bake for 22 to 25 minutes until deep gold.</p>
+        </li>
+      </ol>
+      <div class="tip"><strong>Cook's note.</strong> If the dough springs back when you stretch it into the tray, walk away for ten minutes. It is not being difficult, it is resting.</div>
+
+      <table class="nutrition">
+        <caption>Nutrition, per slice (1/12 tray)</caption>
+        <tr><th>Energy</th><td>196 kcal</td></tr>
+        <tr><th>Fat</th><td>5.6 g</td></tr>
+        <tr><th>Carbohydrate</th><td>31 g</td></tr>
+        <tr><th>Protein</th><td>5.1 g</td></tr>
+        <tr><th>Salt</th><td>1.1 g</td></tr>
+      </table>
+    </section>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container"><span>© 2026 Saltwater Kitchen</span><span><a href="#">About our testing</a> · <a href="#">Newsletter</a></span></div>
+</footer>
+
+<script>
+  // The video player reports its own height once it has rendered.
+  (function () {
+    var frame = document.querySelector('.video-embed');
+    window.addEventListener('message', function (event) {
+      if (event.source !== frame.contentWindow || !event.data || event.data.type !== 'sk-player:height') return;
+      frame.style.height = event.data.height + 'px';
+    });
+  })();
+
+  // Ingredient amounts follow the tray count.
+  (function () {
+    var trays = 1;
+    var out = document.getElementById('trays');
+    function render() {
+      out.textContent = trays;
+      document.querySelectorAll('#ingredient-list .qty').forEach(function (qty) {
+        qty.textContent = Number(qty.dataset.g) * trays + ' g';
+      });
+    }
+    document.getElementById('less').addEventListener('click', function () { trays = Math.max(1, trays - 1); render(); });
+    document.getElementById('more').addEventListener('click', function () { trays = Math.min(6, trays + 1); render(); });
+    // Amounts are re-rendered once the saved preference has been read.
+    setTimeout(render, 500);
+  })();
+
+  // Rating stars are refreshed from the ratings service.
+  setTimeout(function () {
+    var stars = document.getElementById('stars');
+    stars.textContent = '★★★★★';
+    stars.dataset.loaded = 'true';
+  }, 800);
+
+  document.querySelectorAll('.timer').forEach(function (button) {
+    button.addEventListener('click', function () { button.disabled = true; button.textContent = 'Timer running'; });
+  });
+</script>
+</body>
+</html>

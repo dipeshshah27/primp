@@ -25,7 +25,8 @@
     "build": "pnpm --filter reglet build",
     "spike:pack": "tsx spikes/pack-check.ts",
     "spike:demo": "tsx spikes/demo-check.ts",
-    "spike:agent": "tsx spikes/agent-check.ts"
+    "spike:agent": "tsx spikes/agent-check.ts",
+    "spike:m4-heldout": "tsx spikes/m4-heldout.ts"
   },
   "devDependencies": {
     "@jridgewell/trace-mapping": "0.3.31",

@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuring webhooks · Quillstack Docs</title>
+<style>
+  @font-face {
+    font-family: "Quill Grotesk";
+    src: url("/delay/700/assets/fonts/press-start-2p-latin-400-normal.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Quill Code";
+    src: local("Menlo"), local("Consolas"), local("DejaVu Sans Mono"), local("Courier New");
+    font-display: swap;
+  }
+
+  :root { --ink: #1a202c; --muted: #64748b; --line: #e2e8f0; --brand: #0f766e; --soft: #f8fafc; --code-bg: #0f172a; }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: 24px; }
+  body { margin: 0; color: var(--ink); background: #fff; font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  a { color: var(--brand); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre { font-family: "Quill Code", ui-monospace, monospace; }
+
+  .site-header { display: flex; align-items: center; gap: 24px; padding: 14px 24px; border-bottom: 1px solid var(--line); background: #fff; }
+  .site-header .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--ink); flex: none; }
+  .site-header .brand small { font-weight: 500; color: var(--muted); font-size: 13px; padding: 1px 8px; border: 1px solid var(--line); border-radius: 999px; }
+  .topnav { flex: 1; min-width: 0; font-family: "Quill Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 13px; }
+  .topnav ul { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 0; padding: 0; list-style: none; }
+  .topnav a { display: block; padding: 4px 0; color: #334155; border-bottom: 2px solid transparent; transition: color 140ms ease, border-color 140ms ease; }
+  .topnav a:hover { color: var(--brand); text-decoration: none; }
+  .topnav a[aria-current="page"] { color: var(--brand); border-bottom-color: var(--brand); }
+  .header-tools { display: flex; align-items: center; gap: 12px; flex: none; }
+  .header-tools .search { position: relative; }
+  .header-tools input { width: 250px; height: 36px; padding: 0 44px 0 12px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 14px; background: var(--soft); }
+  .header-tools kbd { position: absolute; right: 8px; top: 8px; font: 11px/18px ui-monospace, monospace; padding: 0 6px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); background: #fff; }
+  .header-tools select { height: 36px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 14px; background: #fff; }
+  .header-tools .gh { font-size: 14px; color: var(--ink); }
+
+  .docs { display: grid; grid-template-columns: 264px minmax(0, 1fr) 220px; align-items: start; max-width: 1280px; margin: 0 auto; }
+  .sidebar { padding: 22px 16px 40px 24px; border-right: 1px solid var(--line); min-height: 720px; font-size: 14px; }
+  .sidebar h2 { margin: 18px 0 6px; font-size: 12px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); }
+  .sidebar h2:first-child { margin-top: 0; }
+  .sidebar ul { margin: 0; padding: 0; list-style: none; }
+  .sidebar a { display: block; padding: 5px 10px; border-radius: 6px; color: #334155; transition: background 120ms ease; }
+  .sidebar a:hover { background: var(--soft); text-decoration: none; }
+  .sidebar a.active { background: #ccfbf1; color: #115e59; font-weight: 600; }
+
+  .content { padding: 26px 44px 60px; min-width: 0; }
+  .crumbs { font-size: 13px; color: var(--muted); }
+  .content h1 { font-size: 34px; line-height: 1.2; letter-spacing: -0.5px; margin: 8px 0 10px; }
+  .lead { font-size: 18px; color: #475569; margin: 0 0 20px; }
+  .content h2 { font-size: 23px; margin: 34px 0 10px; padding-top: 6px; }
+  .content p { margin: 0 0 16px; }
+  .callout { display: flex; gap: 12px; padding: 14px 16px; margin: 0 0 20px; border: 1px solid #99f6e4; border-left-width: 4px; border-radius: 8px; background: #f0fdfa; font-size: 15px; }
+  .callout strong { flex: none; }
+  .codeblock { position: relative; margin: 0 0 20px; }
+  .codeblock pre { margin: 0; padding: 16px 18px; border-radius: 10px; background: var(--code-bg); color: #e2e8f0; font-size: 13.5px; line-height: 1.6; overflow-x: auto; }
+  .copy { position: absolute; top: 8px; right: 8px; padding: 3px 10px; border: 1px solid #334155; border-radius: 6px; background: #1e293b; color: #cbd5e1; font: 12px system-ui, sans-serif; cursor: pointer; opacity: 0; transition: opacity 200ms ease; }
+  .copy.ready { opacity: 1; }
+  .params { width: 100%; border-collapse: collapse; margin: 0 0 20px; font-size: 14.5px; }
+  .params th, .params td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .params th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
+  .params code { padding: 1px 6px; border-radius: 4px; background: var(--soft); font-size: 13px; }
+  .figure { margin: 0 0 20px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; }
+  .figure img { display: block; max-width: 100%; height: auto; }
+  .figure figcaption { margin-top: 8px; font-size: 13px; color: var(--muted); }
+  .pager { display: flex; justify-content: space-between; margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--line); }
+  .feedback { margin-top: 28px; display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
+  .feedback button { padding: 4px 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font: inherit; cursor: pointer; }
+
+  .toc { position: sticky; top: 0; padding: 30px 24px 0 0; font-size: 13.5px; }
+  .toc h2 { margin: 0 0 8px; font-size: 12px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); }
+  .toc ul { margin: 0; padding: 0; list-style: none; border-left: 1px solid var(--line); }
+  .toc a { display: block; padding: 4px 12px; margin-left: -1px; border-left: 2px solid transparent; color: var(--muted); }
+  .toc a.current { color: var(--brand); border-left-color: var(--brand); }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="#"><img src="/assets/img/logo-mark.svg" width="28" height="28" alt=""> Quillstack <small>Docs</small></a>
+  <nav class="topnav" aria-label="Documentation sections">
+    <ul>
+      <li><a href="#" aria-current="page">Guides</a></li>
+      <li><a href="#">API reference</a></li>
+      <li><a href="#">Tutorials</a></li>
+      <li><a href="#">Changelog</a></li>
+      <li><a href="#">Community</a></li>
+      <li><a href="#">Support</a></li>
+    </ul>
+  </nav>
+  <div class="header-tools">
+    <label class="search"><input type="search" placeholder="Search the docs" aria-label="Search the docs"><kbd>/</kbd></label>
+    <select aria-label="Version"><option>v4.2</option><option>v4.1</option><option>v3 (LTS)</option></select>
+    <a class="gh" href="#">GitHub</a>
+  </div>
+</header>
+
+<div class="docs">
+  <nav class="sidebar" aria-label="Guides">
+    <h2>Getting started</h2>
+    <ul>
+      <li><a href="#">Introduction</a></li>
+      <li><a href="#">Quickstart</a></li>
+      <li><a href="#">Authentication</a></li>
+    </ul>
+    <h2>Events</h2>
+    <ul>
+      <li><a href="#">Event types</a></li>
+      <li><a class="active" href="#">Configuring webhooks</a></li>
+      <li><a href="#">Verifying signatures</a></li>
+      <li><a href="#">Retries and backoff</a></li>
+      <li><a href="#">Replaying events</a></li>
+    </ul>
+    <h2>Documents</h2>
+    <ul>
+      <li><a href="#">Templates</a></li>
+      <li><a href="#">Rendering to PDF</a></li>
+      <li><a href="#">Fonts and assets</a></li>
+      <li><a href="#">Batch jobs</a></li>
+    </ul>
+    <h2>Operations</h2>
+    <ul>
+      <li><a href="#">Rate limits</a></li>
+      <li><a href="#">Regions</a></li>
+      <li><a href="#">Audit log</a></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+    <div class="crumbs">Guides / Events / Configuring webhooks</div>
+    <h1 id="top">Configuring webhooks</h1>
+    <p class="lead">Webhooks tell your server when a document finishes rendering, fails, or is opened by its recipient, so you never have to poll.</p>
+
+    <div class="callout"><strong>Before you start</strong><span>You need an API key with the <code>events:write</code> scope and an HTTPS endpoint that answers within ten seconds.</span></div>
+
+    <h2 id="create">Create an endpoint</h2>
+    <p>Register the URL that should receive events. Quillstack sends a signed <code>POST</code> for every event type you subscribe to.</p>
+    <div class="codeblock">
+<pre><code>curl https://api.quillstack.example/v4/webhooks \
+  -H "Authorization: Bearer $QUILL_KEY" \
+  -d url="https://example.org/hooks/quill" \
+  -d events[]="document.rendered" \
+  -d events[]="document.failed"</code></pre>
+    </div>
+
+    <h2 id="parameters">Parameters</h2>
+    <table class="params">
+      <thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>url</code></td><td>string</td><td>HTTPS endpoint that receives the events. Required.</td></tr>
+        <tr><td><code>events</code></td><td>string[]</td><td>Event types to deliver. Defaults to every type.</td></tr>
+        <tr><td><code>secret</code></td><td>string</td><td>Used to sign each delivery. Generated when omitted.</td></tr>
+        <tr><td><code>paused</code></td><td>boolean</td><td>Create the endpoint without delivering to it yet.</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="delivery">How delivery works</h2>
+    <p>Each delivery is attempted up to eight times over twenty-four hours. An endpoint that fails for three days in a row is paused and the account owners are emailed.</p>
+    <figure class="figure">
+      <img src="/assets/img/chart-640x240.svg" width="640" height="240" alt="Delivery attempts over time with exponential backoff" loading="lazy">
+      <figcaption>Attempts back off from five seconds to six hours.</figcaption>
+    </figure>
+
+    <h2 id="handler">Write the handler</h2>
+    <div class="codeblock">
+<pre><code>app.post('/hooks/quill', express.raw({ type: 'application/json' }), (req, res) => {
+  const event = quill.webhooks.verify(req.body, req.get('Quill-Signature'), secret);
+  queue.add(event.type, event.data);
+  res.sendStatus(204);
+});</code></pre>
+    </div>
+    <p>Answer with a <code>2xx</code> status as soon as you have stored the event, and do the work afterwards.</p>
+
+    <div class="feedback">Was this page helpful? <button type="button">Yes</button><button type="button">No</button></div>
+    <div class="pager"><a href="#">← Event types</a><a href="#">Verifying signatures →</a></div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <h2>On this page</h2>
+    <ul id="toc-list">
+      <li><a href="#create">Create an endpoint</a></li>
+      <li><a href="#parameters">Parameters</a></li>
+      <li><a href="#delivery">How delivery works</a></li>
+      <li><a href="#handler">Write the handler</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+  // Copy buttons on code samples.
+  setTimeout(function () {
+    document.querySelectorAll('.codeblock').forEach(function (block) {
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'copy';
+      button.textContent = 'Copy';
+      button.addEventListener('click', function () {
+        navigator.clipboard && navigator.clipboard.writeText(block.querySelector('code').textContent);
+        button.textContent = 'Copied';
+      });
+      block.appendChild(button);
+      requestAnimationFrame(function () { button.classList.add('ready'); });
+    });
+  }, 400);
+
+  // Highlight the current section in the table of contents.
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('#toc-list a'));
+    var headings = links.map(function (link) { return document.querySelector(link.getAttribute('href')); });
+    function mark() {
+      var current = 0;
+      headings.forEach(function (heading, i) { if (heading.getBoundingClientRect().top < 120) current = i; });
+      links.forEach(function (link, i) { link.classList.toggle('current', i === current); });
+    }
+    window.addEventListener('scroll', mark, { passive: true });
+    setTimeout(mark, 700);
+  })();
+
+  // "/" focuses the search box.
+  document.addEventListener('keydown', function (event) {
+    if (event.key === '/' && document.activeElement.tagName !== 'INPUT') {
+      event.preventDefault();
+      document.querySelector('.header-tools input').focus();
+    }
+  });
+</script>
+</body>
+</html>

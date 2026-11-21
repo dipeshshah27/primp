@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harbour dredging delayed a third time as silt survey widens | The Harbour Ledger</title>
+<style>
+  :root {
+    --ink: #1b1d21;
+    --muted: #5d646f;
+    --rule: #d9dde3;
+    --accent: #a3271f;
+    --paper: #fbfaf7;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); line-height: 1.5; }
+  a { color: inherit; }
+  img { max-width: 100%; }
+
+  .progress { position: fixed; inset: 0 0 auto 0; height: 3px; background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); transition: transform 120ms linear; z-index: 20; }
+
+  .topbar { background: #14161a; color: #cfd3da; font-size: 12px; }
+  .topbar-inner { max-width: 1120px; margin: 0 auto; padding: 6px 24px; display: flex; justify-content: space-between; gap: 16px; }
+  .topbar a { text-decoration: none; margin-left: 16px; }
+  .topbar a:hover { color: #fff; }
+
+  .masthead { border-bottom: 1px solid var(--rule); }
+  .masthead-inner { max-width: 1120px; margin: 0 auto; padding: 18px 24px; display: flex; align-items: center; gap: 14px; }
+  .masthead .logo { display: block; }
+  .masthead .title { font-family: var(--serif); font-size: 30px; font-weight: 700; letter-spacing: -0.5px; text-decoration: none; }
+  .masthead .edition { margin-left: auto; font-size: 13px; color: var(--muted); }
+
+  .sections { border-bottom: 3px double var(--rule); background: #fff; }
+  .sections ul { max-width: 1120px; margin: 0 auto; padding: 0 24px; list-style: none; display: flex; gap: 26px; }
+  .sections a { display: block; padding: 11px 0; font-size: 14px; font-weight: 600; text-decoration: none; border-bottom: 2px solid transparent; transition: border-color 160ms ease, color 160ms ease; }
+  .sections a:hover, .sections a[aria-current] { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .layout { max-width: 1120px; margin: 0 auto; padding: 28px 24px 56px; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 44px; align-items: start; }
+
+  .kicker { font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); }
+  .story h1 { font-family: var(--serif); font-size: 40px; line-height: 1.12; margin: 8px 0 12px; letter-spacing: -0.6px; }
+  .standfirst { font-size: 19px; color: #3c424b; margin: 0 0 18px; }
+  .byline { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); font-size: 14px; }
+  .byline img { border-radius: 50%; background: #e7e9ee; }
+  .byline .who { font-weight: 600; }
+  .byline .when { color: var(--muted); }
+  .byline .clock { display: inline-block; width: 5.2em; font-variant-numeric: tabular-nums; }
+  .byline .share { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .share button { font: inherit; font-size: 13px; padding: 5px 12px; border: 1px solid var(--rule); border-radius: 999px; background: #fff; cursor: pointer; transition: background 140ms ease; }
+  .share button:hover { background: #f0f1f4; }
+  .share .count { display: inline-block; width: 3.2em; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .story-body { font-family: var(--serif); font-size: 18px; line-height: 1.62; margin-top: 20px; }
+  .story-body p { margin: 0 0 18px; }
+  .story-body .story-photo { float: left; margin: 6px 28px 14px 0; max-width: 48%; height: auto; border-radius: 3px; }
+  .story-body blockquote { clear: both; margin: 26px 0; padding: 4px 0 4px 22px; border-left: 4px solid var(--accent); font-size: 22px; line-height: 1.4; font-style: italic; }
+  .story-body blockquote cite { display: block; margin-top: 8px; font: 600 13px/1.4 var(--sans); color: var(--muted); font-style: normal; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 26px 0; padding: 0; list-style: none; }
+  .tags a { display: block; font-size: 13px; padding: 4px 12px; background: #eceef2; border-radius: 4px; text-decoration: none; }
+
+  .related h2, .rail h2 { font-size: 13px; letter-spacing: 1px; text-transform: uppercase; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--ink); }
+  .related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .related-grid a { text-decoration: none; }
+  .related-grid img { display: block; width: 100%; height: auto; border-radius: 3px; }
+  .related-grid h3 { font-family: var(--serif); font-size: 16px; line-height: 1.3; margin: 8px 0 0; }
+
+  .rail section { margin-bottom: 32px; }
+  .most-read { margin: 0; padding: 0; list-style: none; counter-reset: rank; }
+  .most-read li { counter-increment: rank; display: grid; grid-template-columns: 34px 1fr; padding: 10px 0; border-bottom: 1px solid var(--rule); font-family: var(--serif); font-size: 16px; line-height: 1.3; }
+  .most-read li::before { content: counter(rank); font: 700 22px/1 var(--sans); color: #b8bcc5; }
+  .most-read a { text-decoration: none; }
+  .most-read a:hover { text-decoration: underline; }
+  .ad { background: #fff; border: 1px solid var(--rule); padding: 10px; text-align: center; }
+  .ad small { display: block; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .ad img { display: block; height: auto; }
+  .newsletter { background: #14161a; color: #fff; padding: 20px; border-radius: 4px; }
+  .newsletter h2 { border-color: #fff; }
+  .newsletter p { font-size: 14px; margin: 0 0 12px; color: #cfd3da; }
+  .newsletter form { display: flex; gap: 8px; }
+  .newsletter input { flex: 1; min-width: 0; padding: 9px 10px; border: 0; border-radius: 3px; font: inherit; font-size: 14px; }
+  .newsletter button { padding: 9px 14px; border: 0; border-radius: 3px; background: var(--accent); color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+  .site-footer { background: #14161a; color: #aab0ba; font-size: 13px; }
+  .site-footer-inner { max-width: 1120px; margin: 0 auto; padding: 28px 24px; display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .site-footer a { margin-right: 18px; }
+</style>
+</head>
+<body>
+<div class="progress" id="read-progress" aria-hidden="true"></div>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span>Thursday 12 March 2026 · Tide: high 11:42, low 17:58</span>
+    <span><a href="#">Subscribe</a><a href="#">Sign in</a><a href="#">E-paper</a></span>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <img class="logo" src="/assets/img/logo-mark.svg" width="40" height="40" alt="">
+    <a class="title" href="#">The Harbour Ledger</a>
+    <span class="edition">Coast edition</span>
+  </div>
+</header>
+
+<nav class="sections" aria-label="Sections">
+  <ul>
+    <li><a href="#">Front page</a></li>
+    <li><a href="#" aria-current="page">Port &amp; shipping</a></li>
+    <li><a href="#">Council</a></li>
+    <li><a href="#">Business</a></li>
+    <li><a href="#">Weather</a></li>
+    <li><a href="#">Sport</a></li>
+    <li><a href="#">Opinion</a></li>
+    <li><a href="#">Notices</a></li>
+  </ul>
+</nav>
+
+<div class="layout">
+  <main>
+    <article class="story">
+      <div class="kicker">Port &amp; shipping</div>
+      <h1>Harbour dredging delayed a third time as silt survey widens</h1>
+      <p class="standfirst">The port authority now expects the main channel to reopen to deep-draught vessels in June, two months later than promised in January.</p>
+
+      <div class="byline">
+        <img class="byline-photo" src="/delay/700/assets/img/thumb-320x240.png" width="44" height="44" alt="">
+        <div>
+          <div class="who">Marit Oyelaran, shipping correspondent</div>
+          <div class="when">Updated <span class="clock" id="updated-clock">09:41:07</span> · 5 min read</div>
+        </div>
+        <div class="share">
+          <span class="count" id="share-count">–</span>
+          <button type="button">Share</button>
+          <button type="button">Save</button>
+        </div>
+      </div>
+
+      <div class="story-body">
+        <img class="story-photo" src="/delay/700/assets/img/thumb-320x240.png" alt="Fishing boats tied up at the east quay at low water">
+        <p id="para-1">Work to deepen the approach channel will not finish before the summer timetable begins, the port authority confirmed on Wednesday night, after surveyors found a second bank of compacted silt north of the breakwater.</p>
+        <p id="para-2">The delay is the third since the contract was signed. Two of the four ferry operators that use the harbour said they would keep their larger vessels on the northern route until the channel is certified, adding roughly forty minutes to each crossing.</p>
+        <p id="para-3">Harbour master Tomas Edevane told a public meeting that the new bank had not appeared on the 2019 chart and was "almost certainly" laid down by the winter storms. Removing it means bringing a second dredger from across the bay, which the contractor says cannot arrive before the middle of April.</p>
+        <p id="para-4">Fishing crews, who can still leave on a rising tide, were less patient. Several skippers said the temporary buoys marking the shallow water had moved twice in a fortnight and that the notice to mariners was out of date within days of being printed.</p>
+        <blockquote>
+          We were told Easter, then May. Now it is June, if the weather holds.
+          <cite>Ruth Calloway, skipper of the Second Wind</cite>
+        </blockquote>
+        <p id="para-5">The authority said the extra work would cost about a fifth more than the original budget and that it would ask the council for a bridging loan rather than raise berthing fees mid-season. A decision is expected at the finance committee on the 24th.</p>
+      </div>
+
+      <ul class="tags">
+        <li><a href="#">Dredging</a></li>
+        <li><a href="#">Ferries</a></li>
+        <li><a href="#">Port authority</a></li>
+        <li><a href="#">Fishing fleet</a></li>
+      </ul>
+
+      <section class="related" aria-label="Related stories">
+        <h2>More on this story</h2>
+        <div class="related-grid">
+          <a href="#"><img src="/assets/img/card-600x400.png" width="600" height="400" alt="" loading="lazy"><h3>What the 2019 chart missed, in four maps</h3></a>
+          <a href="#"><img src="/assets/img/card-600x400.png" width="600" height="400" alt="" loading="lazy"><h3>Ferry operators publish their summer diversions</h3></a>
+          <a href="#"><img src="/assets/img/card-600x400.png" width="600" height="400" alt="" loading="lazy"><h3>Opinion: the breakwater was the wrong fix</h3></a>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <aside class="rail">
+    <section>
+      <h2>Most read</h2>
+      <ol class="most-read">
+        <li><a href="#">Council freezes parking charges for a second year</a></li>
+        <li><a href="#">Storm damage: the sea wall repairs street by street</a></li>
+        <li><a href="#">Lifeboat station marks its two hundredth launch</a></li>
+        <li><a href="#">Market square stalls to move while paving is relaid</a></li>
+        <li><a href="#">Saturday's results from the coastal league</a></li>
+      </ol>
+    </section>
+    <section class="ad">
+      <small>Advertisement</small>
+      <img src="/delay/500/assets/img/card-600x400.png" width="300" height="200" alt="Chandlery spring sale">
+    </section>
+    <section class="newsletter">
+      <h2>The tide table, daily</h2>
+      <p>Tides, sailings and the three stories that matter, at six every morning.</p>
+      <form action="#" onsubmit="return false">
+        <input type="email" placeholder="you@example.org" aria-label="Email address">
+        <button type="submit">Sign up</button>
+      </form>
+    </section>
+  </aside>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <span>© 2026 The Harbour Ledger. Printed and published on the quay since 1887.</span>
+    <span><a href="#">Contact</a><a href="#">Corrections</a><a href="#">Privacy</a></span>
+  </div>
+</footer>
+
+<script>
+  // Reading progress bar.
+  (function () {
+    var bar = document.getElementById('read-progress');
+    function update() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? Math.min(1, window.scrollY / max) : 0) + ')';
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  })();
+
+  // Live "updated" clock.
+  (function () {
+    var clock = document.getElementById('updated-clock');
+    var seconds = 9 * 3600 + 41 * 60 + 7;
+    function two(n) { return (n < 10 ? '0' : '') + n; }
+    setInterval(function () {
+      seconds += 1;
+      clock.textContent = two(Math.floor(seconds / 3600)) + ':' + two(Math.floor(seconds / 60) % 60) + ':' + two(seconds % 60);
+    }, 1000);
+  })();
+
+  // Share counter (the count service answers after the page is up).
+  setTimeout(function () {
+    var count = document.getElementById('share-count');
+    count.textContent = '1.2k';
+    count.setAttribute('title', '1,214 shares');
+  }, 700);
+</script>
+</body>
+</html>

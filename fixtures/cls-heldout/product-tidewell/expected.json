@@ -1,0 +1,101 @@
+{
+  "page": "product-tidewell/index.html",
+  "template": "e-commerce product page",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "injected-content",
+      "culpritSelector": "#recs-slot > .recs-block",
+      "acceptableCulpritSelectors": [
+        "#recs-slot"
+      ],
+      "culpritFile": "product-tidewell/index.html",
+      "culpritLine": 236,
+      "culpritLineKind": "script-insert",
+      "culpritLineContains": "slot.replaceChildren(block);",
+      "acceptableCulpritLines": [
+        {
+          "line": 149,
+          "kind": "container-opening-tag",
+          "contains": "<section class=\"recs\" id=\"recs-slot\""
+        },
+        {
+          "line": 220,
+          "kind": "create-statement",
+          "contains": "var block = document.createElement('div');"
+        },
+        {
+          "line": 216,
+          "kind": "fetch-statement",
+          "contains": "fetch('/delay/900/assets/data/recommendations.json')"
+        }
+      ],
+      "victimSelectors": [
+        ".details",
+        ".tabs",
+        ".details-body"
+      ],
+      "minValue": 0.038
+    }
+  ],
+  "decoys": [
+    "#gallery-main",
+    "#stock-status",
+    "#recently-viewed",
+    ".thumbs img"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.querySelectorAll('#recs-slot .rec').length === 4",
+    "document.getElementById('gallery-main').naturalWidth === 600",
+    "document.getElementById('recently-viewed') !== null",
+    "document.getElementById('recently-viewed').getBoundingClientRect().top > window.innerHeight",
+    "document.getElementById('stock-status').classList.contains('in')"
+  ],
+  "measuredValues": [
+    0.063112,
+    0.063112,
+    0.063112
+  ],
+  "notes": "A recommendations block is built from JSON fetched from a 900 ms delayed URL and put into an empty, unreserved section between the buy box and the product details with replaceChildren(); the details below it are pushed down. At the same 900 ms a 'recently viewed' section is inserted with insertAdjacentHTML just above the footer, far below the fold (it moves only the off-screen footer), the sized gallery image finishes loading, and at 600 ms the stock line is rewritten in a fixed-height box.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.063112,
+      "startTimeMs": 922,
+      "sources": [
+        {
+          "node": "section.details",
+          "previousRect": {
+            "x": 84,
+            "y": 592.65625,
+            "width": 1112,
+            "height": 207.34375
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          }
+        }
+      ]
+    }
+  }
+}

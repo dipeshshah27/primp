@@ -1,0 +1,108 @@
+{
+  "page": "pricing-ledgerly/index.html",
+  "template": "pricing page",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "injected-content",
+      "culpritSelector": "body > aside.promo-strip",
+      "acceptableCulpritSelectors": [],
+      "culpritFile": "pricing-ledgerly/index.html",
+      "culpritLine": 205,
+      "culpritLineKind": "script-insert",
+      "culpritLineContains": "header.insertAdjacentHTML('afterend', html);",
+      "acceptableCulpritLines": [
+        {
+          "line": 204,
+          "kind": "markup-in-script",
+          "contains": "var html = '<aside class=\"promo-strip\" id=\"promo-strip\""
+        },
+        {
+          "line": 200,
+          "kind": "fetch-statement",
+          "contains": "fetch('/delay/800/assets/data/promo.json')"
+        }
+      ],
+      "victimSelectors": [
+        "main",
+        ".pricing-hero",
+        ".plans"
+      ],
+      "minValue": 0.021
+    }
+  ],
+  "decoys": [
+    ".pricing-hero h1",
+    ".plan .amount b",
+    ".ribbon",
+    ".plan",
+    ".brand img"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.getElementById('promo-strip') !== null && document.getElementById('site-header').nextElementSibling.id === 'promo-strip'",
+    "Array.from(document.fonts).some(function (face) { return face.family.indexOf('Ledgerly Display') !== -1 && face.status === 'loaded'; })",
+    "document.querySelector('.plan .amount b').dataset.currency === 'GBP'"
+  ],
+  "measuredValues": [
+    0.035794,
+    0.035794,
+    0.035794
+  ],
+  "notes": "A promo strip is inserted between the header and the pricing hero with insertAdjacentHTML('afterend') once campaign JSON has arrived from an 800 ms delayed URL; everything under the header moves down. The headline names a web font that finishes loading at 500 ms but is declared font-display: optional, so it is never swapped in and the headline does not change; a script sets data attributes on the prices at 500 ms and the 'most popular' ribbon runs an endless transform animation.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.035794,
+      "startTimeMs": 824,
+      "sources": [
+        {
+          "node": "main",
+          "previousRect": {
+            "x": 0,
+            "y": 69,
+            "width": 1280,
+            "height": 731
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 119.140625,
+            "width": 1280,
+            "height": 680.859375
+          }
+        },
+        {
+          "node": null,
+          "previousRect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "currentRect": {
+            "x": 509.831177,
+            "y": 380.1875,
+            "width": 103.059448,
+            "height": 22.59375
+          }
+        }
+      ]
+    }
+  }
+}

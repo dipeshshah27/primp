@@ -1,0 +1,145 @@
+{
+  "page": "profile-relay/index.html",
+  "template": "profile page",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "unsized-media",
+      "culpritSelector": ".profile-head > img.avatar",
+      "acceptableCulpritSelectors": [],
+      "culpritFile": "profile-relay/index.html",
+      "culpritLine": 30,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<img class=\"avatar\"",
+      "victimSelectors": [
+        ".identity",
+        ".profile-bio",
+        ".profile-meta",
+        ".tabs",
+        ".profile-columns"
+      ],
+      "minValue": 0.035
+    }
+  ],
+  "decoys": [
+    ".cover-photo",
+    ".appbar-me img",
+    ".people img",
+    "#heatmap",
+    "#heatmap .cell",
+    "#presence"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.querySelector('.avatar').naturalWidth === 160",
+    "document.querySelector('.cover-photo').naturalWidth === 1200",
+    "document.querySelectorAll('#heatmap .cell').length === 140",
+    "document.getElementById('presence').classList.contains('is-online')"
+  ],
+  "measuredValues": [
+    0.058056,
+    0.058056,
+    0.058056
+  ],
+  "notes": "The profile avatar is an SVG loaded through <img> with no width/height (styles live in profile.css and give it no size); when it arrives (600 ms) it grows from a bare border to 168 px, pushing the name sideways in the flex row and everything under the header down. The cover photo arrives at the same moment but is sized, the same SVG is used sized elsewhere, 140 heatmap cells are appended at 300 ms into a fixed-height grid, and the presence dot changes class at 600 ms.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.058056,
+      "startTimeMs": 608,
+      "sources": [
+        {
+          "node": "div.profile-columns",
+          "previousRect": {
+            "x": 124,
+            "y": 519.59375,
+            "width": 1032,
+            "height": 280.40625
+          },
+          "currentRect": {
+            "x": 124,
+            "y": 629.5,
+            "width": 1032,
+            "height": 170.5
+          }
+        },
+        {
+          "node": "p.profile-bio",
+          "previousRect": {
+            "x": 124,
+            "y": 326.09375,
+            "width": 720,
+            "height": 72
+          },
+          "currentRect": {
+            "x": 124,
+            "y": 436,
+            "width": 720,
+            "height": 72
+          }
+        },
+        {
+          "node": "nav.tabs",
+          "previousRect": {
+            "x": 124,
+            "y": 451.09375,
+            "width": 1032,
+            "height": 44.5
+          },
+          "currentRect": {
+            "x": 124,
+            "y": 561,
+            "width": 1032,
+            "height": 44.5
+          }
+        },
+        {
+          "node": "ul.profile-meta",
+          "previousRect": {
+            "x": 124,
+            "y": 410.09375,
+            "width": 1032,
+            "height": 21
+          },
+          "currentRect": {
+            "x": 124,
+            "y": 520,
+            "width": 1032,
+            "height": 21
+          }
+        },
+        {
+          "node": "img.avatar",
+          "previousRect": {
+            "x": 109,
+            "y": 266.046875,
+            "width": 38,
+            "height": 38
+          },
+          "currentRect": {
+            "x": 109,
+            "y": 241,
+            "width": 198,
+            "height": 198
+          }
+        }
+      ]
+    }
+  }
+}

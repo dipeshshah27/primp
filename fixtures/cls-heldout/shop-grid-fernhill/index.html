@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Camp kitchen | Fernhill Supply</title>
+<style>
+  :root { --green: #23513d; --green-dark: #173728; --sand: #f4f1ea; --ink: #20241f; --muted: #6b7268; --line: #dedbd2; --sale: #b4421b; }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: #fff; }
+  a { color: inherit; text-decoration: none; }
+  button, select, input { font: inherit; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+  .site-header { background: var(--green); color: #fff; }
+  .site-header .wrap { display: flex; align-items: center; gap: 28px; height: 68px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 21px; font-weight: 700; letter-spacing: 0.2px; }
+  .search { flex: 1; display: flex; }
+  .search input { flex: 1; height: 40px; padding: 0 14px; border: 0; border-radius: 6px 0 0 6px; }
+  .search button { height: 40px; padding: 0 18px; border: 0; border-radius: 0 6px 6px 0; background: #e9b44c; font-weight: 600; cursor: pointer; }
+  .header-links { display: flex; align-items: center; gap: 22px; font-size: 14px; }
+  .cart { position: relative; padding-right: 22px; }
+  .cart-badge { position: absolute; top: -8px; right: 0; width: 20px; height: 20px; border-radius: 50%; background: #e9b44c; color: var(--ink); font-size: 11px; font-weight: 700; line-height: 20px; text-align: center; font-variant-numeric: tabular-nums; transition: transform 200ms ease; }
+  .cart-badge.bump { transform: scale(1.25); }
+
+  .cat-nav { background: var(--green-dark); color: #dfe8e2; font-size: 14px; }
+  .cat-nav ul { display: flex; gap: 26px; margin: 0; padding: 0; list-style: none; }
+  .cat-nav a { display: block; padding: 11px 0; opacity: 0.85; transition: opacity 150ms; }
+  .cat-nav a:hover, .cat-nav a.current { opacity: 1; box-shadow: inset 0 -2px #e9b44c; }
+
+  .crumbs { font-size: 13px; color: var(--muted); padding: 16px 0 6px; }
+  .crumbs a:hover { text-decoration: underline; }
+  .toolbar { display: flex; align-items: baseline; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+  .toolbar h1 { margin: 0; font-size: 28px; letter-spacing: -0.3px; }
+  .toolbar .count { color: var(--muted); }
+  .toolbar .sort { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .toolbar select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+
+  .catalog { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 32px; padding: 24px 0 64px; align-items: start; }
+
+  .filters h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.8px; margin: 0 0 10px; }
+  .filters fieldset { border: 0; border-bottom: 1px solid var(--line); margin: 0 0 18px; padding: 0 0 16px; }
+  .filters label { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 14px; cursor: pointer; }
+  .filters label span { margin-left: auto; color: var(--muted); font-size: 12px; }
+  .price-range { display: flex; gap: 8px; }
+  .price-range input { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .card { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff; opacity: 0.4; transition: opacity 400ms ease, box-shadow 200ms ease; }
+  .card.in-view { opacity: 1; }
+  .card:hover { box-shadow: 0 6px 22px rgba(32, 36, 31, 0.12); }
+  .card--featured { grid-column: span 2; }
+  .card-media { position: relative; display: block; background: var(--sand); }
+  .card-media img { display: block; width: 100%; height: auto; }
+  .wish { position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.92); cursor: pointer; font-size: 16px; line-height: 34px; padding: 0; }
+  .flag { position: absolute; left: 10px; top: 10px; padding: 3px 9px; border-radius: 4px; background: var(--sale); color: #fff; font-size: 12px; font-weight: 700; }
+  .card-body { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px 16px; flex: 1; }
+  .card-body h3 { margin: 0; font-size: 16px; line-height: 1.3; }
+  .card-body .blurb { margin: 0; color: var(--muted); font-size: 13px; }
+  .card--featured .card-body h3 { font-size: 21px; }
+  .rating { font-size: 13px; color: #a36a00; }
+  .rating small { color: var(--muted); }
+  .price-row { display: flex; align-items: center; gap: 10px; margin-top: auto; padding-top: 10px; }
+  .price { font-size: 18px; font-weight: 700; }
+  .was { color: var(--muted); text-decoration: line-through; font-size: 14px; }
+  .add { margin-left: auto; padding: 8px 14px; border: 1px solid var(--green); border-radius: 6px; background: #fff; color: var(--green); font-weight: 600; cursor: pointer; transition: background 150ms, color 150ms; }
+  .add:hover { background: var(--green); color: #fff; }
+
+  .pager { display: flex; justify-content: center; gap: 6px; margin-top: 28px; }
+  .pager a { min-width: 36px; padding: 7px 10px; text-align: center; border: 1px solid var(--line); border-radius: 6px; }
+  .pager a.current { background: var(--green); color: #fff; border-color: var(--green); }
+
+  .site-footer { background: var(--sand); border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+  .site-footer .wrap { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 24px; padding-top: 32px; padding-bottom: 32px; }
+  .site-footer h4 { margin: 0 0 8px; color: var(--ink); font-size: 14px; }
+  .site-footer ul { margin: 0; padding: 0; list-style: none; line-height: 1.9; }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="#"><img src="/assets/img/logo-mark.svg" width="32" height="32" alt="">Fernhill Supply</a>
+    <form class="search" role="search" onsubmit="return false">
+      <input type="search" placeholder="Search stoves, pans, flasks…" aria-label="Search the shop">
+      <button type="submit">Search</button>
+    </form>
+    <div class="header-links">
+      <a href="#">Stores</a>
+      <a href="#">Account</a>
+      <a class="cart" href="#">Basket <span class="cart-badge" id="cart-badge">0</span></a>
+    </div>
+  </div>
+</header>
+
+<nav class="cat-nav" aria-label="Departments">
+  <div class="wrap">
+    <ul>
+      <li><a href="#">Tents</a></li>
+      <li><a href="#">Sleeping</a></li>
+      <li><a class="current" href="#">Camp kitchen</a></li>
+      <li><a href="#">Packs</a></li>
+      <li><a href="#">Footwear</a></li>
+      <li><a href="#">Lighting</a></li>
+      <li><a href="#">Repair</a></li>
+      <li><a href="#">Sale</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="crumbs"><a href="#">Home</a> / <a href="#">Camping</a> / Camp kitchen</div>
+  <div class="toolbar">
+    <h1>Camp kitchen</h1>
+    <span class="count" id="result-count">48 products</span>
+    <label class="sort">Sort by
+      <select id="sort">
+        <option>Most popular</option>
+        <option>Price, low to high</option>
+        <option>Price, high to low</option>
+        <option>Newest</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="catalog">
+    <aside class="filters" aria-label="Filters">
+      <fieldset>
+        <h2>Type</h2>
+        <label><input type="checkbox" checked> Stoves <span>12</span></label>
+        <label><input type="checkbox"> Cookware <span>17</span></label>
+        <label><input type="checkbox"> Mugs &amp; flasks <span>9</span></label>
+        <label><input type="checkbox"> Utensils <span>6</span></label>
+        <label><input type="checkbox"> Water treatment <span>4</span></label>
+      </fieldset>
+      <fieldset>
+        <h2>Fuel</h2>
+        <label><input type="checkbox"> Gas canister <span>8</span></label>
+        <label><input type="checkbox"> Alcohol <span>3</span></label>
+        <label><input type="checkbox"> Wood <span>1</span></label>
+      </fieldset>
+      <fieldset>
+        <h2>Price</h2>
+        <div class="price-range">
+          <input type="number" placeholder="Min" aria-label="Minimum price">
+          <input type="number" placeholder="Max" aria-label="Maximum price">
+        </div>
+      </fieldset>
+      <fieldset>
+        <h2>Rating</h2>
+        <label><input type="radio" name="rating"> 4 stars and up</label>
+        <label><input type="radio" name="rating"> 3 stars and up</label>
+      </fieldset>
+    </aside>
+
+    <main>
+      <div class="grid" id="product-grid">
+        <article class="card card--featured" data-sku="FH-2001">
+          <a class="card-media" href="#">
+            <img loading="lazy" src="/delay/900/assets/img/card-600x400.png" alt="Two-burner Ridgeline stove set up on a camp table">
+            <span class="flag">Staff pick</span>
+          </a>
+          <div class="card-body">
+            <h3>Ridgeline two-burner stove</h3>
+            <p class="blurb">Folds flat, simmers properly, and boils a litre in under four minutes with a windshield that actually stays up.</p>
+            <div class="rating">★★★★★ <small>4.8 (312)</small></div>
+            <div class="price-row"><span class="price">£129.00</span><button class="add" type="button">Add to basket</button></div>
+          </div>
+        </article>
+
+        <article class="card" data-sku="FH-1042">
+          <a class="card-media" href="#"><img src="/delay/900/assets/img/card-600x400.png" width="600" height="400" alt="Enamel mug"></a>
+          <div class="card-body">
+            <h3>Trail enamel mug, 350 ml</h3>
+            <div class="rating">★★★★☆ <small>4.3 (88)</small></div>
+            <div class="price-row"><span class="price">£11.00</span><button class="add" type="button">Add</button></div>
+          </div>
+        </article>
+
+        <article class="card" data-sku="FH-1077">
+          <a class="card-media" href="#"><img src="/assets/img/card-600x400.png" width="600" height="400" alt="Nesting pan set"></a>
+          <div class="card-body">
+            <h3>Nesting pan set, three piece</h3>
+            <div class="rating">★★★★☆ <small>4.5 (140)</small></div>
+            <div class="price-row"><span class="price">£38.00</span><span class="was">£46.00</span><button class="add" type="button">Add</button></div>
+          </div>
+        </article>
+
+        <article class="card" data-sku="FH-1103">
+          <a class="card-media" href="#"><img src="/assets/img/card-600x400.png" width="600" height="400" alt="Vacuum flask"></a>
+          <div class="card-body">
+            <h3>Summit vacuum flask, 1 litre</h3>
+            <div class="rating">★★★★★ <small>4.7 (203)</small></div>
+            <div class="price-row"><span class="price">£27.50</span><button class="add" type="button">Add</button></div>
+          </div>
+        </article>
+
+        <article class="card" data-sku="FH-1118">
+          <a class="card-media" href="#"><img src="/assets/img/card-600x400.png" width="600" height="400" alt="Folding spork"></a>
+          <div class="card-body">
+            <h3>Folding titanium spork</h3>
+            <div class="rating">★★★★☆ <small>4.1 (57)</small></div>
+            <div class="price-row"><span class="price">£8.00</span><button class="add" type="button">Add</button></div>
+          </div>
+        </article>
+
+        <article class="card" data-sku="FH-1160">
+          <a class="card-media" href="#"><img loading="lazy" src="/assets/img/card-600x400.png" width="600" height="400" alt="Kettle"></a>
+          <div class="card-body">
+            <h3>Hard-anodised kettle, 0.9 litre</h3>
+            <div class="rating">★★★★☆ <small>4.4 (96)</small></div>
+            <div class="price-row"><span class="price">£24.00</span><button class="add" type="button">Add</button></div>
+          </div>
+        </article>
+
+        <article class="card" data-sku="FH-1191">
+          <a class="card-media" href="#"><img loading="lazy" src="/assets/img/card-600x400.png" width="600" height="400" alt="Water filter"></a>
+          <div class="card-body">
+            <h3>Squeeze water filter</h3>
+            <div class="rating">★★★★★ <small>4.9 (411)</small></div>
+            <div class="price-row"><span class="price">£33.00</span><button class="add" type="button">Add</button></div>
+          </div>
+        </article>
+
+        <article class="card" data-sku="FH-1204">
+          <a class="card-media" href="#"><img loading="lazy" src="/assets/img/card-600x400.png" width="600" height="400" alt="Chopping board"></a>
+          <div class="card-body">
+            <h3>Beech camp chopping board</h3>
+            <div class="rating">★★★★☆ <small>4.0 (31)</small></div>
+            <div class="price-row"><span class="price">£14.00</span><button class="add" type="button">Add</button></div>
+          </div>
+        </article>
+      </div>
+
+      <nav class="pager" aria-label="Pages">
+        <a class="current" href="#">1</a><a href="#">2</a><a href="#">3</a><a href="#">4</a><a href="#">Next</a>
+      </nav>
+    </main>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div><h4>Fernhill Supply</h4>Outdoor kit, repaired and resold since 1998. Free returns to any store.</div>
+    <div><h4>Help</h4><ul><li><a href="#">Delivery</a></li><li><a href="#">Returns</a></li><li><a href="#">Repairs</a></li></ul></div>
+    <div><h4>Company</h4><ul><li><a href="#">About</a></li><li><a href="#">Stores</a></li><li><a href="#">Jobs</a></li></ul></div>
+    <div><h4>Legal</h4><ul><li><a href="#">Terms</a></li><li><a href="#">Privacy</a></li></ul></div>
+  </div>
+</footer>
+
+<script>
+  // Fade cards in as they enter the viewport.
+  (function () {
+    var cards = document.querySelectorAll('.card');
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) { entry.target.classList.add('in-view'); io.unobserve(entry.target); }
+      });
+    }, { rootMargin: '0px 0px -40px 0px' });
+    cards.forEach(function (card) { io.observe(card); });
+  })();
+
+  // Wishlist buttons are added once the page is interactive.
+  setTimeout(function () {
+    document.querySelectorAll('.card-media').forEach(function (media) {
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'wish';
+      button.setAttribute('aria-label', 'Add to wishlist');
+      button.textContent = '♡';
+      button.addEventListener('click', function (event) { event.preventDefault(); button.textContent = button.textContent === '♡' ? '♥' : '♡'; });
+      media.appendChild(button);
+    });
+  }, 450);
+
+  // Basket badge from the session service.
+  setTimeout(function () {
+    var badge = document.getElementById('cart-badge');
+    badge.textContent = '2';
+    badge.classList.add('bump');
+    setTimeout(function () { badge.classList.remove('bump'); }, 250);
+  }, 900);
+
+  document.getElementById('sort').addEventListener('change', function () {
+    document.getElementById('product-grid').dataset.sort = this.value;
+  });
+</script>
+</body>
+</html>

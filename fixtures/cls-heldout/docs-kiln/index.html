@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting builds · Kiln documentation</title>
+<style>
+  :root { --night: #161b22; --night-2: #1f2630; --ink: #1f2328; --dim: #656d76; --line: #d8dee4; --fire: #d1481f; --paper: #ffffff; --wash: #f6f8fa; }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: var(--ink); background: var(--paper); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif; }
+  a { color: #0b5cad; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font: 13.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; padding: 2px 6px; border-radius: 5px; background: var(--wash); }
+  pre { margin: 12px 0; padding: 14px 16px; border-radius: 8px; background: var(--night); color: #e6edf3; overflow-x: auto; }
+  pre code { padding: 0; background: none; color: inherit; }
+
+  .shell { display: grid; grid-template-columns: 290px minmax(0, 1fr); min-height: 100vh; }
+
+  .rail { background: var(--night); color: #c9d1d9; padding: 22px 18px; }
+  .rail .product { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; font-size: 19px; margin-bottom: 4px; }
+  .rail .version { font-size: 12px; color: #8b949e; margin: 0 0 18px 42px; }
+  .rail input { width: 100%; height: 36px; padding: 0 12px; border: 1px solid #30363d; border-radius: 8px; background: var(--night-2); color: #fff; font: inherit; font-size: 14px; margin-bottom: 18px; }
+  .rail h2 { margin: 16px 0 6px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #8b949e; }
+  .rail ul { margin: 0; padding: 0; list-style: none; font-size: 14.5px; }
+  .rail a { display: block; padding: 5px 10px; border-radius: 6px; color: inherit; border-left: 2px solid transparent; transition: background 120ms ease, color 120ms ease; }
+  .rail a:hover { background: var(--night-2); color: #fff; text-decoration: none; }
+  .rail a.here { background: var(--night-2); color: #fff; border-left-color: var(--fire); }
+
+  .page { min-width: 0; }
+  .bar { display: flex; align-items: center; gap: 18px; height: 56px; padding: 0 40px; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--dim); }
+  .bar .crumbs a { color: inherit; }
+  .bar .spacer { margin-left: auto; }
+  .bar .edit { padding: 5px 12px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); }
+
+  .doc { max-width: 820px; padding: 30px 40px 60px; }
+  .doc h1 { font-size: 34px; line-height: 1.2; letter-spacing: -0.5px; margin: 0 0 8px; }
+  .doc .lede { font-size: 18px; color: var(--dim); margin: 0 0 22px; }
+  .doc h2 { font-size: 22px; margin: 30px 0 12px; }
+
+  .faq-item { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; background: #fff; }
+  .faq-toggle { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; padding: 14px 18px; border: 0; background: none; font: inherit; font-weight: 600; text-align: left; cursor: pointer; color: var(--ink); }
+  .faq-toggle .chev { flex: none; width: 10px; height: 10px; border-right: 2px solid var(--dim); border-bottom: 2px solid var(--dim); transform: rotate(45deg); transition: transform 180ms ease; }
+  .faq-toggle[aria-expanded="true"] .chev { transform: rotate(-135deg); }
+  .faq-panel { display: none; padding: 0 18px 16px; color: #3d444d; }
+  .faq-item.is-open .faq-panel { display: block; }
+  .faq-panel p { margin: 0 0 10px; }
+
+  .help { display: flex; align-items: center; gap: 18px; margin-top: 26px; padding: 18px 20px; border-radius: 10px; background: var(--wash); border: 1px solid var(--line); }
+  .help strong { display: block; }
+  .help .go { margin-left: auto; padding: 8px 16px; border-radius: 8px; background: var(--fire); color: #fff; font-weight: 600; white-space: nowrap; }
+  .nextprev { display: flex; justify-content: space-between; margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line); }
+  .stamp { margin-top: 18px; font-size: 13px; color: var(--dim); }
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="rail" aria-label="Documentation">
+    <div class="product"><img src="/assets/img/logo-mark.svg" width="32" height="32" alt=""> Kiln</div>
+    <div class="version">v2.8 · static site generator</div>
+    <input type="search" id="doc-search" placeholder="Loading search…" aria-label="Search the documentation" disabled>
+    <h2>Start</h2>
+    <ul>
+      <li><a href="#">Install</a></li>
+      <li><a href="#">Your first site</a></li>
+      <li><a href="#">Project layout</a></li>
+    </ul>
+    <h2>Build</h2>
+    <ul>
+      <li><a href="#">Templates</a></li>
+      <li><a href="#">Collections</a></li>
+      <li><a href="#">Asset pipeline</a></li>
+      <li><a href="#">Incremental builds</a></li>
+      <li><a class="here" href="#">Troubleshooting builds</a></li>
+    </ul>
+    <h2>Deploy</h2>
+    <ul>
+      <li><a href="#">Preview servers</a></li>
+      <li><a href="#">Hosting recipes</a></li>
+      <li><a href="#">Redirects</a></li>
+    </ul>
+    <h2>Reference</h2>
+    <ul>
+      <li><a href="#">Configuration</a></li>
+      <li><a href="#">CLI</a></li>
+      <li><a href="#">Plugin API</a></li>
+    </ul>
+  </nav>
+
+  <div class="page">
+    <div class="bar">
+      <span class="crumbs"><a href="#">Docs</a> / <a href="#">Build</a> / Troubleshooting builds</span>
+      <span class="spacer"></span>
+      <a class="edit" href="#">Edit this page</a>
+    </div>
+
+    <main class="doc">
+      <h1>Troubleshooting builds</h1>
+      <p class="lede">The six problems that account for most failed or slow builds, and how to tell them apart. Select a question to see the answer.</p>
+
+      <h2>Common problems</h2>
+      <div class="faq" id="faq">
+        <section class="faq-item" id="faq-node">
+          <button class="faq-toggle" type="button" aria-expanded="false" aria-controls="panel-node"><span>The build fails with “unsupported engine”</span><i class="chev"></i></button>
+          <div class="faq-panel" id="panel-node">
+            <p>Kiln 2.8 needs Node 20 or newer. Check with <code>node --version</code> and upgrade, or pin Kiln to the 2.6 line.</p>
+          </div>
+        </section>
+        <section class="faq-item" id="faq-cache">
+          <button class="faq-toggle" type="button" aria-expanded="false" aria-controls="panel-cache"><span>Pages keep their old content after I edit them</span><i class="chev"></i></button>
+          <div class="faq-panel" id="panel-cache">
+            <p>The incremental cache keys pages by their front matter and template, not by included partials. Editing a partial does not invalidate the pages that use it unless you declare the dependency.</p>
+            <p>Clear the cache once to confirm that this is the cause:</p>
+            <pre><code>kiln build --no-cache</code></pre>
+            <p>Then list the partial under <code>dependsOn</code> in the page's front matter, or turn on <code>trackIncludes</code> in <code>kiln.config.js</code> (slower, but always correct).</p>
+          </div>
+        </section>
+        <section class="faq-item" id="faq-memory">
+          <button class="faq-toggle" type="button" aria-expanded="false" aria-controls="panel-memory"><span>The build runs out of memory on large collections</span><i class="chev"></i></button>
+          <div class="faq-panel" id="panel-memory">
+            <p>Collections are held in memory unless you stream them. Set <code>stream: true</code> on any collection with more than ten thousand entries.</p>
+          </div>
+        </section>
+        <section class="faq-item" id="faq-images">
+          <button class="faq-toggle" type="button" aria-expanded="false" aria-controls="panel-images"><span>Image processing is the slowest step</span><i class="chev"></i></button>
+          <div class="faq-panel" id="panel-images">
+            <p>Resized images are cached in <code>.kiln/images</code>. Persist that directory between CI runs.</p>
+          </div>
+        </section>
+        <section class="faq-item" id="faq-links">
+          <button class="faq-toggle" type="button" aria-expanded="false" aria-controls="panel-links"><span>Links work locally but break after deploying</span><i class="chev"></i></button>
+          <div class="faq-panel" id="panel-links">
+            <p>Set <code>baseUrl</code> to the path your host serves the site from, and use the <code>url</code> filter in templates.</p>
+          </div>
+        </section>
+        <section class="faq-item" id="faq-watch">
+          <button class="faq-toggle" type="button" aria-expanded="false" aria-controls="panel-watch"><span>The dev server does not notice file changes</span><i class="chev"></i></button>
+          <div class="faq-panel" id="panel-watch">
+            <p>On network drives and in some containers, file events are not delivered. Start the server with <code>--poll</code>.</p>
+          </div>
+        </section>
+      </div>
+
+      <div class="help">
+        <div><strong>Still stuck?</strong>Run <code>kiln doctor</code> and paste the output into a discussion.</div>
+        <a class="go" href="#">Open a discussion</a>
+      </div>
+
+      <div class="nextprev"><a href="#">← Incremental builds</a><a href="#">Preview servers →</a></div>
+      <div class="stamp">Last updated <time datetime="2026-02-27">27 February 2026</time></div>
+    </main>
+  </div>
+</div>
+
+<script>
+  // Accordion.
+  document.querySelectorAll('.faq-toggle').forEach(function (toggle) {
+    toggle.addEventListener('click', function () {
+      var item = toggle.closest('.faq-item');
+      var open = item.classList.toggle('is-open');
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+  });
+
+  // The search index is loaded after the page.
+  setTimeout(function () {
+    var search = document.getElementById('doc-search');
+    search.placeholder = 'Search the docs';
+    search.disabled = false;
+  }, 600);
+</script>
+</body>
+</html>

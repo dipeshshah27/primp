@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="240" viewBox="0 0 640 240">
+  <rect width="640" height="240" fill="#f8fafc"/>
+  <g stroke="#e2e8f0" stroke-width="1">
+    <path d="M40 40h580M40 90h580M40 140h580M40 190h580"/>
+  </g>
+  <polyline fill="none" stroke="#2563eb" stroke-width="3" points="40,170 110,150 180,158 250,120 320,128 390,92 460,104 530,70 620,52"/>
+  <polyline fill="none" stroke="#f59e0b" stroke-width="3" points="40,190 110,182 180,170 250,176 320,150 390,156 460,134 530,128 620,110"/>
+</svg>

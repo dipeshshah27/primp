@@ -1,0 +1,129 @@
+{
+  "page": "news-harbour-ledger/index.html",
+  "template": "news article",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "unsized-media",
+      "culpritSelector": ".story-body > img.story-photo",
+      "acceptableCulpritSelectors": [],
+      "culpritFile": "news-harbour-ledger/index.html",
+      "culpritLine": 144,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<img class=\"story-photo\"",
+      "victimSelectors": [
+        "#para-2",
+        "#para-3",
+        "#para-4",
+        ".story-body blockquote"
+      ],
+      "minValue": 0.035
+    }
+  ],
+  "decoys": [
+    ".byline img.byline-photo",
+    "#share-count",
+    "#updated-clock",
+    ".ad img",
+    ".masthead img.logo",
+    ".related-grid img",
+    "#read-progress"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.querySelector('.story-photo').naturalWidth === 320",
+    "document.querySelector('.byline-photo').complete && document.querySelector('.byline-photo').naturalWidth > 0",
+    "document.getElementById('share-count').textContent === '1.2k'"
+  ],
+  "measuredValues": [
+    0.059257,
+    0.059257,
+    0.059257
+  ],
+  "notes": "A floated article photo has no width/height attributes and no reserved box; when it arrives (700 ms) the paragraphs re-wrap around it and everything after it in the article moves down. The byline photo uses the same file at the same delay but has width/height attributes, and the share counter is written by a script at the same moment.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.059257,
+      "startTimeMs": 706,
+      "sources": [
+        {
+          "node": "p#para-2",
+          "previousRect": {
+            "x": 104,
+            "y": 586.0625,
+            "width": 708,
+            "height": 87.46875
+          },
+          "currentRect": {
+            "x": 104,
+            "y": 673.53125,
+            "width": 708,
+            "height": 126.46875
+          }
+        },
+        {
+          "node": "#text in p#para-2",
+          "previousRect": {
+            "x": 104,
+            "y": 590.0625,
+            "width": 708,
+            "height": 137.625
+          },
+          "currentRect": {
+            "x": 104,
+            "y": 677.53125,
+            "width": 708,
+            "height": 122.46875
+          }
+        },
+        {
+          "node": "#text in p#para-1",
+          "previousRect": {
+            "x": 103,
+            "y": 484.59375,
+            "width": 709,
+            "height": 166.78125
+          },
+          "currentRect": {
+            "x": 104,
+            "y": 484.59375,
+            "width": 708,
+            "height": 166.78125
+          }
+        },
+        {
+          "node": "p#para-3",
+          "previousRect": {
+            "x": 104,
+            "y": 691.53125,
+            "width": 708,
+            "height": 108.46875
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          }
+        }
+      ]
+    }
+  }
+}

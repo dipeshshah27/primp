@@ -1,0 +1,95 @@
+{
+  "page": "search-findry/index.html",
+  "template": "search results page",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "injected-content",
+      "culpritSelector": "main > .notice",
+      "acceptableCulpritSelectors": [],
+      "culpritFile": "search-findry/index.html",
+      "culpritLine": 97,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<div class=\"notice\" id=\"spell-notice\"",
+      "acceptableCulpritLines": [
+        {
+          "line": 173,
+          "kind": "reveal-statement",
+          "contains": "notice.hidden = false;"
+        },
+        {
+          "line": 164,
+          "kind": "fetch-statement",
+          "contains": "fetch('/delay/750/assets/data/search-meta.json')"
+        }
+      ],
+      "victimSelectors": [
+        "#results",
+        ".result:nth-of-type(1)",
+        ".result:nth-of-type(2)",
+        ".paa"
+      ],
+      "minValue": 0.019
+    }
+  ],
+  "decoys": [
+    ".result p mark",
+    ".result p",
+    "#result-stats",
+    ".kp img",
+    ".result .site img"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.getElementById('spell-notice').hidden === false && document.getElementById('spell-notice').getBoundingClientRect().height > 40",
+    "document.querySelectorAll('.result p mark').length >= 6",
+    "document.getElementById('result-stats').textContent.startsWith('About 1,240 results')",
+    "document.querySelector('.kp img').naturalWidth === 600"
+  ],
+  "measuredValues": [
+    0.032595,
+    0.032595,
+    0.032595
+  ],
+  "notes": "A spelling notice that is already in the HTML with the hidden attribute is filled in and revealed (notice.hidden = false) when query metadata arrives from a 750 ms delayed JSON URL; it sits above the result list and pushes every result down. The culprit line is the element's opening tag; the reveal statement is listed as an acceptable line. At 300 ms a script rewrites every snippet's innerHTML to highlight the query terms, at 750 ms the result-count line is filled in (fixed height) and the sized knowledge-panel image arrives.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.032595,
+      "startTimeMs": 773,
+      "sources": [
+        {
+          "node": "div#results",
+          "previousRect": {
+            "x": 175,
+            "y": 162.109375,
+            "width": 653,
+            "height": 637.890625
+          },
+          "currentRect": {
+            "x": 175,
+            "y": 264.65625,
+            "width": 653,
+            "height": 535.34375
+          }
+        }
+      ]
+    }
+  }
+}

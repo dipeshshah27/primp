@@ -1,0 +1,8 @@
+{
+  "posts": [
+    { "slug": "notes-on-a-slow-winter", "title": "Notes on a slow winter", "date": "2025-12-02", "minutes": 6, "excerpt": "The workshop was cold enough that glue would not set, so we read instead." },
+    { "slug": "the-case-for-boring-tools", "title": "The case for boring tools", "date": "2025-11-18", "minutes": 9, "excerpt": "A plane, a square and a marking knife cover most of what the catalogue tries to sell you." },
+    { "slug": "sharpening-without-the-ritual", "title": "Sharpening without the ritual", "date": "2025-11-04", "minutes": 4, "excerpt": "Two stones and five minutes. Everything else is a hobby of its own." },
+    { "slug": "what-we-got-wrong-about-oak", "title": "What we got wrong about oak", "date": "2025-10-21", "minutes": 7, "excerpt": "It moves more than the tables say, and it does so in the first month." }
+  ]
+}

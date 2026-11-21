@@ -1,0 +1,109 @@
+{
+  "page": "blog-grainline/index.html",
+  "template": "blog index",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "injected-content",
+      "culpritSelector": "body > section.consent",
+      "acceptableCulpritSelectors": [],
+      "culpritFile": "blog-grainline/index.html",
+      "culpritLine": 219,
+      "culpritLineKind": "script-insert",
+      "culpritLineContains": "document.body.prepend(banner);",
+      "acceptableCulpritLines": [
+        {
+          "line": 202,
+          "kind": "create-statement",
+          "contains": "var banner = document.createElement('section');"
+        },
+        {
+          "line": 198,
+          "kind": "fetch-statement",
+          "contains": "fetch('/delay/700/assets/data/consent.json')"
+        }
+      ],
+      "victimSelectors": [
+        ".site-header",
+        "main",
+        ".featured",
+        ".blog-layout"
+      ],
+      "minValue": 0.029
+    }
+  ],
+  "decoys": [
+    ".featured img",
+    ".to-top",
+    ".read-time",
+    ".post img",
+    ".about img"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.getElementById('consent-banner') !== null && document.body.firstElementChild.id === 'consent-banner'",
+    "document.querySelector('.featured img').naturalWidth === 600",
+    "document.querySelector('.to-top.show') !== null"
+  ],
+  "measuredValues": [
+    0.04841,
+    0.04841,
+    0.04841
+  ],
+  "notes": "A consent banner is built with createElement and put at the top of <body> with prepend() once a consent-service JSON (700 ms) has answered; it is in normal flow, so the header and the whole page move down by its height. The sized featured image arrives at the same 700 ms, a fixed back-to-top button is appended to <body> at 500 ms, and reading times are rewritten before first paint.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.04841,
+      "startTimeMs": 721,
+      "sources": [
+        {
+          "node": "main.wrap",
+          "previousRect": {
+            "x": 90,
+            "y": 77,
+            "width": 1100,
+            "height": 723
+          },
+          "currentRect": {
+            "x": 90,
+            "y": 147,
+            "width": 1100,
+            "height": 653
+          }
+        },
+        {
+          "node": "header.site-header",
+          "previousRect": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 77
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 70,
+            "width": 1280,
+            "height": 77
+          }
+        }
+      ]
+    }
+  }
+}

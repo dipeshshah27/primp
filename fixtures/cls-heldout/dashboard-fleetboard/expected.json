@@ -1,0 +1,46 @@
+{
+  "page": "dashboard-fleetboard/index.html",
+  "template": "dashboard",
+  "positive": false,
+  "shifts": [],
+  "decoys": [
+    "#toasts",
+    "#toasts .toast",
+    "#chat-launcher",
+    "#bell-badge",
+    "img.map",
+    ".fuel b"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.querySelector('#toasts .toast.in') !== null && getComputedStyle(document.getElementById('toasts')).position === 'fixed'",
+    "document.getElementById('chat-launcher') !== null",
+    "document.getElementById('bell-badge').textContent === '3'",
+    "document.querySelector('img.map').naturalWidth === 1200"
+  ],
+  "measuredValues": [
+    0,
+    0,
+    0
+  ],
+  "notes": "A toast is created and appended to <body> when notification JSON arrives from a 900 ms delayed URL, and a chat launcher is appended at 600 ms; both are position: fixed, so they overlay the page and move nothing. The sized map image also arrives at 900 ms and the fuel gauges animate by transform. No element should be accused.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      }
+    ]
+  }
+}

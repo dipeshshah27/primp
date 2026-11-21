@@ -1,0 +1,105 @@
+{
+  "page": "recipe-saltwater-kitchen/index.html",
+  "template": "recipe page",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "unsized-media",
+      "culpritSelector": ".embed-frame > iframe.video-embed",
+      "acceptableCulpritSelectors": [
+        ".watch .embed-frame"
+      ],
+      "culpritFile": "recipe-saltwater-kitchen/index.html",
+      "culpritLine": 119,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<iframe class=\"video-embed\"",
+      "acceptableCulpritLines": [
+        {
+          "line": 198,
+          "kind": "resize-statement",
+          "contains": "frame.style.height = event.data.height + 'px';"
+        }
+      ],
+      "victimSelectors": [
+        ".watch .caption",
+        ".recipe-columns",
+        ".ingredients",
+        ".method"
+      ],
+      "minValue": 0.028
+    }
+  ],
+  "decoys": [
+    ".intro-photo",
+    ".author img",
+    "#ingredient-list .qty",
+    "#stars"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.querySelector('.video-embed').getBoundingClientRect().height > 300",
+    "document.querySelector('.intro-photo').naturalWidth === 600",
+    "document.getElementById('stars').dataset.loaded === 'true'"
+  ],
+  "measuredValues": [
+    0.046386,
+    0.046386,
+    0.046386
+  ],
+  "notes": "A video embed iframe has no height reserved (default 150 px); its document arrives after 800 ms and posts its height, and the page's message handler sets the iframe's height, pushing the caption, ingredients and method down. The sized intro photo arrives at the same moment, ingredient amounts are rewritten at 500 ms and the rating stars at 800 ms without changing size.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.046386,
+      "startTimeMs": 838,
+      "sources": [
+        {
+          "node": "div.recipe-columns",
+          "previousRect": {
+            "x": 144,
+            "y": 686.546875,
+            "width": 992,
+            "height": 113.453125
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          }
+        },
+        {
+          "node": "p.caption",
+          "previousRect": {
+            "x": 144,
+            "y": 638.859375,
+            "width": 992,
+            "height": 21.6875
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          }
+        }
+      ]
+    }
+  }
+}

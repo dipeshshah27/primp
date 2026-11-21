@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sourdoh starter - Findry search</title>
+<style>
+  :root { --ink: #202124; --grey: #5f6368; --line: #dadce0; --link: #1a0dab; --green: #188038; --blue: #1a73e8; --panel: #f8f9fa; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; color: var(--ink); background: #fff; font: 14px/1.58 Arial, Helvetica, sans-serif; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .search-header { border-bottom: 1px solid var(--line); padding: 20px 28px 0; }
+  .search-row { display: flex; align-items: center; gap: 28px; }
+  .wordmark { font: 700 26px/1 Georgia, serif; color: var(--blue); letter-spacing: -1px; text-decoration: none; }
+  .wordmark span { color: #ea8600; }
+  .searchbox { display: flex; align-items: center; width: 640px; height: 46px; padding: 0 6px 0 20px; border: 1px solid var(--line); border-radius: 24px; box-shadow: 0 1px 6px rgba(32, 33, 36, 0.14); transition: box-shadow 150ms ease; }
+  .searchbox:focus-within { box-shadow: 0 2px 10px rgba(32, 33, 36, 0.28); }
+  .searchbox input { flex: 1; border: 0; outline: 0; font: 16px Arial, sans-serif; }
+  .searchbox button { width: 38px; height: 38px; border: 0; border-radius: 50%; background: var(--blue); color: #fff; cursor: pointer; font-size: 16px; }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 16px; color: var(--grey); }
+  .header-right img { border-radius: 50%; display: block; }
+  .verticals { display: flex; gap: 26px; margin: 16px 0 0 148px; padding: 0; list-style: none; color: var(--grey); }
+  .verticals a { display: block; padding: 0 2px 10px; color: inherit; border-bottom: 3px solid transparent; }
+  .verticals a.on { color: var(--blue); border-bottom-color: var(--blue); }
+  .verticals a:hover { text-decoration: none; color: var(--ink); }
+
+  .serp { display: grid; grid-template-columns: 652px 368px; gap: 60px; padding: 0 28px 48px 176px; align-items: start; }
+  .stats { height: 44px; line-height: 44px; color: var(--grey); font-size: 13px; }
+
+  .notice { display: flex; gap: 14px; align-items: flex-start; margin: 0 0 22px; padding: 14px 18px; border: 1px solid #fad2cf; border-radius: 10px; background: #fef7f6; }
+  .notice .icon { flex: none; width: 24px; height: 24px; border-radius: 50%; background: #d93025; color: #fff; text-align: center; line-height: 24px; font-weight: 700; }
+  .notice .big { font-size: 18px; }
+  .notice .big a { font-style: italic; font-weight: 700; }
+  .notice .small { color: var(--grey); }
+
+  .result { margin: 0 0 28px; }
+  .result .site { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .result .site img { border-radius: 50%; background: var(--panel); flex: none; }
+  .result .site cite { display: block; font-style: normal; color: var(--grey); font-size: 12px; }
+  .result h3 { margin: 6px 0 3px; font-size: 20px; font-weight: 400; line-height: 1.3; }
+  .result p { margin: 0; color: #4d5156; }
+  .result mark { background: #fff1b8; color: inherit; border-radius: 2px; }
+  .sitelinks { display: flex; gap: 16px; margin-top: 6px; font-size: 13px; }
+
+  .paa { margin: 0 0 30px; }
+  .paa h2 { font-size: 20px; font-weight: 400; margin: 0 0 8px; }
+  .paa details { border-top: 1px solid var(--line); }
+  .paa details:last-child { border-bottom: 1px solid var(--line); }
+  .paa summary { padding: 12px 0; cursor: pointer; font-size: 16px; }
+  .paa details p { margin: 0 0 14px; color: #4d5156; }
+
+  .pages { display: flex; gap: 14px; font-size: 14px; margin-top: 8px; }
+  .pages b { color: var(--ink); }
+
+  .kp { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 44px; }
+  .kp img { display: block; width: 100%; height: auto; background: var(--panel); }
+  .kp-body { padding: 16px 18px 18px; }
+  .kp h2 { font-size: 26px; font-weight: 400; margin: 0; }
+  .kp .kind { color: var(--grey); margin-bottom: 10px; }
+  .kp dl { margin: 12px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+  .kp dt { font-weight: 700; }
+  .kp dd { margin: 0; }
+
+  .serp-footer { background: var(--panel); border-top: 1px solid var(--line); color: var(--grey); font-size: 13px; padding: 14px 28px 14px 176px; }
+</style>
+</head>
+<body>
+<header class="search-header">
+  <div class="search-row">
+    <a class="wordmark" href="#">Find<span>ry</span></a>
+    <form class="searchbox" role="search" onsubmit="return false">
+      <input type="search" name="q" value="sourdoh starter" aria-label="Search">
+      <button type="submit" aria-label="Search">⌕</button>
+    </form>
+    <div class="header-right">
+      <a href="#" style="color:inherit">Settings</a>
+      <img src="/assets/img/avatar-160.svg" width="34" height="34" alt="Account">
+    </div>
+  </div>
+  <ul class="verticals">
+    <li><a class="on" href="#">All</a></li>
+    <li><a href="#">Images</a></li>
+    <li><a href="#">Videos</a></li>
+    <li><a href="#">News</a></li>
+    <li><a href="#">Shopping</a></li>
+    <li><a href="#">Maps</a></li>
+  </ul>
+</header>
+
+<div class="serp">
+  <main>
+    <div class="stats" id="result-stats">&nbsp;</div>
+
+    <div class="notice" id="spell-notice" role="status" hidden>
+      <span class="icon" aria-hidden="true">!</span>
+      <div>
+        <div class="big">Showing results for <a href="#" class="corrected"></a></div>
+        <div class="small">Search instead for <a href="#" class="original"></a></div>
+      </div>
+    </div>
+
+    <div class="results-list" id="results">
+      <article class="result">
+        <div class="site"><img src="/assets/img/logo-mark.svg" width="28" height="28" alt=""><div>The Loaf Journal<cite>https://loafjournal.example › guides › starter</cite></div></div>
+        <h3><a href="#">How to make a sourdough starter from scratch (day by day)</a></h3>
+        <p>Mix equal weights of flour and water, wait, and feed. A sourdough starter is usually ready to bake with after seven to ten days at room temperature.</p>
+        <div class="sitelinks"><a href="#">Day 1</a><a href="#">Feeding schedule</a><a href="#">Troubleshooting</a></div>
+      </article>
+      <article class="result">
+        <div class="site"><img src="/assets/img/logo-mark.svg" width="28" height="28" alt=""><div>Saltwater Kitchen<cite>https://saltwaterkitchen.example › techniques</cite></div></div>
+        <h3><a href="#">Sourdough starter: the only guide you need</a></h3>
+        <p>Rye flour gets a starter going fastest. We tested six flours over three weeks; here is what the jars looked like every morning.</p>
+      </article>
+      <section class="paa">
+        <h2>People also ask</h2>
+        <details><summary>How long does a sourdough starter take to be ready?</summary><p>Usually between seven and fourteen days, depending on the flour and the temperature of the room.</p></details>
+        <details><summary>Can I use tap water for my starter?</summary><p>Yes, unless it is heavily chlorinated, in which case leave it to stand for an hour first.</p></details>
+        <details><summary>Why does my starter smell like nail varnish?</summary><p>It is hungry. Feed it more often or with a higher ratio of fresh flour.</p></details>
+      </section>
+      <article class="result">
+        <div class="site"><img src="/assets/img/logo-mark.svg" width="28" height="28" alt=""><div>Mill &amp; Stone<cite>https://millandstone.example › shop › starters</cite></div></div>
+        <h3><a href="#">Dried sourdough starter, 30 g sachet</a></h3>
+        <p>A 140-year-old culture, dried and ready to wake up in two feeds. Includes instructions for keeping your starter in the fridge.</p>
+      </article>
+      <article class="result">
+        <div class="site"><img src="/assets/img/logo-mark.svg" width="28" height="28" alt=""><div>Bread Forum<cite>https://forum.bread.example › t › starter-not-rising</cite></div></div>
+        <h3><a href="#">Starter not rising after day 4. Normal?</a></h3>
+        <p>Completely normal. Nearly every sourdough starter goes quiet around day four or five before the yeast population catches up.</p>
+      </article>
+    </div>
+
+    <nav class="pages" aria-label="Result pages"><b>1</b><a href="#">2</a><a href="#">3</a><a href="#">4</a><a href="#">5</a><a href="#">Next</a></nav>
+  </main>
+
+  <aside class="kp" aria-label="About sourdough">
+    <img src="/delay/750/assets/img/card-600x400.png" width="600" height="400" alt="A jar of bubbling sourdough starter">
+    <div class="kp-body">
+      <h2>Sourdough</h2>
+      <div class="kind">Bread made by fermentation</div>
+      <p>Sourdough is bread leavened with a culture of wild yeast and lactic acid bacteria kept alive in a mixture of flour and water.</p>
+      <dl>
+        <dt>Main ingredients</dt><dd>Flour, water, salt</dd>
+        <dt>Culture</dt><dd>Starter (levain)</dd>
+      </dl>
+    </div>
+  </aside>
+</div>
+
+<footer class="serp-footer">United Kingdom · <a href="#">Privacy</a> · <a href="#">Terms</a> · <a href="#">Send feedback</a></footer>
+
+<script>
+  // Highlight the query terms inside result snippets.
+  setTimeout(function () {
+    var terms = /(sourdough|starter)/gi;
+    document.querySelectorAll('.result p').forEach(function (snippet) {
+      snippet.innerHTML = snippet.textContent.replace(terms, '<mark>$1</mark>');
+    });
+  }, 300);
+
+  // Query metadata (spelling, totals) is computed after the first results are sent.
+  fetch('/delay/750/assets/data/search-meta.json')
+    .then(function (response) { return response.json(); })
+    .then(function (meta) {
+      document.getElementById('result-stats').textContent =
+        'About ' + meta.total.toLocaleString('en-GB') + ' results (' + (meta.tookMs / 1000).toFixed(2) + ' seconds)';
+      if (meta.corrected && meta.corrected !== meta.query) {
+        var notice = document.getElementById('spell-notice');
+        notice.querySelector('.corrected').textContent = meta.corrected;
+        notice.querySelector('.original').textContent = meta.query;
+        notice.hidden = false;
+      }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+{
+  "page": "docs-quillstack/index.html",
+  "template": "documentation page with sidebar",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "font-swap",
+      "culpritSelector": ".site-header > nav.topnav",
+      "acceptableCulpritSelectors": [
+        ".topnav > ul",
+        "header.site-header",
+        ".topnav li:nth-child(1) > a",
+        ".topnav li:nth-child(2) > a",
+        ".topnav li:nth-child(3) > a",
+        ".topnav li:nth-child(4) > a",
+        ".topnav li:nth-child(5) > a",
+        ".topnav li:nth-child(6) > a",
+        ".topnav li:nth-child(1)",
+        ".topnav li:nth-child(2)",
+        ".topnav li:nth-child(3)",
+        ".topnav li:nth-child(4)",
+        ".topnav li:nth-child(5)",
+        ".topnav li:nth-child(6)"
+      ],
+      "culpritFile": "docs-quillstack/index.html",
+      "culpritLine": 86,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<nav class=\"topnav\"",
+      "acceptableCulpritLines": [
+        {
+          "line": 10,
+          "kind": "font-face-src",
+          "contains": "src: url(\"/delay/700/assets/fonts/press-start-2p-latin-400-normal.woff2\")"
+        },
+        {
+          "line": 32,
+          "kind": "font-family-declaration",
+          "contains": ".topnav { flex: 1; min-width: 0; font-family: \"Quill Grotesk\""
+        }
+      ],
+      "victimSelectors": [
+        ".docs",
+        ".sidebar",
+        ".content",
+        ".toc"
+      ],
+      "minValue": 0.15
+    }
+  ],
+  "decoys": [
+    ".codeblock .copy",
+    ".codeblock pre",
+    "#toc-list a.current",
+    ".brand img",
+    ".figure img"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.fonts.check('13px \"Quill Grotesk\"')",
+    "document.querySelectorAll('.codeblock .copy.ready').length === 2",
+    "document.querySelectorAll('#toc-list a.current').length === 1",
+    "document.querySelector('.topnav ul').getBoundingClientRect().height > 50"
+  ],
+  "measuredValues": [
+    0.248128,
+    0.248128,
+    0.248128
+  ],
+  "notes": "The header navigation uses a self-hosted font with font-display: swap that arrives after 700 ms; the wider glyphs make the six links wrap onto a second row, the header grows and the whole three-column docs layout moves down. A second @font-face (the code font) resolves from local() sources only, copy buttons are appended to the code blocks at 400 ms (absolutely positioned) and the table-of-contents highlight class is set at 700 ms.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.248128,
+      "startTimeMs": 729,
+      "sources": [
+        {
+          "node": "div.docs",
+          "previousRect": {
+            "x": 0,
+            "y": 65,
+            "width": 1280,
+            "height": 735
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 99.875,
+            "width": 1280,
+            "height": 700.125
+          }
+        },
+        {
+          "node": "div.header-tools",
+          "previousRect": {
+            "x": 847.734375,
+            "y": 14,
+            "width": 408.265625,
+            "height": 36
+          },
+          "currentRect": {
+            "x": 847.734375,
+            "y": 31.4375,
+            "width": 408.265625,
+            "height": 36
+          }
+        },
+        {
+          "node": "a.brand",
+          "previousRect": {
+            "x": 24,
+            "y": 17.15625,
+            "width": 183.453125,
+            "height": 29.6875
+          },
+          "currentRect": {
+            "x": 24,
+            "y": 34.59375,
+            "width": 183.453125,
+            "height": 29.6875
+          }
+        },
+        {
+          "node": "li",
+          "previousRect": {
+            "x": 295.71875,
+            "y": 16.28125,
+            "width": 81.671875,
+            "height": 31.4375
+          },
+          "currentRect": {
+            "x": 331.453125,
+            "y": 14,
+            "width": 169,
+            "height": 31.4375
+          }
+        },
+        {
+          "node": "li",
+          "previousRect": {
+            "x": 560.609375,
+            "y": 16.28125,
+            "width": 69.09375,
+            "height": 31.4375
+          },
+          "currentRect": {
+            "x": 231.453125,
+            "y": 53.4375,
+            "width": 117,
+            "height": 31.4375
+          }
+        }
+      ]
+    }
+  }
+}

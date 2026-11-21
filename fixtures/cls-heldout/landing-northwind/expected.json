@@ -1,0 +1,48 @@
+{
+  "page": "landing-northwind/index.html",
+  "template": "SaaS landing page with hero",
+  "positive": false,
+  "shifts": [],
+  "decoys": [
+    ".reveal",
+    ".hero h1",
+    ".hero-card",
+    ".orb",
+    ".marquee-track",
+    "#testimonial-track",
+    ".stat-num"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.getElementById('testimonial-track').dataset.index !== undefined && document.getElementById('testimonial-track').style.transform.indexOf('translateX') === 0",
+    "document.documentElement.dataset.counted === 'true'",
+    "document.querySelector('.stat-num').textContent === '99.2%'",
+    "getComputedStyle(document.querySelector('.card-c')).opacity === '1'",
+    "document.getAnimations().length >= 2"
+  ],
+  "measuredValues": [
+    0,
+    0,
+    0
+  ],
+  "notes": "Everything that moves on this page moves by transform or opacity only: staggered entrance animations on the hero copy and stats, three cards sliding in, a drifting orb, an endless logo marquee, a carousel whose track is translated by a script every 900 ms, and figures counted up by a script inside full-width blocks. None of it is a layout shift and no element should be accused.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      }
+    ]
+  }
+}

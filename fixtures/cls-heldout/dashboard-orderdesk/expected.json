@@ -1,0 +1,168 @@
+{
+  "page": "dashboard-orderdesk/index.html",
+  "template": "dashboard",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "font-swap",
+      "culpritSelector": "#orders > thead > tr",
+      "acceptableCulpritSelectors": [
+        "#orders > thead",
+        "#orders th:nth-child(1)",
+        "#orders th:nth-child(2)",
+        "#orders th:nth-child(3)",
+        "#orders th:nth-child(4)",
+        "#orders th:nth-child(5)",
+        "#orders th:nth-child(6)",
+        "#orders th:nth-child(7)"
+      ],
+      "culpritFile": "dashboard-orderdesk/index.html",
+      "culpritLine": 148,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<tr class=\"orders-head\">",
+      "acceptableCulpritLines": [
+        {
+          "line": 147,
+          "kind": "opening-tag",
+          "contains": "<thead>"
+        },
+        {
+          "line": 10,
+          "kind": "font-face-src",
+          "contains": "src: url(\"/delay/750/assets/fonts/press-start-2p-latin-400-normal.woff2\")"
+        },
+        {
+          "line": 63,
+          "kind": "font-family-declaration",
+          "contains": ".orders th { font-family: \"Ledger Caps\""
+        }
+      ],
+      "victimSelectors": [
+        "#orders > tbody",
+        ".table-foot",
+        ".side-stack"
+      ],
+      "minValue": 0.005
+    }
+  ],
+  "decoys": [
+    "#kpi-revenue",
+    "#kpi-orders",
+    "#open-count",
+    "#hourly",
+    "#sync",
+    ".me img"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.fonts.check('11px \"Ledger Caps\"')",
+    "document.getElementById('hourly').dataset.drawn === 'true'",
+    "document.getElementById('kpi-revenue').textContent === '£48,960'"
+  ],
+  "measuredValues": [
+    0.00883,
+    0.00883,
+    0.00883
+  ],
+  "notes": "The orders table's header cells use a self-hosted font with font-display: swap that arrives after 750 ms; the wider glyphs wrap every header onto two lines, so the header row grows, the body rows and the table footer move down and the columns re-distribute. KPI figures and the sidebar count are rewritten by a script at the same 750 ms, a canvas chart is drawn at 500 ms and a sync ticker rewrites its text every second.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.00883,
+      "startTimeMs": 771,
+      "sources": [
+        {
+          "node": "tbody",
+          "previousRect": {
+            "x": 253,
+            "y": 284.390625,
+            "width": 998,
+            "height": 376
+          },
+          "currentRect": {
+            "x": 253,
+            "y": 301.984375,
+            "width": 998,
+            "height": 376
+          }
+        },
+        {
+          "node": "div.table-foot",
+          "previousRect": {
+            "x": 253,
+            "y": 660.890625,
+            "width": 998,
+            "height": 53.5
+          },
+          "currentRect": {
+            "x": 253,
+            "y": 678.484375,
+            "width": 998,
+            "height": 53.5
+          }
+        },
+        {
+          "node": "div.side-stack",
+          "previousRect": {
+            "x": 252,
+            "y": 731.390625,
+            "width": 1000,
+            "height": 68.609375
+          },
+          "currentRect": {
+            "x": 252,
+            "y": 748.984375,
+            "width": 1000,
+            "height": 51.015625
+          }
+        },
+        {
+          "node": "th",
+          "previousRect": {
+            "x": 531.609375,
+            "y": 246.296875,
+            "width": 164.3125,
+            "height": 38.09375
+          },
+          "currentRect": {
+            "x": 528.46875,
+            "y": 246.296875,
+            "width": 174.484375,
+            "height": 55.6875
+          }
+        },
+        {
+          "node": "th",
+          "previousRect": {
+            "x": 385.9375,
+            "y": 246.296875,
+            "width": 145.671875,
+            "height": 38.09375
+          },
+          "currentRect": {
+            "x": 379.765625,
+            "y": 246.296875,
+            "width": 148.703125,
+            "height": 55.6875
+          }
+        }
+      ]
+    }
+  }
+}

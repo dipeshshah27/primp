@@ -1,0 +1,46 @@
+{
+  "page": "blog-fieldnotes/index.html",
+  "template": "blog index",
+  "positive": false,
+  "shifts": [],
+  "decoys": [
+    "#post-list .entry.fresh",
+    "#loading-more",
+    ".site-foot",
+    ".entry img",
+    ".intro img"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.querySelectorAll('#post-list .entry').length === 12",
+    "document.querySelectorAll('#post-list .entry.fresh').length === 4",
+    "document.querySelector('#post-list .entry.fresh').getBoundingClientRect().top > window.innerHeight",
+    "document.getElementById('loading-more').textContent.indexOf('everything') !== -1",
+    "window.scrollY === 0"
+  ],
+  "measuredValues": [
+    0,
+    0,
+    0
+  ],
+  "notes": "Four more entries are fetched from an 800 ms delayed JSON URL and appended to the end of the post list, about 700 px below the bottom of the viewport. Only the status line and the footer under them move, and both are off-screen before and after, so the browser reports no layout shift and no element should be accused.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      }
+    ]
+  }
+}

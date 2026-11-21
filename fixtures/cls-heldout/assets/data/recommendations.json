@@ -1,0 +1,9 @@
+{
+  "heading": "Frequently bought together",
+  "items": [
+    { "id": "sku-4410", "name": "Waxed canvas strap", "price": "24.00", "rating": 4.6 },
+    { "id": "sku-2087", "name": "Brass rivet repair kit", "price": "12.50", "rating": 4.8 },
+    { "id": "sku-9931", "name": "Leather balm, 60 ml", "price": "9.00", "rating": 4.4 },
+    { "id": "sku-3172", "name": "Rain cover, medium", "price": "18.00", "rating": 4.1 }
+  ]
+}

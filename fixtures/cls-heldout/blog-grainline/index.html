@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grainline · Writing about type, grids and the web</title>
+<style>
+  :root { --ink: #22201c; --soft: #6f6a60; --rule: #e6e1d6; --bg: #fdfcf9; --accent: #c2410c; --card: #ffffff; }
+  html.dark { --ink: #f1eee8; --soft: #a8a294; --rule: #3a372f; --bg: #1b1a17; --card: #24221e; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.6 Charter, "Bitstream Charter", Georgia, serif; }
+  a { color: inherit; text-decoration: none; }
+  .sans { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 28px; }
+
+  .consent { display: flex; align-items: center; gap: 20px; padding: 16px 28px; background: #26231d; color: #f5f1e8; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .consent p { margin: 0; flex: 1; }
+  .consent-actions { display: flex; gap: 10px; flex: none; }
+  .consent button { height: 38px; padding: 0 16px; border-radius: 6px; border: 1px solid #6b6557; background: transparent; color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
+  .consent button.primary { background: #f5f1e8; color: #26231d; border-color: #f5f1e8; }
+
+  .site-header { border-bottom: 1px solid var(--rule); }
+  .site-header .wrap { display: flex; align-items: center; gap: 30px; height: 76px; }
+  .site-title { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; }
+  .site-title i { color: var(--accent); }
+  .site-nav { display: flex; gap: 22px; font: 14px system-ui, sans-serif; color: var(--soft); }
+  .site-nav a { transition: color 150ms ease; }
+  .site-nav a:hover { color: var(--ink); }
+  .header-end { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .theme-toggle { width: 38px; height: 38px; border: 1px solid var(--rule); border-radius: 50%; background: var(--card); color: var(--ink); cursor: pointer; }
+  .subscribe { height: 38px; padding: 0 16px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--ink); color: var(--bg); font: 600 14px system-ui, sans-serif; }
+
+  .featured { display: grid; grid-template-columns: 1.15fr 1fr; gap: 36px; align-items: center; padding: 34px 0; border-bottom: 1px solid var(--rule); }
+  .featured img { display: block; width: 100%; height: auto; border-radius: 6px; background: var(--rule); }
+  .label { font: 700 12px system-ui, sans-serif; letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); }
+  .featured h1 { font-size: 38px; line-height: 1.12; letter-spacing: -0.8px; margin: 10px 0 12px; }
+  .featured p { margin: 0 0 14px; color: var(--soft); }
+  .meta { font: 13px system-ui, sans-serif; color: var(--soft); }
+
+  .blog-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 48px; padding: 34px 0 60px; align-items: start; }
+  .post { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 22px; padding: 0 0 26px; margin: 0 0 26px; border-bottom: 1px solid var(--rule); }
+  .post img { display: block; width: 100%; height: auto; border-radius: 4px; background: var(--rule); }
+  .post h2 { font-size: 23px; line-height: 1.2; letter-spacing: -0.3px; margin: 4px 0 6px; }
+  .post h2 a { background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: background-size 250ms ease; }
+  .post h2 a:hover { background-size: 100% 1px; }
+  .post p { margin: 0 0 8px; font-size: 16px; color: var(--soft); }
+  .pagination { display: flex; justify-content: space-between; font: 600 14px system-ui, sans-serif; }
+
+  .widget { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 20px; margin-bottom: 22px; }
+  .widget h3 { margin: 0 0 10px; font: 700 12px system-ui, sans-serif; letter-spacing: 1.2px; text-transform: uppercase; color: var(--soft); }
+  .widget p { margin: 0; font-size: 15px; }
+  .about { display: flex; gap: 14px; align-items: flex-start; }
+  .about img { border-radius: 50%; flex: none; }
+  .topics { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; font: 13px system-ui, sans-serif; }
+  .topics a { display: block; padding: 4px 12px; border: 1px solid var(--rule); border-radius: 999px; }
+  .signup input { width: 100%; height: 40px; padding: 0 12px; margin: 10px 0 8px; border: 1px solid var(--rule); border-radius: 6px; font: 15px system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  .signup button { width: 100%; height: 40px; border: 0; border-radius: 6px; background: var(--accent); color: #fff; font: 600 15px system-ui, sans-serif; cursor: pointer; }
+
+  .to-top { position: fixed; right: 24px; bottom: 24px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--ink); color: var(--bg); font-size: 18px; cursor: pointer; opacity: 0; transform: translateY(8px); transition: opacity 200ms ease, transform 200ms ease; }
+  .to-top.show { opacity: 0.85; transform: none; }
+
+  .site-footer { border-top: 1px solid var(--rule); font: 13px system-ui, sans-serif; color: var(--soft); }
+  .site-footer .wrap { display: flex; justify-content: space-between; padding-top: 24px; padding-bottom: 24px; }
+</style>
+<script>
+  // Apply the saved colour theme before the first paint.
+  try { if (localStorage.getItem('grainline-theme') === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}
+</script>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="site-title" href="#">Grainline<i>.</i></a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="#">Essays</a>
+      <a href="#">Type reviews</a>
+      <a href="#">Layout notes</a>
+      <a href="#">Archive</a>
+      <a href="#">About</a>
+    </nav>
+    <div class="header-end">
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch colour theme">◐</button>
+      <a class="subscribe" href="#">Subscribe</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="featured">
+    <a href="#"><img src="/delay/700/assets/img/card-600x400.png" width="600" height="400" alt="A page proof with pencil marks along the baseline grid"></a>
+    <div>
+      <div class="label sans">Essay</div>
+      <h1><a href="#">The baseline grid is a promise you make to the next paragraph</a></h1>
+      <p>Vertical rhythm on the web has been declared dead every few years. It keeps coming back because readers can feel when it is missing.</p>
+      <div class="meta"><span class="read-time" data-words="2450">10 min read</span> · By Odile Brandt · <time datetime="2026-03-09">9 March 2026</time></div>
+    </div>
+  </section>
+
+  <div class="blog-layout">
+    <div class="posts">
+      <article class="post">
+        <a href="#"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt=""></a>
+        <div>
+          <div class="label sans">Type review</div>
+          <h2><a href="#">A month with a text face that has no italics</a></h2>
+          <p>It took three days to stop missing them and three weeks to work out what to do with book titles.</p>
+          <div class="meta"><span class="read-time" data-words="1500">6 min read</span> · <time datetime="2026-03-03">3 March 2026</time></div>
+        </div>
+      </article>
+      <article class="post">
+        <a href="#"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt=""></a>
+        <div>
+          <div class="label sans">Layout notes</div>
+          <h2><a href="#">Subgrid finally makes card footers line up</a></h2>
+          <p>Seven years of margin-top: auto, and the fix was to let the children see their grandparents' rows.</p>
+          <div class="meta"><span class="read-time" data-words="1900">8 min read</span> · <time datetime="2026-02-24">24 February 2026</time></div>
+        </div>
+      </article>
+      <article class="post">
+        <a href="#"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt="" loading="lazy"></a>
+        <div>
+          <div class="label sans">Essay</div>
+          <h2><a href="#">Measure is not a number of characters</a></h2>
+          <p>Sixty-six is a fine place to start and a poor place to stop. What matters is the return sweep.</p>
+          <div class="meta"><span class="read-time" data-words="1200">5 min read</span> · <time datetime="2026-02-17">17 February 2026</time></div>
+        </div>
+      </article>
+      <article class="post">
+        <a href="#"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt="" loading="lazy"></a>
+        <div>
+          <div class="label sans">Layout notes</div>
+          <h2><a href="#">Stop centring long headlines</a></h2>
+          <p>A ragged left edge asks the eye to find the start of every line. Two lines is the limit.</p>
+          <div class="meta"><span class="read-time" data-words="900">4 min read</span> · <time datetime="2026-02-10">10 February 2026</time></div>
+        </div>
+      </article>
+      <nav class="pagination" aria-label="Pages"><span></span><a href="#">Older posts →</a></nav>
+    </div>
+
+    <aside>
+      <section class="widget">
+        <h3>About</h3>
+        <div class="about">
+          <img src="/assets/img/avatar-160.svg" width="56" height="56" alt="">
+          <p>Grainline is written by Odile Brandt, a typesetter who moved to the web and never quite forgave it.</p>
+        </div>
+      </section>
+      <section class="widget">
+        <h3>Topics</h3>
+        <ul class="topics">
+          <li><a href="#">Variable fonts</a></li>
+          <li><a href="#">Grids</a></li>
+          <li><a href="#">Hyphenation</a></li>
+          <li><a href="#">Print</a></li>
+          <li><a href="#">Colour</a></li>
+          <li><a href="#">Tables</a></li>
+        </ul>
+      </section>
+      <section class="widget signup">
+        <h3>Letters</h3>
+        <p>One essay a fortnight, set in a different typeface each time.</p>
+        <input type="email" placeholder="Email address" aria-label="Email address">
+        <button type="button">Send me letters</button>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap"><span>© 2026 Grainline</span><span><a href="#">RSS</a> · <a href="#">Colophon</a> · <a href="#">Privacy</a></span></div>
+</footer>
+
+<script>
+  // Reading time from the word count.
+  document.querySelectorAll('.read-time').forEach(function (el) {
+    el.textContent = Math.max(1, Math.round(Number(el.dataset.words) / 245)) + ' min read';
+  });
+
+  // Theme toggle.
+  document.getElementById('theme-toggle').addEventListener('click', function () {
+    var dark = document.documentElement.classList.toggle('dark');
+    try { localStorage.setItem('grainline-theme', dark ? 'dark' : 'light'); } catch (e) {}
+  });
+
+  // Back-to-top button.
+  setTimeout(function () {
+    var top = document.createElement('button');
+    top.type = 'button';
+    top.className = 'to-top';
+    top.setAttribute('aria-label', 'Back to top');
+    top.textContent = '↑';
+    top.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    document.body.appendChild(top);
+    requestAnimationFrame(function () { top.classList.add('show'); });
+  }, 500);
+
+  // Consent: ask the consent service whether this visitor needs to be asked.
+  fetch('/delay/700/assets/data/consent.json')
+    .then(function (response) { return response.json(); })
+    .then(function (config) {
+      if (!config.requiresConsent) return;
+      var banner = document.createElement('section');
+      banner.id = 'consent-banner';
+      banner.className = 'consent';
+      banner.setAttribute('aria-label', 'Cookie consent');
+      var text = document.createElement('p');
+      text.textContent = config.text;
+      var actions = document.createElement('div');
+      actions.className = 'consent-actions';
+      [config.reject, config.accept].forEach(function (label, i) {
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = label;
+        if (i === 1) button.className = 'primary';
+        button.addEventListener('click', function () { banner.remove(); });
+        actions.appendChild(button);
+      });
+      banner.append(text, actions);
+      document.body.prepend(banner);
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field Notes · A workshop journal</title>
+<style>
+  :root { --ink: #2b2a27; --quiet: #7b776e; --rule: #e4e0d7; --paper: #faf8f3; --moss: #49603a; --card: #fff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.65 Georgia, "Times New Roman", serif; }
+  a { color: inherit; text-decoration-color: var(--moss); text-underline-offset: 3px; }
+  .sans { font-family: "Gill Sans", "Trebuchet MS", system-ui, sans-serif; }
+  .measure { max-width: 980px; margin: 0 auto; padding: 0 28px; }
+
+  .site-head { padding: 26px 0 20px; border-bottom: 1px solid var(--rule); }
+  .site-head .measure { display: flex; align-items: flex-end; gap: 30px; }
+  .site-head h1 { margin: 0; font-size: 34px; letter-spacing: -0.5px; line-height: 1; }
+  .site-head h1 a { text-decoration: none; }
+  .site-head p { margin: 0; color: var(--quiet); font-style: italic; }
+  .site-head nav { margin-left: auto; display: flex; gap: 20px; font: 15px "Gill Sans", "Trebuchet MS", sans-serif; }
+  .site-head nav a { text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 150ms ease; }
+  .site-head nav a:hover { border-bottom-color: var(--moss); }
+
+  .intro { display: grid; grid-template-columns: 96px 1fr; gap: 22px; align-items: center; padding: 26px 0; }
+  .intro img { border-radius: 50%; display: block; }
+  .intro p { margin: 0; font-size: 19px; }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 50px; align-items: start; padding-bottom: 40px; }
+  .year { margin: 6px 0 14px; font: 700 13px "Gill Sans", "Trebuchet MS", sans-serif; letter-spacing: 2px; text-transform: uppercase; color: var(--moss); }
+  .entry { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 22px; padding: 20px 0; border-top: 1px solid var(--rule); }
+  .entry img { display: block; width: 100%; height: auto; border-radius: 3px; background: var(--rule); }
+  .entry h2 { margin: 0 0 4px; font-size: 23px; line-height: 1.2; letter-spacing: -0.2px; }
+  .entry h2 a { text-decoration: none; }
+  .entry h2 a:hover { text-decoration: underline; }
+  .entry p { margin: 0 0 6px; color: #4b4943; font-size: 16px; }
+  .entry .when { font: 13px "Gill Sans", "Trebuchet MS", sans-serif; color: var(--quiet); }
+  .entry.fresh { animation: tint 1.2s ease-out; }
+  @keyframes tint { from { background: #eef2e6; } to { background: transparent; } }
+  .loading-more { padding: 18px 0; border-top: 1px solid var(--rule); font: 14px "Gill Sans", "Trebuchet MS", sans-serif; color: var(--quiet); }
+
+  .aside-box { background: var(--card); border: 1px solid var(--rule); padding: 18px; margin-bottom: 20px; }
+  .aside-box h3 { margin: 0 0 8px; font: 700 12px "Gill Sans", "Trebuchet MS", sans-serif; letter-spacing: 1.5px; text-transform: uppercase; color: var(--quiet); }
+  .aside-box ul { margin: 0; padding: 0; list-style: none; font-size: 15px; line-height: 1.9; }
+  .aside-box p { margin: 0; font-size: 15px; }
+
+  .site-foot { border-top: 1px solid var(--rule); padding: 26px 0 40px; font: 14px "Gill Sans", "Trebuchet MS", sans-serif; color: var(--quiet); }
+  .site-foot .measure { display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+<header class="site-head">
+  <div class="measure">
+    <h1><a href="#">Field Notes</a></h1>
+    <p>A workshop journal, mostly about wood.</p>
+    <nav aria-label="Main">
+      <a href="#">Journal</a>
+      <a href="#">Projects</a>
+      <a href="#">Tools</a>
+      <a href="#">About</a>
+      <a href="#">RSS</a>
+    </nav>
+  </div>
+</header>
+
+<div class="measure">
+  <section class="intro">
+    <img src="/assets/img/avatar-160.svg" width="96" height="96" alt="">
+    <p>Written on Sunday evenings by Wren Halloran, who makes chairs slowly in a shed in the Welsh Marches and keeps notes so as not to make the same mistake three times.</p>
+  </section>
+
+  <div class="layout">
+    <main>
+      <div class="year sans">2026</div>
+      <div id="post-list">
+        <article class="entry">
+          <a href="#"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt=""></a>
+          <div><h2><a href="#">A stool from one board</a></h2><p>Three legs, no stretchers, and a seat shaped with the travisher I swore I would never buy.</p><div class="when">8 March 2026 · 7 min</div></div>
+        </article>
+        <article class="entry">
+          <a href="#"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt=""></a>
+          <div><h2><a href="#">Hide glue in an unheated shed</a></h2><p>It works down to about ten degrees if you warm the joint first. Below that, read a book.</p><div class="when">22 February 2026 · 5 min</div></div>
+        </article>
+        <article class="entry">
+          <a href="#"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt=""></a>
+          <div><h2><a href="#">The shaving horse, version four</a></h2><p>Lower, longer, and with a head that finally grips green ash without bruising it.</p><div class="when">8 February 2026 · 9 min</div></div>
+        </article>
+        <article class="entry">
+          <a href="#"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt="" loading="lazy"></a>
+          <div><h2><a href="#">Reading the end grain before the saw does</a></h2><p>Where the board will cup, which face wants to be the top, and why the timber yard stacks it the other way up.</p><div class="when">25 January 2026 · 6 min</div></div>
+        </article>
+        <article class="entry">
+          <a href="#"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt="" loading="lazy"></a>
+          <div><h2><a href="#">Milk paint, three coats, no primer</a></h2><p>The first coat looks like a mistake. The second looks like a worse one. Keep going.</p><div class="when">11 January 2026 · 4 min</div></div>
+        </article>
+        <article class="entry">
+          <a href="#"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt="" loading="lazy"></a>
+          <div><h2><a href="#">An inventory of offcuts</a></h2><p>Every January I measure the pile and promise to use it. This year there is a spreadsheet.</p><div class="when">4 January 2026 · 3 min</div></div>
+        </article>
+        <article class="entry">
+          <a href="#"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt="" loading="lazy"></a>
+          <div><h2><a href="#">Steam bending with a wallpaper stripper</a></h2><p>Forty pounds of equipment, one burnt thumb, and a continuous arm that held its curve.</p><div class="when">21 December 2025 · 8 min</div></div>
+        </article>
+        <article class="entry">
+          <a href="#"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt="" loading="lazy"></a>
+          <div><h2><a href="#">The year in chairs</a></h2><p>Nine finished, two abandoned, one given away before I could photograph it.</p><div class="when">14 December 2025 · 5 min</div></div>
+        </article>
+      </div>
+      <div class="loading-more sans" id="loading-more" role="status">Fetching older entries…</div>
+    </main>
+
+    <aside>
+      <section class="aside-box">
+        <h3>Currently on the bench</h3>
+        <p>A settle in elm for the village hall, due by midsummer and already late.</p>
+      </section>
+      <section class="aside-box">
+        <h3>Subjects</h3>
+        <ul>
+          <li><a href="#">Green woodworking</a></li>
+          <li><a href="#">Chairs</a></li>
+          <li><a href="#">Finishes</a></li>
+          <li><a href="#">Sharpening</a></li>
+          <li><a href="#">Timber</a></li>
+        </ul>
+      </section>
+      <section class="aside-box">
+        <h3>By post</h3>
+        <p>The journal goes out as a letter on the first Sunday of each month. <a href="#">Ask to be added</a>.</p>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<footer class="site-foot">
+  <div class="measure"><span>© 2019–2026 Wren Halloran</span><span><a href="#">Colophon</a> · <a href="#">Archive by year</a></span></div>
+</footer>
+
+<script>
+  // Fetch the next page of entries as soon as the first page is up, and add it to the list.
+  fetch('/delay/800/assets/data/more-posts.json')
+    .then(function (response) { return response.json(); })
+    .then(function (data) {
+      var list = document.getElementById('post-list');
+      var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      data.posts.forEach(function (post) {
+        var date = new Date(post.date + 'T00:00:00Z');
+        var entry = document.createElement('article');
+        entry.className = 'entry fresh';
+        entry.innerHTML =
+          '<a href="#' + post.slug + '"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt="" loading="lazy"></a>' +
+          '<div><h2><a href="#' + post.slug + '"></a></h2><p></p><div class="when"></div></div>';
+        entry.querySelector('h2 a').textContent = post.title;
+        entry.querySelector('p').textContent = post.excerpt;
+        entry.querySelector('.when').textContent = date.getUTCDate() + ' ' + months[date.getUTCMonth()] + ' ' + date.getUTCFullYear() + ' · ' + post.minutes + ' min';
+        list.appendChild(entry);
+      });
+      document.getElementById('loading-more').textContent = 'That is everything back to October.';
+    });
+</script>
+</body>
+</html>

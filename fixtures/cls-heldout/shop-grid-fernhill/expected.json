@@ -1,0 +1,146 @@
+{
+  "page": "shop-grid-fernhill/index.html",
+  "template": "product grid",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "unsized-media",
+      "culpritSelector": ".card--featured .card-media img",
+      "acceptableCulpritSelectors": [
+        ".card--featured .card-media"
+      ],
+      "culpritFile": "shop-grid-fernhill/index.html",
+      "culpritLine": 159,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<img loading=\"lazy\" src=\"/delay/900/assets/img/card-600x400.png\" alt=\"Two-burner",
+      "victimSelectors": [
+        ".card--featured .card-body",
+        "[data-sku=\"FH-1077\"]",
+        "[data-sku=\"FH-1103\"]",
+        "[data-sku=\"FH-1118\"]"
+      ],
+      "minValue": 0.068
+    }
+  ],
+  "decoys": [
+    "[data-sku=\"FH-1042\"] .card-media img",
+    "[data-sku=\"FH-1077\"] .card-media img",
+    ".card-media .wish",
+    "#cart-badge",
+    ".card:not(.card--featured)",
+    ".brand img"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.querySelector('.card--featured .card-media img').naturalWidth === 600",
+    "document.querySelector('[data-sku=\"FH-1042\"] .card-media img').naturalWidth === 600",
+    "document.querySelectorAll('.card-media .wish').length === 8",
+    "document.getElementById('cart-badge').textContent === '2'"
+  ],
+  "measuredValues": [
+    0.11414,
+    0.11414,
+    0.11414
+  ],
+  "notes": "The featured card (a grid cell spanning two columns) holds a lazy image with no width/height; when it loads (900 ms) the first grid row grows and the rows under it move down. The neighbouring card's image arrives at the same moment from the same delayed URL but has width/height, wishlist buttons are appended into every card at 450 ms (absolutely positioned), and the basket badge is rewritten at 900 ms.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.11414,
+      "startTimeMs": 906,
+      "sources": [
+        {
+          "node": "div.card-body",
+          "previousRect": {
+            "x": 327,
+            "y": 237.796875,
+            "width": 578,
+            "height": 312.71875
+          },
+          "currentRect": {
+            "x": 327,
+            "y": 623.125,
+            "width": 578,
+            "height": 175.578125
+          }
+        },
+        {
+          "node": "article.card.in-view",
+          "previousRect": {
+            "x": 326,
+            "y": 571.515625,
+            "width": 280,
+            "height": 228.484375
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          }
+        },
+        {
+          "node": "article.card.in-view",
+          "previousRect": {
+            "x": 626,
+            "y": 571.515625,
+            "width": 280,
+            "height": 228.484375
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          }
+        },
+        {
+          "node": "article.card.in-view",
+          "previousRect": {
+            "x": 926,
+            "y": 571.515625,
+            "width": 280,
+            "height": 228.484375
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          }
+        },
+        {
+          "node": "div.price-row",
+          "previousRect": {
+            "x": 943,
+            "y": 484.765625,
+            "width": 246,
+            "height": 49.75
+          },
+          "currentRect": {
+            "x": 943,
+            "y": 732.953125,
+            "width": 246,
+            "height": 49.75
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "page": "news-meridian-post/index.html",
+  "template": "news article",
+  "positive": false,
+  "shifts": [],
+  "decoys": [
+    "#lead-photo",
+    "#inset-photo",
+    ".credit img",
+    "#comment-count",
+    ".strip .live i"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.getElementById('lead-photo').naturalWidth === 1200 && document.getElementById('lead-photo').dataset.loaded === 'true'",
+    "document.getElementById('inset-photo').naturalWidth === 600",
+    "document.querySelector('.credit img').naturalWidth === 160",
+    "document.getElementById('comment-count').textContent === '86'"
+  ],
+  "measuredValues": [
+    0,
+    0,
+    0
+  ],
+  "notes": "The large lead photo (900 ms), the byline portrait (900 ms) and a floated inset photo (1200 ms) all arrive late, but each has width and height attributes, so the browser reserves the right box from the first paint and nothing moves. A comment count is rewritten at 900 ms inside a min-width box. No element should be accused.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      }
+    ]
+  }
+}

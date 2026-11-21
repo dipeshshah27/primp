@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Northwind Relay · Transactional email that arrives</title>
+<style>
+  :root { --ink: #101828; --body: #475467; --line: #eaecf0; --bg: #ffffff; --tint: #f2f6ff; --brand: #1570ef; --brand-dark: #175cd3; --ok: #12b76a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: var(--ink); background: var(--bg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow-x: hidden; }
+  a { color: inherit; text-decoration: none; }
+  .frame { max-width: 1160px; margin: 0 auto; padding: 0 28px; }
+
+  .topnav { display: flex; align-items: center; gap: 36px; height: 74px; }
+  .topnav .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; }
+  .topnav nav { display: flex; gap: 26px; color: var(--body); font-size: 15px; }
+  .topnav nav a { position: relative; }
+  .topnav nav a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: var(--brand); transform: scaleX(0); transform-origin: left; transition: transform 200ms ease; }
+  .topnav nav a:hover::after { transform: scaleX(1); }
+  .topnav .right { margin-left: auto; display: flex; align-items: center; gap: 18px; font-size: 15px; }
+  .cta { display: inline-flex; align-items: center; height: 44px; padding: 0 20px; border-radius: 10px; background: var(--brand); color: #fff; font-weight: 600; transition: background 150ms ease, transform 150ms ease; }
+  .cta:hover { background: var(--brand-dark); transform: translateY(-1px); }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+  @keyframes drift { 0%, 100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-14px) rotate(1deg); } }
+  @keyframes slide-in { from { opacity: 0; transform: translateX(60px) scale(0.96); } to { opacity: 1; transform: none; } }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .reveal { animation: rise 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .d1 { animation-delay: 120ms; } .d2 { animation-delay: 260ms; } .d3 { animation-delay: 400ms; } .d4 { animation-delay: 560ms; } .d5 { animation-delay: 900ms; }
+
+  .hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; padding: 44px 0 36px; }
+  .pill { display: inline-block; padding: 4px 14px; border-radius: 999px; background: var(--tint); color: var(--brand-dark); font-size: 13px; font-weight: 600; }
+  .hero h1 { font-size: 54px; line-height: 1.06; letter-spacing: -1.6px; margin: 16px 0 16px; }
+  .hero h1 em { font-style: normal; color: var(--brand); }
+  .hero p.lede { font-size: 19px; color: var(--body); margin: 0 0 24px; max-width: 520px; }
+  .signup { display: flex; gap: 10px; max-width: 460px; }
+  .signup input { flex: 1; height: 48px; padding: 0 14px; border: 1px solid #d0d5dd; border-radius: 10px; font: inherit; }
+  .signup button { height: 48px; padding: 0 20px; border: 0; border-radius: 10px; background: var(--ink); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+  .fine { margin: 12px 0 0; font-size: 13px; color: var(--body); }
+
+  .stage { position: relative; height: 420px; }
+  .hero-card { position: absolute; width: 330px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: 0 24px 60px rgba(16, 24, 40, 0.14); }
+  .hero-card h3 { margin: 0 0 4px; font-size: 15px; }
+  .hero-card p { margin: 0; font-size: 13px; color: var(--body); }
+  .hero-card .tick { float: right; color: var(--ok); font-weight: 700; font-size: 13px; }
+  .card-a { left: 10px; top: 20px; animation: slide-in 800ms 300ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .card-b { right: 0; top: 150px; animation: slide-in 800ms 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .card-c { left: 50px; top: 280px; animation: slide-in 800ms 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .floaty { animation: drift 5s ease-in-out infinite; }
+  .orb { position: absolute; right: 30px; top: 0; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #84caff, #1570ef); opacity: 0.85; }
+
+  .trusted { padding: 18px 0 30px; border-top: 1px solid var(--line); }
+  .trusted p { margin: 0 0 14px; text-align: center; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--body); }
+  .marquee { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+  .marquee-track { display: flex; gap: 64px; width: max-content; animation: marquee 18s linear infinite; font-weight: 800; font-size: 20px; color: #98a2b3; white-space: nowrap; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 10px 0 40px; }
+  .stat { padding: 22px 24px; border-radius: 16px; background: var(--tint); }
+  .stat-num { display: block; width: 100%; font-size: 40px; font-weight: 800; letter-spacing: -1px; font-variant-numeric: tabular-nums; line-height: 1.2; }
+  .stat span { color: var(--body); }
+
+  .voices { padding: 0 0 56px; }
+  .voices h2 { font-size: 30px; letter-spacing: -0.6px; margin: 0 0 18px; }
+  .carousel { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; }
+  .track { display: flex; transition: transform 500ms cubic-bezier(0.4, 0, 0.2, 1); will-change: transform; }
+  .slide { flex: 0 0 100%; padding: 30px 36px; }
+  .slide blockquote { margin: 0 0 14px; font-size: 22px; line-height: 1.4; letter-spacing: -0.2px; }
+  .slide .who { display: flex; align-items: center; gap: 12px; color: var(--body); font-size: 14px; }
+  .slide .who img { border-radius: 50%; }
+  .dots { display: flex; justify-content: center; gap: 8px; padding: 0 0 18px; }
+  .dots i { width: 8px; height: 8px; border-radius: 50%; background: #d0d5dd; transition: background 200ms ease, transform 200ms ease; }
+  .dots i.on { background: var(--brand); transform: scale(1.3); }
+
+  .end { border-top: 1px solid var(--line); color: var(--body); font-size: 14px; }
+  .end .frame { display: flex; justify-content: space-between; padding-top: 24px; padding-bottom: 24px; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <header class="topnav">
+    <a class="logo" href="#"><img src="/assets/img/logo-mark.svg" width="30" height="30" alt=""> Northwind Relay</a>
+    <nav aria-label="Main">
+      <a href="#">Sending</a>
+      <a href="#">Deliverability</a>
+      <a href="#">Templates</a>
+      <a href="#">Pricing</a>
+      <a href="#">Docs</a>
+    </nav>
+    <div class="right"><a href="#">Log in</a><a class="cta" href="#">Get an API key</a></div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <span class="pill reveal">New · Inbound parsing is out of beta</span>
+      <h1 class="reveal d1">Receipts, resets and alerts that <em>actually arrive</em></h1>
+      <p class="lede reveal d2">One API for transactional email with dedicated IPs, live delivery logs and bounce handling you do not have to write yourself.</p>
+      <form class="signup reveal d3" onsubmit="return false">
+        <input type="email" placeholder="Work email" aria-label="Work email">
+        <button type="submit">Start sending</button>
+      </form>
+      <p class="fine reveal d4">3,000 emails a month free. No card needed.</p>
+    </div>
+    <div class="stage" aria-hidden="true">
+      <div class="orb floaty"></div>
+      <div class="hero-card card-a"><span class="tick">Delivered</span><h3>Your receipt from Kestrel Cycles</h3><p>to imogen@example.org · 212 ms</p></div>
+      <div class="hero-card card-b"><span class="tick">Delivered</span><h3>Reset your password</h3><p>to dawit@example.org · 187 ms</p></div>
+      <div class="hero-card card-c"><span class="tick">Opened</span><h3>Your parcel is on its way</h3><p>to sofia@example.org · 240 ms</p></div>
+    </div>
+  </section>
+
+  <section class="trusted">
+    <p>Sending for teams at</p>
+    <div class="marquee">
+      <div class="marquee-track">
+        <span>Kestrel Cycles</span><span>Tidewell</span><span>Fernhill Supply</span><span>Orderdesk</span><span>Ledgerly</span><span>Quillstack</span>
+        <span>Kestrel Cycles</span><span>Tidewell</span><span>Fernhill Supply</span><span>Orderdesk</span><span>Ledgerly</span><span>Quillstack</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats reveal d5">
+    <div class="stat"><b class="stat-num" data-to="99.2" data-decimals="1" data-suffix="%">0.0%</b><span>inbox placement, 90-day average</span></div>
+    <div class="stat"><b class="stat-num" data-to="184" data-decimals="0" data-suffix=" ms">0 ms</b><span>median time to accept</span></div>
+    <div class="stat"><b class="stat-num" data-to="4.1" data-decimals="1" data-suffix=" bn">0.0 bn</b><span>emails delivered last year</span></div>
+  </section>
+
+  <section class="voices">
+    <h2>What sending teams say</h2>
+    <div class="carousel">
+      <div class="track" id="testimonial-track">
+        <figure class="slide" style="margin:0">
+          <blockquote>“We moved password resets over on a Friday afternoon. Support tickets about missing emails stopped the same week.”</blockquote>
+          <figcaption class="who"><img src="/assets/img/avatar-160.svg" width="40" height="40" alt=""> Hana Kobayashi, platform lead at Orderdesk</figcaption>
+        </figure>
+        <figure class="slide" style="margin:0">
+          <blockquote>“The delivery log answers the question our customers actually ask: did it arrive, and when?”</blockquote>
+          <figcaption class="who"><img src="/assets/img/avatar-160.svg" width="40" height="40" alt=""> Marcus Oyelowo, CTO at Ledgerly</figcaption>
+        </figure>
+        <figure class="slide" style="margin:0">
+          <blockquote>“Bounce handling used to be four hundred lines of our code. Now it is a webhook.”</blockquote>
+          <figcaption class="who"><img src="/assets/img/avatar-160.svg" width="40" height="40" alt=""> Léa Fontaine, engineer at Tidewell</figcaption>
+        </figure>
+      </div>
+      <div class="dots" id="testimonial-dots"><i class="on"></i><i></i><i></i></div>
+    </div>
+  </section>
+</div>
+
+<footer class="end">
+  <div class="frame"><span>© 2026 Northwind Relay</span><span><a href="#">Status</a> · <a href="#">Abuse</a> · <a href="#">Privacy</a></span></div>
+</footer>
+
+<script>
+  // Testimonial carousel.
+  (function () {
+    var track = document.getElementById('testimonial-track');
+    var dots = document.querySelectorAll('#testimonial-dots i');
+    var index = 0;
+    setInterval(function () {
+      index = (index + 1) % dots.length;
+      track.style.transform = 'translateX(' + (-100 * index) + '%)';
+      dots.forEach(function (dot, i) { dot.classList.toggle('on', i === index); });
+      track.dataset.index = index;
+    }, 900);
+  })();
+
+  // Count the headline figures up.
+  (function () {
+    var numbers = document.querySelectorAll('.stat-num');
+    var start = null;
+    function frame(now) {
+      if (start === null) start = now;
+      var t = Math.min(1, (now - start) / 1400);
+      var eased = 1 - Math.pow(1 - t, 3);
+      numbers.forEach(function (el) {
+        el.textContent = (Number(el.dataset.to) * eased).toFixed(Number(el.dataset.decimals)) + el.dataset.suffix;
+      });
+      if (t < 1) requestAnimationFrame(frame);
+      else document.documentElement.dataset.counted = 'true';
+    }
+    setTimeout(function () { requestAnimationFrame(frame); }, 900);
+  })();
+
+  // The hero cards tilt slightly with the pointer.
+  document.querySelector('.stage').addEventListener('pointermove', function (event) {
+    var rect = this.getBoundingClientRect();
+    var x = (event.clientX - rect.left) / rect.width - 0.5;
+    this.querySelectorAll('.hero-card').forEach(function (card, i) {
+      card.style.translate = (x * (i + 1) * 6).toFixed(1) + 'px 0';
+    });
+  });
+</script>
+</body>
+</html>

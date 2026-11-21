@@ -1,0 +1,139 @@
+{
+  "page": "landing-pulsebase/index.html",
+  "template": "SaaS landing page with hero",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "font-swap",
+      "culpritSelector": ".hero h1",
+      "acceptableCulpritSelectors": [],
+      "culpritFile": "landing-pulsebase/index.html",
+      "culpritLine": 84,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<h1 id=\"hero-title\">",
+      "acceptableCulpritLines": [
+        {
+          "line": 15,
+          "kind": "font-face-src",
+          "contains": "src: url(\"/delay/800/assets/fonts/press-start-2p-latin-400-normal.woff2\")"
+        },
+        {
+          "line": 42,
+          "kind": "font-family-declaration",
+          "contains": ".hero h1 { font-family: \"Arcade Display\""
+        }
+      ],
+      "victimSelectors": [
+        ".hero-sub",
+        ".hero-cta",
+        ".hero-note",
+        ".hero-shot"
+      ],
+      "minValue": 0.035
+    }
+  ],
+  "decoys": [
+    ".wordmark",
+    ".hero-shot img",
+    "#latency",
+    ".badge-dot"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.fonts.check('46px \"Arcade Display\"')",
+    "document.fonts.check('15px \"Pixel Mark\"')",
+    "document.querySelector('.hero-shot img').naturalWidth === 1200",
+    "document.documentElement.dataset.fonts === 'ready'"
+  ],
+  "measuredValues": [
+    0.059908,
+    0.059908,
+    0.059908
+  ],
+  "notes": "The hero headline uses a self-hosted display font with font-display: swap that arrives after 800 ms; its glyphs are about twice as wide as the fallback, so the headline re-wraps onto more lines and pushes the rest of the hero down. The wordmark uses the same font file under another family name inlined as a data: URL (present at first paint), the sized hero screenshot arrives at the same 800 ms, and a script rewrites the latency figure every 400 ms.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.059908,
+      "startTimeMs": 822,
+      "sources": [
+        {
+          "node": "div.hero-shot",
+          "previousRect": {
+            "x": 20,
+            "y": 345.421875,
+            "width": 1240,
+            "height": 454.578125
+          },
+          "currentRect": {
+            "x": 20,
+            "y": 453.953125,
+            "width": 1240,
+            "height": 346.046875
+          }
+        },
+        {
+          "node": "#text in h1#hero-title",
+          "previousRect": {
+            "x": 190,
+            "y": 168.140625,
+            "width": 900,
+            "height": 154.53125
+          },
+          "currentRect": {
+            "x": 190,
+            "y": 172.140625,
+            "width": 900,
+            "height": 154.53125
+          }
+        },
+        {
+          "node": "div.hero-cta",
+          "previousRect": {
+            "x": 190,
+            "y": 323.28125,
+            "width": 900,
+            "height": 44
+          },
+          "currentRect": {
+            "x": 190,
+            "y": 431.8125,
+            "width": 900,
+            "height": 44
+          }
+        },
+        {
+          "node": "p.hero-sub",
+          "previousRect": {
+            "x": 320,
+            "y": 238.40625,
+            "width": 640,
+            "height": 58.875
+          },
+          "currentRect": {
+            "x": 320,
+            "y": 346.9375,
+            "width": 640,
+            "height": 58.875
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "page": "docs-kiln/index.html",
+  "template": "documentation page with sidebar",
+  "positive": false,
+  "shifts": [],
+  "decoys": [
+    "#panel-cache",
+    "#faq-cache",
+    "#faq-memory",
+    ".help",
+    "#doc-search"
+  ],
+  "interaction": {
+    "selector": "#faq-cache .faq-toggle",
+    "afterMs": 1000
+  },
+  "minEntriesWithRecentInput": 1,
+  "assertAfter": [
+    "document.getElementById('faq-cache').classList.contains('is-open')",
+    "document.getElementById('panel-cache').getBoundingClientRect().height > 100",
+    "document.getElementById('doc-search').disabled === false"
+  ],
+  "measuredValues": [
+    0,
+    0,
+    0
+  ],
+  "notes": "Nothing moves until the user clicks the second accordion question (interaction: a real mouse click 1000 ms after the load event); the panel then opens at once (a class toggles display) and pushes the four questions and the help box below it down. Every layout-shift entry this produces has hadRecentInput = true, so it is an expected, user-initiated move and no culprit should be reported.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 1
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 1
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 1
+      }
+    ]
+  }
+}
