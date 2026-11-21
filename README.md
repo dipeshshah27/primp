@@ -64,6 +64,8 @@ Several tools let you edit a live page and hand the changes to an agent. reglet 
 
 **Side effects.** Every edit is measured: "14 elements moved down 16px; the footer overflows". Mark one as unwanted and it becomes a constraint the agent must keep ("must not move: footer").
 
+**Bystanders.** A change often gets implemented by editing a rule that other elements share. reglet records up to three elements the same rule styles that you did not touch, tells the agent they must stay as they are, and fails the change if one of them moved: "`a.btn "See plans"` was not part of this change, but its `padding-top` went from 10px to 14px".
+
 **Layout shifts.** reglet records the page load from its first script, attributes each shift to the element that caused it (an image without reserved space, a web font swapping in, content inserted above other content), and resolves that element to a line in your source.
 
 ![The Shifts tab: one shift, its culprit outlined on the page, and the evidence](docs/img/shifts.png)
@@ -75,6 +77,7 @@ Several tools let you edit a live page and hand the changes to an agent. reglet 
 | The value is the one you asked for | `pass` |
 | It landed close, such as the nearest design token | `drift` |
 | It is something else, or unchanged | `fail`, with expected and actual |
+| An element you did not touch changed with it | `fail`, naming that element |
 | The build is broken | `build_error`, with the message |
 | No source file changed | `no_update_observed` |
 | The element cannot be found again | `unresolved` |
