@@ -10,14 +10,62 @@ import {
   resolveNested,
   specificityOf,
   splitSelectorList,
+  withoutStates,
   type CascadeRank,
 } from '../src/probe/specificity.ts'
+import { restingSelectors } from '../src/probe/bystanders.ts'
 
 describe('splitSelectorList', () => {
   it('splits at top-level commas only', () => {
     expect(splitSelectorList('.a, .b')).toEqual(['.a', '.b'])
     expect(splitSelectorList(':is(.a, .b) .c, [title="x, y"], .d')).toEqual([':is(.a, .b) .c', '[title="x, y"]', '.d'])
     expect(splitSelectorList('.sm\\:grid-cols-2')).toEqual(['.sm\\:grid-cols-2'])
+  })
+})
+
+describe('withoutStates', () => {
+  it.each<[string, string]>([
+    ['.btn', '.btn'],
+    ['.btn:hover', '.btn'],
+    ['.btn:focus-visible', '.btn'],
+    ['.btn::before', '.btn'],
+    ['.btn:after', '.btn'],
+    ['.btn:hover::before', '.btn'],
+    ['a.btn:hover > span', 'a.btn > span'],
+    ['.site-nav a:hover', '.site-nav a'],
+    ['.menu > :hover', '.menu > *'],
+    ['.menu :focus-within .item', '.menu * .item'],
+    [':hover.a', '.a'],
+    [':hover', '*'],
+    ['::selection', '*'],
+    ['li:first-child:hover', 'li:first-child'],
+    ['li:nth-child(2n + 1):not(.x)', 'li:nth-child(2n + 1):not(.x)'],
+    ['.btn:not(:hover)', '.btn'],
+    ['.btn:not(:hover, .off)', '.btn:not(.off)'],
+    ['.btn:not(*)', '.btn:not(*)'],
+    ['.btn:is(:hover, .active)', '.btn:is(*, .active)'],
+    ['.card:has(> img:hover)', '.card:has(> img)'],
+    [':where(.a:focus, .b) p', ':where(.a, .b) p'],
+    ['[title="a:hover"]', '[title="a:hover"]'],
+    ['.sm\\:hover\\:p-2:hover', '.sm\\:hover\\:p-2'],
+    ['input::placeholder', 'input'],
+  ])('%s -> %s', (selector, expected) => {
+    expect(withoutStates(selector)).toBe(expected)
+  })
+})
+
+describe('restingSelectors', () => {
+  it('one entry per part of the list, at rest, without repeats', () => {
+    expect(restingSelectors('.btn')).toEqual(['.btn'])
+    expect(restingSelectors('.btn, .btn:hover, a.btn::before')).toEqual(['.btn', 'a.btn'])
+    expect(restingSelectors('.compare th, .compare td')).toEqual(['.compare th', '.compare td'])
+    expect(restingSelectors(':is(.card, .panel) .title, h2')).toEqual([':is(.card, .panel) .title', 'h2'])
+  })
+
+  it('a part that is nothing but a state or a pseudo-element would match everything and is left out', () => {
+    expect(restingSelectors('.btn, ::selection')).toEqual(['.btn'])
+    expect(restingSelectors(':hover')).toEqual([])
+    expect(restingSelectors('*')).toEqual(['*'])
   })
 })
 

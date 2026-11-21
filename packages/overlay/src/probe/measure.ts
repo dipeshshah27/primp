@@ -115,13 +115,20 @@ function matches(query: string | undefined, view: Window): boolean {
 
 /**
  * Raw facts about one expectation. `target` is the item's element as `locate` found it; a
- * `no-move` expectation carries its own locator and is looked up here.
+ * `no-move` and an `unchanged` expectation carry their own locator and are looked up here.
  */
 export function measureExpectation(target: LocateResult, expectation: Expectation, doc: Document = document): Measured {
   const view = doc.defaultView ?? window
   if (expectation.type === 'no-move') {
     const other = locate(expectation.locator, { document: doc })
     return other.element === null ? { found: false, locatorConfidence: other.confidence } : { found: true, locatorConfidence: other.confidence, rectNow: rectOf(other.element) }
+  }
+  if (expectation.type === 'unchanged') {
+    // A bystander: what it computes to now, next to what was recorded for it. Nothing to resolve: the recorded value was computed too.
+    const other = locate(expectation.locator, { document: doc })
+    if (other.element === null) return { found: false, locatorConfidence: other.confidence }
+    const actual = read(getComputedStyle(other.element), expectation.property, longhandsOf(expectation.property))
+    return { found: true, locatorConfidence: other.confidence, actual, expectedComputed: expectation.value }
   }
   const element = target.element
   const base = { found: element !== null, locatorConfidence: target.confidence }
@@ -167,6 +174,11 @@ export function toCheck(expectation: Expectation, measured: Measured, view: Wind
       if (!measured.found || now === undefined) return { expectation, status: 'unresolved', expected, actual: '', note: `${expectation.label} was not found again` }
       const delta = Math.max(Math.abs(now.x - expectation.rect.x), Math.abs(now.y - expectation.rect.y), Math.abs(now.w - expectation.rect.w), Math.abs(now.h - expectation.rect.h))
       return { expectation, status: delta <= expectation.tolerancePx ? 'pass' : 'fail', expected, actual: rectJson(now), delta }
+    }
+    case 'unchanged': {
+      const expected = measured.expectedComputed ?? expectation.value
+      if (!measured.found || measured.actual === undefined) return { expectation, status: 'unresolved', expected, actual: '', note: `${expectation.label} was not found again` }
+      return { expectation, status: measured.actual === expected ? 'pass' : 'fail', expected, actual: measured.actual }
     }
   }
 }

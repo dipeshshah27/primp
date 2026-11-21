@@ -57,6 +57,7 @@ export const splitSelectorList = (text: string): string[] => splitTopLevel(text,
 
 const LEGACY_PSEUDO_ELEMENTS = new Set(['before', 'after', 'first-line', 'first-letter'])
 const LIST_PSEUDO_CLASSES = new Set(['is', 'not', 'has', 'matches', '-webkit-any', '-moz-any'])
+const DYNAMIC_STATES = new Set(['hover', 'active', 'focus', 'focus-visible', 'focus-within'])
 
 interface Scan {
   spec: [number, number, number]
@@ -119,7 +120,7 @@ function scan(selector: string): Scan {
         out.spec[2] += best[2]
       } else {
         out.spec[1]++
-        if (name === 'hover' || name === 'active' || name === 'focus' || name === 'focus-visible' || name === 'focus-within') out.dynamic = true
+        if (DYNAMIC_STATES.has(name)) out.dynamic = true
       }
     } else if (ch === '*' || ch === '&' || ch === '|' || ch === '>' || ch === '+' || ch === '~' || /\s/.test(ch)) {
       i++
@@ -146,6 +147,71 @@ export function hasPseudoElement(selector: string): boolean {
 /** Whether the selector only applies in a transient state (`:hover`, `:active`, `:focus`...). */
 export function hasDynamicState(selector: string): boolean {
   return scan(selector).dynamic
+}
+
+/**
+ * ONE complex selector without its pseudo-elements and transient states: `.btn:hover::before`
+ * becomes `.btn`. What is left matches every element the selector can style, whatever the
+ * pointer and the focus are doing. A compound that consisted of nothing else becomes `*`
+ * (`.menu > :hover` -> `.menu > *`). The alternatives inside `:is()`, `:where()`, `:has()` and
+ * `:not()` are treated the same way; `:not(:hover)` is dropped, since `:not(*)` would match nothing.
+ */
+export function withoutStates(selector: string): string {
+  const n = selector.length
+  let out = ''
+  let i = 0
+  /** A compound is being written of which everything so far was dropped. */
+  let bare = false
+  const keep = (text: string, continues: boolean): void => {
+    if (bare && !continues) out += '*'
+    bare = false
+    out += text
+  }
+  while (i < n) {
+    const ch = selector[i]!
+    if (ch === '\\') {
+      keep(selector.slice(i, i + 2), true)
+      i += 2
+    } else if (ch === '"' || ch === "'") {
+      const end = skipString(selector, i)
+      keep(selector.slice(i, end), true)
+      i = end
+    } else if (ch === '[') {
+      const end = skipGroup(selector, i)
+      keep(selector.slice(i, end), true)
+      i = end
+    } else if (ch === ':') {
+      const start = i++
+      const double = selector[i] === ':'
+      if (double) i++
+      const nameStart = i
+      while (i < n && (selector[i] === '\\' || /[\w-]/.test(selector[i]!) || selector.charCodeAt(i) > 0x7f)) i += selector[i] === '\\' ? 2 : 1
+      const name = selector.slice(nameStart, i).toLowerCase()
+      let args: string | undefined
+      if (selector[i] === '(') {
+        const end = skipGroup(selector, i)
+        args = selector.slice(i + 1, end - 1)
+        i = end
+      }
+      let kept: string | null = selector.slice(start, i)
+      if (double || LEGACY_PSEUDO_ELEMENTS.has(name) || DYNAMIC_STATES.has(name)) {
+        kept = null
+      } else if (args !== undefined && (name === 'where' || LIST_PSEUDO_CLASSES.has(name))) {
+        const inner = splitSelectorList(args)
+          .map((part) => [part, withoutStates(part)] as const)
+          .filter(([part, stripped]) => stripped !== '' && !(name === 'not' && stripped === '*' && part !== '*'))
+          .map(([, stripped]) => stripped)
+        kept = inner.length === 0 ? null : `:${name}(${inner.join(', ')})`
+      }
+      if (kept !== null) keep(kept, true)
+      else if (out === '' || /[\s>+~,]$/.test(out)) bare = true
+    } else {
+      keep(ch, !/[\s>+~,]/.test(ch))
+      i++
+    }
+  }
+  keep('', false)
+  return out.trim()
 }
 
 export function compareSpecificity(a: Specificity, b: Specificity): number {

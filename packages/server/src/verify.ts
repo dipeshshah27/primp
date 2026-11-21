@@ -99,8 +99,10 @@ const parseRect = (text: string): Rect | undefined => {
  *   computed  expected = the target as a computed string, actual = the computed value now;
  *             status `not_measurable` when the media condition does not match
  *   no-move   expected / actual = the recorded / current rect as JSON
+ *   unchanged expected = the bystander's recorded computed value, actual = its computed value now
  *   absent, hidden   actual = `absent` | `hidden` | `rendered`
- * `unresolved` on any check means the element was not found.
+ * `unresolved` on any check means the element was not found: the item's target, or for no-move
+ * and unchanged the element the check itself names.
  */
 export function toMeasured(raw: CheckResult, item: MeasuredItem): Measured {
   const expectation: Expectation = raw.expectation
@@ -117,6 +119,11 @@ export function toMeasured(raw: CheckResult, item: MeasuredItem): Measured {
       const rect = raw.status === 'unresolved' ? undefined : parseRect(raw.actual)
       return { found: rect !== undefined, locatorConfidence: item.locatorConfidence, ...(rect === undefined ? {} : { rectNow: rect }) }
     }
+    case 'unchanged':
+      // A bystander is located on its own too: whether the item's target was found says nothing about it.
+      return raw.status === 'unresolved'
+        ? { found: false, locatorConfidence: item.locatorConfidence }
+        : { found: true, locatorConfidence: item.locatorConfidence, actual: raw.actual, expectedComputed: raw.expected }
     case 'absent':
     case 'hidden': {
       const present = raw.actual !== 'absent' && item.found
@@ -148,6 +155,18 @@ export function createVerifier(options: VerifierOptions): Verifier {
     return batch?.claimMark ?? item.claimedAt ?? batch?.claimedAt ?? batch?.sentAt ?? item.createdAt
   }
   const startTime = (start: number | JournalPosition): number => (typeof start === 'number' ? start : start.at)
+
+  /** Another change that is out and sets `property` on the element `selector` names: the one case in which a bystander is meant to change. */
+  const changedElsewhere = (item: ChangeItem, selector: string, property: string): ChangeItem | undefined =>
+    session.items().find(
+      (other) =>
+        other.id !== item.id &&
+        other.kind === 'style' &&
+        other.status !== 'draft' &&
+        other.status !== 'dismissed' &&
+        other.target.selector === selector &&
+        (other.property === property || Object.hasOwn(other.longhands ?? {}, property)),
+    )
 
   const verify = async (params: VerifyParams = {}): Promise<VerifyOutcome> => {
     const wanted =
@@ -252,7 +271,13 @@ export function createVerifier(options: VerifierOptions): Verifier {
               return { ...raw, note: raw.note ?? "could not be measured in the page's current state" }
             }
             const before = beforeValueFor(item, raw.expectation)
-            return judgeCheck(raw.expectation, toMeasured(raw, answer), before === undefined ? {} : { before })
+            const judged = judgeCheck(raw.expectation, toMeasured(raw, answer), before === undefined ? {} : { before })
+            // A bystander of this change that the developer then edited on purpose: its value was meant to change.
+            if (judged.status === 'fail' && raw.expectation.type === 'unchanged') {
+              const other = changedElsewhere(item, raw.expectation.selector, raw.expectation.property)
+              if (other !== undefined) return { ...judged, status: 'pass', note: `not checked: \`${raw.expectation.property}\` of this element is changed by another change (${other.id})` }
+            }
+            return judged
           })
         }
       }

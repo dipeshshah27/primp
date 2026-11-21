@@ -432,6 +432,8 @@ export interface PropertyOrigin {
   origin: NonNullable<StyleChange['origin']>
   /** The declared value that won, when exactly this property is declared. */
   authored?: string
+  /** For `via: 'rule'`: the rule's whole selector list (`origin.selector` is only the part of it that matched this element). */
+  ruleSelector?: string
   system: StylingSystem
 }
 
@@ -457,7 +459,7 @@ export function originOf(styles: ElementStyles, property: string): PropertyOrigi
   if (rule.sheet !== undefined) origin.sheet = rule.sheet
   const media = mediaOf(rule)
   if (media !== undefined) origin.media = media
-  return { origin, ...(authored === undefined ? {} : { authored }), system: systemOfRule(rule, styles.tailwind) }
+  return { origin, ...(authored === undefined ? {} : { authored }), ruleSelector: rule.selector, system: systemOfRule(rule, styles.tailwind) }
 }
 
 /** Custom properties declared by the rules matching the element. */

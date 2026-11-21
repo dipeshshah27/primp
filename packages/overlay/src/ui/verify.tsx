@@ -39,6 +39,8 @@ function what(check: CheckResult): string {
       return 'hidden'
     case 'no-move':
       return `${expectation.label.split(' "')[0]} stays put`
+    case 'unchanged':
+      return `${expectation.label.split(' "')[0]} keeps its ${expectation.property}`
   }
 }
 

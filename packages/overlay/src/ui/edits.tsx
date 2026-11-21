@@ -530,6 +530,10 @@ function TrayItem({ c, item }: { c: Controller; item: ChangeItem }) {
   const summary = c.store.summaries.value.get(summaryKey(item)) ?? summarizeRecorded(item.sideEffects)
   const unwanted = item.sideEffects.filter((effect) => effect.verdict === 'unwanted').length
   const has = item.sideEffects.length > 0
+  // How many elements outside this change the rule behind the old value styles too; the agent is told to leave them alone.
+  const origin = item.kind === 'style' ? item.origin : undefined
+  const shared = origin?.alsoStyles ?? 0
+  const bystanders = item.kind === 'style' ? (item.bystanders ?? []) : []
   return (
     <li class={`item${detached ? ' detached' : ''}`} data-item={item.id}>
       <div class="item-head">
@@ -544,6 +548,14 @@ function TrayItem({ c, item }: { c: Controller; item: ChangeItem }) {
         </button>
       </div>
       <ChangeLine item={item} />
+      {shared > 0 ? (
+        <div
+          class="shared"
+          title={`Not part of this change: the agent is told to leave them as they are. Measured again after the source is edited:\n${bystanders.map((bystander) => bystander.label).join('\n')}${shared > bystanders.length ? `\nand ${shared - bystanders.length} more, which are not measured` : ''}`}
+        >
+          rule {origin?.selector ?? ''} also styles {shared} other {shared === 1 ? 'element' : 'elements'}
+        </div>
+      ) : null}
       <div class="chips">
         <ScopeChips item={item} />
         {detached ? (

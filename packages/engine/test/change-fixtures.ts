@@ -1,4 +1,4 @@
-import type { Condition, Locator, Rect, Ref, SideEffect, SourceLoc, StructuralChange, StyleChange } from '@reglet/protocol/change'
+import type { Bystander, Condition, Locator, Rect, Ref, SideEffect, SourceLoc, StructuralChange, StyleChange } from '@reglet/protocol/change'
 import { deriveExpectations } from '../src/expect.ts'
 
 /** Builders for change items used by several test files. Every default is fixed, so output is deterministic. */
@@ -53,6 +53,17 @@ export function sideEffect(over: Partial<SideEffect> = {}): SideEffect {
     after: rect(0, 908, 1280, 120),
     subtreeCount: 0,
     verdict: 'unreviewed',
+    ...over,
+  }
+}
+
+/** An element the origin rule styles too; by default the secondary button next to a primary one. */
+export function bystander(over: Partial<Bystander> = {}): Bystander {
+  return {
+    label: 'a.btn "See this week\'s beans"',
+    selector: 'div.hero-actions > a:nth-of-type(2)',
+    locator: locator({ tag: 'a', text: "See this week's beans", role: 'link', href: '#beans', indexPath: [1, 0, 2, 1], ancestors: ['body', 'main', 'section', 'div'] }),
+    values: { 'padding-top': '10px', 'padding-right': '18px', 'padding-bottom': '10px', 'padding-left': '18px' },
     ...over,
   }
 }

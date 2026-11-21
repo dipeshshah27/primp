@@ -16,7 +16,7 @@ import {
   upsertEdit,
 } from '../src/items.ts'
 import type { ItemHistory } from '../src/items.ts'
-import { condition, ref, sideEffect, source, structure, style } from './change-fixtures.ts'
+import { bystander, condition, ref, sideEffect, source, structure, style } from './change-fixtures.ts'
 
 describe('editKey', () => {
   const base = style()
@@ -105,6 +105,44 @@ describe('mergeStyleEdit', () => {
       'padding-right': { before: '4px', after: '6px' },
     })
     expect(mergeStyleEdit(a, style({ property: 'padding' })).longhands).toBeUndefined()
+  })
+
+  it('keeps the bystanders with their ORIGINAL values and the count on the origin; expect is derived from them', () => {
+    const first = style({
+      property: 'padding',
+      scope: 'all-instances',
+      before: { authored: '10px 18px', computed: '10px 18px' },
+      after: { authored: '14px 18px', computed: '14px 18px' },
+      longhands: { 'padding-top': { before: '10px', after: '14px' }, 'padding-left': { before: '18px', after: '18px' } },
+      origin: { via: 'rule', selector: '.btn', sheet: 'css/site.css', alsoStyles: 4 },
+      bystanders: [bystander()],
+    })
+    // The same edit typed again, on a page where the bystander reads differently and another one was picked.
+    const again = style({
+      ...first,
+      before: { authored: '14px 18px', computed: '14px 18px' },
+      after: { authored: '14px 26px', computed: '14px 26px' },
+      longhands: { 'padding-top': { before: '14px', after: '14px' }, 'padding-left': { before: '18px', after: '26px' } },
+      origin: { via: 'rule', selector: '.btn', alsoStyles: 1 },
+      bystanders: [bystander({ label: 'a.btn "Other"', values: { 'padding-top': '99px', 'padding-left': '99px' } })],
+      expect: undefined,
+    })
+    const both = mergeStyleEdit(first, again)
+    expect(both.bystanders).toEqual([bystander()])
+    expect(both.origin).toEqual({ via: 'rule', selector: '.btn', sheet: 'css/site.css', alsoStyles: 4 })
+    // Both longhands differ from the original now, so both are checked on the bystander, against the original values.
+    expect(both.expect.filter((e) => e.type === 'unchanged')).toEqual([
+      { type: 'unchanged', label: bystander().label, selector: bystander().selector, locator: bystander().locator, property: 'padding-left', value: '18px' },
+      { type: 'unchanged', label: bystander().label, selector: bystander().selector, locator: bystander().locator, property: 'padding-top', value: '10px' },
+    ])
+    expect(ChangeItemSchema.safeParse(both).success).toBe(true)
+    // An existing draft without bystanders does not take the incoming ones: its origin is the one that counts.
+    const { bystanders: _dropped, ...bare } = first
+    void _dropped
+    const plain = mergeStyleEdit({ ...bare, origin: { via: 'inline' } }, again)
+    expect(plain.bystanders).toBeUndefined()
+    expect(plain.origin).toEqual({ via: 'inline' })
+    expect(plain.expect.every((e) => e.type !== 'unchanged')).toBe(true)
   })
 
   it('a newer note replaces the old one; no arguments are mutated', () => {

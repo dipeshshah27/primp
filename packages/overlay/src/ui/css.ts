@@ -230,6 +230,7 @@ details > summary + * { margin-top: 6px; }
 .change .p { color: var(--accent); }
 .change del { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--faint); }
 .change ins { text-decoration: none; font-weight: 650; }
+.shared { color: var(--muted); font-size: 11.5px; overflow-wrap: anywhere; }
 .chips { display: flex; flex-wrap: wrap; gap: 5px; }
 .chip {
   display: inline-flex; align-items: center; gap: 5px; max-width: 100%; min-height: 20px; padding: 1px 8px; border-radius: 10px; border: 0;

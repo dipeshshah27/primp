@@ -44,6 +44,18 @@
  *   no-move                     pass when x, y, width and height are all within `tolerancePx`
  *                               of the recorded rectangle, else fail; `delta` is the largest of
  *                               the four differences.
+ *   unchanged                   a bystander: an element the edited rule also styles, which was
+ *                               not part of the change. Found, and its computed value equal to
+ *                               the recorded one (same comparison and tolerances as above):
+ *                               pass. Found and different: fail, with the note `changed from A
+ *                               to B although it was not part of this edit`; near is not good
+ *                               enough here, so there is no drift. Not found: PASS, with the
+ *                               note `not checked: the element could not be found again`. A
+ *                               bystander is only a witness: when it has left the page (another
+ *                               edit removed it, the list re-rendered) that says nothing
+ *                               against the change, and it must not block it. This is the one
+ *                               check that can pass without a measurement, and it always says
+ *                               so in its note and in the item's hint.
  *
  * ITEMS (`judgeItem`), first match wins:
  *   1. no_browser          no tab with the dock is connected.
@@ -55,10 +67,11 @@
  *   5. unresolved          any check is unresolved.
  *   6. fail                any check fails.
  *   7. drift               any check drifted.
- *   8. not_measurable      any check could not be measured, or there are no checks at all.
+ *   8. not_measurable      any check could not be measured, or there are no checks at all, or
+ *                          nothing but bystanders that could not be found.
  *   9. pass                at least one check, and every check passes.
- * So `pass` is never reported for something that was not measured, and `not_measurable` means
- * exactly: nothing was found wrong, and at least one check is still open.
+ * So `pass` is never reported for a change of which nothing was measured, and `not_measurable`
+ * means exactly: nothing was found wrong, and at least one check is still open.
  */
 
 import type { ChangeItem, CheckResult, Expectation, Rect, VerificationResult, VerificationStatus } from '@reglet/protocol/change'
@@ -80,9 +93,9 @@ export interface Measured {
   /** The element the check is about was re-found with confidence. */
   found: boolean
   locatorConfidence: number
-  /** `computed`: the computed value now. */
+  /** `computed`, `unchanged`: the computed value now. */
   actual?: string
-  /** `computed`: the recorded authored value resolved in the page as it is now, when the probe could do that. */
+  /** `computed`: the recorded authored value resolved in the page as it is now, when the probe could do that. `unchanged`: the recorded value. */
   expectedComputed?: string
   /** `no-move`: the element's rectangle now, in document coordinates. */
   rectNow?: Rect
@@ -99,7 +112,7 @@ export interface CheckContext {
   before?: string
 }
 
-/** The `before` value to pass as context for one of an item's expectations. */
+/** The `before` value to pass as context for one of an item's expectations. Only `computed` checks have one: a bystander's recorded value is its target. */
 export function beforeValueFor(item: ChangeItem, expectation: Expectation): string | undefined {
   if (item.kind !== 'style' || expectation.type !== 'computed') return undefined
   const longhand = item.longhands?.[expectation.property]
@@ -141,6 +154,8 @@ export function describeRectChange(before: Rect, after: Rect, minPx = 0.5): stri
 
 const NOT_FOUND = 'element not found'
 const NOT_MEASURED = 'not measured'
+/** Note of a bystander check that passes because there was nothing to measure; see the header. */
+export const BYSTANDER_NOT_CHECKED = 'not checked: the element could not be found again'
 
 const roundDelta = (n: number): number => Math.round(n * 1000) / 1000
 
@@ -268,7 +283,22 @@ export function judgeCheck(expectation: Expectation, measured: Measured, context
       if (delta <= expectation.tolerancePx) return { expectation, status: 'pass', expected, actual: rectText(now), delta }
       return { expectation, status: 'fail', expected, actual: rectText(now), delta, note: describeRectChange(expectation.rect, now) }
     }
+    case 'unchanged': {
+      const expected = measured.expectedComputed ?? expectation.value
+      if (!measured.found) return { expectation, status: 'pass', expected, actual: NOT_FOUND, note: BYSTANDER_NOT_CHECKED }
+      const actual = measured.actual
+      if (actual === undefined) return { expectation, status: 'not_measurable', expected, actual: NOT_MEASURED, note: 'no computed value was read' }
+      const comparison = compareComputed(expected, actual, expectation.property)
+      if (comparison.equal) return { expectation, status: 'pass', expected, actual }
+      const delta = primaryDelta(comparison)
+      return { expectation, status: 'fail', expected, actual, ...(delta === undefined ? {} : { delta }), note: `changed from ${oneLine(expected)} to ${oneLine(actual)} although it was not part of this edit` }
+    }
   }
+}
+
+/** True for a bystander check that passed without a measurement. */
+export function isSkippedBystander(check: CheckResult): boolean {
+  return check.expectation.type === 'unchanged' && check.status === 'pass' && check.note === BYSTANDER_NOT_CHECKED
 }
 
 // ---------------------------------------------------------------------------
@@ -307,15 +337,16 @@ export function rollUpChecks(checks: readonly CheckResult[]): CheckStatus {
   if (has('unresolved')) return 'unresolved'
   if (has('fail')) return 'fail'
   if (has('drift')) return 'drift'
-  if (has('not_measurable') || checks.length === 0) return 'not_measurable'
+  // Also true for no checks at all: a pass needs at least one thing that was measured.
+  if (has('not_measurable') || checks.every(isSkippedBystander)) return 'not_measurable'
   return 'pass'
 }
 
-/** What a check is about, as a code span: the property, or the label of the element that must not move. */
+/** What a check is about, as a code span: the property, or the label of the element that must not move or must not change. */
 export function checkSubject(check: CheckResult): string {
   const e = check.expectation
   if (e.type === 'computed') return code(e.property, 60)
-  if (e.type === 'no-move') return code(e.label, 80)
+  if (e.type === 'no-move' || e.type === 'unchanged') return code(e.label, 80)
   return 'the element'
 }
 
@@ -345,6 +376,13 @@ export function describeCheck(check: CheckResult): string {
       if (check.status === 'pass') return `${checkSubject(check)} did not move`
       if (check.status === 'fail') return `${checkSubject(check)} must not move, but it ${check.note ?? 'changed'} (now ${actual}, before the edit ${expected})`
       return `${checkSubject(check)}, which must not move, could not be ${check.status === 'unresolved' ? 'found again' : 'measured'}`
+    case 'unchanged': {
+      const property = code(e.property, 60)
+      if (isSkippedBystander(check)) return `${checkSubject(check)} could not be found again, so its ${property} was not checked`
+      if (check.status === 'pass') return `${checkSubject(check)} kept its ${property} (${actual})`
+      if (check.status === 'fail') return `${checkSubject(check)} was not part of this change, but its ${property} went from ${expected} to ${actual}`
+      return `the ${property} of ${checkSubject(check)}, which must stay ${expected}, could not be read`
+    }
   }
 }
 
@@ -366,6 +404,8 @@ function failAdvice(check: CheckResult): string {
       return 'Hide it without removing it from the DOM.'
     case 'no-move':
       return 'Keep the requested change and adjust the layout so that this element stays where it was.'
+    case 'unchanged':
+      return 'The rule you edited is shared: restore it and make the change with a more specific rule or a class on the changed element(s).'
   }
 }
 
@@ -383,7 +423,7 @@ export function deltaText(check: CheckResult): string | undefined {
   if (check.delta === undefined) return undefined
   const e = check.expectation
   if (e.type === 'no-move') return `${num(check.delta)}px`
-  if (e.type !== 'computed') return undefined
+  if (e.type !== 'computed' && e.type !== 'unchanged') return undefined
   const leaves = compareComputed(check.expected, check.actual, e.property).leaves.filter((leaf) => !leaf.equal)
   if (leaves.some((leaf) => leaf.kind === 'length')) return signedPx(check.delta)
   if (leaves.some((leaf) => leaf.kind === 'color')) return `colour distance ${num(check.delta)}`
@@ -483,9 +523,17 @@ export function hintFor(status: VerificationStatus, item: ChangeItem, checks: re
       if (isMediaBlocked(check)) return `${mediaBlockedText(check)}${unsettled}`
       return `${explainCheck(check)} Verify again.${unsettled}`
     }
-    case 'pass':
+    case 'pass': {
       if (settle?.status === 'no_update_observed') return 'Every check already passes, although no source change was observed since the batch was claimed.'
-      return checks.length === 1 ? 'The check passes.' : `All ${checks.length} checks pass.`
+      // A pass that rests on fewer measurements than checks says so.
+      const skipped = checks.filter(isSkippedBystander)
+      const labels = [...new Set(skipped.map(checkSubject))]
+      const open =
+        skipped.length === 0
+          ? ''
+          : ` ${skipped.length === 1 ? 'One of them was' : `${skipped.length} of them were`} not measured: ${labels.slice(0, 3).join(', ')}${labels.length > 3 ? ` and ${labels.length - 3} more` : ''}, which this change must leave as ${labels.length === 1 ? 'it was' : 'they were'}, could not be found again.`
+      return checks.length === 1 ? 'The check passes.' : `All ${checks.length} checks pass.${open}`
+    }
   }
 }
 

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { CheckResult, Expectation, VerificationStatus } from '@reglet/protocol/change'
 import { CheckResultSchema, VerificationResultSchema } from '@reglet/protocol/change'
-import { beforeValueFor, deltaText, describeRectChange, isNear, judgeCheck, judgeItem, rectText, rollUpChecks } from '../src/judge.ts'
+import { BYSTANDER_NOT_CHECKED, beforeValueFor, checkSubject, deltaText, describeCheck, describeRectChange, explainCheck, isNear, isSkippedBystander, judgeCheck, judgeItem, rectText, rollUpChecks } from '../src/judge.ts'
 import type { JudgeExtras, Measured, SettleInfo } from '../src/judge.ts'
-import { condition, locator, rect, sideEffect, structure, style } from './change-fixtures.ts'
+import { bystander, condition, locator, rect, sideEffect, structure, style } from './change-fixtures.ts'
 
 const computed = (property: string, value: string, media?: string): Extract<Expectation, { type: 'computed' }> => ({
   type: 'computed',
@@ -216,6 +216,65 @@ describe('judgeCheck: absent, hidden, no-move', () => {
   })
 })
 
+describe('judgeCheck: unchanged (bystanders)', () => {
+  const secondary = bystander()
+  const unchanged = (property: string, value: string): Extract<Expectation, { type: 'unchanged' }> => ({
+    type: 'unchanged',
+    label: secondary.label,
+    selector: secondary.selector,
+    locator: secondary.locator,
+    property,
+    value,
+  })
+
+  // [name, property, recorded, measured, status, note, delta]
+  it.each<[string, string, string, Measured, CheckResult['status'], string | undefined, number | undefined]>([
+    ['same value', 'padding-top', '10px', found({ actual: '10px' }), 'pass', undefined, undefined],
+    ['within the length tolerance', 'padding-top', '10px', found({ actual: '10.4px' }), 'pass', undefined, undefined],
+    ['the same colour written differently', 'color', 'rgb(28, 37, 48)', found({ actual: 'color(srgb 0.109804 0.145098 0.188235)' }), 'pass', undefined, undefined],
+    ['same keyword', 'display', 'inline-block', found({ actual: 'inline-block' }), 'pass', undefined, undefined],
+    ['the probe sends the recorded value back', 'padding-top', '10px', found({ actual: '10px', expectedComputed: '10px' }), 'pass', undefined, undefined],
+    ['changed length', 'padding-top', '10px', found({ actual: '14px' }), 'fail', 'changed from 10px to 14px although it was not part of this edit', 4],
+    ['changed by a little: near is not good enough for a bystander', 'padding-top', '10px', found({ actual: '11px' }), 'fail', 'changed from 10px to 11px although it was not part of this edit', 1],
+    ['changed colour', 'background-color', 'rgb(255, 255, 255)', found({ actual: 'rgb(15, 92, 99)' }), 'fail', 'changed from rgb(255, 255, 255) to rgb(15, 92, 99) although it was not part of this edit', expect.any(Number) as unknown as number],
+    ['changed keyword', 'display', 'inline-block', found({ actual: 'flex' }), 'fail', 'changed from inline-block to flex although it was not part of this edit', undefined],
+    ['changed shape', 'gap', '8px', found({ actual: '8px 12px' }), 'fail', 'changed from 8px to 8px 12px although it was not part of this edit', undefined],
+    ['not found: passes, and says it was not checked', 'padding-top', '10px', missing, 'pass', 'not checked: the element could not be found again', undefined],
+    ['not found, whatever else the probe sent', 'padding-top', '10px', { ...missing, actual: '14px' }, 'pass', BYSTANDER_NOT_CHECKED, undefined],
+    ['found, nothing read', 'padding-top', '10px', found(), 'not_measurable', 'no computed value was read', undefined],
+  ])('%s', (_name, property, recorded, measured, status, note, delta) => {
+    const check = judgeCheck(unchanged(property, recorded), measured)
+    expect([check.status, check.note, check.delta]).toEqual([status, note, delta])
+    expect(check.expected).toBe(recorded)
+    expect(CheckResultSchema.safeParse(check).success).toBe(true)
+  })
+
+  it('the value before the user edit is no context for a bystander', () => {
+    // A bystander never gets "unchanged" as a reason to fail, and never drifts.
+    expect(judgeCheck(unchanged('padding-top', '10px'), found({ actual: '10px' }), { before: '10px' }).status).toBe('pass')
+    expect(judgeCheck(unchanged('padding-top', '10px'), found({ actual: '11px' }), { before: '18px' }).status).toBe('fail')
+  })
+
+  it('in words: what the check found, for every status', () => {
+    const kept = judgeCheck(unchanged('padding-top', '10px'), found({ actual: '10px' }))
+    const changed = judgeCheck(unchanged('padding-top', '10px'), found({ actual: '14px' }))
+    const gone = judgeCheck(unchanged('padding-top', '10px'), missing)
+    const unread = judgeCheck(unchanged('padding-top', '10px'), found())
+    expect(checkSubject(changed)).toBe('`a.btn "See this week\'s beans"`')
+    expect(describeCheck(kept)).toBe('`a.btn "See this week\'s beans"` kept its `padding-top` (`10px`)')
+    expect(describeCheck(changed)).toBe('`a.btn "See this week\'s beans"` was not part of this change, but its `padding-top` went from `10px` to `14px`')
+    expect(describeCheck(gone)).toBe('`a.btn "See this week\'s beans"` could not be found again, so its `padding-top` was not checked')
+    expect(describeCheck(unread)).toBe('the `padding-top` of `a.btn "See this week\'s beans"`, which must stay `10px`, could not be read')
+    expect(explainCheck(changed)).toBe(
+      '`a.btn "See this week\'s beans"` was not part of this change, but its `padding-top` went from `10px` to `14px`. The rule you edited is shared: restore it and make the change with a more specific rule or a class on the changed element(s).',
+    )
+    expect(explainCheck(unread)).toBe('The `padding-top` of `a.btn "See this week\'s beans"`, which must stay `10px`, could not be read. Reason: no computed value was read.')
+    expect([kept, changed, gone, unread].map(isSkippedBystander)).toEqual([false, false, true, false])
+    expect(deltaText(changed)).toBe('+4px')
+    expect(deltaText(kept)).toBeUndefined()
+  })
+})
+
 // ---------------------------------------------------------------------------
 // Property-based sanity (hand-rolled generator, fixed seed)
 // ---------------------------------------------------------------------------
@@ -312,6 +371,13 @@ describe('judgeItem', () => {
   const notMeasurable = judgeCheck(computed('padding-left', '16px', '(min-width: 768px)'), found({ actual: '12px', mediaMatches: false }))
   const moved = judgeCheck(noMove, found({ rectNow: rect(0, 908, 1280, 120) }))
   const stayed = judgeCheck(noMove, found({ rectNow: rect(0, 900, 1280, 120) }))
+  const other = bystander()
+  const bystanderCheck = (property: string, measured: Measured): CheckResult =>
+    judgeCheck({ type: 'unchanged', label: other.label, selector: other.selector, locator: other.locator, property, value: other.values[property] ?? '' }, measured)
+  const kept = bystanderCheck('padding-left', found({ actual: '18px' }))
+  const dragged = bystanderCheck('padding-left', found({ actual: '16px' }))
+  const draggedToo = bystanderCheck('padding-top', found({ actual: '12px' }))
+  const gone = bystanderCheck('padding-left', missing)
 
   const settled: SettleInfo = { status: 'settled', signal: 'hmr', ms: 420, filesChanged: ['src/components/Card.tsx'] }
   const nothing: SettleInfo = { status: 'no_update_observed', signal: 'timeout', ms: 5000, filesChanged: [] }
@@ -334,6 +400,20 @@ describe('judgeItem', () => {
     ['fail, unchanged', [unchanged], ok, 'fail', ['is still `12px` (unchanged); expected `16px`', 'has no effect on this property here']],
     ['fail beats drift', [drift, fail], ok, 'fail', ['`13px`; expected `16px`', 'Also not passing: `padding-left` landed as `16px` instead of `17px`']],
     ['fail on a must-not-move', [pass, moved], ok, 'fail', ['`footer.site-footer` must not move, but it moved 8px down', 'stays where it was']],
+    ['pass with a bystander that kept its value', [pass, kept], ok, 'pass', ['All 2 checks pass.']],
+    [
+      'fail on a bystander although the change itself landed',
+      [pass, dragged],
+      ok,
+      'fail',
+      ['`a.btn "See this week\'s beans"` was not part of this change, but its `padding-left` went from `18px` to `16px`. The rule you edited is shared: restore it and make the change with a more specific rule or a class on the changed element(s).'],
+    ],
+    ['two bystander values dragged along: the second is listed after the first', [pass, dragged, draggedToo], ok, 'fail', ['The rule you edited is shared', 'Also not passing: `a.btn "See this week\'s beans"` was not part of this change, but its `padding-top` went from `10px` to `12px`.']],
+    ['the change itself failing comes before the bystander', [fail, dragged], ok, 'fail', ['`padding-left` is `13px`; expected `16px`', 'Also not passing: `a.btn "See this week\'s beans"` was not part of this change']],
+    ['a bystander that is gone does not block the change, and the hint says it was not measured', [pass, gone], ok, 'pass', ['All 2 checks pass. One of them was not measured: `a.btn "See this week\'s beans"`, which this change must leave as it was, could not be found again.']],
+    ['a bystander that is gone does not hide a failing change', [fail, gone], ok, 'fail', ['`13px`; expected `16px`']],
+    ['a bystander that is gone does not turn drift into pass', [drift, gone], ok, 'drift', ['landed as `16px`']],
+    ['no update observed: a dragged bystander cannot be the reason, the change is', [unchanged, kept], { ...ok, settle: nothing }, 'no_update_observed', ['No source file changed']],
     ['unresolved', [unresolved], ok, 'unresolved', ['could not be found again', 'renamed or restructured', '`div.card "Pro plan"`']],
     ['unresolved beats fail', [fail, judgeCheck(noMove, missing)], ok, 'unresolved', ['`footer.site-footer`, which must not move, could not be found again', '`13px`; expected `16px`']],
     ['not_measurable', [notMeasurable], ok, 'not_measurable', ['`@media (min-width: 768px)` does not match', 'Resize the browser', '`16px`']],
@@ -406,6 +486,10 @@ describe('judgeItem', () => {
     expect(rollUpChecks([pass, notMeasurable, drift])).toBe('drift')
     expect(rollUpChecks([pass, notMeasurable, drift, fail])).toBe('fail')
     expect(rollUpChecks([pass, notMeasurable, drift, fail, unresolved])).toBe('unresolved')
+    // Bystanders: one that changed fails the lot, one that is gone counts as a pass.
+    expect(rollUpChecks([pass, kept, gone])).toBe('pass')
+    expect(rollUpChecks([pass, kept, dragged])).toBe('fail')
+    expect(rollUpChecks([gone])).toBe('not_measurable')
   })
 
   it('beforeValueFor picks the longhand before, else the item before', () => {
@@ -420,6 +504,8 @@ describe('judgeItem', () => {
     expect(beforeValueFor(item, e)).toBe('12px')
     expect(beforeValueFor(item, computed('margin-left', '4px'))).toBeUndefined()
     expect(beforeValueFor(structure(), { type: 'absent' })).toBeUndefined()
+    // A bystander's recorded value is its target; the item's `before` belongs to another element.
+    expect(beforeValueFor(item, dragged.expectation)).toBeUndefined()
   })
 
   it('deltaText gives the delta its unit', () => {

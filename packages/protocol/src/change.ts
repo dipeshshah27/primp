@@ -141,6 +141,18 @@ export const ExpectationSchema = z.discriminatedUnion('type', [
     rect: RectSchema,
     tolerancePx: z.number(),
   }),
+  /**
+   * A bystander: the element found by `locator` is styled by the rule that set the changed value
+   * but is not part of the change, so its computed `property` must still be `value`.
+   */
+  z.object({
+    type: z.literal('unchanged'),
+    label: z.string(),
+    selector: z.string(),
+    locator: LocatorSchema,
+    property: z.string(),
+    value: z.string(),
+  }),
 ])
 export type Expectation = z.infer<typeof ExpectationSchema>
 
@@ -241,6 +253,22 @@ const ItemBase = {
   dismissReason: z.string().optional(),
 }
 
+/**
+ * An element that is styled by the rule a change's previous value came from (`origin`) but is
+ * not part of the change: not the target, and not one of its instances when the scope is
+ * `all-instances`. It must look the same after the source was edited.
+ */
+export const BystanderSchema = z.object({
+  /** Short human label, like `Ref.label`. */
+  label: z.string(),
+  /** A CSS selector that matched exactly this element when it was recorded. */
+  selector: z.string(),
+  locator: LocatorSchema,
+  /** Computed value before the edit, per longhand of the changed property (or for the property itself when it has none). */
+  values: z.record(z.string(), z.string()),
+})
+export type Bystander = z.infer<typeof BystanderSchema>
+
 /** Which elements a style change is meant for. */
 export const StyleScopeSchema = z.enum([
   /** Only this element. */
@@ -271,8 +299,12 @@ export const StyleChangeSchema = z.object({
       /** Stylesheet URL or dev-server id (`data-vite-dev-id`), when known. */
       sheet: z.string().optional(),
       media: z.string().optional(),
+      /** How many rendered elements outside the change this rule styles too. The true count; `bystanders` names at most three of them. */
+      alsoStyles: z.number().int().nonnegative().optional(),
     })
     .optional(),
+  /** Up to three of the elements counted by `origin.alsoStyles`, with the values they must keep. */
+  bystanders: z.array(BystanderSchema).max(3).optional(),
   /** `tailwind`, `css-modules`, `css-in-js`, `plain-css`, `inline`, or `unknown`: how the element appears to be styled. */
   stylingSystem: z.string(),
 })

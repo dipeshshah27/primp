@@ -1,7 +1,7 @@
 import type { ChangeItem, CheckResult, SideEffect as RecordedSideEffect, SourceLoc, StructuralChange, StyleChange, VerificationStatus } from '@reglet/protocol/change'
 import type { ShiftCause, ShiftIssue } from '@reglet/protocol/shift'
 import { groupByFile } from './items.ts'
-import { describeCheck, describeRectChange, explainCheck, hintFor, isMediaBlocked, mediaBlockedText, unresolvedText } from './judge.ts'
+import { describeCheck, describeRectChange, explainCheck, hintFor, isMediaBlocked, isSkippedBystander, mediaBlockedText, unresolvedText } from './judge.ts'
 import { code, num, oneLine, plural, quoted, truncate } from './text.ts'
 import { normalizeValue } from './units.ts'
 
@@ -70,6 +70,7 @@ const MAX = {
   candidates: 3,
   victims: 3,
   longhands: 8,
+  bystanders: 3,
 } as const
 
 const same = (a: string, b: string): boolean => normalizeValue(a).toLowerCase() === normalizeValue(b).toLowerCase()
@@ -130,9 +131,24 @@ function headline(item: ChangeItem): string {
   return item.op === 'remove' ? 'remove element' : 'hide element'
 }
 
+/** How many elements outside the change the rule behind the previous value styles too; 0 when none, or when that is not known. */
+const bystanderCount = (item: StyleChange): number => (item.origin?.via === 'rule' ? (item.origin.alsoStyles ?? 0) : 0)
+
+/**
+ * Who the change is for, and with that where it may be made. Four cases times two: when the
+ * rule that set the value also styles elements outside the change (`bystanderCount`), "the
+ * shared source" can no longer mean that rule, and the line says where to go instead; the
+ * `Previous value set by` line then names the rule and the elements it must keep serving.
+ */
 function scopeLine(item: StyleChange): string {
   const n = item.target.instanceCount
+  const shared = bystanderCount(item) > 0
   if (item.scope === 'all-instances') {
+    if (shared) {
+      return n > 1
+        ? `- Scope: all ${n} instances rendered from this source position, and no other element. Make the change once, where it reaches exactly these ${n}: in the component they share, or in a CSS rule that matches only them.`
+        : '- Scope: this element and any other rendered from the same component, and no other element. Make the change in that component, or in a CSS rule that matches only them.'
+    }
     return n > 1
       ? `- Scope: all ${n} instances rendered from this source position. Change the shared source (the component or the CSS rule), not one instance.`
       : '- Scope: every element that shares this component or rule. Change the shared source, not this one element.'
@@ -140,7 +156,8 @@ function scopeLine(item: StyleChange): string {
   if (n > 1) {
     return `- Scope: this element only. ${n} elements are rendered from this source position and the other ${n - 1} must stay as they are, so do not change the style they share: add a variant, modifier or condition for this one.`
   }
-  return item.origin?.via === 'rule'
+  // With known bystanders the next sentence is no longer an "if": the `Previous value set by` line says it outright.
+  return item.origin?.via === 'rule' && !shared
     ? "- Scope: this element only. If the rule that sets the value is shared with other elements, do not edit it in place: change this element's class or add a more specific rule."
     : '- Scope: this element only'
 }
@@ -178,6 +195,23 @@ function conditionLines(item: StyleChange, header: HeaderFacts | null): string[]
   return lines
 }
 
+/** `a`, `a and b`, `a, b and c`. */
+const listed = (parts: readonly string[]): string => (parts.length <= 1 ? parts.join('') : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`)
+
+/**
+ * The sentences that follow the rule behind the previous value when that rule also styles
+ * elements outside the change: how many, which (up to three), and what that means for the edit.
+ */
+function bystanderText(item: StyleChange): string {
+  const count = bystanderCount(item)
+  if (count === 0) return ''
+  const one = count === 1
+  const names = (item.bystanders ?? []).slice(0, MAX.bystanders).map((bystander) => code(bystander.label, MAX.label))
+  const which = names.length === 0 ? '' : names.length < count ? `, among them ${listed(names)}` : `: ${listed(names)}`
+  const changed = item.scope === 'all-instances' ? 'the changed elements' : 'the changed element'
+  return `. That rule also styles ${plural(count, 'other element')}, which ${one ? 'is' : 'are'} NOT part of this change and must keep ${one ? 'its' : 'their'} current ${code(item.property, 60)}${which}. Do not edit the rule in place: add a more specific rule, or a class or variant on ${changed}, and set the new value there.`
+}
+
 function originLine(item: StyleChange): string | null {
   const origin = item.origin
   if (origin === undefined) return null
@@ -188,7 +222,7 @@ function originLine(item: StyleChange): string | null {
     case 'inline':
       return "- Previous value set by: the element's inline `style` attribute"
     case 'rule':
-      return rule === '' && sheet === '' ? null : `- Previous value set by: ${rule === '' ? 'a rule' : rule}${sheet}${media}`
+      return rule === '' && sheet === '' ? null : `- Previous value set by: ${rule === '' ? 'a rule' : rule}${sheet}${media}${bystanderText(item)}`
     case 'inherited':
       return `- Previous value set by: nothing on the element; it is inherited${rule === '' ? '' : ` (from ${rule}${sheet}${media})`}. Set it on the element itself, not on the ancestor.`
     case 'default':
@@ -460,6 +494,10 @@ export function renderPrompt(items: readonly ChangeItem[], ctx: PromptContext, e
       'Update the source so that the app renders exactly this way, and change nothing else.',
       "Use the project's own styling system and design tokens instead of literal values where one matches (a utility class such as a Tailwind class, or a CSS variable with the same value), and where a change says all instances, edit the shared component or CSS rule, not one rendered instance.",
     )
+    // The sentence above sends the reader to "the CSS rule"; an item with bystanders takes that back for its rule.
+    if (items.some((item) => item.kind === 'style' && bystanderCount(item) > 0)) {
+      intro.push('The exception is a CSS rule that a change says also styles other elements: never edit such a rule in place, whatever the scope.')
+    }
     if (facts.colorScheme === 'dark') intro.push('The edits were made with the dark colour scheme active: where a value is defined separately for dark mode, that definition is the one to change.')
     if (shifts.length > 0) intro.push(`reglet also measured the ${oneShift ? 'layout shift' : 'layout shifts'} listed after the changes; fix ${oneShift ? 'its cause' : 'their causes'} in the source too.`)
   } else {
@@ -556,10 +594,14 @@ function findingLines(item: ChangeItem, checks: readonly CheckResult[], adviseEa
   if (firstBlocked !== undefined) {
     lines.push(blocked.length === 1 ? mediaBlockedText(firstBlocked) : `${mediaBlockedText(firstBlocked)} The same holds for ${plural(blocked.length - 1, 'other check')} of this change.`)
   }
+  let sharedRuleSaid = false
   for (const check of open) {
     if (lost.includes(check) || blocked.includes(check)) continue
     const stated = describeCheck(check)
-    lines.push(adviseEach ? explainCheck(check) : `${stated.charAt(0).toUpperCase()}${stated.slice(1)}.`)
+    // Every bystander that changed has the same cause and the same remedy: said with the first one.
+    const repeated = check.expectation.type === 'unchanged' && check.status === 'fail' && sharedRuleSaid
+    if (check.expectation.type === 'unchanged' && check.status === 'fail') sharedRuleSaid = true
+    lines.push(adviseEach && !repeated ? explainCheck(check) : `${stated.charAt(0).toUpperCase()}${stated.slice(1)}.`)
   }
   return lines.map((line) => truncate(line, MAX.hint))
 }
@@ -624,7 +666,8 @@ export function renderFixup(items: readonly ChangeItem[], ctx: FixupContext = {}
       if (unmeasured) {
         out.push('- Found: nothing, it was not measured (see "Before anything else").')
       } else {
-        const passing = verification.checks.filter((check) => check.status === 'pass').length
+        // A bystander that could not be found passes without having been measured: not counted as a check that passed.
+        const passing = verification.checks.filter((check) => check.status === 'pass' && !isSkippedBystander(check)).length
         // Without an edit there is nothing to advise on per check: the item is restated in full and the reason is given above.
         const findings = findingLines(item, verification.checks, status !== 'no_update_observed')
         const label = `- Found${passing > 0 ? ` (${plural(passing, 'other check')} passed)` : ''}:`
@@ -651,9 +694,14 @@ export function renderFixup(items: readonly ChangeItem[], ctx: FixupContext = {}
   return `${out.join('\n')}\n`
 }
 
-/** A failing item restated briefly: where it is and what was asked, without origin, styling hints and side effects. */
+/**
+ * A failing item restated briefly: where it is and what was asked, without styling hints and side
+ * effects. The origin is left out too, unless its rule has bystanders: what must stay as it is
+ * belongs to what was asked.
+ */
 function compactBody(item: ChangeItem, page: boolean): string[] {
   const pageLine = page ? `- Page: ${code(item.page, MAX.file)}` : null
   if (item.kind === 'structure') return present([elementLine(item), ...sourceLines(item.target.source), pageLine, ...structuralLines(item), noteLine(item)])
-  return present([elementLine(item), ...sourceLines(item.target.source), pageLine, scopeLine(item), ...conditionLines(item, null), longhandLine(item), noteLine(item)])
+  const origin = bystanderCount(item) > 0 ? originLine(item) : null
+  return present([elementLine(item), ...sourceLines(item.target.source), pageLine, scopeLine(item), ...conditionLines(item, null), longhandLine(item), origin, noteLine(item)])
 }

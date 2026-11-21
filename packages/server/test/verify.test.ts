@@ -128,6 +128,15 @@ describe('toMeasured', () => {
     expect(toMeasured({ ...raw, status: 'unresolved' }, answer(item, [])).found).toBe(false)
   })
 
+  it('reads an unchanged check: the bystander is found unless its own check says otherwise, whatever became of the target', () => {
+    const bystander: Expectation = { type: 'unchanged', label: 'a.btn "Docs"', selector: 'nav > a', locator: { tag: 'a', indexPath: [0, 1], ancestors: ['body', 'nav'] }, property: 'padding-top', value: '10px' }
+    const raw: CheckResult = { expectation: bystander, status: 'fail', expected: '10px', actual: '14px' }
+    expect(toMeasured(raw, answer(item, []))).toEqual({ found: true, locatorConfidence: 0.93, actual: '14px', expectedComputed: '10px' })
+    // The item's own element was not found: that says nothing about the bystander.
+    expect(toMeasured({ ...raw, status: 'pass', actual: '10px' }, answer(item, [], { found: false }))).toMatchObject({ found: true, actual: '10px', expectedComputed: '10px' })
+    expect(toMeasured({ ...raw, status: 'unresolved', actual: '' }, answer(item, []))).toEqual({ found: false, locatorConfidence: 0.93 })
+  })
+
   it('reads absent and hidden checks from the three words the probe sends', () => {
     const gone = structureItem('c2')
     const absent = gone.expect[0] as Expectation
@@ -305,6 +314,110 @@ describe('createVerifier', () => {
     const outcome = await createVerifier({ session, detector, sleep: noSleep }).verify()
     expect(outcome.results[0]?.status).toBe('unresolved')
     expect(items.get('c1')?.status).toBe('failed')
+  })
+
+  describe('bystanders', () => {
+    const secondary = { label: 'a.btn "See this week\'s beans"', selector: 'div.hero-actions > a:nth-of-type(2)', locator: { tag: 'a', indexPath: [1, 0, 2, 1], ancestors: ['body', 'main', 'section', 'div'], text: "See this week's beans" } }
+    const unchanged: Expectation = { type: 'unchanged', ...secondary, property: 'padding-top', value: '16px' }
+    const withBystander = (): ChangeItem =>
+      claimed('c1', {
+        scope: 'all-instances',
+        origin: { via: 'rule', selector: '.btn', sheet: 'css/site.css', alsoStyles: 1 },
+        bystanders: [{ ...secondary, values: { 'padding-top': '16px' } }],
+        expect: [styleItem('x').expect[0] as Expectation, unchanged],
+      } as never)
+    /** The target landed on 24px; the bystander is reported by the dock as given. */
+    const run = async (bystander: Pick<CheckResult, 'status' | 'actual'> & { note?: string }) => {
+      const state = fakeSession([withBystander()], (wanted) =>
+        measuredWith(wanted.map((it) => answer(it, [rawComputed(it.expect[0] as Expectation, '24px', 'pass'), { expectation: unchanged, expected: '16px', ...bystander }]))),
+      )
+      const { detector } = fakeDetector(settled())
+      const outcome = await createVerifier({ session: state.session, detector, sleep: noSleep }).verify()
+      return { outcome, result: outcome.results[0], item: state.items.get('c1') }
+    }
+
+    it('the target passes but the bystander changed: fail, the item is failed, and the fix-up names the bystander', async () => {
+      const { outcome, result, item } = await run({ status: 'fail', actual: '24px' })
+      expect(result?.status).toBe('fail')
+      expect(result?.checks.map((check) => [check.expectation.type, check.status])).toEqual([
+        ['computed', 'pass'],
+        ['unchanged', 'fail'],
+      ])
+      expect(result?.checks[1]).toMatchObject({ expected: '16px', actual: '24px', delta: 8, note: 'changed from 16px to 24px although it was not part of this edit' })
+      expect(result?.hint).toBe(
+        '`a.btn "See this week\'s beans"` was not part of this change, but its `padding-top` went from `16px` to `24px`. The rule you edited is shared: restore it and make the change with a more specific rule or a class on the changed element(s).',
+      )
+      expect(item?.status).toBe('failed')
+      expect(outcome.counts).toEqual({ fail: 1 })
+      expect(outcome.fixup).toContain('### `c1` fail:')
+      expect(outcome.fixup).toContain('- Found (1 other check passed): `a.btn "See this week\'s beans"` was not part of this change, but its `padding-top` went from `16px` to `24px`. The rule you edited is shared')
+      expect(outcome.fixup).toContain('That rule also styles 1 other element, which is NOT part of this change')
+    })
+
+    it('the bystander changed because another sent change edits it on purpose: not held against this change', async () => {
+      // The developer changed the primary button, then the secondary one too.
+      const other = styleItem('c2', 'index.html', { status: 'claimed', batchId: 'b2', property: 'padding', longhands: { 'padding-top': { before: '16px', after: '24px' } } } as never)
+      other.target = { ...other.target, selector: secondary.selector }
+      const state = fakeSession([withBystander(), other], (wanted) =>
+        measuredWith(wanted.map((it) => (it.id === 'c1' ? answer(it, [rawComputed(it.expect[0] as Expectation, '24px', 'pass'), { expectation: unchanged, status: 'fail', expected: '16px', actual: '24px' }]) : answer(it, [rawComputed(it.expect[0] as Expectation, '24px', 'pass')])))),
+      )
+      const { detector } = fakeDetector(settled())
+      const outcome = await createVerifier({ session: state.session, detector, sleep: noSleep }).verify({ ids: ['c1'] })
+      expect(outcome.results[0]?.status).toBe('pass')
+      const bystander = outcome.results[0]?.checks.find((check) => check.expectation.type === 'unchanged')
+      expect(bystander?.status).toBe('pass')
+      expect(bystander?.note).toContain('c2')
+    })
+
+    it('a draft or dismissed change on the bystander does not excuse it', async () => {
+      const draft = styleItem('c2', 'index.html', { status: 'draft', property: 'padding-top' })
+      draft.target = { ...draft.target, selector: secondary.selector }
+      const state = fakeSession([withBystander(), draft], (wanted) =>
+        measuredWith(wanted.map((it) => answer(it, [rawComputed(it.expect[0] as Expectation, '24px', 'pass'), { expectation: unchanged, status: 'fail', expected: '16px', actual: '24px' }]))),
+      )
+      const { detector } = fakeDetector(settled())
+      const outcome = await createVerifier({ session: state.session, detector, sleep: noSleep }).verify({ ids: ['c1'] })
+      expect(outcome.results[0]?.status).toBe('fail')
+    })
+
+    it('the bystander kept its value: pass, the item is verified, no fix-up', async () => {
+      const { outcome, result, item } = await run({ status: 'pass', actual: '16px' })
+      expect(result?.status).toBe('pass')
+      expect(result?.checks.map((check) => check.status)).toEqual(['pass', 'pass'])
+      expect(result?.checks[1]?.note).toBeUndefined()
+      expect(result?.hint).toBe('All 2 checks pass.')
+      expect(item?.status).toBe('verified')
+      expect(outcome.fixup).toBe('')
+    })
+
+    it('a value the dock calls different but the judge calls equal passes (the tolerances are the judge\'s)', async () => {
+      const { result } = await run({ status: 'fail', actual: '16.3px' })
+      expect(result?.status).toBe('pass')
+    })
+
+    it('the bystander was not found again: pass, with the note that it was not checked', async () => {
+      const { outcome, result, item } = await run({ status: 'unresolved', actual: '', note: 'a.btn was not found again' })
+      expect(result?.status).toBe('pass')
+      expect(result?.checks[1]).toMatchObject({ status: 'pass', note: 'not checked: the element could not be found again' })
+      expect(result?.hint).toContain('One of them was not measured')
+      expect(item?.status).toBe('verified')
+      expect(outcome.fixup).toBe('')
+    })
+
+    it('a bystander that changed does not hide that the target was not found', async () => {
+      const state = fakeSession([withBystander()], (wanted) =>
+        measuredWith(
+          wanted.map((it) =>
+            answer(it, [rawComputed(it.expect[0] as Expectation, '', 'unresolved'), { expectation: unchanged, status: 'fail', expected: '16px', actual: '24px' }], { found: false, locatorConfidence: 0.2 }),
+          ),
+        ),
+      )
+      const { detector } = fakeDetector(settled())
+      const result = (await createVerifier({ session: state.session, detector, sleep: noSleep }).verify()).results[0]
+      expect(result?.status).toBe('unresolved')
+      // The bystander was still measured on its own.
+      expect(result?.checks[1]).toMatchObject({ status: 'fail', actual: '24px' })
+    })
   })
 
   it('reports not_measurable for a media-scoped change outside its viewport and leaves the item claimed', async () => {

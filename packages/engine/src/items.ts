@@ -29,8 +29,10 @@ export function editKey(item: ChangeItem): string {
  * Folds a newer edit of the same property into the draft that already exists.
  *
  * Kept from `existing`: identity (`id`, `seq`, `createdAt`, `page`, `status`, `batchId`), the
- * target, the styling system, and above all the ORIGINAL `before` and `origin`: `incoming` was
+ * target, the styling system, and above all the ORIGINAL `before`, `origin` (with its
+ * `alsoStyles`) and `bystanders` with the values they had before the first edit: `incoming` was
  * measured with the first preview still applied, so its `before` is the first edit's `after`.
+ * `incoming`'s own `origin` and `bystanders` are dropped, also when `existing` has none.
  * Taken from `incoming`: `after`, `condition`, `sideEffects`, `sideEffectsPartial`, and a note
  * when it has one. `longhands` take `before` from `existing` and `after` from `incoming`.
  *

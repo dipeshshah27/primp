@@ -55,4 +55,15 @@ describe('toCheck: a raw measurement on the wire', () => {
     expect(moved).toMatchObject({ status: 'fail', delta: 16 })
     expect(toCheck(constraint, missing, view).status).toBe('unresolved')
   })
+
+  it('unchanged carries the recorded value and the value now, compared by plain equality', () => {
+    const bystander: Expectation = { type: 'unchanged', label: 'a.btn "See this week\'s beans"', selector: 'div.hero-actions > a:nth-of-type(2)', locator: { tag: 'a', indexPath: [0, 1], ancestors: ['body', 'div'] }, property: 'padding-top', value: '10px' }
+    expect(toCheck(bystander, found({ actual: '10px', expectedComputed: '10px' }), view)).toEqual({ expectation: bystander, status: 'pass', expected: '10px', actual: '10px' })
+    expect(toCheck(bystander, found({ actual: '14px', expectedComputed: '10px' }), view)).toEqual({ expectation: bystander, status: 'fail', expected: '10px', actual: '14px' })
+    // Without the probe's copy the recorded value is the expected one.
+    expect(toCheck(bystander, found({ actual: '10.2px' }), view)).toMatchObject({ status: 'fail', expected: '10px', actual: '10.2px' })
+    const gone = toCheck(bystander, missing, view)
+    expect(gone).toMatchObject({ status: 'unresolved', expected: '10px', actual: '' })
+    expect(gone.note).toContain('was not found again')
+  })
 })

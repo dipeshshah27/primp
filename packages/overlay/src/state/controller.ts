@@ -21,6 +21,7 @@ import type { ChangeItem, Condition, SideEffect, SourceLoc, StructuralChange, St
 import type { ServerMessage, SessionInfo } from '@reglet/protocol/messages'
 import { collectEvidence } from '@reglet/source/browser/index'
 import type { RegletBus } from '../bus.ts'
+import { describeBystander, findBystanders, valuesOf } from '../probe/bystanders.ts'
 import { measureEffects, type EffectsResult } from '../probe/effects.ts'
 import { measure, type MeasureRequest, type Measurement } from '../probe/measure.ts'
 import { createPreview, type Preview, type PreviewSpec } from '../probe/preview.ts'
@@ -509,6 +510,10 @@ export function createController(options: ControllerOptions): Controller {
       if (where.authored !== undefined) draft.before.authored = where.authored
       draft.origin = where.origin
       draft.stylingSystem = where.system
+      // Who else the rule behind the old value styles, and what they look like before this edit is previewed.
+      const witnessed = longhandsBefore === undefined ? [property] : Object.keys(longhandsBefore)
+      const others = where.origin.via === 'rule' && where.ruleSelector !== undefined ? findBystanders(where.ruleSelector, element, scope) : null
+      const bystanders = (others?.elements ?? []).map((other) => ({ element: other, record: describeBystander(other, witnessed) }))
 
       const spec = specOf(draft)
       const effects = await measureEffects(() => {
@@ -527,6 +532,17 @@ export function createController(options: ControllerOptions): Controller {
       draft.sideEffects = effects.sideEffects
       if (effects.partial) draft.sideEffectsPartial = true
       draft.target = withKnownSource(draft.target, element)
+      if (others !== null) {
+        draft.origin = { ...where.origin, alsoStyles: others.count }
+        if (bystanders.length > 0) {
+          // The preview styles only the changed elements. A bystander value that moved with it anyway follows
+          // them (a size the layout resolves, something inherited) and would move with a correct edit too: no witness.
+          draft.bystanders = bystanders.map(({ element: other, record }) => {
+            const now = valuesOf(other, witnessed)
+            return { ...record, values: Object.fromEntries(Object.entries(record.values).filter(([name, value]) => now[name] === value)) }
+          })
+        }
+      }
       draft.expect = deriveExpectations(draft)
 
       const next = upsertEdit(present(), draft)

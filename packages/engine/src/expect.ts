@@ -12,8 +12,9 @@ export const NO_MOVE_TOLERANCE_PX = 1
 
 /**
  * Derives what must be true once the source matches an item: a computed value
- * per changed longhand, absence/hiddenness for structural edits, and a
- * `no-move` constraint for every side effect the user marked unwanted.
+ * per changed longhand, absence/hiddenness for structural edits, a `no-move`
+ * constraint for every side effect the user marked unwanted, and an
+ * `unchanged` check for every bystander of a style change.
  *
  * Order (the same input always gives the same list):
  *   1. style change: `computed` expectations, one per longhand whose value changed, sorted by
@@ -22,6 +23,12 @@ export const NO_MOVE_TOLERANCE_PX = 1
  *      structural change: `absent` for remove, `hidden` for hide.
  *   2. one `no-move` per side effect with verdict `unwanted`, in the order of `sideEffects`,
  *      each carrying the BEFORE rectangle. A selector listed twice gives one constraint.
+ *   3. style change with `bystanders`: `unchanged` expectations, bystander by bystander in the
+ *      recorded order, and per bystander sorted by property name. A bystander records every
+ *      longhand of the edited property; checked are the ones the edit changes (the properties
+ *      of step 1), because those are what an edit of the shared rule would drag along. When
+ *      the edit changes no computed value (step 1 fell back to `property`), every recorded
+ *      value is checked.
  *
  * CONTRACT: pure; called by the dock whenever an item or a verdict changes, and the result is stored in `item.expect`.
  */
@@ -31,10 +38,13 @@ export function deriveExpectations(input: ItemWithoutExpect | Omit<ChangeItem, '
   const item = input as Omit<StyleChange, 'expect'> | Omit<StructuralChange, 'expect'>
   const out: Expectation[] = []
 
+  /** Longhands whose computed value the edit changes; empty for a structural change. */
+  let changedNames: string[] = []
   if (item.kind === 'style') {
     const changed = Object.entries(item.longhands ?? {})
       .filter(([, value]) => normalizeValue(value.before) !== normalizeValue(value.after))
       .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    changedNames = changed.map(([property]) => property)
     if (changed.length > 0) {
       for (const [property, value] of changed) {
         out.push({ type: 'computed', property, value: value.after, condition: item.condition })
@@ -57,6 +67,16 @@ export function deriveExpectations(input: ItemWithoutExpect | Omit<ChangeItem, '
       rect: effect.before,
       tolerancePx: NO_MOVE_TOLERANCE_PX,
     })
+  }
+
+  if (item.kind === 'style') {
+    for (const bystander of item.bystanders ?? []) {
+      const recorded = Object.keys(bystander.values).sort()
+      const checked = changedNames.length > 0 ? recorded.filter((property) => changedNames.includes(property)) : recorded
+      for (const property of checked) {
+        out.push({ type: 'unchanged', label: bystander.label, selector: bystander.selector, locator: bystander.locator, property, value: bystander.values[property] ?? '' })
+      }
+    }
   }
   return out
 }

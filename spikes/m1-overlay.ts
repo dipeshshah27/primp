@@ -312,7 +312,13 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
       expect(item.origin?.via === 'rule' && item.origin.selector?.includes('_card_') === true && item.origin.sheet?.includes('Card.module.css') === true, `origin: ${JSON.stringify(item.origin)}`)
       expect(item.stylingSystem === 'css-modules', `styling system: ${item.stylingSystem}`)
       expect(item.target.source?.file === 'src/components/Card.tsx' && item.target.source.line === 12, `target source: ${JSON.stringify(item.target.source)}`)
-      expect(item.expect.length === 4 && item.expect.every((entry) => entry.type === 'computed' && entry.value === '28px'), `expect: ${JSON.stringify(item.expect)}`)
+      const own = item.expect.filter((entry) => entry.type === 'computed')
+      expect(own.length === 4 && own.every((entry) => entry.type === 'computed' && entry.value === '28px'), `expect: ${JSON.stringify(own)}`)
+      // "This element" only: the rule also styles the five other cards, which are bystanders. Three are recorded, each with its four paddings as they were.
+      const kept = item.expect.filter((entry) => entry.type === 'unchanged')
+      const bystanders = item.bystanders ?? []
+      expect(item.origin?.alsoStyles === 5 && bystanders.length === 3 && bystanders.every((entry) => entry.label.startsWith('article.card') && sides.every((side) => entry.values[side] === '20px')), `alsoStyles ${item.origin?.alsoStyles}; bystanders: ${JSON.stringify(bystanders.map((entry) => [entry.label, entry.values]))}`)
+      expect(kept.length === 12 && kept.every((entry) => entry.type === 'unchanged' && entry.value === '20px') && item.expect.length === 16, `expect: ${JSON.stringify(item.expect.map((entry) => entry.type))}`)
 
       const pricingAfter = await rect(t, '#pricing')
       const neighbourAfter = await rect(t, `${CARD}:nth-of-type(2)`)
@@ -343,12 +349,21 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
       expect((await computed(t, first, 'padding')) === '32px', 'the page does not show 32px')
       const pricing = item.sideEffects.find((effect) => effect.selector === '#pricing')
       expect(pricing !== undefined && near(pricing.after.y - pricing.before.y, 24), `side effects are not measured against the original page: ${JSON.stringify(pricing)}`)
+      // The bystanders are the ones of the first edit, with the values they had then; the tray says the rule is shared.
+      const bystanders = item.bystanders ?? []
+      expect(item.origin?.alsoStyles === 5 && bystanders.length === 3 && bystanders.every((entry) => entry.values['padding-top'] === '20px'), `after the second edit: alsoStyles ${item.origin?.alsoStyles}; ${JSON.stringify(bystanders.map((entry) => entry.values))}`)
+      const sharedLine = await waitFor(() => page.dock.evaluate(() => {
+        const line = document.querySelector('.tray .item .shared')
+        return line === null ? undefined : { text: line.textContent ?? '', title: line.getAttribute('title') ?? '' }
+      }), { timeoutMs: 3000, what: 'the line about the shared rule in the tray' })
+      expect(sharedLine.text === `rule ${item.origin?.selector} also styles 5 other elements`, `the tray says "${sharedLine.text}"`)
+      expect(bystanders.every((entry) => sharedLine.title.includes(entry.label)) && sharedLine.title.includes('and 2 more'), `tooltip: ${sharedLine.title}`)
       await waitFor(() => {
         const stored = lane.reglet.session.item(itemId)
         return stored?.kind === 'style' && stored.after.authored === '32px' && stored.before.computed === '20px'
       }, { timeoutMs: 3000, what: 'the server to hold the updated item' })
       expect(lane.reglet.session.items().length === 1, `the server holds ${lane.reglet.session.items().length} items`)
-      return `1 item, same id; before 20px (authored and computed), after 32px; side effects re-measured against the original (#pricing +24px)`
+      return `1 item, same id; before 20px (authored and computed), after 32px; side effects re-measured against the original (#pricing +24px); 3 bystanders still at their original 20px; the tray says "${sharedLine.text}"`
     })
 
     await report.attempt('setting the property back to its original value deletes the item', async () => {

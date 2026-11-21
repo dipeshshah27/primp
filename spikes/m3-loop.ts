@@ -171,7 +171,83 @@ async function vite(): Promise<void> {
     return `verified ${Date.now() - started} ms after the file was written, with no MCP call; the dock shows ${shown}`
   })
 
-  report.section('Vite H. No browser, no verdict')
+  report.section('Vite H. Bystanders: a rule shared with elements outside the change must not be edited in place')
+  // `.plan` (site.css) sets the gap of all three plan cards. The two plain ones are instances of each
+  // other (`div.plan`); the featured one (`div.plan.plan--featured`) is styled by the same rule and is not.
+  const PLAIN_PLAN = '.plan:not(.plan--featured)'
+  const gapOf = (selector: string): Promise<string> => page.evaluate((sel) => getComputedStyle(document.querySelector(sel) as Element).rowGap, selector)
+  let planItem: ChangeItem | undefined
+  let featuredLabel = ''
+  await report.attempt('gap of the two plain plans, all instances: the featured plan is recorded as the one bystander, and the agent prompt says to leave the rule alone', async () => {
+    const { item } = await loop.editAndSend(PLAIN_PLAN, { property: 'gap', value: '16px', scope: 'all-instances' })
+    expect(item.kind === 'style', 'not a style change')
+    if (item.kind !== 'style') return ''
+    expect(item.target.instanceCount === 2, `instances: ${item.target.instanceCount}`)
+    expect(item.origin?.via === 'rule' && item.origin.selector === '.plan', `origin: ${JSON.stringify(item.origin)}`)
+    expect(item.origin?.alsoStyles !== undefined && item.origin.alsoStyles >= 1, `origin.alsoStyles: ${item.origin?.alsoStyles}`)
+    const bystanders = item.bystanders ?? []
+    // The other plain plan is an instance, so it is part of the change; only the featured plan is left.
+    expect(item.origin?.alsoStyles === 1 && bystanders.length === 1, `alsoStyles ${item.origin?.alsoStyles}, bystanders: ${JSON.stringify(bystanders.map((entry) => entry.label))}`)
+    const featured = bystanders[0]!
+    featuredLabel = featured.label
+    const isFeatured = await page.evaluate((selector) => document.querySelector(selector)?.classList.contains('plan--featured') === true, featured.selector)
+    expect(isFeatured && featured.label.includes('Team'), `the bystander is ${featured.label} (${featured.selector})`)
+    expect(featured.values['row-gap'] === '12px' && featured.values['column-gap'] === '12px', `recorded values: ${JSON.stringify(featured.values)}`)
+    const kinds = item.expect.map((entry) => (entry.type === 'unchanged' ? `unchanged ${entry.property}` : entry.type))
+    expect(kinds.filter((kind) => kind.startsWith('unchanged')).length === 2, `expectations: ${kinds.join(', ')}`)
+
+    const pending = await loop.takePending()
+    const claimed = pending.files.flatMap((group) => group.items)
+    expect(claimed.length === 1 && claimed[0]?.id === item.id && claimed[0].status === 'claimed', `claimed: ${claimed.map((entry) => `${entry.id} ${entry.status}`).join(', ')}`)
+    planItem = claimed[0]
+    const section = pending.prompt.slice(pending.prompt.indexOf(`### \`${item.id}\``))
+    expect(section.includes(featured.label), `the prompt does not name the bystander ${featured.label}:\n${section}`)
+    expect(section.includes('That rule also styles 1 other element') && section.includes('Do not edit the rule in place'), `the prompt does not say to leave the rule alone:\n${section}`)
+    expect(!section.includes('Change the shared source (the component or the CSS rule)'), 'the prompt still offers the shared CSS rule as the place to edit')
+    expect(pending.prompt.includes('never edit such a rule in place'), 'the introduction does not take back "edit the shared CSS rule"')
+    const line = section.split('\n').find((text) => text.startsWith('- Previous value set by:')) ?? ''
+    return `alsoStyles ${item.origin?.alsoStyles}; bystander ${featured.label} with ${JSON.stringify(featured.values)}; expectations ${kinds.join(', ')}\n        prompt: ${line}`
+  })
+  await report.attempt('the agent edits the shared .plan rule: the plain plans are right, the featured plan changed with them: fail, and the fix-up names it', async () => {
+    expect(planItem !== undefined, 'no item from the previous check')
+    const id = (planItem as ChangeItem).id
+    editFile(fixture, 'src/styles/site.css', replaceOnce('  gap: 12px;\n  padding: 24px;', '  gap: 16px;\n  padding: 24px;'))
+    const { outcome } = await verify([id])
+    const result = one(outcome)
+    expect(result.status === 'fail', `status ${describe(result)}`)
+    const own = result.checks.filter((check) => check.expectation.type === 'computed')
+    const others = result.checks.filter((check) => check.expectation.type === 'unchanged')
+    expect(own.length === 2 && own.every((check) => check.status === 'pass'), `the change itself: ${own.map((check) => `${check.status} ${check.actual}`).join(', ')}`)
+    expect(others.length === 2 && others.every((check) => check.status === 'fail' && check.expected === '12px' && check.actual === '16px'), `bystander checks: ${others.map((check) => `${check.status} ${check.expected} -> ${check.actual}`).join(', ')}`)
+    expect(result.hint.includes(featuredLabel) && result.hint.includes('The rule you edited is shared'), `hint: ${result.hint}`)
+    expect(outcome.fixup.includes(featuredLabel) && outcome.fixup.includes('was not part of this change') && outcome.fixup.includes('went from `12px` to `16px`'), `the fix-up does not name the bystander:\n${outcome.fixup}`)
+    expect(itemStatus(id) === 'failed', `item status ${itemStatus(id)}`)
+    expect((await gapOf('.plan--featured')) === '16px', 'the featured plan did not change in the page: the scenario is not what it claims')
+    return describe(result)
+  })
+  await report.attempt('the agent restores .plan and adds a rule for the plain plans only: pass, the bystander kept its gap', async () => {
+    expect(planItem !== undefined, 'no item from the previous check')
+    const id = (planItem as ChangeItem).id
+    editFile(
+      fixture,
+      'src/styles/site.css',
+      replaceOnce('  gap: 16px;\n  padding: 24px;', '  gap: 12px;\n  padding: 24px;'),
+    )
+    editFile(fixture, 'src/styles/site.css', replaceOnce('.plan:hover {', '.plan:not(.plan--featured) {\n  gap: 16px;\n}\n\n.plan:hover {'))
+    const { outcome } = await verify([id])
+    const result = one(outcome)
+    expect(result.status === 'pass', `status ${describe(result)}`)
+    const others = result.checks.filter((check) => check.expectation.type === 'unchanged')
+    expect(others.length === 2 && others.every((check) => check.status === 'pass' && check.actual === '12px' && check.note === undefined), `bystander checks: ${others.map((check) => `${check.status} ${check.actual} ${check.note ?? ''}`).join(', ')}`)
+    expect(outcome.fixup === '', 'a fix-up prompt was returned for a pass')
+    expect(itemStatus(id) === 'verified', `item status ${itemStatus(id)}`)
+    const inPage = [await gapOf(PLAIN_PLAN), await gapOf('.plan--featured')]
+    expect(inPage[0] === '16px' && inPage[1] === '12px', `in the page: plain ${inPage[0]}, featured ${inPage[1]}`)
+    return `${describe(result)}\n        in the page: plain plans ${inPage[0]}, featured plan ${inPage[1]}`
+  })
+
+  // Closes the tab, so it stays the last scenario of this part.
+  report.section('Vite I. No browser, no verdict')
   await report.attempt('with the tab closed a matching source is reported as no_browser, not pass', async () => {
     const item = await loop.editAndClaim('.pricing__lead', { property: 'color', value: 'rgb(51, 65, 85)' })
     editFile(fixture, 'src/styles/site.css', replaceOnce('  color: #475569;\n}\n\n.pricing-grid', '  color: #334155;\n}\n\n.pricing-grid'))

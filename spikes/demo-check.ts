@@ -112,8 +112,17 @@ try {
       await dock('select', '.btn-primary')
       const edit = await dock('setStyle', 'padding', '14px 26px', { media: null, scope: 'all-instances' })
       expect(edit.ok && edit.item !== null, `the edit was not recorded: ${edit.error ?? 'no item'}`)
+      // `.btn` sets the padding of both primary buttons (the change) and of the secondary one, which must be left alone.
+      const recorded = edit.item as ChangeItem
+      const bystanders = recorded.kind === 'style' ? (recorded.bystanders ?? []) : []
+      const origin = recorded.kind === 'style' ? recorded.origin : undefined
+      expect(origin?.via === 'rule' && origin.selector === '.btn' && origin.alsoStyles === 1, `origin: ${JSON.stringify(origin)}`)
+      expect(bystanders.length === 1 && bystanders[0]!.label.includes("See this week's beans"), `bystanders: ${JSON.stringify(bystanders.map((entry) => entry.label))}`)
+      const secondary = bystanders[0]!
+      expect(secondary.values['padding-top'] === '10px' && secondary.values['padding-left'] === '18px', `the secondary button's recorded padding: ${JSON.stringify(secondary.values)}`)
       const prompt = await dock('send')
       expect(prompt.includes('padding'), 'Send returned no prompt')
+      expect(prompt.includes(secondary.label) && prompt.includes('Do not edit the rule in place'), 'the prompt does not name the secondary button as an element to leave alone')
       const pending = (await call<PendingChanges>('get_pending_changes')).result
       const item = pending.files.flatMap((group) => group.items)[0] as ChangeItem | undefined
       expect(item !== undefined && item.target.source?.file === 'index.html', `claimed ${pending.count}; source ${item?.target.source?.file}`)
@@ -122,10 +131,12 @@ try {
       const { result } = await call<VerifyChangesResult>('verify_changes', { ids: [(item as ChangeItem).id], waitMs: 2000 })
       const verdict = result.results[0]
       expect(verdict?.status === 'pass', `${verdict?.status}: ${verdict?.hint}`)
+      const kept = verdict?.checks.filter((check) => check.expectation.type === 'unchanged') ?? []
+      expect(kept.length === 4 && kept.every((check) => check.status === 'pass' && check.note === undefined), `bystander checks: ${kept.map((check) => `${check.status} ${check.actual}`).join(', ')}`)
       await sleep(300)
       const shown = (await dock('items')).find((candidate) => candidate.id === (item as ChangeItem).id)?.verification?.status
       expect(shown === 'pass', `the dock shows ${shown}`)
-      return `${result.summary} ${verdict?.hint}; the dock shows ${shown}`
+      return `${result.summary} ${verdict?.hint}; the dock shows ${shown}; bystander ${secondary.label} (rule .btn also styles ${origin?.alsoStyles} other element) kept its padding in ${kept.length} checks`
     })
 
     report.section('Stop')
