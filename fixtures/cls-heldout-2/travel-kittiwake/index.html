@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aberdeen to Lerwick, Fri 22 May | Kittiwake Ferries</title>
+<style>
+  :root { --sea: #003b5c; --sea-2: #00567f; --sun: #ffb703; --ink: #14212b; --muted: #5f707d; --line: #d8e1e8; --bg: #eff4f7; --card: #fff; --ok: #1f7a4d; --low: #b3541e; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 "Trebuchet MS", "Segoe UI", system-ui, sans-serif; }
+  a { color: var(--sea-2); }
+  button, select { font: inherit; }
+  .row { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+
+  .brand { background: var(--sea); color: #fff; }
+  .brand .row { display: flex; align-items: center; gap: 26px; height: 60px; }
+  .brand .name { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; }
+  .brand nav { display: flex; gap: 20px; font-size: 14px; }
+  .brand nav a { color: #cfe6f2; text-decoration: none; }
+  .brand .steps { margin-left: auto; display: flex; gap: 6px; font-size: 12px; }
+  .brand .steps span { padding: 4px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); }
+  .brand .steps .on { background: var(--sun); color: var(--sea); font-weight: 700; }
+
+  .trip { background: var(--sea-2); color: #fff; }
+  .trip .row { display: flex; align-items: center; gap: 30px; padding-top: 14px; padding-bottom: 14px; }
+  .trip .route { font-size: 22px; font-weight: 700; }
+  .trip dl { display: flex; gap: 26px; margin: 0; font-size: 14px; }
+  .trip dt { color: #b9dcec; font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; }
+  .trip dd { margin: 0; font-weight: 700; }
+  .trip .change { margin-left: auto; padding: 8px 16px; border: 1px solid #fff; border-radius: 8px; background: transparent; color: #fff; cursor: pointer; }
+  .trip .hold { font-size: 13px; color: #d9edf6; }
+  .trip .hold b { display: inline-block; width: 3.2em; font-variant-numeric: tabular-nums; color: var(--sun); }
+
+  .cols { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 26px; padding-top: 20px; padding-bottom: 50px; align-items: start; }
+  .refine { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .refine h2 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
+  .refine label { display: flex; gap: 8px; padding: 3px 0; }
+  .refine hr { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
+
+  .dates { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
+  .dates button { padding: 8px 0; border: 1px solid var(--line); border-radius: 10px; background: var(--card); cursor: pointer; transition: border-color 120ms ease; }
+  .dates button b { display: block; font-size: 16px; }
+  .dates button[aria-pressed="true"] { border-color: var(--sea-2); box-shadow: inset 0 -3px var(--sea-2); }
+
+  .results-head { margin-bottom: 14px; }
+  .results-head .line { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+  .results-head h1 { margin: 0; font-size: 21px; }
+  .results-head select { margin-left: auto; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  .fare-note { margin: 0; padding: 12px 16px; border: 1px solid #f1d58a; border-left: 4px solid var(--sun); border-radius: 8px; background: #fff9e6; }
+
+  .sailing { display: grid; grid-template-columns: 64px minmax(0, 1fr) 150px 170px; gap: 18px; align-items: center; padding: 16px 18px; margin-bottom: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+  .sailing img { display: block; border-radius: 8px; }
+  .sailing .times { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sailing .times span { font-weight: 400; color: var(--muted); font-size: 14px; }
+  .sailing .ship { color: var(--muted); font-size: 14px; }
+  .sailing .seats { height: 22px; overflow: hidden; font-size: 13px; font-weight: 700; color: var(--ok); }
+  .sailing .seats.low { color: var(--low); }
+  .sailing .price { text-align: right; }
+  .sailing .price b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+  .sailing .price button { margin-top: 6px; width: 100%; height: 38px; border: 0; border-radius: 8px; background: var(--sun); color: var(--sea); font-weight: 700; cursor: pointer; }
+
+  .small { border-top: 1px solid var(--line); background: var(--card); font-size: 13px; color: var(--muted); }
+  .small .row { display: flex; justify-content: space-between; padding-top: 20px; padding-bottom: 20px; }
+</style>
+</head>
+<body>
+<header class="brand">
+  <div class="row">
+    <div class="name"><img src="/assets/img/logo-mark.svg" width="28" height="28" alt=""> Kittiwake Ferries</div>
+    <nav aria-label="Main"><a href="#">Timetables</a><a href="#">Onboard</a><a href="#">Islands</a><a href="#">Help</a></nav>
+    <div class="steps" aria-label="Booking steps"><span>1 Search</span><span class="on">2 Choose sailing</span><span>3 Cabins</span><span>4 Pay</span></div>
+  </div>
+</header>
+
+<section class="trip">
+  <div class="row">
+    <div class="route">Aberdeen → Lerwick</div>
+    <dl>
+      <div><dt>Out</dt><dd>Fri 22 May</dd></div>
+      <div><dt>Passengers</dt><dd>2 adults</dd></div>
+      <div><dt>Vehicle</dt><dd>Car, under 5 m</dd></div>
+    </dl>
+    <span class="hold">Prices held for <b id="hold">14:59</b></span>
+    <button class="change" type="button">Change search</button>
+  </div>
+</section>
+
+<div class="row cols">
+  <aside class="refine" aria-label="Refine">
+    <h2>Departure</h2>
+    <label><input type="checkbox" checked> Morning</label>
+    <label><input type="checkbox" checked> Afternoon</label>
+    <label><input type="checkbox" checked> Overnight</label>
+    <hr>
+    <h2>Fare type</h2>
+    <label><input type="radio" name="fare" checked> Any</label>
+    <label><input type="radio" name="fare"> Saver</label>
+    <label><input type="radio" name="fare"> Flexible</label>
+    <hr>
+    <h2>Onboard</h2>
+    <label><input type="checkbox"> Cabin available</label>
+    <label><input type="checkbox"> Pets welcome</label>
+  </aside>
+
+  <main>
+    <div class="dates" role="group" aria-label="Nearby dates">
+      <button type="button" aria-pressed="false">Wed 20<b>£148</b></button>
+      <button type="button" aria-pressed="false">Thu 21<b>£162</b></button>
+      <button type="button" aria-pressed="true">Fri 22<b>£171</b></button>
+      <button type="button" aria-pressed="false">Sat 23<b>£204</b></button>
+      <button type="button" aria-pressed="false">Sun 24<b>£171</b></button>
+    </div>
+
+    <div class="results-head">
+      <div class="line">
+        <h1>4 sailings on Friday 22 May</h1>
+        <select aria-label="Sort"><option>Earliest first</option><option>Cheapest first</option><option>Shortest crossing</option></select>
+      </div>
+      <p class="fare-note" id="fare-note" role="status">Checking for fare changes…</p>
+    </div>
+
+    <div id="sailings">
+      <article class="sailing" data-sailing="0740">
+        <img src="/delay/850/assets/img/thumb-320x240.png" width="64" height="48" alt="MV Hjaltland">
+        <div><div class="times">07:40 <span>→</span> 20:10 <span>12 h 30</span></div><div class="ship">MV Hjaltland · direct</div></div>
+        <div class="seats" data-seats>Checking spaces…</div>
+        <div class="price"><b>£171.00</b>Saver, car + 2<button type="button">Select</button></div>
+      </article>
+      <article class="sailing" data-sailing="0915">
+        <img src="/assets/img/thumb-320x240.png" width="64" height="48" alt="MV Hrossey">
+        <div><div class="times">09:15 <span>→</span> 23:30 <span>14 h 15</span></div><div class="ship">MV Hrossey · via Kirkwall</div></div>
+        <div class="seats" data-seats>Checking spaces…</div>
+        <div class="price"><b>£171.00</b>Saver, car + 2<button type="button">Select</button></div>
+      </article>
+      <article class="sailing" data-sailing="1305">
+        <img src="/assets/img/thumb-320x240.png" width="64" height="48" alt="MV Hjaltland">
+        <div><div class="times">13:05 <span>→</span> 01:35 <span>12 h 30</span></div><div class="ship">MV Hjaltland · direct</div></div>
+        <div class="seats" data-seats>Checking spaces…</div>
+        <div class="price"><b>£189.00</b>Standard, car + 2<button type="button">Select</button></div>
+      </article>
+      <article class="sailing" data-sailing="1900">
+        <img src="/assets/img/thumb-320x240.png" width="64" height="48" alt="MV Hrossey">
+        <div><div class="times">19:00 <span>→</span> 07:30 <span>12 h 30</span></div><div class="ship">MV Hrossey · overnight, direct</div></div>
+        <div class="seats" data-seats>Checking spaces…</div>
+        <div class="price"><b>£204.00</b>Flexible, car + 2<button type="button">Select</button></div>
+      </article>
+    </div>
+  </main>
+</div>
+
+<footer class="small">
+  <div class="row"><span>© 2026 Kittiwake Ferries · ATOL not required for ferry-only bookings</span><span><a href="#">Conditions of carriage</a> · <a href="#">Contact</a></span></div>
+</footer>
+
+<script>
+  // Price-hold countdown in the trip bar.
+  (function () {
+    var out = document.getElementById('hold');
+    var left = 899;
+    setInterval(function () {
+      left = Math.max(0, left - 1);
+      out.textContent = Math.floor(left / 60) + ':' + (left % 60 < 10 ? '0' : '') + left % 60;
+    }, 1000);
+  })();
+
+  // Live availability: the fare notice and the vehicle spaces on each sailing.
+  fetch('/delay/850/assets/data/fare-note.json')
+    .then(function (response) { return response.json(); })
+    .then(function (data) {
+      var spaces = { '0740': '23 vehicle spaces', '0915': '31 vehicle spaces', '1305': 'Only 4 vehicle spaces left', '1900': '12 vehicle spaces' };
+      document.querySelectorAll('.sailing').forEach(function (sailing) {
+        var out = sailing.querySelector('[data-seats]');
+        out.textContent = spaces[sailing.dataset.sailing];
+        out.classList.toggle('low', sailing.dataset.sailing === '1305');
+      });
+      var note = document.getElementById('fare-note');
+      note.textContent = data.message;
+    });
+
+  // Nearby dates.
+  document.querySelectorAll('.dates button').forEach(function (button) {
+    button.addEventListener('click', function () {
+      document.querySelectorAll('.dates button').forEach(function (other) { other.setAttribute('aria-pressed', String(other === button)); });
+    });
+  });
+</script>
+</body>
+</html>

@@ -10,7 +10,8 @@
  * If you change the attributor because of what this prints, these pages are no longer held out:
  * say so (see FIRST_RUN at the end of this file) and get new ones.
  *
- *   pnpm spike:m4-heldout
+ *   pnpm spike:m4-heldout      the first set (now a development set)
+ *   pnpm spike:m4-heldout2     the second set: the held-out measurement
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -30,7 +31,8 @@ interface ExpectedShift {
   acceptableCulpritSelectors?: string[]
   culpritFile: string
   culpritLine: number
-  acceptableCulpritLines?: { line: number }[]
+  /** `file`: when the line is in another file of the page folder; default `culpritFile`. */
+  acceptableCulpritLines?: { line: number; file?: string }[]
   minValue: number
 }
 interface Expected {
@@ -40,7 +42,7 @@ interface Expected {
   shifts: ExpectedShift[]
   decoys?: string[]
   /** A selector to click, or a description that contains one in backticks or quotes. */
-  interaction?: string | { selector: string; afterMs?: number } | null
+  interaction?: string | { selector: string; afterMs?: number; key?: string } | null
   notes?: string
 }
 
@@ -57,18 +59,20 @@ interface Row {
   detail: string
 }
 
-const report = createReport('M4 held-out pages: layout-shift attribution on pages the attributor was not built on')
+/** `cls-heldout`: the first set, a development set since the fixes that followed its first run. `cls-heldout-2`: the held-out measurement. */
+const SET = (process.argv[2] ?? 'cls-heldout') as 'cls-heldout' | 'cls-heldout-2'
+const report = createReport(`M4 ${SET}: layout-shift attribution on pages the attributor was not built on`)
 
-function interactionSelector(interaction: Expected['interaction']): { selector: string; afterMs: number } | undefined {
+function interactionSelector(interaction: Expected['interaction']): { selector: string; afterMs: number; key?: string } | undefined {
   if (interaction === null || interaction === undefined) return undefined
-  if (typeof interaction === 'object') return { selector: interaction.selector, afterMs: interaction.afterMs ?? 800 }
+  if (typeof interaction === 'object') return { selector: interaction.selector, afterMs: interaction.afterMs ?? 800, ...(interaction.key === undefined ? {} : { key: interaction.key }) }
   const quoted = /[`'"]([#.[][^`'"]+)[`'"]/.exec(interaction)?.[1] ?? /(#[\w-]+|\.[\w-]+(?:\s*[> ]\s*[\w.#-]+)*)/.exec(interaction)?.[1]
   return quoted === undefined ? undefined : { selector: quoted, afterMs: 800 }
 }
 
 try {
-  const fixture = await startFixture('cls-heldout')
-  const sessionDir = join(TMP_ROOT, `heldout-sessions-${process.pid}`)
+  const fixture = await startFixture(SET)
+  const sessionDir = join(TMP_ROOT, `${SET}-sessions-${process.pid}`)
   const reglet = await startReglet({ projectRoot: fixture.dir, target: fixture.port, handleSignals: false, sessionDir })
   onCleanup(() => reglet.close())
   const browser = await launchBrowser()
@@ -86,7 +90,9 @@ try {
     await page.goto(`${reglet.url}/${name}/`)
     if (interaction !== undefined) {
       await sleep(interaction.afterMs)
-      await page.click(interaction.selector, { timeout: 5000 }).catch(() => undefined)
+      // A trusted input event, as a person would make it: the browser then marks the shift as caused by input.
+      if (interaction.key === undefined) await page.click(interaction.selector, { timeout: 5000 }).catch(() => undefined)
+      else await page.press(interaction.selector, interaction.key, { timeout: 5000 }).catch(() => undefined)
     }
     const reported = await waitFor(() => (reglet.session.shifts()?.at ?? 0) > before && reglet.session.shifts()?.recording.url.includes(`/${name}/`), { what: `the shift report of ${name}`, timeoutMs: 25_000 }).then(
       () => true,
@@ -143,8 +149,8 @@ try {
     const right = top.cause === want.cause && culpritMatches
     const verdict: Verdict = confident ? (right ? 'correct' : 'wrong') : 'conservative'
     const sourceLoc: SourceLoc | undefined = latest.culpritSources[top.id]
-    const lines = [want.culpritLine, ...(want.acceptableCulpritLines ?? []).map((entry) => entry.line)]
-    const source: Row['source'] = sourceLoc?.file === undefined ? 'none' : sourceLoc.file === want.culpritFile && sourceLoc.line !== undefined && lines.includes(sourceLoc.line) ? 'right' : 'wrong'
+    const places = [{ file: want.culpritFile, line: want.culpritLine }, ...(want.acceptableCulpritLines ?? []).map((entry) => ({ file: entry.file === undefined ? want.culpritFile : `${name}/${entry.file.replace(`${name}/`, '')}`, line: entry.line }))]
+    const source: Row['source'] = sourceLoc?.file === undefined ? 'none' : places.some((place) => place.file === sourceLoc.file && place.line === sourceLoc.line) ? 'right' : 'wrong'
     rows.push({
       ...base,
       expected: `${want.cause}:${want.culpritSelector}`,

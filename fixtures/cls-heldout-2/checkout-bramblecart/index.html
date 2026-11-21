@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your basket (3) | Bramblecart</title>
+<style>
+  :root { --leaf: #2d6a4f; --leaf-dark: #1b4332; --berry: #9d174d; --ink: #1f2a24; --muted: #647067; --line: #dfe6e1; --bg: #f5f7f4; --card: #fff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 "Nunito Sans", "Segoe UI", system-ui, -apple-system, sans-serif; }
+  a { color: var(--leaf); }
+  button, input, select { font: inherit; }
+  .g { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  .hdr { background: var(--card); border-bottom: 1px solid var(--line); }
+  .hdr .g { display: flex; align-items: center; gap: 30px; height: 62px; }
+  .hdr .shop { display: flex; align-items: center; gap: 9px; font-size: 20px; font-weight: 800; color: var(--leaf-dark); text-decoration: none; }
+  .steps { display: flex; gap: 8px; margin: 0 auto; padding: 0; list-style: none; font-size: 13px; counter-reset: s; }
+  .steps li { counter-increment: s; display: flex; align-items: center; gap: 8px; color: var(--muted); }
+  .steps li::before { content: counter(s); width: 22px; height: 22px; border-radius: 50%; background: var(--line); color: var(--ink); text-align: center; line-height: 22px; font-weight: 700; }
+  .steps li.now { color: var(--ink); font-weight: 700; }
+  .steps li.now::before { background: var(--leaf); color: #fff; }
+  .steps li + li { padding-left: 8px; border-left: 1px solid var(--line); }
+  .hdr .secure { font-size: 13px; color: var(--muted); }
+
+  .ticker { background: var(--leaf-dark); color: #e6f2ea; font-size: 13px; }
+  .ticker .g { height: 32px; line-height: 32px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+  .cart { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; padding-top: 22px; padding-bottom: 50px; align-items: start; }
+  .cart h1 { margin: 0 0 14px; font-size: 24px; }
+  .lines { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+  .item { display: grid; grid-template-columns: 96px minmax(0, 1fr) 110px 90px; gap: 16px; align-items: center; padding: 16px; border-bottom: 1px solid var(--line); }
+  .item:last-child { border-bottom: 0; }
+  .item img { display: block; border-radius: 8px; background: #e8ede9; }
+  .item h2 { margin: 0; font-size: 16px; }
+  .item .opt { color: var(--muted); font-size: 13px; }
+  .item .stock { height: 20px; overflow: hidden; font-size: 13px; color: var(--berry); }
+  .qty { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .qty button { width: 32px; height: 34px; border: 0; background: var(--bg); cursor: pointer; }
+  .qty output { flex: 1; text-align: center; font-variant-numeric: tabular-nums; }
+  .item .line-total { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .under { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
+  .gift { display: flex; align-items: center; gap: 8px; }
+
+  .summary { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  .summary h2 { margin: 0 0 12px; font-size: 18px; }
+  .summary dl { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; margin: 0; }
+  .summary dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+  .summary .total { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 18px; font-weight: 800; }
+  .eta { height: 60px; margin: 14px 0; padding: 10px 12px; border-radius: 8px; background: #edf6f0; font-size: 13px; line-height: 20px; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .promo { display: flex; gap: 8px; margin-bottom: 12px; }
+  .promo input { flex: 1; min-width: 0; height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; }
+  .promo button { height: 40px; padding: 0 14px; border: 1px solid var(--leaf); border-radius: 8px; background: #fff; color: var(--leaf); font-weight: 700; cursor: pointer; }
+  .promo-msg { height: 20px; margin: -6px 0 10px; font-size: 13px; color: var(--muted); overflow: hidden; }
+  .pay { width: 100%; height: 50px; border: 0; border-radius: 10px; background: var(--leaf); color: #fff; font-size: 17px; font-weight: 800; cursor: pointer; transition: background 140ms ease; }
+  .pay:hover { background: var(--leaf-dark); }
+  .cards { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
+  .cards span { padding: 2px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 11px; color: var(--muted); }
+
+  .ftr { border-top: 1px solid var(--line); background: var(--card); color: var(--muted); font-size: 13px; }
+  .ftr .g { display: flex; justify-content: space-between; padding-top: 18px; padding-bottom: 18px; }
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="g">
+    <a class="shop" href="#"><img src="/assets/img/logo-mark.svg" width="30" height="30" alt=""> Bramblecart</a>
+    <ol class="steps" aria-label="Checkout steps">
+      <li class="now">Basket</li>
+      <li>Delivery</li>
+      <li>Payment</li>
+      <li>Done</li>
+    </ol>
+    <span class="secure">Secure checkout</span>
+  </div>
+</header>
+
+<div class="ticker" role="status">
+  <div class="g" id="ticker">Free delivery on orders over £40</div>
+</div>
+
+<div class="g cart">
+  <main>
+    <h1>Your basket</h1>
+    <div class="lines">
+      <article class="item" data-price="14.50">
+        <img src="/delay/800/assets/img/thumb-320x240.png" width="96" height="72" alt="Bare-root raspberry canes">
+        <div><h2>Raspberry 'Autumn Bliss', 5 bare-root canes</h2><div class="opt">Dispatched dormant · plant by April</div><div class="stock" data-sku="RB-05">Checking stock…</div></div>
+        <div class="qty"><button type="button" data-step="-1" aria-label="One fewer">−</button><output>2</output><button type="button" data-step="1" aria-label="One more">+</button></div>
+        <div class="line-total">£29.00</div>
+      </article>
+      <article class="item" data-price="9.00">
+        <img src="/assets/img/thumb-320x240.png" width="96" height="72" alt="Jute twine">
+        <div><h2>Tarred jute twine, 250 m</h2><div class="opt">3-ply</div><div class="stock" data-sku="TW-250">Checking stock…</div></div>
+        <div class="qty"><button type="button" data-step="-1" aria-label="One fewer">−</button><output>1</output><button type="button" data-step="1" aria-label="One more">+</button></div>
+        <div class="line-total">£9.00</div>
+      </article>
+      <article class="item" data-price="22.00">
+        <img src="/assets/img/thumb-320x240.png" width="96" height="72" alt="Copper hand trowel">
+        <div><h2>Copper hand trowel, ash handle</h2><div class="opt">Engraving: none</div><div class="stock" data-sku="TR-CU">Checking stock…</div></div>
+        <div class="qty"><button type="button" data-step="-1" aria-label="One fewer">−</button><output>1</output><button type="button" data-step="1" aria-label="One more">+</button></div>
+        <div class="line-total">£22.00</div>
+      </article>
+    </div>
+    <div class="under">
+      <label class="gift"><input type="checkbox"> This order is a gift (no prices on the packing slip)</label>
+      <a href="#">Keep shopping</a>
+    </div>
+  </main>
+
+  <aside class="summary" aria-label="Order summary">
+    <h2>Order summary</h2>
+    <dl>
+      <dt>Subtotal (4 items)</dt><dd id="subtotal">£60.00</dd>
+      <dt>Delivery</dt><dd>Free</dd>
+      <dt class="total">Total</dt><dd class="total" id="total">£60.00</dd>
+    </dl>
+    <div class="eta" id="eta">Working out your delivery date…</div>
+    <div class="promo"><input type="text" id="code" placeholder="Promo code" aria-label="Promo code"><button type="button" id="apply">Apply</button></div>
+    <div class="promo-msg" id="promo-msg" role="status"></div>
+    <button class="pay" type="button">Continue to delivery</button>
+    <div class="cards"><span>VISA</span><span>MASTERCARD</span><span>AMEX</span><span>PAYPAL</span></div>
+  </aside>
+</div>
+
+<footer class="ftr">
+  <div class="g"><span>© 2026 Bramblecart Nursery Supplies</span><span><a href="#">Delivery</a> · <a href="#">Returns</a> · <a href="#">Help</a></span></div>
+</footer>
+
+<script>
+  // Rotating service messages in the strip under the header.
+  (function () {
+    var strip = document.getElementById('ticker');
+    var messages = [
+      'Free delivery on orders over £40',
+      'Bare-root plants are guaranteed for twelve months: if one fails to grow, we replace it or refund you, whichever you prefer',
+      'Order by 2 pm for dispatch today',
+      'Peat-free since 2019, plastic-free packaging since 2022, and every box is sent on a van that was going your way anyway'
+    ];
+    var i = 0;
+    setInterval(function () {
+      i = (i + 1) % messages.length;
+      strip.textContent = messages[i];
+    }, 600);
+  })();
+
+  // Stock and delivery estimate for this basket.
+  fetch('/delay/800/assets/data/delivery-eta.json')
+    .then(function (response) { return response.json(); })
+    .then(function (data) {
+      document.getElementById('eta').textContent = data.eta;
+      var stock = { 'RB-05': 'Only 6 bundles left this season', 'TW-250': '', 'TR-CU': 'Back in stock: 3 available, more expected in the first week of April' };
+      document.querySelectorAll('.stock').forEach(function (out) { out.textContent = stock[out.dataset.sku]; });
+    });
+
+  // Quantity steppers and totals.
+  (function () {
+    function money(n) { return '£' + n.toFixed(2); }
+    function recalc() {
+      var sum = 0;
+      document.querySelectorAll('.item').forEach(function (item) {
+        var line = Number(item.dataset.price) * Number(item.querySelector('output').textContent);
+        item.querySelector('.line-total').textContent = money(line);
+        sum += line;
+      });
+      document.getElementById('subtotal').textContent = money(sum);
+      document.getElementById('total').textContent = money(sum);
+    }
+    document.querySelectorAll('.qty button').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var out = button.parentNode.querySelector('output');
+        out.textContent = Math.max(1, Number(out.textContent) + Number(button.dataset.step));
+        recalc();
+      });
+    });
+    document.getElementById('apply').addEventListener('click', function () {
+      document.getElementById('promo-msg').textContent = document.getElementById('code').value ? 'That code has expired.' : 'Enter a code first.';
+    });
+  })();
+</script>
+</body>
+</html>

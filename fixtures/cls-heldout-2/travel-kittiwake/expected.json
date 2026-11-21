@@ -1,0 +1,94 @@
+{
+  "page": "travel-kittiwake/index.html",
+  "template": "travel booking results page",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "injected-content",
+      "culpritSelector": ".results-head > p.fare-note",
+      "acceptableCulpritSelectors": [],
+      "culpritFile": "travel-kittiwake/index.html",
+      "culpritLine": 119,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<p class=\"fare-note\" id=\"fare-note\"",
+      "acceptableCulpritLines": [
+        {
+          "line": 177,
+          "kind": "text-statement",
+          "contains": "note.textContent = data.message;"
+        },
+        {
+          "line": 167,
+          "kind": "fetch-statement",
+          "contains": "fetch('/delay/850/assets/data/fare-note.json')"
+        }
+      ],
+      "victimSelectors": [
+        "#sailings",
+        ".sailing:nth-child(1)",
+        ".sailing:nth-child(2)",
+        ".sailing:nth-child(3)"
+      ],
+      "minValue": 0.0117
+    }
+  ],
+  "decoys": [
+    ".sailing .seats",
+    ".sailing img",
+    "#hold",
+    ".dates button"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.getElementById('fare-note').textContent.indexOf('Fares on this route changed') === 0",
+    "document.getElementById('fare-note').getBoundingClientRect().height > 100",
+    "document.querySelector('.sailing[data-sailing=\"1305\"] .seats').textContent === 'Only 4 vehicle spaces left'",
+    "document.querySelector('.sailing img').naturalWidth === 320"
+  ],
+  "measuredValues": [
+    0.019583,
+    0.019583,
+    0.019583
+  ],
+  "notes": "No element is inserted: a one-line status paragraph above the results has its textContent replaced with a five-line message when fare data arrives from an 850 ms delayed JSON URL, so the paragraph grows and pushes every sailing down. In the same callback four 'spaces' labels get new text inside fixed-height, clipped boxes; the first ship thumbnail arrives at 850 ms but is sized and a price-hold countdown rewrites its text every second in a fixed-width box.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.019583,
+      "startTimeMs": 873,
+      "sources": [
+        {
+          "node": "div#sailings",
+          "previousRect": {
+            "x": 370,
+            "y": 333.5,
+            "width": 816,
+            "height": 466.5
+          },
+          "currentRect": {
+            "x": 370,
+            "y": 401,
+            "width": 816,
+            "height": 399
+          }
+        }
+      ]
+    }
+  }
+}

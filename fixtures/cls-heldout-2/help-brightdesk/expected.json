@@ -1,0 +1,175 @@
+{
+  "page": "help-brightdesk/index.html",
+  "template": "help-centre article",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "font-swap",
+      "culpritSelector": ".kb > div > nav.kb-menu",
+      "acceptableCulpritSelectors": [
+        ".kb-menu > ul",
+        ".kb-menu li:nth-child(1)",
+        ".kb-menu li:nth-child(2)",
+        ".kb-menu li:nth-child(3)",
+        ".kb-menu li:nth-child(4)",
+        ".kb-menu li:nth-child(5)",
+        ".kb-menu li:nth-child(6)",
+        ".kb-menu li:nth-child(7)",
+        ".kb-menu li:nth-child(1) > a",
+        ".kb-menu li:nth-child(2) > a",
+        ".kb-menu li:nth-child(3) > a",
+        ".kb-menu li:nth-child(4) > a",
+        ".kb-menu li:nth-child(5) > a",
+        ".kb-menu li:nth-child(6) > a",
+        ".kb-menu li:nth-child(7) > a"
+      ],
+      "culpritFile": "help-brightdesk/index.html",
+      "culpritLine": 74,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<nav class=\"kb-menu\"",
+      "acceptableCulpritLines": [
+        {
+          "line": 143,
+          "kind": "font-add-statement",
+          "contains": "      document.fonts.add(loaded);"
+        },
+        {
+          "line": 141,
+          "kind": "font-face-constructor",
+          "contains": "var rounded = new FontFace('Brightdesk Rounded'"
+        },
+        {
+          "line": 27,
+          "kind": "font-family-declaration",
+          "contains": ".kb-menu { font-family: \"Brightdesk Rounded\""
+        }
+      ],
+      "victimSelectors": [
+        ".kb-contact",
+        ".kb-menu li:nth-child(4)",
+        ".kb-menu li:nth-child(6)",
+        ".kb-menu li:nth-child(7)"
+      ],
+      "minValue": 0.004
+    }
+  ],
+  "decoys": [
+    "#hc-header",
+    ".shot img",
+    ".article .meta img",
+    ".hc-brand img"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.documentElement.dataset.brandFont === 'ready'",
+    "document.fonts.check('12px \"Brightdesk Rounded\"') && document.fonts.check('12px \"Brightdesk Icons\"')",
+    "document.querySelector('.shot img').naturalWidth === 1200",
+    "document.querySelector('.kb-menu li:nth-child(2)').getBoundingClientRect().height > 40"
+  ],
+  "measuredValues": [
+    0.006756,
+    0.006756,
+    0.006756
+  ],
+  "notes": "The sidebar topic menu names a brand font that is not declared in CSS at all: a script builds it with the FontFace API and calls document.fonts.add() when the file has loaded (750 ms). The wider glyphs make five of the seven links wrap onto two lines, so the later links and the contact box under the menu move down; the article column beside it does not move. A second FontFace ('Brightdesk Icons') is added at 500 ms but no element uses it, the sticky header toggles a class that changes box-shadow and background every 750 ms, and the sized screenshot arrives at 750 ms.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.006756,
+      "startTimeMs": 774,
+      "sources": [
+        {
+          "node": "div.kb-contact",
+          "previousRect": {
+            "x": 78,
+            "y": 361.796875,
+            "width": 250,
+            "height": 112.9375
+          },
+          "currentRect": {
+            "x": 78,
+            "y": 451.796875,
+            "width": 250,
+            "height": 112.9375
+          }
+        },
+        {
+          "node": "li",
+          "previousRect": {
+            "x": 78,
+            "y": 275.796875,
+            "width": 250,
+            "height": 32
+          },
+          "currentRect": {
+            "x": 78,
+            "y": 347.796875,
+            "width": 250,
+            "height": 50
+          }
+        },
+        {
+          "node": "li",
+          "previousRect": {
+            "x": 78,
+            "y": 211.796875,
+            "width": 250,
+            "height": 32
+          },
+          "currentRect": {
+            "x": 78,
+            "y": 247.796875,
+            "width": 250,
+            "height": 50
+          }
+        },
+        {
+          "node": "li",
+          "previousRect": {
+            "x": 78,
+            "y": 243.796875,
+            "width": 250,
+            "height": 32
+          },
+          "currentRect": {
+            "x": 78,
+            "y": 297.796875,
+            "width": 250,
+            "height": 50
+          }
+        },
+        {
+          "node": "li",
+          "previousRect": {
+            "x": 78,
+            "y": 179.796875,
+            "width": 250,
+            "height": 32
+          },
+          "currentRect": {
+            "x": 78,
+            "y": 197.796875,
+            "width": 250,
+            "height": 50
+          }
+        }
+      ]
+    }
+  }
+}

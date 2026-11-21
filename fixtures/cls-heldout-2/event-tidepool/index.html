@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schedule · Tidepool Conf 2026, Falmouth</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+  :root { --deep: #062a3a; --teal: #0e9aa7; --coral: #ff6b5e; --sand: #fdf6ec; --ink: #10222b; --muted: #5d7480; --line: #d9e2e6; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--sand); color: var(--ink); font: 16px/1.55 var(--font-body); }
+  a { color: inherit; }
+  button { font: inherit; }
+  .inner { max-width: 1160px; margin: 0 auto; padding: 0 28px; }
+
+  .top { background: var(--deep); color: #fff; }
+  .top .inner { display: flex; align-items: center; gap: 28px; height: 64px; }
+  .top .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; text-decoration: none; }
+  .top nav { display: flex; gap: 22px; font-size: 15px; }
+  .top nav a { text-decoration: none; opacity: 0.8; transition: opacity 140ms ease; }
+  .top nav a:hover, .top nav a.here { opacity: 1; }
+  .top .tickets { margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 14px; }
+  .top .left { display: inline-block; width: 9em; font-variant-numeric: tabular-nums; color: #9fd8de; }
+  .top .buy { padding: 9px 18px; border-radius: 999px; background: var(--coral); color: #fff; font-weight: 700; text-decoration: none; }
+
+  .hero { background: linear-gradient(160deg, #0b4a5e, var(--deep)); color: #fff; }
+  .hero .inner { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 30px; align-items: end; padding-top: 34px; padding-bottom: 30px; }
+  .hero h1 { margin: 0 0 8px; font-size: 46px; line-height: 1.05; letter-spacing: -1px; }
+  .hero p { margin: 0; font-size: 18px; color: #bfe3e8; }
+  .countdown { display: flex; gap: 10px; }
+  .countdown div { width: 74px; padding: 10px 0; border-radius: 10px; background: rgba(255, 255, 255, 0.1); text-align: center; }
+  .countdown b { display: block; font-size: 26px; font-variant-numeric: tabular-nums; }
+  .countdown span { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #9fd8de; }
+
+  .body { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 36px; padding-top: 26px; padding-bottom: 56px; align-items: start; }
+  .schedule h2 { margin: 0 0 12px; font-size: 26px; letter-spacing: -0.4px; }
+  .day-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+  .day-tabs button { padding: 9px 16px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); font-family: var(--font-signal); font-size: 13px; cursor: pointer; transition: background 140ms ease, color 140ms ease, border-color 140ms ease; }
+  .day-tabs button[aria-selected="true"] { background: var(--teal); border-color: var(--teal); color: #fff; }
+  .session { display: grid; grid-template-columns: 96px 48px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 16px; margin-bottom: 10px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+  .session time { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .session img { border-radius: 50%; display: block; }
+  .session h3 { margin: 0; font-size: 17px; }
+  .session p { margin: 0; color: var(--muted); font-size: 14px; }
+  .track { padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+  .track.a { background: #dff4f6; color: #0b6f79; } .track.b { background: #ffe6e3; color: #b3372c; } .track.c { background: #ece9ff; color: #4b3fb0; }
+  .session.break { background: transparent; border-style: dashed; grid-template-columns: 96px 1fr; color: var(--muted); }
+
+  .aside .box { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; }
+  .aside h3 { margin: 0 0 8px; font-size: 16px; }
+  .aside p { margin: 0 0 10px; font-size: 14px; color: var(--muted); }
+  .aside img { display: block; width: 100%; height: auto; border-radius: 8px; }
+  .sponsors { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sponsors span { padding: 12px 0; border: 1px solid var(--line); border-radius: 8px; text-align: center; font-weight: 700; color: var(--muted); font-size: 14px; }
+
+  .bottom { background: var(--deep); color: #9fb9c2; font-size: 13px; }
+  .bottom .inner { display: flex; justify-content: space-between; padding-top: 22px; padding-bottom: 22px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="inner">
+    <a class="logo" href="#"><img src="/assets/img/logo-mark.svg" width="30" height="30" alt=""> Tidepool Conf</a>
+    <nav aria-label="Main">
+      <a href="#">Speakers</a>
+      <a class="here" href="#">Schedule</a>
+      <a href="#">Workshops</a>
+      <a href="#">Venue</a>
+      <a href="#">Code of conduct</a>
+    </nav>
+    <div class="tickets"><span class="left" id="tickets-left">Checking tickets</span><a class="buy" href="#">Get a ticket</a></div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="inner">
+    <div>
+      <h1>Three days of the web, by the sea</h1>
+      <p>14–16 May 2026 · Princess Pavilion, Falmouth · 420 people, one track at a time</p>
+    </div>
+    <div class="countdown" aria-label="Time until the conference">
+      <div><b id="cd-d">63</b><span>days</span></div>
+      <div><b id="cd-h">08</b><span>hours</span></div>
+      <div><b id="cd-m">14</b><span>min</span></div>
+      <div><b id="cd-s">52</b><span>sec</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="inner body">
+  <main class="schedule">
+    <h2>Schedule</h2>
+    <div class="day-tabs" role="tablist" aria-label="Conference days">
+      <button type="button" role="tab" aria-selected="true">Thursday 14 May</button>
+      <button type="button" role="tab" aria-selected="false">Friday 15 May</button>
+      <button type="button" role="tab" aria-selected="false">Saturday 16 May</button>
+      <button type="button" role="tab" aria-selected="false">Workshops</button>
+      <button type="button" role="tab" aria-selected="false">Evening events</button>
+    </div>
+
+    <div class="sessions" id="sessions" role="tabpanel">
+      <article class="session">
+        <time>09:30</time>
+        <img src="/delay/700/assets/img/avatar-160.svg" width="48" height="48" alt="">
+        <div><h3>Opening: what the tide brings in</h3><p>Wilhelmina Tregear · organiser</p></div>
+        <span class="track a">Main hall</span>
+      </article>
+      <article class="session">
+        <time>10:00</time>
+        <img src="/assets/img/avatar-160.svg" width="48" height="48" alt="">
+        <div><h3>Layout that survives its content</h3><p>Kofi Asante · intrinsic sizing, container queries and letting go</p></div>
+        <span class="track a">Main hall</span>
+      </article>
+      <div class="session break"><time>10:45</time><span>Coffee on the terrace</span></div>
+      <article class="session">
+        <time>11:15</time>
+        <img src="/assets/img/avatar-160.svg" width="48" height="48" alt="">
+        <div><h3>Maps that work on the ferry</h3><p>Ingrid Solheim · offline tiles, service workers and patchy signal</p></div>
+        <span class="track b">Main hall</span>
+      </article>
+      <article class="session">
+        <time>12:00</time>
+        <img src="/assets/img/avatar-160.svg" width="48" height="48" alt="">
+        <div><h3>The accessible name of everything</h3><p>Dev Ramaswamy · a field guide with live testing</p></div>
+        <span class="track c">Main hall</span>
+      </article>
+      <div class="session break"><time>12:45</time><span>Lunch, and a swim if you are brave</span></div>
+    </div>
+  </main>
+
+  <aside class="aside">
+    <div class="box">
+      <h3>Venue</h3>
+      <p>Princess Pavilion, Melvill Road. Ten minutes on foot from Falmouth Town station.</p>
+      <img src="/assets/img/card-600x400.png" width="600" height="400" alt="Map showing the pavilion and the station">
+    </div>
+    <div class="box">
+      <h3>Sponsors</h3>
+      <div class="sponsors"><span>Quillstack</span><span>Pulsebase</span><span>Orderdesk</span><span>Kiln</span></div>
+    </div>
+  </aside>
+</div>
+
+<footer class="bottom">
+  <div class="inner"><span>© 2026 Tidepool Events CIC</span><span><a href="#">Accessibility</a> · <a href="#">Contact</a></span></div>
+</footer>
+
+<script>
+  // Countdown to the opening talk.
+  (function () {
+    var d = document.getElementById('cd-d'), h = document.getElementById('cd-h'), m = document.getElementById('cd-m'), s = document.getElementById('cd-s');
+    var left = 63 * 86400 + 8 * 3600 + 14 * 60 + 52;
+    function two(n) { return (n < 10 ? '0' : '') + n; }
+    setInterval(function () {
+      left -= 1;
+      d.textContent = Math.floor(left / 86400);
+      h.textContent = two(Math.floor(left / 3600) % 24);
+      m.textContent = two(Math.floor(left / 60) % 60);
+      s.textContent = two(left % 60);
+    }, 1000);
+  })();
+
+  // Day tabs.
+  document.querySelectorAll('.day-tabs button').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('.day-tabs button').forEach(function (other) { other.setAttribute('aria-selected', String(other === tab)); });
+      document.getElementById('sessions').dataset.day = tab.textContent;
+    });
+  });
+
+  // Ticket availability from the box office.
+  setTimeout(function () {
+    document.getElementById('tickets-left').textContent = '37 tickets left';
+  }, 700);
+</script>
+</body>
+</html>

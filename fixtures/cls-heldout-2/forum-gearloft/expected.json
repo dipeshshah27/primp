@@ -1,0 +1,134 @@
+{
+  "page": "forum-gearloft/index.html",
+  "template": "forum thread",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "injected-content",
+      "culpritSelector": "#posts > aside.solved-banner",
+      "acceptableCulpritSelectors": [],
+      "culpritFile": "forum-gearloft/index.html",
+      "culpritLine": 161,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<aside class=\"solved-banner\" role=\"note\">",
+      "acceptableCulpritLines": [
+        {
+          "line": 194,
+          "kind": "insert-statement",
+          "contains": "posts.insertBefore(banner, document.getElementById('post-2'));"
+        },
+        {
+          "line": 191,
+          "kind": "clone-statement",
+          "contains": "content.firstElementChild.cloneNode(true);"
+        },
+        {
+          "line": 160,
+          "kind": "template-opening-tag",
+          "contains": "<template id=\"solved-template\">"
+        },
+        {
+          "line": 183,
+          "kind": "fetch-statement",
+          "contains": "fetch('/delay/800/assets/data/thread-state.json')"
+        }
+      ],
+      "victimSelectors": [
+        "#post-2",
+        "#post-3"
+      ],
+      "minValue": 0.018
+    }
+  ],
+  "decoys": [
+    "#post-2 .who img",
+    "#post-1 .who img",
+    ".likes",
+    "#snippet",
+    ".online i",
+    "#post-1"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.querySelectorAll('#posts > .solved-banner').length === 1 && document.getElementById('post-1').nextElementSibling.classList.contains('solved-banner')",
+    "document.querySelector('.likes[data-post=\"3\"]').textContent === '27'",
+    "document.querySelectorAll('#snippet span').length > 3",
+    "document.querySelector('#post-2 .who img').naturalWidth === 160"
+  ],
+  "measuredValues": [
+    0.030537,
+    0.030537,
+    0.030537
+  ],
+  "notes": "A 'solved' banner is cloned from a <template> and inserted with insertBefore() between the first post and the first reply when thread state arrives from an 800 ms delayed JSON URL; the replies after it move down, the first post does not. The culprit's markup is in the HTML inside the <template>, so the line is that opening tag; the insert and clone statements are acceptable lines. In the same callback the like counts are written into fixed-width boxes; a reply's avatar arrives at 800 ms but is sized, presence dots change colour at 800 ms and a code snippet's innerHTML is rewritten at 400 ms.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.030537,
+      "startTimeMs": 835,
+      "sources": [
+        {
+          "node": "article#post-2",
+          "previousRect": {
+            "x": 80,
+            "y": 365.875,
+            "width": 842,
+            "height": 174.875
+          },
+          "currentRect": {
+            "x": 80,
+            "y": 475.40625,
+            "width": 842,
+            "height": 174.875
+          }
+        },
+        {
+          "node": "article#post-3",
+          "previousRect": {
+            "x": 80,
+            "y": 552.75,
+            "width": 842,
+            "height": 247.25
+          },
+          "currentRect": {
+            "x": 80,
+            "y": 662.28125,
+            "width": 842,
+            "height": 137.71875
+          }
+        },
+        {
+          "node": "span.rank",
+          "previousRect": {
+            "x": 116.859375,
+            "y": 692.03125,
+            "width": 77.28125,
+            "height": 20.59375
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          }
+        }
+      ]
+    }
+  }
+}

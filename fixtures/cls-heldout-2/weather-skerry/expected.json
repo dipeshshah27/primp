@@ -1,0 +1,111 @@
+{
+  "page": "weather-skerry/index.html",
+  "template": "weather dashboard",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "unsized-media",
+      "culpritSelector": ".trend > object.trend-chart",
+      "acceptableCulpritSelectors": [],
+      "culpritFile": "weather-skerry/index.html",
+      "culpritLine": 100,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<object class=\"trend-chart\"",
+      "victimSelectors": [
+        ".trend .source",
+        "main > section.card:nth-of-type(3)",
+        "main > section.card:nth-of-type(4)"
+      ],
+      "minValue": 0.011
+    }
+  ],
+  "decoys": [
+    ".radar img",
+    "#needle",
+    "#stamp",
+    ".hours svg",
+    ".bar .name img"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.querySelector('.trend-chart').getBoundingClientRect().height > 200",
+    "document.querySelector('.radar img').naturalWidth === 600",
+    "document.getElementById('needle').style.transform.indexOf('rotate') === 0"
+  ],
+  "measuredValues": [
+    0.018147,
+    0.018147,
+    0.018147
+  ],
+  "notes": "The trend chart is an SVG document embedded with <object> and no width/height; until the SVG arrives (700 ms) the object is the default 300x150, then it takes the SVG's own 640x240 and pushes the chart's source line, the hourly strip and the seven-day table down. The sized radar image arrives at the same 700 ms, the wind needle is rotated by a script every 700 ms (transform only) and the observation time stamp is rewritten every second in a fixed-width box.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.018147,
+      "startTimeMs": 723,
+      "sources": [
+        {
+          "node": "section.card",
+          "previousRect": {
+            "x": 40,
+            "y": 506.5,
+            "width": 852,
+            "height": 156.5
+          },
+          "currentRect": {
+            "x": 40,
+            "y": 596.5,
+            "width": 852,
+            "height": 156.5
+          }
+        },
+        {
+          "node": "section.card",
+          "previousRect": {
+            "x": 40,
+            "y": 681,
+            "width": 852,
+            "height": 119
+          },
+          "currentRect": {
+            "x": 40,
+            "y": 771,
+            "width": 852,
+            "height": 29
+          }
+        },
+        {
+          "node": "p.source",
+          "previousRect": {
+            "x": 59,
+            "y": 453.5,
+            "width": 814,
+            "height": 18
+          },
+          "currentRect": {
+            "x": 59,
+            "y": 543.5,
+            "width": 814,
+            "height": 18
+          }
+        }
+      ]
+    }
+  }
+}

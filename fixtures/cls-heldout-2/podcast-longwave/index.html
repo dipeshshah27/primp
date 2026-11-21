@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ep. 118: The lighthouse keeper's logbook · Longwave</title>
+<style>
+  :root { --bg: #14110f; --panel: #1f1a17; --line: #352c26; --text: #f3ece4; --dim: #b3a497; --amber: #f2a541; --amber-dark: #c77d16; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 "Avenir Next", Avenir, "Segoe UI", system-ui, sans-serif; }
+  a { color: inherit; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+
+  .topbar { border-bottom: 1px solid var(--line); }
+  .topbar .wrap { display: flex; align-items: center; gap: 30px; height: 66px; }
+  .show { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; letter-spacing: 0.5px; text-decoration: none; }
+  .show .wave { display: flex; align-items: flex-end; gap: 3px; height: 22px; }
+  .show .wave i { width: 4px; background: var(--amber); border-radius: 2px; transform-origin: bottom; animation: bounce 1.2s ease-in-out infinite; }
+  .show .wave i:nth-child(1) { height: 10px; } .show .wave i:nth-child(2) { height: 22px; animation-delay: 0.15s; } .show .wave i:nth-child(3) { height: 15px; animation-delay: 0.3s; } .show .wave i:nth-child(4) { height: 8px; animation-delay: 0.45s; }
+  @keyframes bounce { 50% { transform: scaleY(0.45); } }
+  .topbar nav { display: flex; gap: 22px; font-size: 15px; color: var(--dim); }
+  .topbar nav a { text-decoration: none; transition: color 140ms ease; }
+  .topbar nav a:hover { color: var(--text); }
+  .listen-on { margin-left: auto; display: flex; gap: 8px; }
+  .listen-on a { padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; text-decoration: none; transition: border-color 140ms ease; }
+  .listen-on a:hover { border-color: var(--amber); }
+
+  .episode-hero { display: grid; grid-template-columns: 500px minmax(0, 1fr); gap: 36px; align-items: start; padding: 30px 0 26px; }
+  .video-wrap { border-radius: 14px; overflow: hidden; background: #000; }
+  .episode-video { display: block; width: 100%; height: auto; }
+  .ep-number { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--amber); }
+  .episode-hero h1 { margin: 6px 0 8px; font-size: 32px; line-height: 1.15; letter-spacing: -0.4px; }
+  .ep-meta { color: var(--dim); font-size: 14px; }
+  .ep-meta .plays { display: inline-block; width: 7em; font-variant-numeric: tabular-nums; }
+  .ep-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .ep-actions button { height: 42px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
+  .ep-actions button.play { background: var(--amber); border-color: var(--amber); color: #1b1203; }
+  .ep-actions button.play:hover { background: var(--amber-dark); }
+
+  .player { display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; padding: 14px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+  .player .cover { border-radius: 8px; display: block; }
+  .player .scrub { position: relative; height: 6px; border-radius: 3px; background: #3c322b; overflow: hidden; }
+  .player .scrub b { position: absolute; inset: 0; background: var(--amber); transform-origin: left; transform: scaleX(0.18); transition: transform 300ms linear; }
+  .player .time { font-size: 13px; color: var(--dim); font-variant-numeric: tabular-nums; width: 6.5em; }
+
+  .columns { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 44px; padding: 30px 0 60px; align-items: start; }
+  .notes h2, .side h2 { font-size: 18px; margin: 0 0 10px; }
+  .notes p { margin: 0 0 14px; color: #ddd2c6; }
+  .chapters { margin: 0 0 26px; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+  .chapters li { display: grid; grid-template-columns: 64px 1fr; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .chapters time { color: var(--amber); font-variant-numeric: tabular-nums; }
+  .chapters li.now { background: rgba(242, 165, 65, 0.08); }
+  .transcript { padding: 16px 18px; border-left: 3px solid var(--amber); background: var(--panel); border-radius: 0 10px 10px 0; font-size: 15px; }
+  .transcript b { color: var(--amber); }
+
+  .side section { padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); margin-bottom: 18px; }
+  .hosts { margin: 0; padding: 0; list-style: none; }
+  .hosts li { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
+  .hosts img { border-radius: 50%; }
+  .hosts small { display: block; color: var(--dim); }
+  .more { margin: 0; padding: 0; list-style: none; font-size: 15px; }
+  .more li { padding: 8px 0; border-top: 1px solid var(--line); }
+  .more li:first-child { border-top: 0; }
+  .more a { text-decoration: none; }
+  .more span { display: block; font-size: 12px; color: var(--dim); }
+
+  .foot { border-top: 1px solid var(--line); color: var(--dim); font-size: 13px; }
+  .foot .wrap { display: flex; justify-content: space-between; padding-top: 22px; padding-bottom: 22px; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="show" href="#"><span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i></span> Longwave</a>
+    <nav aria-label="Main">
+      <a href="#">Episodes</a>
+      <a href="#">Series</a>
+      <a href="#">About the show</a>
+      <a href="#">Support us</a>
+    </nav>
+    <div class="listen-on"><a href="#">Apple</a><a href="#">Spotify</a><a href="#">RSS</a></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="episode-hero">
+    <div class="video-wrap">
+      <video class="episode-video" controls preload="none" playsinline poster="/delay/800/assets/img/card-600x400.png">
+        <source src="/assets/video/clip-640x360.webm" type="video/webm">
+      </video>
+    </div>
+    <div>
+      <div class="ep-number">Episode 118 · Series 9</div>
+      <h1>The lighthouse keeper's logbook</h1>
+      <div class="ep-meta">12 March 2026 · 47 min · <span class="plays" id="plays">— plays</span></div>
+      <div class="ep-actions">
+        <button class="play" id="play" type="button">Play episode</button>
+        <button type="button">Add to queue</button>
+        <button type="button">Share</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="player" aria-label="Audio player">
+    <img class="cover" src="/delay/800/assets/img/thumb-320x240.png" width="64" height="48" alt="Longwave cover art">
+    <div class="scrub" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="18"><b id="scrub-fill"></b></div>
+    <div class="time" id="time">08:27 / 47:02</div>
+  </section>
+
+  <div class="columns">
+    <article class="notes">
+      <h2>Show notes</h2>
+      <p>For thirty-one years the keeper at Skerry Head wrote down the weather four times a day, and in the margins, everything else: wrecks, visitors, the price of paraffin and a long-running argument with the Board about a cat.</p>
+      <p>We read the logbooks with the archivist who rescued them from a skip, and follow one entry from 1953 to the family it was written about.</p>
+      <h2>Chapters</h2>
+      <ol class="chapters" id="chapters">
+        <li><time>00:00</time><span>The skip behind the harbour office</span></li>
+        <li class="now"><time>06:40</time><span>How to read a keeper's hand</span></li>
+        <li><time>15:12</time><span>January 1953</span></li>
+        <li><time>28:05</time><span>The cat correspondence</span></li>
+        <li><time>39:30</time><span>What the Board kept, and what it threw away</span></li>
+      </ol>
+      <h2>From the transcript</h2>
+      <div class="transcript"><b>Archivist:</b> You can tell when the weather was bad because the handwriting gets smaller. He was saving paper. He did not know when the next boat would come.</div>
+    </article>
+
+    <aside class="side">
+      <section>
+        <h2>Hosts</h2>
+        <ul class="hosts">
+          <li><img src="/assets/img/avatar-160.svg" width="44" height="44" alt=""><div>Maren Oduya<small>Presenter</small></div></li>
+          <li><img src="/assets/img/avatar-160.svg" width="44" height="44" alt=""><div>Felix Caradoc<small>Producer</small></div></li>
+        </ul>
+      </section>
+      <section>
+        <h2>More from this series</h2>
+        <ul class="more">
+          <li><a href="#">117: The fog signal that nobody ordered</a><span>41 min</span></li>
+          <li><a href="#">116: A map of the seabed, drawn from memory</a><span>52 min</span></li>
+          <li><a href="#">115: Radio for ships that are not there</a><span>38 min</span></li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap"><span>© 2026 Longwave Audio</span><span><a href="#">Contact</a> · <a href="#">Transcripts</a> · <a href="#">Press</a></span></div>
+</footer>
+
+<script>
+  // Mini player: the scrub bar follows the clock while "playing".
+  (function () {
+    var fill = document.getElementById('scrub-fill');
+    var time = document.getElementById('time');
+    var seconds = 8 * 60 + 27;
+    function two(n) { return (n < 10 ? '0' : '') + n; }
+    setInterval(function () {
+      seconds += 1;
+      fill.style.transform = 'scaleX(' + (seconds / 2822).toFixed(4) + ')';
+      time.textContent = two(Math.floor(seconds / 60)) + ':' + two(seconds % 60) + ' / 47:02';
+    }, 1000);
+  })();
+
+  // Play count from the stats service.
+  setTimeout(function () {
+    document.getElementById('plays').textContent = '18,204 plays';
+  }, 800);
+
+  // The big play button starts the video version.
+  document.getElementById('play').addEventListener('click', function () {
+    document.querySelector('.episode-video').play();
+  });
+</script>
+</body>
+</html>

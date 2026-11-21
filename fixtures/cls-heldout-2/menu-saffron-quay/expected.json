@@ -1,0 +1,44 @@
+{
+  "page": "menu-saffron-quay/index.html",
+  "template": "restaurant menu page",
+  "positive": false,
+  "shifts": [],
+  "decoys": [
+    ".banner img",
+    ".dish-photo img",
+    "#starters .dish:nth-child(1) .dish-photo img",
+    "#starters .dish:nth-child(3) .dish-photo img",
+    ".menu-nav a.on"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.querySelector('.banner img').naturalWidth === 1200 && !document.querySelector('.banner img').hasAttribute('width')",
+    "Array.from(document.querySelectorAll('#starters .dish-photo img')).every(function (img) { return img.complete && img.naturalWidth > 0 && !img.hasAttribute('width') && !img.hasAttribute('height') && img.classList.contains('is-loaded'); })",
+    "Math.abs(document.querySelector('.dish-photo').getBoundingClientRect().height - 112.5) < 1"
+  ],
+  "measuredValues": [
+    0,
+    0,
+    0
+  ],
+  "notes": "None of the photographs has width or height attributes and several arrive late (700, 900 and 1100 ms), but every one sits in a box whose size is already fixed by CSS: the banner has an explicit height and each dish photo a 4:3 aspect-ratio box, with the image filling it by object-fit. The boxes never change size, so nothing moves; the images only fade in by opacity. No element should be accused.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      }
+    ]
+  }
+}

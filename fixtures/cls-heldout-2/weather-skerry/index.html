@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skerry Head weather · Skerry Weather</title>
+<style>
+  :root { --sky: #0c4a6e; --sky-2: #075985; --ink: #0f172a; --muted: #64748b; --line: #dbe4ee; --bg: #eef4f9; --card: #ffffff; --warn: #b45309; --sun: #f59e0b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; }
+  a { color: inherit; }
+  button, input { font: inherit; }
+  .shell { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  .bar { background: linear-gradient(90deg, var(--sky), var(--sky-2)); color: #fff; }
+  .bar .shell { display: flex; align-items: center; gap: 22px; height: 60px; }
+  .bar .name { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; }
+  .bar .place { flex: 0 0 320px; height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: rgba(255, 255, 255, 0.16); color: #fff; }
+  .bar .place::placeholder { color: #cfe3f1; }
+  .bar .units { margin-left: auto; display: flex; border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 8px; overflow: hidden; }
+  .bar .units button { padding: 5px 12px; border: 0; background: transparent; color: #fff; cursor: pointer; }
+  .bar .units button[aria-pressed="true"] { background: #fff; color: var(--sky); font-weight: 700; }
+  .bar .stamp { font-size: 12px; color: #cfe3f1; width: 11em; font-variant-numeric: tabular-nums; }
+
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; padding: 18px 0 48px; align-items: start; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin-bottom: 18px; }
+  .card h2 { margin: 0 0 10px; font-size: 14px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
+
+  .now { display: grid; grid-template-columns: auto 1fr auto; gap: 22px; align-items: center; }
+  .now .temp { font-size: 64px; font-weight: 300; line-height: 1; letter-spacing: -2px; }
+  .now .cond { font-size: 20px; font-weight: 600; }
+  .now .sub { color: var(--muted); }
+  .now dl { display: grid; grid-template-columns: auto auto; gap: 2px 16px; margin: 0; font-size: 14px; }
+  .now dt { color: var(--muted); }
+  .now dd { margin: 0; font-weight: 600; text-align: right; }
+
+  .hours { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin: 0; padding: 0; list-style: none; text-align: center; }
+  .hours li { padding: 8px 0; border-radius: 10px; background: #f3f8fc; font-size: 13px; }
+  .hours svg { display: block; margin: 4px auto; }
+  .hours b { display: block; font-size: 16px; }
+
+  .trend .legend { display: flex; gap: 16px; margin-bottom: 8px; font-size: 13px; color: var(--muted); }
+  .trend .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
+  .trend-chart { display: block; max-width: 100%; }
+  .trend .source { margin: 8px 0 0; font-size: 12px; color: var(--muted); }
+
+  .week { width: 100%; border-collapse: collapse; }
+  .week th, .week td { padding: 9px 10px; border-top: 1px solid var(--line); text-align: left; }
+  .week th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); border-top: 0; }
+  .week .hi { font-weight: 700; }
+  .week .lo { color: var(--muted); }
+  .rainbar { width: 90px; height: 6px; border-radius: 3px; background: #e6eef5; overflow: hidden; }
+  .rainbar b { display: block; height: 100%; background: #38bdf8; }
+
+  .warning { border-left: 4px solid var(--warn); }
+  .warning strong { color: var(--warn); }
+  .compass { display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: center; }
+  .compass svg { display: block; }
+  #needle { transform-origin: 48px 48px; transition: transform 700ms ease; }
+  .sun { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sun div { padding: 10px; border-radius: 10px; background: #fff7e6; text-align: center; }
+  .sun b { display: block; font-size: 18px; }
+  .radar img { display: block; width: 100%; height: auto; border-radius: 10px; }
+
+  .foot { color: var(--muted); font-size: 13px; padding: 0 0 30px; }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="shell">
+    <div class="name"><img src="/assets/img/logo-mark.svg" width="28" height="28" alt=""> Skerry Weather</div>
+    <input class="place" type="search" placeholder="Search a town, harbour or postcode" aria-label="Search for a place">
+    <span class="stamp" id="stamp">Observed 12:40:00</span>
+    <div class="units" role="group" aria-label="Units">
+      <button type="button" aria-pressed="true">°C</button>
+      <button type="button" aria-pressed="false">°F</button>
+    </div>
+  </div>
+</header>
+
+<div class="shell grid">
+  <main>
+    <section class="card now" aria-label="Now">
+      <div class="temp">9°</div>
+      <div>
+        <div class="cond">Showers, brightening later</div>
+        <div class="sub">Skerry Head · feels like 5° · high 11° low 6°</div>
+      </div>
+      <dl>
+        <dt>Wind</dt><dd>SW 24 mph</dd>
+        <dt>Gusts</dt><dd>38 mph</dd>
+        <dt>Pressure</dt><dd>1004 hPa, rising</dd>
+        <dt>Visibility</dt><dd>9 miles</dd>
+      </dl>
+    </section>
+
+    <section class="card trend">
+      <h2>48-hour trend</h2>
+      <div class="legend"><span><i style="background:#2563eb"></i>Temperature</span><span><i style="background:#f59e0b"></i>Wind speed</span></div>
+      <object class="trend-chart" type="image/svg+xml" data="/delay/700/assets/img/chart-640x240.svg" aria-label="Temperature and wind speed over the next 48 hours"></object>
+      <p class="source">Model run 06Z, station blend. Shaded hours are after sunset.</p>
+    </section>
+
+    <section class="card">
+      <h2>Next hours</h2>
+      <ol class="hours">
+        <li>13:00<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="10" r="6" fill="#94a3b8"/><path d="M8 19l-1 3M12 19l-1 3M16 19l-1 3" stroke="#38bdf8" stroke-width="2"/></svg><b>9°</b></li>
+        <li>14:00<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="10" r="6" fill="#94a3b8"/><path d="M8 19l-1 3M12 19l-1 3M16 19l-1 3" stroke="#38bdf8" stroke-width="2"/></svg><b>10°</b></li>
+        <li>15:00<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="#94a3b8"/></svg><b>10°</b></li>
+        <li>16:00<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="10" r="5" fill="#f59e0b"/><circle cx="14" cy="14" r="6" fill="#cbd5e1"/></svg><b>11°</b></li>
+        <li>17:00<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="10" r="5" fill="#f59e0b"/><circle cx="14" cy="14" r="6" fill="#cbd5e1"/></svg><b>10°</b></li>
+        <li>18:00<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6" fill="#f59e0b"/></svg><b>9°</b></li>
+        <li>19:00<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6" fill="#64748b"/></svg><b>8°</b></li>
+        <li>20:00<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6" fill="#64748b"/></svg><b>7°</b></li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>Seven days</h2>
+      <table class="week">
+        <thead><tr><th>Day</th><th>Outlook</th><th>High</th><th>Low</th><th>Rain</th><th>Wind</th></tr></thead>
+        <tbody>
+          <tr><td>Fri</td><td>Sunny spells</td><td class="hi">12°</td><td class="lo">5°</td><td><div class="rainbar"><b style="width:15%"></b></div></td><td>W 14</td></tr>
+          <tr><td>Sat</td><td>Rain from the west by noon</td><td class="hi">10°</td><td class="lo">7°</td><td><div class="rainbar"><b style="width:80%"></b></div></td><td>SW 28</td></tr>
+          <tr><td>Sun</td><td>Blustery showers</td><td class="hi">9°</td><td class="lo">4°</td><td><div class="rainbar"><b style="width:60%"></b></div></td><td>NW 31</td></tr>
+          <tr><td>Mon</td><td>Dry, cold start</td><td class="hi">8°</td><td class="lo">1°</td><td><div class="rainbar"><b style="width:5%"></b></div></td><td>N 10</td></tr>
+          <tr><td>Tue</td><td>Cloud thickening</td><td class="hi">9°</td><td class="lo">3°</td><td><div class="rainbar"><b style="width:30%"></b></div></td><td>S 12</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <aside>
+    <section class="card warning">
+      <h2>Warnings</h2>
+      <p style="margin:0"><strong>Yellow, wind.</strong> Gusts of 50 mph on exposed headlands from 21:00 on Saturday until 06:00 on Sunday.</p>
+    </section>
+    <section class="card">
+      <h2>Wind</h2>
+      <div class="compass">
+        <svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
+          <circle cx="48" cy="48" r="44" fill="#f3f8fc" stroke="#dbe4ee" stroke-width="2"/>
+          <text x="48" y="16" text-anchor="middle" font-size="11" fill="#64748b">N</text>
+          <path id="needle" d="M48 14l7 34h-14z" fill="#0c4a6e"/>
+          <circle cx="48" cy="48" r="4" fill="#0c4a6e"/>
+        </svg>
+        <div><b style="font-size:20px">SW 24 mph</b><br><span style="color:var(--muted)">Backing southerly this evening</span></div>
+      </div>
+    </section>
+    <section class="card">
+      <h2>Sun</h2>
+      <div class="sun"><div>Sunrise<b>06:38</b></div><div>Sunset<b>18:11</b></div></div>
+    </section>
+    <section class="card radar">
+      <h2>Rain radar</h2>
+      <img src="/delay/700/assets/img/card-600x400.png" width="600" height="400" alt="Radar image showing a band of showers west of Skerry Head">
+    </section>
+  </aside>
+</div>
+
+<div class="shell foot">Observations from the Skerry Head automatic station. Forecast updated hourly.</div>
+
+<script>
+  // Wind needle follows the latest direction reading.
+  (function () {
+    var needle = document.getElementById('needle');
+    var readings = [225, 232, 219, 228, 236, 222];
+    var i = 0;
+    needle.style.transform = 'rotate(' + readings[0] + 'deg)';
+    setInterval(function () {
+      i = (i + 1) % readings.length;
+      needle.style.transform = 'rotate(' + readings[i] + 'deg)';
+    }, 700);
+  })();
+
+  // Observation time stamp.
+  (function () {
+    var stamp = document.getElementById('stamp');
+    var s = 0;
+    setInterval(function () {
+      s = (s + 1) % 60;
+      stamp.textContent = 'Observed 12:40:' + (s < 10 ? '0' : '') + s;
+    }, 1000);
+  })();
+
+  // Units toggle.
+  document.querySelectorAll('.units button').forEach(function (button) {
+    button.addEventListener('click', function () {
+      document.querySelectorAll('.units button').forEach(function (other) { other.setAttribute('aria-pressed', String(other === button)); });
+    });
+  });
+</script>
+</body>
+</html>

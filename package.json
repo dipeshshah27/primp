@@ -26,7 +26,8 @@
     "spike:pack": "tsx spikes/pack-check.ts",
     "spike:demo": "tsx spikes/demo-check.ts",
     "spike:agent": "tsx spikes/agent-check.ts",
-    "spike:m4-heldout": "tsx spikes/m4-heldout.ts"
+    "spike:m4-heldout": "tsx spikes/m4-heldout.ts",
+    "spike:m4-heldout2": "tsx spikes/m4-heldout.ts cls-heldout-2"
   },
   "devDependencies": {
     "@jridgewell/trace-mapping": "0.3.31",

@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Front-end engineer jobs in Leeds | Fathom Jobs</title>
+<script async src="/delay/800/jobs-fathom/job-widgets.js"></script>
+<style>
+  :root { --blue: #0b5ed7; --ink: #12263f; --muted: #5c6b80; --line: #dfe5ee; --bg: #f4f6fa; --card: #fff; --tag: #e9eef6; --new: #0a7a45; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  a { color: var(--blue); text-decoration: none; }
+  button, input, select { font: inherit; }
+  .lane { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+
+  .head { background: var(--card); border-bottom: 1px solid var(--line); }
+  .head .lane { display: flex; align-items: center; gap: 26px; height: 62px; }
+  .head .mark { display: flex; align-items: center; gap: 9px; font-size: 19px; font-weight: 800; color: var(--ink); }
+  .head nav { display: flex; gap: 20px; }
+  .head nav a { color: var(--muted); transition: color 120ms ease; }
+  .head nav a:hover { color: var(--ink); }
+  .head .acct { margin-left: auto; display: flex; gap: 12px; align-items: center; }
+  .head .post { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--blue); font-weight: 600; }
+
+  .searchbar { background: var(--ink); }
+  .searchbar form { display: grid; grid-template-columns: 1.4fr 1fr auto; gap: 10px; padding: 16px 0; }
+  .searchbar input { height: 46px; padding: 0 14px; border: 0; border-radius: 8px; }
+  .searchbar button { height: 46px; padding: 0 26px; border: 0; border-radius: 8px; background: var(--blue); color: #fff; font-weight: 700; cursor: pointer; }
+
+  .cols { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 28px; padding-top: 22px; padding-bottom: 50px; align-items: start; }
+  .facets { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .facets h2 { margin: 0 0 8px; font-size: 13px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
+  .facets fieldset { margin: 0 0 14px; padding: 0 0 12px; border: 0; border-bottom: 1px solid var(--line); }
+  .facets fieldset:last-child { margin: 0; padding: 0; border: 0; }
+  .facets label { display: flex; gap: 8px; padding: 3px 0; cursor: pointer; }
+  .facets label span { margin-left: auto; color: var(--muted); font-size: 13px; }
+
+  .results-top { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+  .results-top h1 { margin: 0; font-size: 22px; letter-spacing: -0.2px; }
+  .results-top .n { color: var(--muted); }
+  .results-top select { margin-left: auto; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+
+  .job { position: relative; display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 16px; padding: 16px 18px; margin-bottom: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; transition: border-color 140ms ease, box-shadow 140ms ease; }
+  .job:hover { border-color: #b6c8e6; box-shadow: 0 4px 14px rgba(18, 38, 63, 0.08); }
+  .job img { display: block; border-radius: 10px; background: var(--tag); }
+  .job h2 { margin: 0; font-size: 17px; }
+  .job .co { color: var(--muted); }
+  .job .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .job .tags span { padding: 2px 10px; border-radius: 999px; background: var(--tag); font-size: 12px; }
+  .job .tags .new { background: #dff5e9; color: var(--new); font-weight: 700; }
+  .job .side { text-align: right; white-space: nowrap; }
+  .job .pay { font-weight: 700; }
+  .job time-ago { display: block; color: var(--muted); font-size: 13px; }
+  .job .save { position: absolute; right: 14px; bottom: 12px; width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 50%; background: #fff; cursor: pointer; line-height: 1; }
+  .job .save[aria-pressed="true"] { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+  .pages { display: flex; gap: 6px; justify-content: center; margin-top: 18px; }
+  .pages a { min-width: 36px; padding: 6px 10px; text-align: center; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+  .pages a.cur { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  .tail { border-top: 1px solid var(--line); background: var(--card); color: var(--muted); font-size: 13px; }
+  .tail .lane { display: flex; justify-content: space-between; padding-top: 20px; padding-bottom: 20px; }
+</style>
+</head>
+<body>
+<header class="head">
+  <div class="lane">
+    <a class="mark" href="#"><img src="/assets/img/logo-mark.svg" width="30" height="30" alt=""> Fathom Jobs</a>
+    <nav aria-label="Main">
+      <a href="#">Find jobs</a>
+      <a href="#">Companies</a>
+      <a href="#">Salaries</a>
+      <a href="#">Advice</a>
+    </nav>
+    <div class="acct"><a href="#">Sign in</a><a class="post" href="#">Post a job</a></div>
+  </div>
+</header>
+
+<div class="searchbar">
+  <form class="lane" role="search" onsubmit="return false">
+    <input type="search" value="front-end engineer" aria-label="Job title or keyword">
+    <input type="search" value="Leeds" aria-label="Location">
+    <button type="submit">Search</button>
+  </form>
+</div>
+
+<div class="lane cols">
+  <aside class="facets" aria-label="Filters">
+    <fieldset>
+      <h2>Working pattern</h2>
+      <label><input type="checkbox" checked> Hybrid <span>41</span></label>
+      <label><input type="checkbox"> Remote <span>28</span></label>
+      <label><input type="checkbox"> On site <span>17</span></label>
+    </fieldset>
+    <fieldset>
+      <h2>Salary</h2>
+      <label><input type="radio" name="pay" checked> Any</label>
+      <label><input type="radio" name="pay"> £40k and above <span>63</span></label>
+      <label><input type="radio" name="pay"> £60k and above <span>29</span></label>
+      <label><input type="radio" name="pay"> £80k and above <span>8</span></label>
+    </fieldset>
+    <fieldset>
+      <h2>Contract</h2>
+      <label><input type="checkbox"> Permanent <span>71</span></label>
+      <label><input type="checkbox"> Contract <span>12</span></label>
+      <label><input type="checkbox"> Part time <span>3</span></label>
+    </fieldset>
+  </aside>
+
+  <main class="results">
+    <div class="results-top">
+      <h1>Front-end engineer jobs in Leeds</h1>
+      <span class="n">86 jobs</span>
+      <select aria-label="Sort"><option>Most relevant</option><option>Newest</option><option>Highest salary</option></select>
+    </div>
+
+    <job-alert-prompt query="front-end engineer" place="Leeds"></job-alert-prompt>
+
+    <div class="job-list" id="job-list">
+      <article class="job">
+        <img src="/delay/800/assets/img/thumb-320x240.png" width="56" height="56" alt="">
+        <div>
+          <h2><a href="#">Senior front-end engineer, design systems</a></h2>
+          <div class="co">Orderdesk · Leeds city centre (hybrid, 2 days)</div>
+          <div class="tags"><span class="new">New</span><span>TypeScript</span><span>React</span><span>Accessibility</span></div>
+        </div>
+        <div class="side"><div class="pay">£72,000 – £85,000</div><time-ago datetime="2026-03-12" days="0">Today</time-ago></div>
+      </article>
+      <article class="job">
+        <img src="/assets/img/thumb-320x240.png" width="56" height="56" alt="">
+        <div>
+          <h2><a href="#">Front-end engineer</a></h2>
+          <div class="co">Kestrel Cycles · Holbeck (on site)</div>
+          <div class="tags"><span>Vue</span><span>E-commerce</span><span>Performance</span></div>
+        </div>
+        <div class="side"><div class="pay">£48,000 – £58,000</div><time-ago datetime="2026-03-11" days="1">Yesterday</time-ago></div>
+      </article>
+      <article class="job">
+        <img src="/assets/img/thumb-320x240.png" width="56" height="56" alt="">
+        <div>
+          <h2><a href="#">Web engineer, public services</a></h2>
+          <div class="co">Aire Valley Council · Leeds (hybrid, 1 day)</div>
+          <div class="tags"><span>Progressive enhancement</span><span>GOV.UK Frontend</span></div>
+        </div>
+        <div class="side"><div class="pay">£44,500 – £51,200</div><time-ago datetime="2026-03-09" days="3">3 days ago</time-ago></div>
+      </article>
+      <article class="job">
+        <img src="/assets/img/thumb-320x240.png" width="56" height="56" alt="">
+        <div>
+          <h2><a href="#">Staff engineer, web platform</a></h2>
+          <div class="co">Ledgerly · Remote in the UK, office in Leeds</div>
+          <div class="tags"><span>Architecture</span><span>Web components</span><span>Mentoring</span></div>
+        </div>
+        <div class="side"><div class="pay">£95,000 – £110,000</div><time-ago datetime="2026-03-07" days="5">5 days ago</time-ago></div>
+      </article>
+      <article class="job">
+        <img src="/assets/img/thumb-320x240.png" width="56" height="56" alt="">
+        <div>
+          <h2><a href="#">Junior front-end developer</a></h2>
+          <div class="co">Saltwater Kitchen · Leeds Dock (hybrid, 3 days)</div>
+          <div class="tags"><span>HTML and CSS</span><span>Apprenticeship route</span></div>
+        </div>
+        <div class="side"><div class="pay">£28,000 – £32,000</div><time-ago datetime="2026-03-05" days="7">7 days ago</time-ago></div>
+      </article>
+    </div>
+
+    <nav class="pages" aria-label="Pages"><a class="cur" href="#">1</a><a href="#">2</a><a href="#">3</a><a href="#">Next</a></nav>
+  </main>
+</div>
+
+<footer class="tail">
+  <div class="lane"><span>© 2026 Fathom Jobs Ltd</span><span><a href="#">For employers</a> · <a href="#">Privacy</a> · <a href="#">Help</a></span></div>
+</footer>
+
+<script>
+  // "Save" buttons on every job card.
+  setTimeout(function () {
+    document.querySelectorAll('.job').forEach(function (job) {
+      var save = document.createElement('button');
+      save.type = 'button';
+      save.className = 'save';
+      save.setAttribute('aria-label', 'Save this job');
+      save.setAttribute('aria-pressed', 'false');
+      save.textContent = '+';
+      save.addEventListener('click', function () {
+        save.setAttribute('aria-pressed', String(save.getAttribute('aria-pressed') !== 'true'));
+      });
+      job.appendChild(save);
+    });
+  }, 800);
+</script>
+</body>
+</html>

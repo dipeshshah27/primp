@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chain skips on the two biggest sprockets after new cassette - Drivetrain - Gearloft Forum</title>
+<style>
+  :root { --bg: #f0f2f5; --card: #fff; --ink: #1e2329; --muted: #6b7480; --line: #dde1e6; --orange: #e8590c; --green: #2b8a3e; --link: #1864ab; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 Verdana, "DejaVu Sans", Geneva, sans-serif; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button { font: inherit; }
+  .page { max-width: 1160px; margin: 0 auto; padding: 0 20px; }
+
+  .navbar { background: #23282e; color: #fff; }
+  .navbar .page { display: flex; align-items: center; gap: 22px; height: 54px; }
+  .navbar .site { display: flex; align-items: center; gap: 8px; color: #fff; font-weight: 700; font-size: 17px; }
+  .navbar nav { display: flex; gap: 18px; font-size: 13px; }
+  .navbar nav a { color: #c8ced6; }
+  .navbar .user { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; }
+  .navbar .user img { border-radius: 4px; display: block; }
+  .navbar .inbox { position: relative; color: #fff; }
+  .navbar .inbox b { position: absolute; top: -8px; right: -12px; min-width: 16px; padding: 0 4px; border-radius: 8px; background: var(--orange); font-size: 10px; line-height: 16px; text-align: center; }
+
+  .trail { padding: 12px 0 6px; font-size: 12px; color: var(--muted); }
+  .thread-head { display: flex; align-items: flex-start; gap: 16px; padding-bottom: 12px; }
+  .thread-head h1 { margin: 0; font-size: 22px; line-height: 1.3; font-weight: 700; }
+  .thread-head .tags { margin-top: 6px; display: flex; gap: 6px; font-size: 11px; }
+  .thread-head .tags span { padding: 2px 8px; border-radius: 3px; background: #dfe7ef; color: #34495e; }
+  .thread-head .actions { margin-left: auto; display: flex; gap: 8px; white-space: nowrap; }
+  .thread-head .actions button { padding: 6px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--card); cursor: pointer; }
+  .thread-head .actions .reply { background: var(--orange); border-color: var(--orange); color: #fff; font-weight: 700; }
+
+  .board { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 18px; align-items: start; padding-bottom: 40px; }
+
+  .post { display: grid; grid-template-columns: 150px minmax(0, 1fr); background: var(--card); border: 1px solid var(--line); border-radius: 6px; margin-bottom: 12px; }
+  .post .who { padding: 14px; border-right: 1px solid var(--line); background: #f8f9fb; border-radius: 6px 0 0 6px; text-align: center; font-size: 12px; color: var(--muted); }
+  .post .who img { border-radius: 6px; display: block; margin: 0 auto 8px; }
+  .post .who strong { display: block; font-size: 14px; color: var(--ink); }
+  .post .who .rank { display: inline-block; margin-top: 4px; padding: 1px 8px; border-radius: 3px; background: #e7f5ff; color: var(--link); }
+  .post .body { padding: 12px 16px 10px; min-width: 0; }
+  .post .stamp { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .post p { margin: 0 0 10px; }
+  .post pre { margin: 0 0 10px; padding: 10px 12px; border-radius: 4px; background: #23282e; color: #e9ecef; font: 13px/1.5 Menlo, Consolas, "DejaVu Sans Mono", monospace; overflow-x: auto; }
+  .post pre .k { color: #ffa94d; } .post pre .n { color: #74c0fc; }
+  .post .foot { display: flex; align-items: center; gap: 14px; font-size: 12px; color: var(--muted); }
+  .post .foot button { padding: 2px 10px; border: 1px solid var(--line); border-radius: 12px; background: #fff; cursor: pointer; }
+  .post .foot .likes { display: inline-block; width: 2.6em; font-variant-numeric: tabular-nums; }
+
+  .solved-banner { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 14px 16px; margin-bottom: 12px; border: 1px solid #b2f2bb; border-left: 5px solid var(--green); border-radius: 6px; background: #ebfbee; }
+  .solved-banner .tick { width: 34px; height: 34px; border-radius: 50%; background: var(--green); color: #fff; font-size: 18px; line-height: 34px; text-align: center; }
+  .solved-banner strong { display: block; color: #1b5e2a; }
+  .solved-banner q { display: block; margin-top: 4px; font-size: 13px; color: #37523d; quotes: "“" "”"; }
+  .solved-banner a { padding: 6px 14px; border-radius: 4px; background: var(--green); color: #fff; font-weight: 700; font-size: 13px; white-space: nowrap; }
+
+  .sidebox { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; margin-bottom: 12px; font-size: 13px; }
+  .sidebox h2 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  .sidebox ul { margin: 0; padding: 0; list-style: none; }
+  .sidebox li { padding: 5px 0; border-top: 1px solid var(--line); }
+  .sidebox li:first-child { border-top: 0; }
+  .sidebox dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; margin: 0; }
+  .sidebox dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .online i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #adb5bd; margin-right: 6px; transition: background 300ms ease; }
+  .online i.on { background: var(--green); }
+
+  .legal { padding: 16px 0 30px; font-size: 11px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+<header class="navbar">
+  <div class="page">
+    <a class="site" href="#"><img src="/assets/img/logo-mark.svg" width="26" height="26" alt=""> Gearloft</a>
+    <nav aria-label="Forum sections">
+      <a href="#">Forums</a>
+      <a href="#">New posts</a>
+      <a href="#">Classifieds</a>
+      <a href="#">Ride reports</a>
+      <a href="#">Members</a>
+    </nav>
+    <div class="user">
+      <a class="inbox" href="#">Inbox <b id="inbox-count">2</b></a>
+      <img src="/assets/img/avatar-160.svg" width="30" height="30" alt="Your avatar">
+    </div>
+  </div>
+</header>
+
+<div class="page">
+  <div class="trail"><a href="#">Forums</a> › <a href="#">Workshop</a> › <a href="#">Drivetrain</a></div>
+  <div class="thread-head">
+    <div>
+      <h1>Chain skips on the two biggest sprockets after new cassette</h1>
+      <div class="tags"><span>11-speed</span><span>indexing</span><span>gravel</span></div>
+    </div>
+    <div class="actions"><button type="button">Watch</button><button class="reply" type="button">Reply</button></div>
+  </div>
+
+  <div class="board">
+    <main class="posts" id="posts">
+      <article class="post" id="post-1">
+        <div class="who"><img src="/assets/img/avatar-160.svg" width="72" height="72" alt=""><strong>mudguard_mo</strong>412 posts<br><span class="rank">Regular</span></div>
+        <div class="body">
+          <div class="stamp"><span>Tuesday at 19:42</span><span>#1</span></div>
+          <p>Fitted a new 11-42 cassette and chain at the weekend. Shifting is fine through the middle of the block, but under load the chain skips on the 37 and 42. Old cassette was 11-36. Same derailleur, cable is three months old.</p>
+          <p>Indexing looks right on the stand. What am I missing?</p>
+          <div class="foot"><button type="button">Like</button><span class="likes" data-post="1">–</span><a href="#">Quote</a><a href="#">Report</a></div>
+        </div>
+      </article>
+
+      <article class="post" id="post-2">
+        <div class="who"><img src="/delay/800/assets/img/avatar-160.svg" width="72" height="72" alt=""><strong>hollowtech_hal</strong>2,108 posts<br><span class="rank">Wrench</span></div>
+        <div class="body">
+          <div class="stamp"><span>Tuesday at 20:05</span><span>#2</span></div>
+          <p>Is the chain the right length for the bigger sprocket? Big-big plus two links is the usual rule. And did you check the hanger?</p>
+          <div class="foot"><button type="button">Like</button><span class="likes" data-post="2">–</span><a href="#">Quote</a><a href="#">Report</a></div>
+        </div>
+      </article>
+
+      <article class="post" id="post-3">
+        <div class="who"><img src="/assets/img/avatar-160.svg" width="72" height="72" alt=""><strong>pannier_pete</strong>9,340 posts<br><span class="rank">Moderator</span></div>
+        <div class="body">
+          <div class="stamp"><span>Tuesday at 20:31</span><span>#3</span></div>
+          <p>Going from a 36 to a 42 the upper jockey wheel will be sitting far too close to the big sprockets. Wind the B-tension screw in until there is a 5–6 mm gap on the 42:</p>
+<pre id="snippet">gap on largest sprocket: 5-6 mm
+b-tension: clockwise = more gap
+check: shift 42 -> 37 -> 42 under load</pre>
+          <p>Then re-index, because moving the B-screw shifts everything slightly.</p>
+          <div class="foot"><button type="button">Like</button><span class="likes" data-post="3">–</span><a href="#">Quote</a><a href="#">Report</a></div>
+        </div>
+      </article>
+    </main>
+
+    <aside>
+      <div class="sidebox">
+        <h2>Thread</h2>
+        <dl><dt>Replies</dt><dd>6</dd><dt>Views</dt><dd id="views">1,284</dd><dt>Watching</dt><dd>9</dd></dl>
+      </div>
+      <div class="sidebox online">
+        <h2>In this thread now</h2>
+        <ul>
+          <li><i data-user="hal"></i>hollowtech_hal</li>
+          <li><i data-user="pete"></i>pannier_pete</li>
+          <li><i data-user="guest"></i>3 guests</li>
+        </ul>
+      </div>
+      <div class="sidebox">
+        <h2>Similar threads</h2>
+        <ul>
+          <li><a href="#">B-tension: how much is too much?</a></li>
+          <li><a href="#">New chain, old cassette, skipping</a></li>
+          <li><a href="#">Hanger alignment without the tool</a></li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+
+  <div class="legal">Gearloft is run by its members. Posts are the opinions of their authors. Torque your bolts.</div>
+</div>
+
+<template id="solved-template">
+  <aside class="solved-banner" role="note">
+    <span class="tick" aria-hidden="true">✓</span>
+    <div><strong>Solved. <span class="by"></span> marked an answer as the fix.</strong><q></q></div>
+    <a href="#post-4">Go to the answer</a>
+  </aside>
+</template>
+
+<script>
+  // Colour the keywords in the pasted snippet.
+  setTimeout(function () {
+    var pre = document.getElementById('snippet');
+    pre.innerHTML = pre.textContent
+      .replace(/(\d+(?:-\d+)? mm|\d+)/g, '<span class="n">$1</span>')
+      .replace(/(clockwise|under load)/g, '<span class="k">$1</span>');
+  }, 400);
+
+  // Who is reading the thread right now.
+  setTimeout(function () {
+    document.querySelectorAll('.online i').forEach(function (dot) { dot.classList.add('on'); });
+  }, 800);
+
+  // Thread state: like counts and whether a moderator has marked the thread as solved.
+  fetch('/delay/800/assets/data/thread-state.json')
+    .then(function (response) { return response.json(); })
+    .then(function (state) {
+      document.querySelectorAll('.likes').forEach(function (out) {
+        out.textContent = state.reactions[out.dataset.post];
+      });
+      if (!state.solved) return;
+      var posts = document.getElementById('posts');
+      var banner = document.getElementById('solved-template').content.firstElementChild.cloneNode(true);
+      banner.querySelector('.by').textContent = state.moderator;
+      banner.querySelector('q').textContent = state.excerpt;
+      posts.insertBefore(banner, document.getElementById('post-2'));
+    });
+</script>
+</body>
+</html>

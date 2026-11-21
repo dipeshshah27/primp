@@ -1,0 +1,48 @@
+{
+  "page": "changelog-pikestaff/index.html",
+  "template": "changelog page",
+  "positive": false,
+  "shifts": [],
+  "decoys": [
+    "#older-2025",
+    "#older-2025 > .release",
+    ".follow",
+    "#installed"
+  ],
+  "interaction": {
+    "selector": "#older-2025 > summary",
+    "afterMs": 1000,
+    "key": "Enter"
+  },
+  "minEntriesWithRecentInput": 1,
+  "assertAfter": [
+    "document.getElementById('older-2025').open === true && document.getElementById('older-2025').dataset.toggled === 'true'",
+    "document.getElementById('v3-1-0').getBoundingClientRect().height > 50",
+    "document.getElementById('installed').title === '3.2.0 is available'"
+  ],
+  "measuredValues": [
+    0,
+    0,
+    0
+  ],
+  "notes": "Nothing moves until the user presses Enter on the focused <summary> of a <details> element (interaction: key press 1000 ms after the load event); three older releases then appear and push the subscribe box and footer down. The entries this produces have hadRecentInput = true, so the move is user-initiated and no culprit should be reported.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 1
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 1
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 1
+      }
+    ]
+  }
+}

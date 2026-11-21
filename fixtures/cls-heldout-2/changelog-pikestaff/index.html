@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Changelog · Pikestaff</title>
+<style>
+  :root { --ink: #18181b; --muted: #6b6b76; --line: #e4e4e7; --bg: #fafafa; --violet: #6d28d9; --added: #15803d; --fixed: #1d4ed8; --changed: #b45309; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--ink); font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  a { color: var(--violet); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { padding: 1px 6px; border-radius: 5px; background: #f1f0f5; font: 13px ui-monospace, Menlo, Consolas, monospace; }
+  .x { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+
+  .nav { border-bottom: 1px solid var(--line); }
+  .nav .x { display: flex; align-items: center; gap: 24px; height: 58px; }
+  .nav .product { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 17px; color: var(--ink); }
+  .nav .links { display: flex; gap: 18px; font-size: 14px; }
+  .nav .links a { color: var(--muted); }
+  .nav .links a.on { color: var(--ink); font-weight: 600; }
+  .nav .ver { margin-left: auto; padding: 3px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 12px; color: var(--muted); }
+  .nav .gh { padding: 7px 14px; border-radius: 8px; background: var(--ink); color: #fff; font-size: 14px; font-weight: 600; }
+
+  .intro { display: flex; align-items: flex-end; gap: 20px; padding: 26px 0 16px; border-bottom: 1px solid var(--line); }
+  .intro h1 { margin: 0; font-size: 30px; letter-spacing: -0.5px; line-height: 1.2; }
+  .intro p { margin: 4px 0 0; color: var(--muted); }
+  .intro .chips { margin-left: auto; display: flex; gap: 6px; }
+  .chips button { padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font: inherit; font-size: 13px; cursor: pointer; }
+  .chips button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+
+  .release { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 24px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+  .release .when { color: var(--muted); font-size: 13px; }
+  .release .when strong { display: block; font-size: 19px; color: var(--ink); letter-spacing: -0.2px; }
+  .release .when .latest { display: inline-block; margin-top: 4px; padding: 0 8px; border-radius: 999px; background: #ede9fe; color: var(--violet); font-size: 11px; font-weight: 700; }
+  .release ul { margin: 0; padding: 0; list-style: none; }
+  .release li { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 10px; padding: 2px 0; }
+  .kind { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding-top: 3px; }
+  .kind.added { color: var(--added); } .kind.fixed { color: var(--fixed); } .kind.changed { color: var(--changed); }
+
+  .older { border-bottom: 1px solid var(--line); }
+  .older > summary { display: flex; align-items: center; gap: 10px; padding: 14px 0; cursor: pointer; font-weight: 600; list-style: none; }
+  .older > summary::-webkit-details-marker { display: none; }
+  .older > summary::before { content: ""; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(-45deg); transition: transform 150ms ease; }
+  .older[open] > summary::before { transform: rotate(45deg); }
+  .older > summary:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; border-radius: 4px; }
+  .older > summary span { font-weight: 400; color: var(--muted); }
+  .older .release:last-child { border-bottom: 0; }
+
+  .follow { display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: center; margin: 22px 0; padding: 18px 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
+  .follow strong { display: block; font-size: 16px; }
+  .follow form { display: flex; gap: 8px; }
+  .follow input { width: 240px; height: 38px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+  .follow button { height: 38px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--violet); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+  .follow .rss { font-size: 13px; color: var(--muted); grid-column: 1 / -1; }
+
+  .base { border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+  .base .x { display: flex; justify-content: space-between; padding-top: 18px; padding-bottom: 18px; }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="x">
+    <a class="product" href="#"><img src="/assets/img/logo-mark.svg" width="26" height="26" alt=""> Pikestaff</a>
+    <div class="links"><a href="#">Docs</a><a href="#">Plugins</a><a class="on" href="#">Changelog</a><a href="#">Roadmap</a></div>
+    <span class="ver" id="installed">You have 3.1.4</span>
+    <a class="gh" href="#">Star on GitHub</a>
+  </div>
+</header>
+
+<main class="x">
+  <div class="intro">
+    <div>
+      <h1>Changelog</h1>
+      <p>Every release of the Pikestaff task runner, newest first.</p>
+    </div>
+    <div class="chips" role="group" aria-label="Filter by kind">
+      <button type="button" aria-pressed="true">All</button>
+      <button type="button" aria-pressed="false">Added</button>
+      <button type="button" aria-pressed="false">Fixed</button>
+      <button type="button" aria-pressed="false">Changed</button>
+    </div>
+  </div>
+
+  <section class="release" id="v3-2-0">
+    <div class="when"><strong>3.2.0</strong>10 March 2026<br><span class="latest">Latest</span></div>
+    <ul>
+      <li><span class="kind added">Added</span><span>Remote cache: share task outputs between machines with <code>pikestaff cache --remote</code>.</span></li>
+      <li><span class="kind added">Added</span><span><code>--affected</code> now understands workspace protocol ranges.</span></li>
+      <li><span class="kind changed">Changed</span><span>The default concurrency is the number of performance cores, not all cores.</span></li>
+      <li><span class="kind fixed">Fixed</span><span>Watch mode no longer restarts twice when a config file is saved.</span></li>
+    </ul>
+  </section>
+
+  <section class="release" id="v3-1-4">
+    <div class="when"><strong>3.1.4</strong>24 February 2026</div>
+    <ul>
+      <li><span class="kind fixed">Fixed</span><span>Windows: paths with spaces are quoted when a task is run through <code>cmd.exe</code>.</span></li>
+      <li><span class="kind fixed">Fixed</span><span>Output of failed tasks is printed even with <code>--quiet</code>.</span></li>
+    </ul>
+  </section>
+
+  <details class="older" id="older-2025">
+    <summary>Releases from 2025 <span>· 3 releases, 3.1.0 to 3.1.3</span></summary>
+    <section class="release" id="v3-1-3">
+      <div class="when"><strong>3.1.3</strong>9 December 2025</div>
+      <ul>
+        <li><span class="kind fixed">Fixed</span><span>Cache keys include the lockfile again; a regression in 3.1.2 ignored it.</span></li>
+        <li><span class="kind changed">Changed</span><span>Minimum Node version is now 20.</span></li>
+      </ul>
+    </section>
+    <section class="release" id="v3-1-2">
+      <div class="when"><strong>3.1.2</strong>18 November 2025</div>
+      <ul>
+        <li><span class="kind added">Added</span><span><code>pikestaff why &lt;task&gt;</code> explains why a task was not served from cache.</span></li>
+        <li><span class="kind fixed">Fixed</span><span>Colour output is disabled when <code>NO_COLOR</code> is set.</span></li>
+      </ul>
+    </section>
+    <section class="release" id="v3-1-0">
+      <div class="when"><strong>3.1.0</strong>2 October 2025</div>
+      <ul>
+        <li><span class="kind added">Added</span><span>Task graphs can be exported as JSON or DOT.</span></li>
+        <li><span class="kind added">Added</span><span>Per-task environment allow-lists.</span></li>
+        <li><span class="kind changed">Changed</span><span>Config file is now <code>pikestaff.config.ts</code>; the JSON form still works.</span></li>
+      </ul>
+    </section>
+  </details>
+
+  <section class="follow">
+    <div><strong>Hear about releases</strong>One email per release, with the upgrade notes that matter.</div>
+    <form onsubmit="return false"><input type="email" placeholder="you@example.org" aria-label="Email address"><button type="submit">Subscribe</button></form>
+    <div class="rss">Or follow the <a href="#">Atom feed</a> or the <a href="#">GitHub releases</a>.</div>
+  </section>
+</main>
+
+<footer class="base">
+  <div class="x"><span>Pikestaff is MIT licensed.</span><span><a href="#">Security policy</a> · <a href="#">Contributing</a> · <a href="#">Sponsors</a></span></div>
+</footer>
+
+<script>
+  // Remember whether the reader had the older releases open.
+  (function () {
+    var older = document.getElementById('older-2025');
+    older.addEventListener('toggle', function () {
+      try { sessionStorage.setItem('pikestaff-older-open', String(older.open)); } catch (e) {}
+      older.dataset.toggled = String(older.open);
+    });
+  })();
+
+  // Filter chips only restyle; they do not hide anything yet.
+  document.querySelectorAll('.chips button').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      document.querySelectorAll('.chips button').forEach(function (other) { other.setAttribute('aria-pressed', String(other === chip)); });
+    });
+  });
+
+  // Compare the installed version (reported by the CLI's local endpoint) with the latest.
+  setTimeout(function () {
+    var installed = document.getElementById('installed');
+    installed.textContent = 'You have 3.1.4';
+    installed.title = '3.2.0 is available';
+  }, 600);
+</script>
+</body>
+</html>

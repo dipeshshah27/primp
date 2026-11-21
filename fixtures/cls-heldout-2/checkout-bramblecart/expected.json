@@ -1,0 +1,46 @@
+{
+  "page": "checkout-bramblecart/index.html",
+  "template": "checkout / cart page",
+  "positive": false,
+  "shifts": [],
+  "decoys": [
+    "#eta",
+    "#ticker",
+    ".item .stock",
+    ".item img",
+    ".summary .pay"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.getElementById('eta').textContent.indexOf('Arrives Thursday 19 March') === 0",
+    "document.getElementById('eta').getBoundingClientRect().height === 60 && document.getElementById('eta').scrollHeight > 60",
+    "document.querySelector('.stock[data-sku=\"RB-05\"]').textContent === 'Only 6 bundles left this season'",
+    "document.getElementById('ticker').getBoundingClientRect().height === 32",
+    "document.querySelector('.item img').naturalWidth === 320"
+  ],
+  "measuredValues": [
+    0,
+    0,
+    0
+  ],
+  "notes": "Text changes in four places but every box that holds it has a fixed height and clips: the delivery estimate (a 60 px, two-line clamped box that receives a much longer text from an 800 ms delayed JSON URL), three stock lines (20 px, overflow hidden) and a service strip under the header whose message is replaced every 600 ms (32 px, single line, ellipsis). Nothing around them moves. No element should be accused.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      }
+    ]
+  }
+}

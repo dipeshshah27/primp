@@ -1,0 +1,105 @@
+{
+  "page": "portfolio-marlowe/index.html",
+  "template": "portfolio / gallery",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "unsized-media",
+      "culpritSelector": "#work figure:nth-of-type(2) picture > img",
+      "acceptableCulpritSelectors": [
+        "#work figure:nth-of-type(2) > picture"
+      ],
+      "culpritFile": "portfolio-marlowe/index.html",
+      "culpritLine": 82,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<img src=\"/delay/800/assets/img/thumb-320x240.png\" alt=\"A net mender at work in a doorway\">",
+      "acceptableCulpritLines": [
+        {
+          "line": 81,
+          "kind": "source-tag",
+          "contains": "<source media=\"(min-width: 800px)\" srcset=\"/delay/800/assets/img/card-600x400.png\">"
+        }
+      ],
+      "victimSelectors": [
+        ".clients",
+        ".contact",
+        "#work figure:nth-of-type(2) figcaption"
+      ],
+      "minValue": 0.0087
+    }
+  ],
+  "decoys": [
+    "#work figure:nth-of-type(3) img",
+    "#work figure:nth-of-type(1) img",
+    ".head .avail i",
+    "#count"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.querySelector('#work figure:nth-of-type(2) img').naturalWidth === 600",
+    "document.querySelector('#work figure:nth-of-type(2) img').currentSrc.indexOf('card-600x400.png') !== -1",
+    "document.querySelector('#work figure:nth-of-type(3) img').complete && document.querySelector('#work figure:nth-of-type(3) img').naturalWidth === 1200",
+    "document.querySelectorAll('#work figure[data-index]').length === 6"
+  ],
+  "measuredValues": [
+    0.014556,
+    0.014556,
+    0.014556
+  ],
+  "notes": "The gallery is a CSS multi-column wall of <picture> elements; one <img> (the second photograph) has no width/height, and when its <source> image arrives (800 ms) the figure grows, the columns re-balance, the wall becomes taller and the client list and contact strip under it move down. Content inside the columns moves too (the grown figure's caption, for one), but Chromium does not report shifts of content inside a multi-column container, so the entry's sources hold only the sections after the wall. The third photograph arrives from a delayed URL at the same moment but has width/height; at 400 ms a script sets tabindex, role and data attributes on every figure.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.014556,
+      "startTimeMs": 822,
+      "sources": [
+        {
+          "node": "section.clients",
+          "previousRect": {
+            "x": 82,
+            "y": 626.578125,
+            "width": 1116,
+            "height": 88.578125
+          },
+          "currentRect": {
+            "x": 82,
+            "y": 746.125,
+            "width": 1116,
+            "height": 53.875
+          }
+        },
+        {
+          "node": "section.contact",
+          "previousRect": {
+            "x": 82,
+            "y": 745.15625,
+            "width": 1116,
+            "height": 54.84375
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          }
+        }
+      ]
+    }
+  }
+}

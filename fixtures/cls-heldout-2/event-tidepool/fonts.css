@@ -1,0 +1,14 @@
+/* Tidepool Conf brand typography. Served from our own origin; see /assets/fonts/OFL.txt. */
+
+@font-face {
+  font-family: "Tidepool Signal";
+  src: url("/delay/700/assets/fonts/press-start-2p-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-signal: "Tidepool Signal", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+}

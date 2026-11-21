@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dinner menu | Saffron Quay, Whitby</title>
+<style>
+  :root { --saffron: #d98e04; --plum: #3d1f33; --ink: #2a2126; --soft: #7b6c74; --cream: #fbf6ee; --line: #eadfd2; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--cream); color: var(--ink); font: 16px/1.55 "Optima", "Candara", "Segoe UI", sans-serif; }
+  a { color: inherit; }
+  h1, h2, h3 { font-family: "Didot", "Bodoni MT", Georgia, serif; font-weight: 400; }
+  .w { max-width: 1100px; margin: 0 auto; padding: 0 28px; }
+
+  .bar { background: var(--plum); color: #f4e9ee; }
+  .bar .w { display: flex; align-items: center; gap: 28px; height: 68px; }
+  .bar .house { font: 400 26px "Didot", Georgia, serif; letter-spacing: 1px; text-decoration: none; }
+  .bar nav { display: flex; gap: 22px; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
+  .bar nav a { text-decoration: none; opacity: 0.8; transition: opacity 140ms ease; }
+  .bar nav a:hover, .bar nav a.on { opacity: 1; }
+  .bar .open { margin-left: auto; font-size: 13px; }
+  .bar .open i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8fd19e; margin-right: 6px; }
+  .bar .book { padding: 10px 20px; background: var(--saffron); color: var(--plum); font-weight: 700; text-decoration: none; letter-spacing: 0.5px; }
+
+  .banner { position: relative; height: 240px; overflow: hidden; background: #cdbfae; }
+  .banner img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .banner .over { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 0; background: linear-gradient(transparent, rgba(61, 31, 51, 0.85)); color: #fff; }
+  .banner h1 { margin: 0; font-size: 42px; }
+  .banner p { margin: 2px 0 0; }
+
+  .menu-nav { position: sticky; top: 0; z-index: 3; background: var(--cream); border-bottom: 1px solid var(--line); }
+  .menu-nav .w { display: flex; gap: 26px; padding-top: 12px; padding-bottom: 12px; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
+  .menu-nav a { text-decoration: none; color: var(--soft); }
+  .menu-nav a.on { color: var(--ink); box-shadow: 0 2px var(--saffron); }
+  .menu-nav .diet { margin-left: auto; text-transform: none; letter-spacing: 0; color: var(--soft); }
+
+  section.course { padding: 26px 0 8px; }
+  section.course h2 { margin: 0 0 4px; font-size: 30px; }
+  section.course .lead { margin: 0 0 18px; color: var(--soft); }
+  .dishes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 34px; }
+  .dish { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 18px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+  .dish-photo { aspect-ratio: 4 / 3; overflow: hidden; border-radius: 6px; background: #e3d7c8; }
+  .dish-photo img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 400ms ease; }
+  .dish-photo img.is-loaded { opacity: 1; }
+  .dish h3 { display: flex; justify-content: space-between; gap: 12px; margin: 0 0 4px; font-size: 21px; }
+  .dish h3 span { font: 700 17px "Optima", "Segoe UI", sans-serif; color: var(--saffron); white-space: nowrap; }
+  .dish p { margin: 0 0 6px; color: #51454b; font-size: 15px; }
+  .dish .marks { display: flex; gap: 6px; font-size: 11px; letter-spacing: 0.5px; }
+  .dish .marks b { padding: 1px 7px; border: 1px solid var(--line); border-radius: 999px; font-weight: 400; color: var(--soft); }
+
+  .notes { margin: 20px 0 0; padding: 18px 22px; background: #fff; border: 1px solid var(--line); font-size: 14px; color: var(--soft); }
+  .foot { margin-top: 30px; background: var(--plum); color: #d9c8d0; font-size: 14px; }
+  .foot .w { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding-top: 26px; padding-bottom: 26px; }
+  .foot strong { display: block; color: #fff; }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="w">
+    <a class="house" href="#">Saffron Quay</a>
+    <nav aria-label="Main">
+      <a class="on" href="#">Menus</a>
+      <a href="#">Wine</a>
+      <a href="#">Private dining</a>
+      <a href="#">Find us</a>
+    </nav>
+    <span class="open"><i></i>Open today 17:30–22:00</span>
+    <a class="book" href="#">Book a table</a>
+  </div>
+</header>
+
+<div class="banner">
+  <img src="/delay/700/assets/img/hero-1200x400.png" alt="The dining room at Saffron Quay looking out over the harbour">
+  <div class="over"><div class="w"><h1>Dinner</h1><p>Served Tuesday to Sunday. The catch decides the menu; this is tonight's.</p></div></div>
+</div>
+
+<nav class="menu-nav" aria-label="Courses">
+  <div class="w">
+    <a class="on" href="#starters">Starters</a>
+    <a href="#mains">Mains</a>
+    <a href="#puddings">Puddings</a>
+    <a href="#">Children</a>
+    <span class="diet">V vegetarian · VG vegan · GF made without gluten</span>
+  </div>
+</nav>
+
+<main class="w">
+  <section class="course" id="starters">
+    <h2>Starters</h2>
+    <p class="lead">Small plates to share, or not.</p>
+    <div class="dishes">
+      <article class="dish">
+        <div class="dish-photo"><img src="/delay/700/assets/img/card-600x400.png" alt="Crab on toast"></div>
+        <div><h3>Whitby crab on sourdough <span>£11.50</span></h3><p>Brown butter, pickled fennel, lemon.</p><div class="marks"><b>Shellfish</b></div></div>
+      </article>
+      <article class="dish">
+        <div class="dish-photo"><img src="/delay/900/assets/img/thumb-320x240.png" alt="Charred leeks"></div>
+        <div><h3>Charred leeks, saffron aioli <span>£8.00</span></h3><p>Toasted hazelnuts and a little smoked oil.</p><div class="marks"><b>VG</b><b>GF</b></div></div>
+      </article>
+      <article class="dish">
+        <div class="dish-photo"><img src="/delay/1100/assets/img/card-600x400.png" alt="Mussels in a pan"></div>
+        <div><h3>Mussels with cider and thyme <span>£9.50</span></h3><p>Rope-grown in the bay. Bread for the liquor.</p><div class="marks"><b>Shellfish</b></div></div>
+      </article>
+      <article class="dish">
+        <div class="dish-photo"><img src="/delay/900/assets/img/hero-1200x400.png" alt="Beetroot salad"></div>
+        <div><h3>Salt-baked beetroot <span>£8.50</span></h3><p>Whipped goat's curd, dill, rye crumb.</p><div class="marks"><b>V</b></div></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="course" id="mains">
+    <h2>Mains</h2>
+    <p class="lead">Everything comes with greens from the allotment behind the kitchen.</p>
+    <div class="dishes">
+      <article class="dish">
+        <div class="dish-photo"><img src="/delay/1100/assets/img/thumb-320x240.png" alt="Hake fillet" loading="lazy"></div>
+        <div><h3>Roast hake, saffron potatoes <span>£23.00</span></h3><p>Mussel and parsley sauce, sea beet.</p><div class="marks"><b>GF</b></div></div>
+      </article>
+      <article class="dish">
+        <div class="dish-photo"><img src="/delay/700/assets/img/card-600x400.png" alt="Lamb rump" loading="lazy"></div>
+        <div><h3>Moorland lamb rump <span>£26.00</span></h3><p>Braised shoulder croquette, turnip, mint.</p><div class="marks"><b>Dairy</b></div></div>
+      </article>
+      <article class="dish">
+        <div class="dish-photo"><img src="/assets/img/card-600x400.png" alt="Squash and barley" loading="lazy"></div>
+        <div><h3>Squash, pearl barley, sage <span>£17.50</span></h3><p>Crown prince squash roasted in miso butter.</p><div class="marks"><b>V</b></div></div>
+      </article>
+      <article class="dish">
+        <div class="dish-photo"><img src="/assets/img/thumb-320x240.png" alt="Fish pie" loading="lazy"></div>
+        <div><h3>The quay fish pie <span>£19.00</span></h3><p>Smoked haddock, prawns, a proper crust of mash.</p><div class="marks"><b>Shellfish</b><b>Dairy</b></div></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="course" id="puddings">
+    <h2>Puddings</h2>
+    <p class="lead">All made here, this morning.</p>
+    <div class="dishes">
+      <article class="dish">
+        <div class="dish-photo"><img src="/assets/img/card-600x400.png" alt="Treacle tart" loading="lazy"></div>
+        <div><h3>Treacle tart, clotted cream <span>£8.00</span></h3><p>With a sharp lemon curd to cut it.</p><div class="marks"><b>V</b></div></div>
+      </article>
+      <article class="dish">
+        <div class="dish-photo"><img src="/assets/img/thumb-320x240.png" alt="Rhubarb fool" loading="lazy"></div>
+        <div><h3>Forced rhubarb fool <span>£7.50</span></h3><p>Ginger shortbread on the side.</p><div class="marks"><b>V</b></div></div>
+      </article>
+    </div>
+  </section>
+
+  <p class="notes">Please tell us about any allergies before you order. A discretionary 10% is added for tables of six or more and goes to the whole team.</p>
+</main>
+
+<footer class="foot">
+  <div class="w">
+    <div><strong>Saffron Quay</strong>4 Pier Road, Whitby</div>
+    <div><strong>Hours</strong>Tue–Sun 17:30–22:00 · Sunday lunch from 12:00</div>
+    <div><strong>Bookings</strong>01947 555 0142 · tables@saffronquay.example</div>
+  </div>
+</footer>
+
+<script>
+  // Photos fade in when they have loaded.
+  document.querySelectorAll('.dish-photo img').forEach(function (img) {
+    function show() { img.classList.add('is-loaded'); }
+    if (img.complete && img.naturalWidth > 0) show(); else img.addEventListener('load', show);
+  });
+
+  // Highlight the course that is in view.
+  (function () {
+    var links = document.querySelectorAll('.menu-nav a[href^="#"]');
+    var seen = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        links.forEach(function (link) { link.classList.toggle('on', link.getAttribute('href') === '#' + entry.target.id); });
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    document.querySelectorAll('section.course').forEach(function (section) { seen.observe(section); });
+  })();
+</script>
+</body>
+</html>

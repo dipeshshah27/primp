@@ -1,0 +1,45 @@
+{
+  "page": "homes-larchfield/index.html",
+  "template": "real-estate listing",
+  "positive": false,
+  "shifts": [],
+  "decoys": [
+    "#viewing-dialog",
+    "#viewing-dialog .slots button",
+    ".gallery a:nth-child(4) img",
+    ".gallery img",
+    ".agent"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.getElementById('viewing-dialog').open === true && document.getElementById('viewing-dialog').matches(':modal')",
+    "document.getElementById('viewing-dialog').getBoundingClientRect().height > 200",
+    "document.querySelector('.gallery a:nth-child(4) img').naturalWidth === 320",
+    "window.scrollY === 0"
+  ],
+  "measuredValues": [
+    0,
+    0,
+    0
+  ],
+  "notes": "At 900 ms a script opens a <dialog> with showModal(). The dialog goes from display: none to a centred box in the top layer with a backdrop; it covers the page but nothing under it changes position. One gallery image also arrives at 900 ms, inside a grid cell of fixed height. No element should be accused.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0
+      }
+    ]
+  }
+}

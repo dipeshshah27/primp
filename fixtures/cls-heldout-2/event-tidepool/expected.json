@@ -1,0 +1,166 @@
+{
+  "page": "event-tidepool/index.html",
+  "template": "event / conference page",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "font-swap",
+      "culpritSelector": ".schedule > .day-tabs",
+      "acceptableCulpritSelectors": [
+        ".day-tabs > button:nth-child(1)",
+        ".day-tabs > button:nth-child(2)",
+        ".day-tabs > button:nth-child(3)",
+        ".day-tabs > button:nth-child(4)",
+        ".day-tabs > button:nth-child(5)"
+      ],
+      "culpritFile": "event-tidepool/index.html",
+      "culpritLine": 93,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<div class=\"day-tabs\" role=\"tablist\"",
+      "acceptableCulpritLines": [
+        {
+          "line": 7,
+          "kind": "stylesheet-link",
+          "contains": "<link rel=\"stylesheet\" href=\"fonts.css\">"
+        },
+        {
+          "line": 38,
+          "kind": "font-family-declaration",
+          "contains": ".day-tabs button { padding: 9px 16px;"
+        },
+        {
+          "line": 5,
+          "kind": "font-face-src",
+          "file": "event-tidepool/fonts.css",
+          "contains": "src: url(\"/delay/700/assets/fonts/press-start-2p-latin-400-normal.woff2\")"
+        }
+      ],
+      "victimSelectors": [
+        "#sessions",
+        ".session:nth-child(1)",
+        ".session:nth-child(2)"
+      ],
+      "minValue": 0.066
+    }
+  ],
+  "decoys": [
+    ".session img",
+    "#tickets-left",
+    "#cd-s",
+    ".aside img",
+    ".top .logo img"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.fonts.check('13px \"Tidepool Signal\"')",
+    "document.querySelector('.day-tabs').getBoundingClientRect().height > 60",
+    "document.querySelector('.session img').naturalWidth === 160",
+    "document.getElementById('tickets-left').textContent === '37 tickets left'"
+  ],
+  "measuredValues": [
+    0.11007,
+    0.11007,
+    0.11007
+  ],
+  "notes": "The five day tabs use a brand font declared in a separate stylesheet (fonts.css, linked from the head) with font-display: swap; the font file arrives after 700 ms, the tab labels become about twice as wide, the tab row wraps onto more rows and the session list under it moves down. The first speaker portrait arrives at the same 700 ms but is sized, the ticket count is written at 700 ms into a fixed-width box and the countdown rewrites four same-width numbers every second.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.11007,
+      "startTimeMs": 738,
+      "sources": [
+        {
+          "node": "div#sessions",
+          "previousRect": {
+            "x": 88,
+            "y": 347.53125,
+            "width": 748,
+            "height": 452.46875
+          },
+          "currentRect": {
+            "x": 88,
+            "y": 395.671875,
+            "width": 748,
+            "height": 404.328125
+          }
+        },
+        {
+          "node": "button",
+          "previousRect": {
+            "x": 348.484375,
+            "y": 291.390625,
+            "width": 128.8125,
+            "height": 40.140625
+          },
+          "currentRect": {
+            "x": 536,
+            "y": 291.390625,
+            "width": 229,
+            "height": 40.140625
+          }
+        },
+        {
+          "node": "button",
+          "previousRect": {
+            "x": 588.21875,
+            "y": 291.390625,
+            "width": 120.84375,
+            "height": 40.140625
+          },
+          "currentRect": {
+            "x": 247,
+            "y": 339.53125,
+            "width": 216,
+            "height": 40.140625
+          }
+        },
+        {
+          "node": "button",
+          "previousRect": {
+            "x": 226.484375,
+            "y": 291.390625,
+            "width": 114,
+            "height": 40.140625
+          },
+          "currentRect": {
+            "x": 325,
+            "y": 291.390625,
+            "width": 203,
+            "height": 40.140625
+          }
+        },
+        {
+          "node": "button",
+          "previousRect": {
+            "x": 485.296875,
+            "y": 291.390625,
+            "width": 94.921875,
+            "height": 40.140625
+          },
+          "currentRect": {
+            "x": 88,
+            "y": 339.53125,
+            "width": 151,
+            "height": 40.140625
+          }
+        }
+      ]
+    }
+  }
+}

@@ -43,7 +43,7 @@ export const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..
 export const FIXTURES_ROOT = join(REPO_ROOT, 'fixtures')
 export const TMP_ROOT = join(REPO_ROOT, '.tmp')
 
-export type FixtureName = 'vite-react-19' | 'next-16-turbopack' | 'sveltekit-svelte-5' | 'static-html' | 'cls-corpus' | 'cls-heldout'
+export type FixtureName = 'vite-react-19' | 'next-16-turbopack' | 'sveltekit-svelte-5' | 'static-html' | 'cls-corpus' | 'cls-heldout' | 'cls-heldout-2'
 
 /** One entry of a fixture's `labels.json`. Fixtures add optional fields of their own. */
 export interface FixtureLabel {

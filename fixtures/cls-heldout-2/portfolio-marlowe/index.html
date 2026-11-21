@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ines Marlowe · Photographs of working coastlines</title>
+<style>
+  :root { --ink: #111; --mid: #777; --hair: #e7e7e7; --paper: #fff; --accent: #0d6b5f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  a { color: inherit; text-decoration: none; }
+  .frame { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+
+  .head { display: flex; align-items: baseline; gap: 34px; padding: 24px 0 14px; }
+  .head .name { font-size: 24px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; }
+  .head nav { display: flex; gap: 22px; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mid); }
+  .head nav a { padding-bottom: 3px; border-bottom: 1px solid transparent; transition: color 160ms ease, border-color 160ms ease; }
+  .head nav a:hover, .head nav a.on { color: var(--ink); border-bottom-color: var(--ink); }
+  .head .avail { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--accent); }
+  .head .avail i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: glow 2s ease-in-out infinite; }
+  @keyframes glow { 50% { opacity: 0.3; } }
+
+  .intro { max-width: 720px; padding: 4px 0 22px; font-size: 21px; line-height: 1.45; letter-spacing: -0.2px; }
+  .intro span { color: var(--mid); }
+
+  .filters { display: flex; align-items: center; gap: 8px; padding: 0 0 20px; border-bottom: 1px solid var(--hair); margin-bottom: 22px; }
+  .filters button { padding: 5px 14px; border: 1px solid var(--hair); border-radius: 999px; background: #fff; font: inherit; font-size: 13px; cursor: pointer; transition: background 140ms ease, color 140ms ease; }
+  .filters button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .filters .count { margin-left: auto; font-size: 13px; color: var(--mid); }
+
+  .wall { columns: 3; column-gap: 20px; }
+  .wall figure { margin: 0 0 20px; break-inside: avoid; position: relative; overflow: hidden; background: #f1f1f1; }
+  .wall img { display: block; width: 100%; height: auto; transition: transform 500ms ease; }
+  .wall figure:hover img { transform: scale(1.03); }
+  .wall figcaption { display: flex; justify-content: space-between; gap: 12px; padding: 9px 12px; background: #fff; font-size: 13px; border: 1px solid var(--hair); border-top: 0; }
+  .wall figcaption span { color: var(--mid); white-space: nowrap; }
+  .wall figure[data-open] { outline: 2px solid var(--accent); }
+
+  .clients { padding: 22px 0 6px; border-top: 1px solid var(--hair); margin-top: 10px; }
+  .clients h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mid); font-weight: 400; }
+  .clients ul { display: flex; flex-wrap: wrap; gap: 10px 34px; margin: 0; padding: 0; list-style: none; font-size: 19px; }
+  .contact { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 24px; margin: 30px 0 0; padding: 26px 0; border-top: 1px solid var(--hair); }
+  .contact p { margin: 0; font-size: 18px; }
+  .contact a { padding: 12px 22px; background: var(--ink); color: #fff; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; }
+  .end { padding: 18px 0 36px; font-size: 12px; color: var(--mid); display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <header class="head">
+    <a class="name" href="#">Ines Marlowe</a>
+    <nav aria-label="Main">
+      <a class="on" href="#">Work</a>
+      <a href="#">Books</a>
+      <a href="#">Prints</a>
+      <a href="#">About</a>
+    </nav>
+    <span class="avail"><i></i> Booking commissions for autumn</span>
+  </header>
+
+  <p class="intro">Harbours, slipways and the people who still work on them. <span>Panoramas on film, since 2011.</span></p>
+
+  <div class="filters" role="group" aria-label="Filter the work">
+    <button type="button" aria-pressed="true" data-filter="all">All</button>
+    <button type="button" aria-pressed="false" data-filter="harbour">Harbours</button>
+    <button type="button" aria-pressed="false" data-filter="people">People</button>
+    <button type="button" aria-pressed="false" data-filter="boats">Boats</button>
+    <span class="count" id="count">6 of 48 photographs</span>
+  </div>
+
+  <main class="wall" id="work">
+    <figure data-kind="harbour">
+      <picture>
+        <source media="(min-width: 800px)" srcset="/assets/img/hero-1200x400.png">
+        <img src="/assets/img/thumb-320x240.png" width="1200" height="400" alt="Stacked creels on a slipway at dawn">
+      </picture>
+      <figcaption>Creels, Portskerra <span>2019</span></figcaption>
+    </figure>
+    <figure data-kind="people">
+      <picture>
+        <source media="(min-width: 800px)" srcset="/delay/800/assets/img/card-600x400.png">
+        <img src="/delay/800/assets/img/thumb-320x240.png" alt="A net mender at work in a doorway">
+      </picture>
+      <figcaption>The net mender <span>2021</span></figcaption>
+    </figure>
+    <figure data-kind="boats">
+      <picture>
+        <source media="(min-width: 800px)" srcset="/delay/800/assets/img/hero-1200x400.png">
+        <img src="/delay/800/assets/img/thumb-320x240.png" width="1200" height="400" alt="A trawler seen across flat water">
+      </picture>
+      <figcaption>Trawler, slack water <span>2016</span></figcaption>
+    </figure>
+    <figure data-kind="harbour">
+      <picture>
+        <source media="(min-width: 800px)" srcset="/assets/img/hero-1200x400.png">
+        <img src="/assets/img/thumb-320x240.png" width="1200" height="400" alt="Harbour wall with painted mooring numbers">
+      </picture>
+      <figcaption>Mooring numbers <span>2014</span></figcaption>
+    </figure>
+    <figure data-kind="people">
+      <picture>
+        <source media="(min-width: 800px)" srcset="/assets/img/hero-1200x400.png">
+        <img src="/assets/img/thumb-320x240.png" width="1200" height="400" alt="Two fish porters resting on a trolley">
+      </picture>
+      <figcaption>Porters, six a.m. <span>2022</span></figcaption>
+    </figure>
+    <figure data-kind="boats">
+      <picture>
+        <source media="(min-width: 800px)" srcset="/assets/img/hero-1200x400.png">
+        <img src="/assets/img/thumb-320x240.png" width="1200" height="400" alt="The ice plant at night">
+      </picture>
+      <figcaption>Ice plant <span>2018</span></figcaption>
+    </figure>
+  </main>
+
+  <section class="clients" aria-label="Selected clients">
+    <h2>Selected clients</h2>
+    <ul>
+      <li>The Meridian Post</li><li>Northern Lighthouse Trust</li><li>Saltwater Kitchen</li><li>Harbour Ledger Weekend</li><li>Museum of the Sea</li>
+    </ul>
+  </section>
+  <section class="contact">
+    <p>Prints are made to order in editions of twenty-five.</p>
+    <a href="#">Ask about a print</a>
+  </section>
+  <footer class="end"><span>© 2011–2026 Ines Marlowe</span><span>Instagram · Newsletter · Representation</span></footer>
+</div>
+
+<script>
+  // Lightbox wiring: every photograph becomes focusable and remembers its index.
+  setTimeout(function () {
+    document.querySelectorAll('#work figure').forEach(function (figure, i) {
+      figure.tabIndex = 0;
+      figure.dataset.index = i;
+      figure.setAttribute('role', 'button');
+      figure.addEventListener('click', function () {
+        var open = document.querySelector('#work figure[data-open]');
+        if (open) open.removeAttribute('data-open');
+        figure.setAttribute('data-open', '');
+      });
+    });
+  }, 400);
+
+  // Filters dim what does not match; nothing is removed from the wall.
+  document.querySelectorAll('.filters button').forEach(function (button) {
+    button.addEventListener('click', function () {
+      document.querySelectorAll('.filters button').forEach(function (other) { other.setAttribute('aria-pressed', String(other === button)); });
+      var kind = button.dataset.filter;
+      document.querySelectorAll('#work figure').forEach(function (figure) {
+        figure.style.opacity = kind === 'all' || figure.dataset.kind === kind ? '1' : '0.25';
+      });
+    });
+  });
+</script>
+</body>
+</html>

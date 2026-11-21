@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CS 214 Data Structures and Algorithms | Aldermoor University</title>
+<style>
+  :root { --crimson: #7a1f2b; --crimson-dark: #5c1620; --ink: #22252a; --grey: #5e6670; --rule: #d7dbe0; --wash: #f5f3ef; --gold: #b58a2e; }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: var(--ink); background: #fff; font: 16px/1.6 "Source Sans 3", "Segoe UI", Helvetica, Arial, sans-serif; }
+  a { color: var(--crimson); }
+  h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; }
+  .w { max-width: 1140px; margin: 0 auto; padding: 0 28px; }
+
+  .utility { background: var(--crimson-dark); color: #f1dfe1; font-size: 13px; }
+  .utility .w { display: flex; justify-content: flex-end; gap: 22px; padding-top: 6px; padding-bottom: 6px; }
+  .utility a { color: inherit; text-decoration: none; }
+  .brandbar { background: var(--crimson); color: #fff; }
+  .brandbar .w { display: flex; align-items: center; gap: 16px; height: 78px; }
+  .brandbar .crest { display: block; }
+  .brandbar .uni { font: 700 24px/1.1 Georgia, serif; }
+  .brandbar .uni small { display: block; font: 400 13px "Segoe UI", sans-serif; letter-spacing: 1px; text-transform: uppercase; opacity: 0.85; }
+  .brandbar nav { margin-left: auto; display: flex; gap: 24px; font-size: 15px; }
+  .brandbar nav a { color: #fff; text-decoration: none; border-bottom: 2px solid transparent; padding: 4px 0; transition: border-color 150ms ease; }
+  .brandbar nav a:hover { border-bottom-color: var(--gold); }
+
+  .crumbs { font-size: 13px; color: var(--grey); padding: 14px 0 4px; }
+  .crumbs a { color: inherit; }
+  .title { display: flex; align-items: flex-end; gap: 20px; padding: 4px 0 16px; border-bottom: 3px solid var(--gold); }
+  .title h1 { margin: 0; font-size: 34px; line-height: 1.15; }
+  .title .code { color: var(--grey); font-size: 15px; }
+  .title .enrol { margin-left: auto; padding: 10px 20px; border-radius: 4px; background: var(--crimson); color: #fff; font-weight: 700; text-decoration: none; white-space: nowrap; }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 40px; padding: 22px 0 56px; align-items: start; }
+  .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 0 0 22px; padding: 0; list-style: none; border: 1px solid var(--rule); }
+  .facts li { padding: 10px 14px; border-right: 1px solid var(--rule); }
+  .facts li:last-child { border-right: 0; }
+  .facts span { display: block; font-size: 12px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--grey); }
+  .facts b { font-size: 17px; }
+
+  section h2 { font-size: 22px; margin: 0 0 10px; }
+  .staff, .schedule { width: 100%; border-collapse: collapse; margin: 0 0 26px; }
+  .staff th, .staff td, .schedule th, .schedule td { padding: 10px 12px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+  .staff th, .schedule th { font-size: 12px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--grey); background: var(--wash); }
+  .staff td img { display: block; border-radius: 6px; background: #e4e1da; }
+  .staff .role { color: var(--grey); font-size: 14px; }
+  .schedule tr.this-week { background: #fbf6e9; }
+  .schedule tr.this-week td:first-child { box-shadow: inset 3px 0 var(--gold); }
+  .schedule .tag { display: inline-block; padding: 0 8px; border-radius: 3px; background: var(--wash); font-size: 12px; }
+
+  .assess { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 0; padding: 0; list-style: none; }
+  .assess li { padding: 14px; border: 1px solid var(--rule); border-top: 3px solid var(--crimson); }
+  .assess b { display: block; font-size: 24px; font-family: Georgia, serif; }
+
+  .rail .box { padding: 16px 18px; background: var(--wash); margin-bottom: 18px; }
+  .rail h3 { margin: 0 0 8px; font-size: 17px; }
+  .rail ul { margin: 0; padding-left: 18px; font-size: 15px; }
+  .deadline { font-size: 15px; }
+  .deadline .count { display: inline-block; width: 9.5em; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--crimson); }
+  .rail .dates { list-style: none; padding: 0; }
+  .rail .dates li { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--rule); }
+
+  .site-footer { background: var(--ink); color: #c9ced4; font-size: 13px; }
+  .site-footer .w { padding-top: 24px; padding-bottom: 24px; display: flex; justify-content: space-between; }
+  .site-footer a { color: inherit; }
+</style>
+</head>
+<body>
+<div class="utility"><div class="w"><a href="#">Students</a><a href="#">Staff</a><a href="#">Library</a><a href="#">Sign in</a></div></div>
+<header class="brandbar">
+  <div class="w">
+    <img class="crest" src="/assets/img/logo-mark.svg" width="48" height="48" alt="">
+    <div class="uni">Aldermoor University<small>School of Computing</small></div>
+    <nav aria-label="School">
+      <a href="#">Courses</a>
+      <a href="#">Research</a>
+      <a href="#">People</a>
+      <a href="#">Timetables</a>
+    </nav>
+  </div>
+</header>
+
+<div class="w">
+  <div class="crumbs"><a href="#">School of Computing</a> / <a href="#">Undergraduate courses</a> / CS 214</div>
+  <div class="title">
+    <div>
+      <div class="code">CS 214 · Spring term 2026 · Level 2</div>
+      <h1>Data Structures and Algorithms</h1>
+    </div>
+    <a class="enrol" href="#">Add to my timetable</a>
+  </div>
+
+  <div class="layout">
+    <main>
+      <ul class="facts">
+        <li><span>Credits</span><b>20</b></li>
+        <li><span>Contact hours</span><b>4 per week</b></li>
+        <li><span>Prerequisite</span><b>CS 112</b></li>
+        <li><span>Places left</span><b id="places">11 of 180</b></li>
+      </ul>
+
+      <section id="teaching-team">
+        <h2>Teaching team</h2>
+        <table class="staff">
+          <thead><tr><th>Photo</th><th>Name</th><th>Office hours</th><th>Contact</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><img src="/delay/750/assets/img/avatar-160.svg" alt="Dr Nkechi Abara"></td>
+              <td><strong>Dr Nkechi Abara</strong><div class="role">Course leader. Lectures on trees, heaps and graph algorithms.</div></td>
+              <td>Tue 14:00–16:00<br>Turing Building 3.14</td>
+              <td><a href="#">n.abara@aldermoor.example</a></td>
+            </tr>
+            <tr>
+              <td><img src="/delay/750/assets/img/avatar-160.svg" width="64" height="64" alt="Dr Soren Hale"></td>
+              <td><strong>Dr Søren Hale</strong><div class="role">Lectures on hashing and amortised analysis.</div></td>
+              <td>Thu 10:00–11:00<br>Turing Building 2.07</td>
+              <td><a href="#">s.hale@aldermoor.example</a></td>
+            </tr>
+            <tr>
+              <td><img src="/assets/img/avatar-160.svg" width="64" height="64" alt="Mira Castellan"></td>
+              <td><strong>Mira Castellan</strong><div class="role">Lab coordinator and head demonstrator.</div></td>
+              <td>Mon and Wed labs<br>Lovelace Lab B</td>
+              <td><a href="#">m.castellan@aldermoor.example</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Weekly schedule</h2>
+        <table class="schedule" id="schedule">
+          <thead><tr><th>Week</th><th>Topic</th><th>Lab</th><th>Due</th></tr></thead>
+          <tbody>
+            <tr data-week="6"><td>6</td><td>Balanced search trees</td><td>Implementing rotations</td><td><span class="tag">Quiz 3</span></td></tr>
+            <tr data-week="7"><td>7</td><td>Heaps and priority queues</td><td>A binary heap from an array</td><td></td></tr>
+            <tr data-week="8"><td>8</td><td>Hash tables</td><td>Open addressing, measured</td><td><span class="tag">Coursework 2</span></td></tr>
+            <tr data-week="9"><td>9</td><td>Graphs: traversal</td><td>Maze solver</td><td></td></tr>
+            <tr data-week="10"><td>10</td><td>Graphs: shortest paths</td><td>Campus route planner</td><td><span class="tag">Quiz 4</span></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Assessment</h2>
+        <ul class="assess">
+          <li><b>40%</b>Two pieces of coursework</li>
+          <li><b>10%</b>Four in-lab quizzes</li>
+          <li><b>50%</b>Written examination</li>
+        </ul>
+      </section>
+    </main>
+
+    <aside class="rail">
+      <div class="box deadline">
+        <h3>Next deadline</h3>
+        Coursework 2 is due in <span class="count" id="countdown">6 d 04:12:09</span>
+      </div>
+      <div class="box">
+        <h3>Announcements</h3>
+        <ul>
+          <li>Thursday's lecture moves to Hopper Theatre.</li>
+          <li>Quiz 3 marks are on the portal.</li>
+          <li>Lab B is closed on 20 March.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>Key dates</h3>
+        <ul class="dates">
+          <li><span>Reading week</span><span>23 Mar</span></li>
+          <li><span>Revision lecture</span><span>1 May</span></li>
+          <li><span>Examination</span><span>19 May</span></li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="w"><span>© 2026 Aldermoor University</span><span><a href="#">Accessibility</a> · <a href="#">Freedom of information</a> · <a href="#">Contact</a></span></div>
+</footer>
+
+<script>
+  // Countdown to the next deadline.
+  (function () {
+    var out = document.getElementById('countdown');
+    var left = 6 * 86400 + 4 * 3600 + 12 * 60 + 9;
+    function two(n) { return (n < 10 ? '0' : '') + n; }
+    setInterval(function () {
+      left -= 1;
+      out.textContent = Math.floor(left / 86400) + ' d ' + two(Math.floor(left / 3600) % 24) + ':' + two(Math.floor(left / 60) % 60) + ':' + two(left % 60);
+    }, 1000);
+  })();
+
+  // Mark the current teaching week in the schedule, once the term calendar is known.
+  setTimeout(function () {
+    var row = document.querySelector('#schedule tr[data-week="8"]');
+    row.classList.add('this-week');
+    row.setAttribute('aria-current', 'true');
+    document.getElementById('places').textContent = '9 of 180';
+  }, 750);
+</script>
+</body>
+</html>

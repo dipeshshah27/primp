@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Change the owner of a workspace – Brightdesk Help Centre</title>
+<style>
+  :root { --brand: #2f5bea; --brand-dark: #1e3fb3; --ink: #1d2433; --muted: #66708a; --line: #e3e7ef; --bg: #f7f8fb; --note: #fff8e1; }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: var(--ink); background: #fff; font: 16px/1.65 "Inter", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; }
+  a { color: var(--brand); }
+  button, input { font: inherit; }
+  .max { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+  .hc-header { position: sticky; top: 0; z-index: 5; background: #fff; border-bottom: 1px solid var(--line); transition: box-shadow 250ms ease, background-color 250ms ease; }
+  .hc-header.is-raised { box-shadow: 0 6px 20px rgba(29, 36, 51, 0.12); background-color: #fcfdff; }
+  .hc-header .max { display: flex; align-items: center; gap: 24px; height: 64px; }
+  .hc-brand { display: flex; align-items: center; gap: 10px; color: var(--ink); font-weight: 700; font-size: 18px; text-decoration: none; }
+  .hc-brand span { font-weight: 400; color: var(--muted); }
+  .hc-search { flex: 1; max-width: 460px; height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+  .hc-links { margin-left: auto; display: flex; align-items: center; gap: 18px; font-size: 15px; }
+  .hc-links a { color: var(--ink); text-decoration: none; }
+  .hc-links .ticket { padding: 8px 16px; border-radius: 8px; background: var(--brand); color: #fff; font-weight: 600; }
+
+  .kb { display: grid; grid-template-columns: 250px minmax(0, 1fr) 220px; gap: 44px; padding-top: 26px; padding-bottom: 60px; align-items: start; }
+
+  .kb-menu { font-family: "Brightdesk Rounded", "Inter", "Segoe UI", system-ui, sans-serif; font-size: 12px; line-height: 1.5; }
+  .kb-menu h2 { margin: 0 0 8px; font: 700 12px/1.4 "Inter", "Segoe UI", system-ui, sans-serif; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .kb-menu ul { margin: 0; padding: 0; list-style: none; border-left: 2px solid var(--line); }
+  .kb-menu a { display: block; padding: 7px 14px; margin-left: -2px; border-left: 2px solid transparent; color: var(--ink); text-decoration: none; transition: color 120ms ease, border-color 120ms ease; }
+  .kb-menu a:hover { color: var(--brand); }
+  .kb-menu a.current { border-left-color: var(--brand); color: var(--brand); }
+  .kb-contact { margin-top: 22px; padding: 16px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); font-size: 14px; }
+  .kb-contact strong { display: block; font-size: 15px; }
+  .kb-contact a { display: inline-block; margin-top: 8px; font-weight: 600; }
+
+  .article .crumbs { font-size: 13px; color: var(--muted); }
+  .article h1 { margin: 6px 0 8px; font-size: 32px; line-height: 1.2; letter-spacing: -0.5px; }
+  .article .meta { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+  .article .meta img { border-radius: 50%; }
+  .article h2 { margin: 28px 0 8px; font-size: 21px; }
+  .article p { margin: 0 0 14px; }
+  .article ol { margin: 0 0 16px; padding-left: 22px; }
+  .article ol li { margin-bottom: 8px; }
+  .note { padding: 14px 16px; border-radius: 10px; background: var(--note); border: 1px solid #f3e2a5; margin: 0 0 18px; font-size: 15px; }
+  .shot { margin: 0 0 18px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .shot img { display: block; width: 100%; height: auto; }
+  .shot figcaption { padding: 8px 12px; font-size: 13px; color: var(--muted); background: var(--bg); }
+  kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; background: var(--bg); font: 13px ui-monospace, Menlo, Consolas, monospace; }
+  .helpful { display: flex; align-items: center; gap: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--line); }
+  .helpful button { padding: 6px 18px; border: 1px solid var(--line); border-radius: 999px; background: #fff; cursor: pointer; }
+  .helpful button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+
+  .related h2 { margin: 0 0 8px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .related ul { margin: 0; padding: 0; list-style: none; font-size: 14px; }
+  .related li { padding: 7px 0; border-bottom: 1px solid var(--line); }
+  .related a { text-decoration: none; }
+
+  .hc-footer { background: var(--bg); border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+  .hc-footer .max { display: flex; justify-content: space-between; padding-top: 22px; padding-bottom: 22px; }
+</style>
+</head>
+<body>
+<header class="hc-header" id="hc-header">
+  <div class="max">
+    <a class="hc-brand" href="#"><img src="/assets/img/logo-mark.svg" width="30" height="30" alt=""> Brightdesk <span>Help Centre</span></a>
+    <input class="hc-search" type="search" placeholder="Search 640 articles" aria-label="Search the help centre">
+    <div class="hc-links"><a href="#">Community</a><a href="#">Status</a><a class="ticket" href="#">Submit a request</a></div>
+  </div>
+</header>
+
+<div class="max kb">
+  <div>
+    <nav class="kb-menu" aria-label="Help topics">
+      <h2>Help topics</h2>
+      <ul>
+        <li><a href="#">Getting started</a></li>
+        <li><a href="#">Billing and invoices</a></li>
+        <li><a class="current" href="#">Workspaces and owners</a></li>
+        <li><a href="#">Team and permissions</a></li>
+        <li><a href="#">Automations and rules</a></li>
+        <li><a href="#">Security and privacy</a></li>
+        <li><a href="#">API and webhooks</a></li>
+      </ul>
+    </nav>
+    <div class="kb-contact">
+      <strong>Can't find it?</strong>
+      Our team answers within four working hours.
+      <a href="#">Contact support</a>
+    </div>
+  </div>
+
+  <main class="article">
+    <div class="crumbs">Help Centre / Workspaces and owners</div>
+    <h1>Change the owner of a workspace</h1>
+    <div class="meta"><img src="/assets/img/avatar-160.svg" width="28" height="28" alt=""> Written by Camille Osei · Updated 4 March 2026 · 3 min read</div>
+
+    <p>Every workspace has exactly one owner. The owner pays for the plan, can delete the workspace and is the only person who can hand it to somebody else.</p>
+    <div class="note"><strong>Before you start.</strong> The new owner must already be an admin of the workspace and must have confirmed their email address.</div>
+
+    <h2>Transfer ownership</h2>
+    <ol>
+      <li>Open <strong>Settings</strong> and choose <strong>Workspace</strong>.</li>
+      <li>Under <strong>Ownership</strong>, select <strong>Transfer</strong>.</li>
+      <li>Pick the admin who should become the owner and type the workspace name to confirm.</li>
+      <li>The new owner receives an email and has seven days to accept.</li>
+    </ol>
+    <figure class="shot">
+      <img src="/delay/750/assets/img/hero-1200x400.png" width="1200" height="400" alt="The Ownership panel with the Transfer button highlighted">
+      <figcaption>Settings › Workspace › Ownership</figcaption>
+    </figure>
+
+    <h2>What changes, and what does not</h2>
+    <p>Billing moves to the new owner at the start of the next invoice period. Open tickets, automations and API keys are not affected. You become an admin and can be removed like any other member.</p>
+    <p>Press <kbd>G</kbd> then <kbd>S</kbd> anywhere in Brightdesk to jump to Settings.</p>
+
+    <div class="helpful">Was this article helpful? <button type="button" aria-pressed="false">Yes</button><button type="button" aria-pressed="false">No</button></div>
+  </main>
+
+  <aside class="related">
+    <h2>Related articles</h2>
+    <ul>
+      <li><a href="#">Roles: owner, admin, agent</a></li>
+      <li><a href="#">Delete a workspace</a></li>
+      <li><a href="#">Change the billing contact</a></li>
+      <li><a href="#">Leave a workspace</a></li>
+    </ul>
+  </aside>
+</div>
+
+<footer class="hc-footer">
+  <div class="max"><span>© 2026 Brightdesk Inc.</span><span><a href="#">Privacy</a> · <a href="#">Terms</a> · <a href="#">Cookie settings</a></span></div>
+</footer>
+
+<script>
+  // Brand typefaces are registered from script so the page can render before they arrive.
+  (function () {
+    var fontUrl = '/assets/fonts/press-start-2p-latin-400-normal.woff2';
+    var icons = new FontFace('Brightdesk Icons', 'url(/delay/500' + fontUrl + ')');
+    icons.load().then(function (loaded) { document.fonts.add(loaded); });
+    var rounded = new FontFace('Brightdesk Rounded', 'url(/delay/750' + fontUrl + ')');
+    rounded.load().then(function (loaded) {
+      document.fonts.add(loaded);
+      document.documentElement.dataset.brandFont = 'ready';
+    });
+  })();
+
+  // The header lifts while the "new reply" indicator pulses.
+  (function () {
+    var header = document.getElementById('hc-header');
+    setInterval(function () { header.classList.toggle('is-raised'); }, 750);
+  })();
+
+  // Feedback buttons.
+  document.querySelectorAll('.helpful button').forEach(function (button) {
+    button.addEventListener('click', function () {
+      document.querySelectorAll('.helpful button').forEach(function (other) { other.setAttribute('aria-pressed', String(other === button)); });
+    });
+  });
+</script>
+</body>
+</html>

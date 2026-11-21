@@ -1,0 +1,124 @@
+{
+  "page": "newsletter-undertow/index.html",
+  "template": "newsletter archive",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "font-swap",
+      "culpritSelector": ".featured > blockquote",
+      "acceptableCulpritSelectors": [],
+      "culpritFile": "newsletter-undertow/index.html",
+      "culpritLine": 87,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<blockquote>Every harbour is an argument with silt",
+      "acceptableCulpritLines": [
+        {
+          "line": 10,
+          "kind": "font-face-src",
+          "contains": "src: url(\"/delay/650/assets/fonts/press-start-2p-latin-400-normal.woff2\")"
+        },
+        {
+          "line": 37,
+          "kind": "font-family-declaration",
+          "contains": ".featured blockquote { margin: 18px 0 16px;"
+        }
+      ],
+      "victimSelectors": [
+        ".featured > p",
+        ".featured .read",
+        "#issues",
+        ".issue:nth-child(1)"
+      ],
+      "minValue": 0.0145
+    }
+  ],
+  "decoys": [
+    ".issue img",
+    ".issue.read",
+    "#readers",
+    "#hint"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.fonts.check('21px \"Undertow Display\"')",
+    "document.querySelector('.featured blockquote').getBoundingClientRect().height > 100",
+    "document.querySelectorAll('#issues .issue.read').length === 2",
+    "document.querySelector('.issue img').naturalWidth === 320"
+  ],
+  "measuredValues": [
+    0.024236,
+    0.024236,
+    0.024236
+  ],
+  "notes": "The pull quote in the featured issue uses a display font declared with font-display: fallback; the file arrives after 650 ms, inside the swap period, so the quote is re-laid out in much wider glyphs, grows from two lines to several and pushes the rest of the featured issue and the archive list down. The first issue thumbnail arrives at the same 650 ms but is sized, a script adds a class that dims two issues at 650 ms (opacity only) and the reader count is rewritten every 1.3 s in a fixed-width box.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.024236,
+      "startTimeMs": 688,
+      "sources": [
+        {
+          "node": "ul#issues",
+          "previousRect": {
+            "x": 138,
+            "y": 477.28125,
+            "width": 664,
+            "height": 322.71875
+          },
+          "currentRect": {
+            "x": 138,
+            "y": 571.78125,
+            "width": 664,
+            "height": 228.21875
+          }
+        },
+        {
+          "node": "p",
+          "previousRect": {
+            "x": 137,
+            "y": 275.09375,
+            "width": 665,
+            "height": 84.140625
+          },
+          "currentRect": {
+            "x": 137,
+            "y": 369.59375,
+            "width": 665,
+            "height": 84.140625
+          }
+        },
+        {
+          "node": "div.year",
+          "previousRect": {
+            "x": 138,
+            "y": 454.28125,
+            "width": 664,
+            "height": 15
+          },
+          "currentRect": {
+            "x": 138,
+            "y": 548.78125,
+            "width": 664,
+            "height": 15
+          }
+        }
+      ]
+    }
+  }
+}

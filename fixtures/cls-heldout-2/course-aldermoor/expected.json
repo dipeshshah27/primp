@@ -1,0 +1,117 @@
+{
+  "page": "course-aldermoor/index.html",
+  "template": "university course page",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "unsized-media",
+      "culpritSelector": "#teaching-team tbody tr:nth-child(1) td:nth-child(1) > img",
+      "acceptableCulpritSelectors": [
+        "#teaching-team tbody tr:nth-child(1) td:nth-child(1)"
+      ],
+      "culpritFile": "course-aldermoor/index.html",
+      "culpritLine": 108,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<td><img src=\"/delay/750/assets/img/avatar-160.svg\" alt=\"Dr Nkechi Abara\">",
+      "victimSelectors": [
+        "#teaching-team tbody",
+        "#teaching-team tbody tr:nth-child(2)",
+        "#teaching-team tbody tr:nth-child(3)",
+        "#teaching-team thead th:nth-child(2)",
+        "#schedule"
+      ],
+      "minValue": 0.013
+    }
+  ],
+  "decoys": [
+    "#teaching-team tbody tr:nth-child(2) img",
+    "#teaching-team tbody tr:nth-child(3) img",
+    "#schedule tr.this-week",
+    "#countdown",
+    "#places",
+    ".brandbar img.crest"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "document.querySelector('#teaching-team tbody tr:nth-child(1) img').naturalWidth === 160",
+    "document.querySelector('#teaching-team tbody tr:nth-child(2) img').complete && document.querySelector('#teaching-team tbody tr:nth-child(2) img').naturalWidth === 160",
+    "document.querySelector('#schedule tr.this-week') !== null",
+    "document.getElementById('places').textContent === '9 of 180'"
+  ],
+  "measuredValues": [
+    0.022549,
+    0.022549,
+    0.022549
+  ],
+  "notes": "The course leader's photo sits in a table cell with no width/height; when it arrives (750 ms) it grows to its natural 160x160, so its row becomes taller, the photo column wider, the other columns narrower, and the rows and sections below move down. The second row's photo comes from the same delayed URL at the same moment but has width/height; a script adds a highlight class to a schedule row and rewrites the places figure at 750 ms, and a countdown rewrites its text every second in a fixed-width box.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.022549,
+      "startTimeMs": 772,
+      "sources": [
+        {
+          "node": "tbody",
+          "previousRect": {
+            "x": 98,
+            "y": 433.34375,
+            "width": 744,
+            "height": 366.65625
+          },
+          "currentRect": {
+            "x": 98,
+            "y": 452.53125,
+            "width": 744,
+            "height": 347.46875
+          }
+        },
+        {
+          "node": "th",
+          "previousRect": {
+            "x": 186,
+            "y": 393.65625,
+            "width": 269.625,
+            "height": 39.6875
+          },
+          "currentRect": {
+            "x": 282,
+            "y": 393.65625,
+            "width": 193.234375,
+            "height": 58.875
+          }
+        },
+        {
+          "node": "th",
+          "previousRect": {
+            "x": 455.625,
+            "y": 393.65625,
+            "width": 129.109375,
+            "height": 39.6875
+          },
+          "currentRect": {
+            "x": 475.234375,
+            "y": 393.65625,
+            "width": 109.5,
+            "height": 58.875
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "page": "jobs-fathom/index.html",
+  "template": "job board listing",
+  "positive": true,
+  "shifts": [
+    {
+      "cause": "injected-content",
+      "culpritSelector": ".results > job-alert-prompt",
+      "acceptableCulpritSelectors": [],
+      "culpritFile": "jobs-fathom/index.html",
+      "culpritLine": 117,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<job-alert-prompt query=\"front-end engineer\" place=\"Leeds\">",
+      "acceptableCulpritLines": [
+        {
+          "line": 7,
+          "kind": "script-tag",
+          "contains": "<script async src=\"/delay/800/jobs-fathom/job-widgets.js\"></script>"
+        },
+        {
+          "line": 40,
+          "kind": "define-statement",
+          "file": "jobs-fathom/job-widgets.js",
+          "contains": "customElements.define('job-alert-prompt', JobAlertPrompt);"
+        },
+        {
+          "line": 9,
+          "kind": "render-statement",
+          "file": "jobs-fathom/job-widgets.js",
+          "contains": "root.innerHTML = `"
+        },
+        {
+          "line": 11,
+          "kind": "host-display-rule",
+          "file": "jobs-fathom/job-widgets.js",
+          "contains": ":host { display: block; margin: 0 0 16px; }"
+        }
+      ],
+      "victimSelectors": [
+        "#job-list",
+        ".job:nth-child(1)",
+        ".job:nth-child(2)",
+        ".pages"
+      ],
+      "minValue": 0.031
+    }
+  ],
+  "decoys": [
+    "time-ago",
+    ".job .save",
+    ".job img",
+    ".mark img"
+  ],
+  "interaction": null,
+  "assertAfter": [
+    "customElements.get('job-alert-prompt') !== undefined && document.querySelector('job-alert-prompt').shadowRoot !== null",
+    "document.querySelector('job-alert-prompt').getBoundingClientRect().height > 60",
+    "document.querySelector('time-ago').title === '2026-03-12' && document.querySelector('time-ago').textContent === 'Today'",
+    "document.querySelectorAll('.job .save').length === 5",
+    "document.querySelector('.job img').naturalWidth === 320"
+  ],
+  "measuredValues": [
+    0.052791,
+    0.052791,
+    0.052791
+  ],
+  "notes": "A custom element <job-alert-prompt> is in the HTML above the job list but its class is defined by an async script that arrives after 800 ms; until then it is an empty inline element with no height, and on upgrade it renders a shadow-DOM box and becomes a block, pushing the whole job list down. The same script upgrades five <time-ago> elements at the same moment (they rewrite their text to the same words), 'save' buttons are appended to every card at 800 ms (absolutely positioned) and the first company logo arrives at 800 ms but is sized.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0
+      }
+    ],
+    "dominantEntry": {
+      "value": 0.052791,
+      "startTimeMs": 822,
+      "sources": [
+        {
+          "node": "div#job-list",
+          "previousRect": {
+            "x": 362,
+            "y": 212,
+            "width": 824,
+            "height": 588
+          },
+          "currentRect": {
+            "x": 362,
+            "y": 354.8125,
+            "width": 824,
+            "height": 445.1875
+          }
+        },
+        {
+          "node": "article.job",
+          "previousRect": {
+            "x": 362,
+            "y": 708,
+            "width": 824,
+            "height": 92
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          }
+        }
+      ]
+    }
+  }
+}

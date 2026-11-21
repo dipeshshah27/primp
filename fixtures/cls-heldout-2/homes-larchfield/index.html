@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3 bed terraced house for sale, Alma Terrace, York YO10 | Larchfield Homes</title>
+<style>
+  :root { --forest: #1d4d3a; --forest-dark: #133528; --ink: #1b2420; --muted: #617068; --line: #dce3df; --bg: #f6f8f7; --gold: #c9973b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--ink); font: 16px/1.55 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; }
+  a { color: var(--forest); }
+  button, input, select { font: inherit; }
+  .c { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+
+  .site { border-bottom: 1px solid var(--line); }
+  .site .c { display: flex; align-items: center; gap: 28px; height: 64px; }
+  .site .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; color: var(--forest); text-decoration: none; }
+  .site nav { display: flex; gap: 22px; }
+  .site nav a { color: var(--ink); text-decoration: none; }
+  .site .saved { margin-left: auto; }
+  .site .valuation { padding: 9px 16px; border-radius: 8px; background: var(--forest); color: #fff; font-weight: 600; text-decoration: none; }
+
+  .back { padding: 12px 0; font-size: 14px; color: var(--muted); }
+  .gallery { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; height: 360px; border-radius: 14px; overflow: hidden; }
+  .gallery a { display: block; overflow: hidden; background: #d7dfda; }
+  .gallery a:first-child { grid-row: span 2; }
+  .gallery img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 400ms ease; }
+  .gallery a:hover img { transform: scale(1.04); }
+
+  .main { display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 40px; padding-top: 24px; padding-bottom: 56px; align-items: start; }
+  .price-row { display: flex; align-items: baseline; gap: 14px; }
+  .price-row .price { font-size: 34px; font-weight: 800; letter-spacing: -0.5px; }
+  .price-row .status { padding: 2px 10px; border-radius: 999px; background: #e3f1ea; color: var(--forest); font-size: 13px; font-weight: 700; }
+  h1 { margin: 2px 0 14px; font-size: 20px; font-weight: 400; color: var(--muted); }
+  .keys { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0 0 22px; padding: 0; list-style: none; border: 1px solid var(--line); border-radius: 12px; }
+  .keys li { padding: 12px 16px; border-right: 1px solid var(--line); }
+  .keys li:last-child { border-right: 0; }
+  .keys span { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
+  .keys b { font-size: 18px; }
+  .main h2 { margin: 24px 0 8px; font-size: 21px; }
+  .main p { margin: 0 0 12px; }
+  .features { columns: 2; margin: 0; padding-left: 20px; }
+  .features li { margin-bottom: 4px; break-inside: avoid; }
+  .floor { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; }
+
+  .agent { position: sticky; top: 16px; padding: 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); }
+  .agent .who { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+  .agent .who img { border-radius: 50%; }
+  .agent .who small { display: block; color: var(--muted); }
+  .agent button { width: 100%; height: 46px; border-radius: 10px; border: 1px solid var(--forest); background: #fff; color: var(--forest); font-weight: 700; cursor: pointer; margin-bottom: 8px; }
+  .agent button.primary { background: var(--forest); color: #fff; }
+  .calc { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 14px; }
+  .calc output { display: block; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .calc input { width: 100%; }
+
+  dialog.viewing { width: 480px; max-width: calc(100vw - 40px); padding: 0; border: 0; border-radius: 16px; box-shadow: 0 30px 80px rgba(19, 53, 40, 0.4); }
+  dialog.viewing::backdrop { background: rgba(19, 53, 40, 0.55); }
+  dialog.viewing .top { padding: 22px 24px 14px; background: var(--forest); color: #fff; }
+  dialog.viewing h2 { margin: 0 0 2px; font-size: 22px; }
+  dialog.viewing .mid { padding: 18px 24px; }
+  dialog.viewing .slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 0; }
+  dialog.viewing .slots button { height: 42px; border: 1px solid var(--line); border-radius: 8px; background: #fff; cursor: pointer; }
+  dialog.viewing .slots button[aria-pressed="true"] { border-color: var(--forest); background: #e3f1ea; font-weight: 700; }
+  dialog.viewing .end { display: flex; justify-content: flex-end; gap: 10px; padding: 0 24px 22px; }
+  dialog.viewing .end button { height: 42px; padding: 0 18px; border-radius: 8px; border: 1px solid var(--line); background: #fff; cursor: pointer; }
+  dialog.viewing .end .go { background: var(--gold); border-color: var(--gold); font-weight: 700; }
+
+  .legal { border-top: 1px solid var(--line); background: var(--bg); font-size: 13px; color: var(--muted); }
+  .legal .c { padding-top: 22px; padding-bottom: 22px; }
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="c">
+    <a class="logo" href="#"><img src="/assets/img/logo-mark.svg" width="30" height="30" alt=""> Larchfield Homes</a>
+    <nav aria-label="Main"><a href="#">Buy</a><a href="#">Rent</a><a href="#">Sold prices</a><a href="#">Agents</a></nav>
+    <a class="saved" href="#">Saved (<span id="saved-count">3</span>)</a>
+    <a class="valuation" href="#">Free valuation</a>
+  </div>
+</header>
+
+<div class="c">
+  <div class="back"><a href="#">← Back to 3 bed houses in York</a> · Added 5 days ago · Ref LF-20418</div>
+
+  <div class="gallery">
+    <a href="#"><img src="/assets/img/card-600x400.png" width="600" height="400" alt="Front of the house with a blue door"></a>
+    <a href="#"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt="Sitting room with a cast-iron fireplace"></a>
+    <a href="#"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt="Kitchen and dining room"></a>
+    <a href="#"><img src="/delay/900/assets/img/thumb-320x240.png" width="320" height="240" alt="Main bedroom"></a>
+    <a href="#"><img src="/assets/img/thumb-320x240.png" width="320" height="240" alt="Walled yard with a bike store"></a>
+  </div>
+
+  <div class="main">
+    <main>
+      <div class="price-row"><span class="price">£385,000</span><span class="status">Offers over</span></div>
+      <h1>3 bedroom terraced house, Alma Terrace, York YO10</h1>
+      <ul class="keys">
+        <li><span>Bedrooms</span><b>3</b></li>
+        <li><span>Bathrooms</span><b>1</b></li>
+        <li><span>Floor area</span><b>94 m²</b></li>
+        <li><span>EPC</span><b>C (71)</b></li>
+      </ul>
+
+      <h2>About this home</h2>
+      <p>A Victorian terrace on a quiet street between the river and the Fulford Road, five minutes on foot from Millennium Bridge. The current owners have kept the fireplaces, the sash windows and the original staircase, and added a loft room in 2019.</p>
+      <p>The kitchen runs the full width of the house and opens onto a walled yard that gets the sun until mid-afternoon.</p>
+
+      <h2>Key features</h2>
+      <ul class="features">
+        <li>Three bedrooms over two upper floors</li>
+        <li>Through sitting and dining room</li>
+        <li>Gas central heating, boiler replaced 2023</li>
+        <li>Residents' parking, zone R17</li>
+        <li>No onward chain</li>
+        <li>Council tax band C</li>
+      </ul>
+
+      <h2>Floor plan</h2>
+      <img class="floor" src="/assets/img/chart-640x240.svg" width="640" height="240" alt="Floor plan of three floors" loading="lazy">
+    </main>
+
+    <aside class="agent">
+      <div class="who">
+        <img src="/assets/img/avatar-160.svg" width="52" height="52" alt="">
+        <div><strong>Rosalind Achebe</strong><small>Larchfield, York office</small></div>
+      </div>
+      <button class="primary" id="open-viewing" type="button">Book a viewing</button>
+      <button type="button">Call 01904 555 0117</button>
+      <div class="calc">
+        Estimated monthly payment
+        <output id="monthly">£1,842</output>
+        <label>Deposit <input id="deposit" type="range" min="5" max="40" value="15" aria-label="Deposit percentage"></label>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<dialog class="viewing" id="viewing-dialog" aria-labelledby="viewing-title">
+  <div class="top"><h2 id="viewing-title">Open house this Saturday</h2>Alma Terrace · 14 March, 10:00 to 13:00</div>
+  <div class="mid">
+    Pick a slot and Rosalind will meet you at the door. No need to book a separate viewing.
+    <div class="slots">
+      <button type="button" aria-pressed="false">10:00</button>
+      <button type="button" aria-pressed="true">10:30</button>
+      <button type="button" aria-pressed="false">11:00</button>
+      <button type="button" aria-pressed="false">11:30</button>
+      <button type="button" aria-pressed="false">12:00</button>
+      <button type="button" aria-pressed="false">12:30</button>
+    </div>
+  </div>
+  <form class="end" method="dialog">
+    <button value="later">Not now</button>
+    <button class="go" value="book">Reserve 10:30</button>
+  </form>
+</dialog>
+
+<footer class="legal">
+  <div class="c">Larchfield Homes Ltd is a member of The Property Ombudsman. Details are given in good faith and do not form part of a contract.</div>
+</footer>
+
+<script>
+  // Mortgage estimate follows the deposit slider.
+  document.getElementById('deposit').addEventListener('input', function () {
+    var loan = 385000 * (1 - this.value / 100);
+    var rate = 0.0475 / 12;
+    var months = 300;
+    var monthly = loan * rate / (1 - Math.pow(1 + rate, -months));
+    document.getElementById('monthly').textContent = '£' + Math.round(monthly).toLocaleString('en-GB');
+  });
+
+  // Viewing dialog: from the button, and once automatically while an open house is coming up.
+  (function () {
+    var dialog = document.getElementById('viewing-dialog');
+    document.getElementById('open-viewing').addEventListener('click', function () { dialog.showModal(); });
+    dialog.querySelectorAll('.slots button').forEach(function (slot) {
+      slot.addEventListener('click', function () {
+        dialog.querySelectorAll('.slots button').forEach(function (other) { other.setAttribute('aria-pressed', String(other === slot)); });
+        dialog.querySelector('.go').textContent = 'Reserve ' + slot.textContent;
+      });
+    });
+    setTimeout(function () {
+      if (!dialog.open) dialog.showModal();
+    }, 900);
+  })();
+</script>
+</body>
+</html>
