@@ -99,7 +99,7 @@ Each claim below has a script in `spikes/` that exits 0 or 1.
 - **Other frameworks** (Vue, Astro, Solid, Angular, server-rendered templates): the proxy and the dock are framework-independent and should work; source positions fall back to ranked guesses. Untested.
 - **Layout shifts** need Chromium, the only engine with the Layout Instability API. Resources from other origins never pass through the proxy, so their timing cannot be replayed cold.
 - **Browsers:** only Chromium has been run. **Systems:** only macOS has been run. On Windows, pass `--target`.
-- **Attribution accuracy** is measured on a corpus of pages with known causes (`fixtures/cls-corpus`) and on a held-out set (`fixtures/cls-heldout`); see `spikes/` for the numbers of the current build.
+- **Attribution accuracy.** On 14 realistic pages written without sight of the attribution code and scored once (`fixtures/cls-heldout-2`, `pnpm spike:m4-heldout2`): the cause and culprit were named correctly, with confidence, on 7 of 10 pages that shift; the other 3 were reported as "unknown" without a confident claim; no page was given a confident wrong answer; none of the 4 pages that must not be accused was. The goal was 8 of 10. An earlier blind set scored 5 of 11 and led to three fixes, after which it scores 11 of 11, which is no longer a measurement.
 
 ## Known limits
 

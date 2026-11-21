@@ -197,3 +197,14 @@ export const FIRST_RUN =
   'product-tidewell, recipe-saltwater-kitchen, shop-grid-fernhill (unknown, no culprit: victims pushed out of the viewport have an empty current rect, which was read as movement up and left); ' +
   'dashboard-orderdesk, docs-quillstack (culprit right, cause unknown: a web font used by text inside the element that grew was not linked to it). ' +
   'The attributor was changed for these three defects afterwards, so this set is a development set from then on; fixtures/cls-heldout-2 is the held-out measurement.'
+
+/**
+ * HELD_OUT_RESULT: the one run of the second set (fixtures/cls-heldout-2), 2026-11-21, on the code
+ * that contains the three fixes above and nothing made with knowledge of these pages.
+ */
+export const HELD_OUT_RESULT =
+  '10 positive pages: 7 correct with confidence (70%; the target is 80%, so the check fails), 3 conservative, 0 wrong, 0 missed. ' +
+  '4 negative pages: 4 clean, 0 accused. Source line right on 7 of the 7 correct ones. ' +
+  'Conservative: event-tidepool (right element, cause unknown: the font comes from a separate stylesheet), help-brightdesk (nothing named: a font added with the FontFace API, a 0.007 shift), ' +
+  'course-aldermoor (an image in a table cell: a header cell was named at 0.60, below the confidence line). ' +
+  'Fixing these would make this set a development set too; a new one would then be needed for the next measurement.'
