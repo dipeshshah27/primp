@@ -4,8 +4,9 @@
  * It is always present; it adds nothing a page script could not already do by clicking.
  */
 
-import type { ChangeItem, Ref, SideEffect } from '@reglet/protocol/change'
+import type { ChangeItem, ElementState, Ref, SideEffect } from '@reglet/protocol/change'
 import type { MeasureRequest, Measurement } from './probe/measure.ts'
+import { forcedNow } from './probe/states.ts'
 import { suggestProperties, supportedProperties } from './probe/properties.ts'
 import { summarizeRecorded } from './probe/effects.ts'
 import { summaryKey, type Controller, type EffectsCost, type StyleEditOptions } from './state/controller.ts'
@@ -38,6 +39,12 @@ export interface TestState {
   sent: { count: number; copied: boolean } | null
   /** Main-thread cost of the last side-effect measurement (both snapshots, diff, conversion). */
   lastEffects: EffectsCost | null
+  /** The State control: the state the selection is shown in and edits are made for; null at rest. */
+  activeState: ElementState | null
+  /** The states at least one rule of the page styles the selected element in. */
+  statesWithRules: ElementState[]
+  /** What is forced on the page right now: `rules` of the page were given the marker selector, `unreadable` stylesheets could not be looked at. */
+  forced: { state: ElementState; rules: number; unreadable: number } | null
 }
 
 export interface RegletTestHandle {
@@ -46,6 +53,9 @@ export interface RegletTestHandle {
   /** Selects the first element matching `cssSelector`, as a click in pick mode would. */
   select(cssSelector: string): Promise<Ref>
   selection(): Ref | null
+  /** Sets the State control (`hover`, `focus`, `focus-visible`, `active`); null: back to rest. */
+  setState(state: ElementState | null): Promise<void>
+  /** `options.state` makes the edit for that state whatever the State control says; `null` for a resting edit. */
   setStyle(property: string, value: string, options?: StyleEditOptions): Promise<TestEditResult>
   hide(): Promise<TestEditResult>
   remove(): Promise<TestEditResult>
@@ -105,6 +115,10 @@ export function installTestHandle(c: Controller, dock: DockHandle): RegletTestHa
       return selection.ref
     },
     selection: () => store.selection.value?.ref ?? null,
+    async setState(state) {
+      await c.idle()
+      c.setState(state)
+    },
     setStyle: (property, value, options) => result(c.setStyle(property, value, options)),
     hide: () => result(c.structural('hide')),
     remove: () => result(c.structural('remove')),
@@ -155,6 +169,7 @@ export function installTestHandle(c: Controller, dock: DockHandle): RegletTestHa
     state() {
       const source = store.source.value
       const sent = store.sent.value
+      const forced = forcedNow()
       return {
         connected: store.connected.value,
         ready: store.ready.value,
@@ -179,6 +194,9 @@ export function installTestHandle(c: Controller, dock: DockHandle): RegletTestHa
               },
         sent: sent === null ? null : { count: sent.count, copied: sent.copied },
         lastEffects: c.lastEffects(),
+        activeState: store.state.value,
+        statesWithRules: store.selection.value?.styles.states ?? [],
+        forced: forced === undefined ? null : { state: forced.state, rules: forced.rules, unreadable: forced.unreadable },
       }
     },
   }

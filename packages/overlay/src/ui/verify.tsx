@@ -32,7 +32,7 @@ function what(check: CheckResult): string {
   const expectation = check.expectation
   switch (expectation.type) {
     case 'computed':
-      return expectation.property
+      return expectation.condition.state === undefined ? expectation.property : `${expectation.property} on :${expectation.condition.state}`
     case 'absent':
       return 'removed'
     case 'hidden':
@@ -41,6 +41,8 @@ function what(check: CheckResult): string {
       return `${expectation.label.split(' "')[0]} stays put`
     case 'unchanged':
       return `${expectation.label.split(' "')[0]} keeps its ${expectation.property}`
+    case 'order':
+      return 'order among its siblings'
   }
 }
 

@@ -45,15 +45,23 @@ export function SourceBadge({ loc, state }: { loc: SourceLoc | null; state?: Sou
   )
 }
 
-/** `padding: 20px -> 28px`, or what a structural change does. */
+/** `padding: 20px -> 28px`, `background-color on :hover: old -> new`, or what a structural change does. */
 export function ChangeLine({ item }: { item: ChangeItem }) {
   if (item.kind === 'structure') {
     return <div class="change">{item.op === 'remove' ? 'Remove this element from the source' : 'Hide this element (keep it in the DOM)'}</div>
   }
   const before = item.before.authored ?? item.before.computed
+  const state = item.condition.state
   return (
     <div class="change">
-      <span class="p">{item.property}</span>: <del>{before === '' ? '(not set)' : before}</del> <span aria-hidden="true">{'\u2192'}</span>
+      <span class="p">{item.property}</span>
+      {state === undefined ? null : (
+        <>
+          {' on '}
+          <span class="st">:{state}</span>
+        </>
+      )}
+      : <del>{before === '' ? '(not set)' : before}</del> <span aria-hidden="true">{'\u2192'}</span>
       <span class="sr"> changed to </span> <ins>{item.after.authored}</ins>
     </div>
   )
@@ -62,10 +70,16 @@ export function ChangeLine({ item }: { item: ChangeItem }) {
 export function ScopeChips({ item }: { item: ChangeItem }) {
   if (item.kind !== 'style') return null
   const media = item.condition.media
+  const state = item.condition.state
   const all = item.scope === 'all-instances'
-  if (media === undefined && !all) return null
+  if (media === undefined && state === undefined && !all) return null
   return (
     <>
+      {state === undefined ? null : (
+        <span class="chip info state" title={`Only while the element is in :${state}. Its resting style is not part of this change.`}>
+          :{state}
+        </span>
+      )}
       {media === undefined ? null : <span class="chip info">@media {media}</span>}
       {all ? <span class="chip info">all {item.target.instanceCount} instances</span> : null}
     </>

@@ -10,20 +10,24 @@
  * was hidden; for that single check the same bundles run against a small fake session server
  * (m1-overlay-assets/fake-session.ts).
  *
- * Fixtures: vite-react-19 (most checks), next-16-turbopack (strict nonce CSP), static-html,
- * and one positive page of cls-corpus (the Shifts tab).
+ * Fixtures: vite-react-19 (most checks, and the :hover state), next-16-turbopack (strict nonce
+ * CSP), static-html (also :focus-visible, and a stylesheet from another origin that cannot be
+ * read), and one positive page of cls-corpus (the Shifts tab).
  *
  * Run: pnpm spike:m1-overlay                  (exit 0 = every check passed)
  *      pnpm spike:m1-overlay vite next ...    only these sections: vite, next, static, cls, shots
+ *                                             (vite-states: only the :hover checks of vite)
  * Screenshots go to .tmp/m1-overlay-shots/.
  */
 
 import { mkdirSync } from 'node:fs'
+import { createServer } from 'node:http'
+import type { AddressInfo } from 'node:net'
 import { join } from 'node:path'
 import type { Browser } from '@playwright/test'
 import type { ChangeItem, Expectation, StyleChange } from '../packages/protocol/src/change.ts'
 import type { ShiftReport } from '../packages/protocol/src/shift.ts'
-import { createReport, editFile, expect, launchBrowser, newPage, replaceOnce, runCleanups, sleep, TMP_ROOT, waitFor } from './lib/index.ts'
+import { createReport, editFile, expect, launchBrowser, newPage, onCleanup, replaceOnce, runCleanups, sleep, TMP_ROOT, waitFor } from './lib/index.ts'
 import { buildBundles, computed, computedAll, items, marks, openDock, px, rect, restartReglet, startFakeLane, startLane, testState, type Bundles, type DockPage, type Lane } from './m1-overlay-assets/harness.ts'
 import { fixed, readPlainEntries, sum, type PlainEntry } from './s7-assets/measure.ts'
 
@@ -1045,6 +1049,408 @@ async function viteBigPage(browser: Browser, lane: Lane): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// Interaction states (:hover, :focus-visible) on vite-react-19 and static-html
+// ---------------------------------------------------------------------------
+
+const PLAN_CTA = '[data-label="plan-cta"]'
+const SLATE_900 = 'rgb(15, 23, 42)' // .plan__cta at rest, #0f172a
+const SLATE_800 = 'rgb(30, 41, 59)' // .plan__cta:hover, #1e293b
+const BLUE = 'rgb(37, 99, 235)' // #2563eb
+const VIOLET = 'rgb(124, 58, 237)' // #7c3aed
+
+/** What reglet's forcing left on the page: marked elements and page rules that carry the marker selector. */
+function forceMarks(page: DockPage['page']): Promise<{ elements: number; rules: number }> {
+  return page.evaluate(() => {
+    let rules = 0
+    const visit = (list: CSSRuleList): void => {
+      for (const rule of list) {
+        if ((rule as CSSStyleRule).selectorText?.includes('data-reglet-force') === true) rules++
+        const inner = (rule as CSSGroupingRule).cssRules
+        if (inner !== undefined) visit(inner)
+      }
+    }
+    for (const sheet of document.styleSheets) {
+      try {
+        visit(sheet.cssRules)
+      } catch {
+        // Another origin.
+      }
+    }
+    return { elements: document.querySelectorAll('[data-reglet-force]').length, rules }
+  })
+}
+
+/** Layout-shift entries of the page's recording that are neither the user's nor tagged as reglet's own. */
+async function unmarkedShifts(page: DockPage['page']): Promise<{ unmarked: number; own: number }> {
+  const recording = await page.evaluate(() => window.__reglet!.recording())
+  return {
+    unmarked: recording.shifts.filter((entry) => entry.selfInduced === undefined && !entry.hadRecentInput).length,
+    own: recording.shifts.filter((entry) => entry.selfInduced !== undefined).length,
+  }
+}
+
+async function viteStates(browser: Browser, lane: Lane): Promise<void> {
+  const page = await openDock(browser, lane, '/')
+  const t = page.page
+  const away = async (): Promise<void> => {
+    await t.mouse.move(2, 2)
+    await sleep(50)
+  }
+  let revert: (() => void) | undefined
+  try {
+    await waitFor(() => page.record.webSockets.some((url) => !url.includes('/__reglet/')) && lane.reglet.hmr.status().live, { what: 'the HMR socket' })
+    await t.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), PLAN_CTA)
+    await away()
+    await t.evaluate((selector) => window.__reglet_test!.select(selector), PLAN_CTA)
+    await waitFor(async () => (await testState(t)).source?.state === 'done', { timeoutMs: 20_000, what: 'the source of the button to resolve' })
+
+    type Snapshot = { items: string; css: string; marks: number; background: string; force: { elements: number; rules: number } }
+    const snapshot = async (): Promise<Snapshot> => ({
+      items: JSON.stringify((await items(t)).map((item) => ({ ...item, seq: 0 }))),
+      css: (await testState(t)).previewCss,
+      marks: await marks(t),
+      background: await computed(t, PLAN_CTA, 'background-color'),
+      force: await forceMarks(t),
+    })
+    let s0: Snapshot | undefined
+    let s1: Snapshot | undefined
+    let hoverItem: StyleChange | undefined
+
+    await report.attempt(':hover without the pointer: the State control shows the hover background, marks the states with rules, and the dock lists the hover rule', async () => {
+      const rest = await computed(t, PLAN_CTA, 'background-color')
+      const state0 = await testState(t)
+      const dots = await page.dock.evaluate(() => [...document.querySelectorAll('.seg.states button')].map((button) => `${button.textContent?.replace(', has rules', '')}${button.classList.contains('has') ? '*' : ''}`))
+      expect(rest === SLATE_900 && state0.activeState === null && state0.forced === null, `at rest: ${rest}, ${JSON.stringify({ active: state0.activeState, forced: state0.forced })}`)
+      expect(state0.statesWithRules.includes('hover') && dots.includes(':hover*') && dots[0] === 'Rest', `statesWithRules ${JSON.stringify(state0.statesWithRules)}; control: ${dots.join(' ')}`)
+      // A real click in the dock.
+      await page.dock.locator('.seg.states button[data-state="hover"]').click()
+      await away()
+      const shown = await waitFor(async () => ((await computed(t, PLAN_CTA, 'background-color')) === SLATE_800 ? true : undefined), { timeoutMs: 3000, what: 'the hover background' })
+      const facts = await t.evaluate((selector) => ({ hovered: document.querySelector(selector)!.matches(':hover'), marker: document.querySelector(selector)!.getAttribute('data-reglet-force') }), PLAN_CTA)
+      const state1 = await testState(t)
+      expect(shown && !facts.hovered && facts.marker === 'hover', `the button is ${facts.hovered ? '' : 'not '}under the pointer, marker "${facts.marker}"`)
+      expect(state1.activeState === 'hover' && state1.forced?.state === 'hover' && state1.forced.rules > 0 && state1.forced.unreadable === 0, `state: ${JSON.stringify({ active: state1.activeState, forced: state1.forced })}`)
+      const dock = await waitFor(() =>
+        page.dock.evaluate(() => {
+          const group = [...document.querySelectorAll('.rule')].find((rule) => rule.querySelector('.sel')?.textContent === '.plan__cta:hover')
+          const input = group?.querySelector<HTMLInputElement>('#v-background-color')
+          return input === null || input === undefined
+            ? undefined
+            : {
+                value: input.value,
+                pressed: document.querySelector('.seg.states button[aria-pressed="true"]')?.textContent ?? '',
+                showing: document.querySelector('.chip.showing')?.textContent ?? '',
+                groups: [...document.querySelectorAll('.rule .sel')].map((sel) => sel.textContent).join(' | '),
+              }
+        }),
+        { timeoutMs: 3000, what: 'the dock to list background-color from .plan__cta:hover' },
+      )
+      expect(dock.value === SLATE_800 && dock.pressed.startsWith(':hover') && dock.showing === 'showing :hover', `dock: ${JSON.stringify(dock)}`)
+      const label = await t.evaluate(() => [...document.querySelector('reglet-root')!.shadowRoot!.querySelectorAll<HTMLElement>('.box.selected')].map((box) => box.textContent?.trim() ?? '').join('|'))
+      expect(label === ':hover', `the selection outline on the page is labelled "${label}"`)
+      s0 = await snapshot()
+      return `at rest ${rest}; control "${dots.join(' ')}" (* = has rules); clicked :hover: ${SLATE_800} with the pointer elsewhere (matches(':hover') false), ${state1.forced.rules} page rules given the marker; the dock lists background-color ${dock.value} under "${dock.groups}", says "${dock.showing}", outline label ":hover"`
+    })
+
+    await report.attempt('an edit under :hover records condition.state, the hover colour as before, no bystanders, and the tray says :hover', async () => {
+      const result = await t.evaluate((value) => window.__reglet_test!.setStyle('background-color', value), '#2563eb')
+      expect(result.ok, `rejected: ${result.error}`)
+      const item = style(result.item)
+      hoverItem = item
+      expect(item.condition.state === 'hover' && item.before.computed === SLATE_800 && item.before.authored === SLATE_800 && item.after.computed === BLUE && item.after.authored === '#2563eb', `item: ${JSON.stringify({ condition: item.condition, before: item.before, after: item.after })}`)
+      expect(item.origin?.via === 'rule' && item.origin.selector === '.plan__cta:hover' && item.origin.sheet?.endsWith('site.css') === true && item.origin.alsoStyles === undefined && item.bystanders === undefined, `origin ${JSON.stringify(item.origin)}, bystanders ${JSON.stringify(item.bystanders)}`)
+      const computedChecks = item.expect.filter((entry) => entry.type === 'computed')
+      expect(computedChecks.length > 0 && computedChecks.every((entry) => entry.type === 'computed' && entry.condition.state === 'hover') && !item.expect.some((entry) => entry.type === 'unchanged'), `expect: ${JSON.stringify(item.expect)}`)
+      expect((await computed(t, PLAN_CTA, 'background-color')) === BLUE, 'the forced button does not show the new colour')
+      const tray = await waitFor(() => page.dock.evaluate(() => {
+        const row = document.querySelector('.tray .item')
+        return row === null ? undefined : { chip: row.querySelector('.chip.state')?.textContent ?? '', line: row.querySelector('.change')?.textContent ?? '' }
+      }))
+      expect(tray.chip === ':hover' && tray.line.startsWith(`background-color on :hover: ${SLATE_800}`) && tray.line.includes('#2563eb'), `tray: ${JSON.stringify(tray)}`)
+      const stored = await waitFor(() => lane.reglet.session.item(item.id), { timeoutMs: 3000, what: 'the server to store the item' })
+      expect(stored.kind === 'style' && stored.condition.state === 'hover', `the server stored ${JSON.stringify(stored).slice(0, 200)}`)
+      const problems = hygiene(page, lane)
+      expect(problems.length === 0, problems.join('; '))
+      s1 = await snapshot()
+      return `condition.state "hover", before ${item.before.computed} (authored ${item.before.authored}), after ${item.after.computed}; origin ${item.origin.selector}, no bystanders, ${computedChecks.length} computed check(s) for :hover and no "unchanged"; tray "${tray.line.trim()}" with chip "${tray.chip}"; stored by the server`
+    })
+
+    await report.attempt('the preview applies under a REAL mouse hover too; back at Rest the resting colour is unchanged and nothing stays forced', async () => {
+      await page.dock.locator('.seg.states button', { hasText: 'Rest' }).click()
+      await away()
+      const rest = await computed(t, PLAN_CTA, 'background-color')
+      const left = await forceMarks(t)
+      const state = await testState(t)
+      expect(rest === SLATE_900 && left.elements === 0 && left.rules === 0 && state.activeState === null && state.forced === null, `at Rest: ${rest}, marks left ${JSON.stringify(left)}, ${JSON.stringify({ active: state.activeState, forced: state.forced })}`)
+      await t.locator(PLAN_CTA).first().hover()
+      const hovered = await waitFor(async () => ((await computed(t, PLAN_CTA, 'background-color')) === BLUE ? true : undefined), { timeoutMs: 2000, what: 'the preview under a real hover' })
+      const other = await computed(t, `.plan:nth-of-type(2) ${PLAN_CTA}`, 'background-color')
+      await away()
+      const after = await computed(t, PLAN_CTA, 'background-color')
+      expect(hovered && after === SLATE_900 && other === SLATE_900, `real hover ${hovered}, after leaving ${after}, the second plan's button ${other}`)
+      return `State control back at Rest: ${rest}, no marker left; the mouse over the button shows ${BLUE} (the preview's :hover selector), leaving it ${after}; the other plans' buttons untouched`
+    })
+
+    await report.attempt('a resting edit of the same property afterwards is a second item and does not alter the hover item', async () => {
+      const result = await t.evaluate((value) => window.__reglet_test!.setStyle('background-color', value), '#7c3aed')
+      const resting = style(result.item)
+      const all = await items(t)
+      const hover = all.find((item) => item.id === hoverItem?.id)
+      expect(all.length === 2 && resting.id !== hoverItem?.id && resting.condition.state === undefined && resting.before.computed === SLATE_900 && resting.after.computed === VIOLET, `resting item: ${JSON.stringify({ condition: resting.condition, before: resting.before, after: resting.after })}; ${all.length} items`)
+      // `seq` is the server's numbering, given after the dock's own copy was taken.
+      const unnumbered = (item: ChangeItem | undefined): string => JSON.stringify(item === undefined ? null : { ...item, seq: 0 })
+      expect(unnumbered(hover) === unnumbered(hoverItem), `the hover item changed:\n${JSON.stringify(hover).slice(0, 300)}\n${JSON.stringify(hoverItem).slice(0, 300)}`)
+      // The resting rule is ordinary; its bystanders are the two other buttons.
+      expect(resting.origin?.selector === '.plan__cta' && resting.origin.alsoStyles === 2, `resting origin ${JSON.stringify(resting.origin)}`)
+      const atRest = await computed(t, PLAN_CTA, 'background-color')
+      await t.locator(PLAN_CTA).first().hover()
+      const real = await waitFor(async () => {
+        const value = await computed(t, PLAN_CTA, 'background-color')
+        return value === BLUE ? value : undefined
+      }, { timeoutMs: 2000, what: 'the hover preview to win under a real hover' })
+      await away()
+      await t.evaluate(() => window.__reglet_test!.setState('hover'))
+      const forced = await computed(t, PLAN_CTA, 'background-color')
+      const rows = await waitFor(() => page.dock.evaluate(() => {
+        const value = document.querySelector<HTMLInputElement>('#v-background-color')?.value
+        return value === '#2563eb' ? value : undefined
+      }), { timeoutMs: 2000, what: 'the dock row to show the hover draft' })
+      expect(atRest === VIOLET && forced === BLUE, `at rest ${atRest}, forced :hover ${forced}, real hover ${real}`)
+      return `2 items; the hover item identical (but for the server's seq); at rest ${atRest}, under a real hover ${real}, under the forced :hover ${forced}; the dock row under :hover shows ${rows}`
+    })
+
+    await report.attempt('undo and redo restore items, previews, page colours and the forced state exactly', async () => {
+      if (s0 === undefined || s1 === undefined) throw new Error('the earlier checks did not run')
+      const s2 = await snapshot()
+      const steps: string[] = []
+      const same = (a: Snapshot, b: Snapshot, what: string): void => {
+        expect(JSON.stringify(a) === JSON.stringify(b), `${what}:\n${JSON.stringify(a).slice(0, 400)}\n${JSON.stringify(b).slice(0, 400)}`)
+        steps.push(`${what}: ${a.background}`)
+      }
+      await t.evaluate(() => window.__reglet_test!.undo())
+      same(await snapshot(), s1, 'undo')
+      await t.evaluate(() => window.__reglet_test!.undo())
+      same(await snapshot(), s0, 'undo')
+      await t.evaluate(() => window.__reglet_test!.redo())
+      same(await snapshot(), s1, 'redo')
+      await t.evaluate(() => window.__reglet_test!.redo())
+      same(await snapshot(), s2, 'redo')
+      return `with :hover held throughout: ${steps.join(', ')}; items JSON, preview stylesheet, marks, colour and the marker selectors (${s2.force.rules} rules, ${s2.force.elements} elements) identical at every step`
+    })
+
+    await report.attempt('session:measure of the :hover item: the old colour before the source changes, then actual == expected with the note "measured with :hover emulated"', async () => {
+      if (hoverItem === undefined) throw new Error('no hover item')
+      const item = hoverItem
+      const ask = async () => {
+        const outcome = await lane.reglet.session.measure([item], 5000)
+        if (outcome.status !== 'measured') throw new Error(`session.measure: ${outcome.status}`)
+        return outcome.results[0]?.checks[0]
+      }
+      const before = await ask()
+      expect(before?.status === 'fail' && before.expected === BLUE && before.actual === SLATE_800 && before.note === 'measured with :hover emulated', `before the edit: ${JSON.stringify(before)}`)
+      revert = editFile(lane.fixture, 'src/styles/site.css', replaceOnce('.plan__cta:hover {\n  background-color: #1e293b;', '.plan__cta:hover {\n  background-color: #2563eb;')).revert
+      await waitFor(() => t.evaluate(() => [...document.querySelectorAll('style')].some((node) => (node.textContent ?? '').includes('background-color: #2563eb'))), { what: 'the stylesheet hot update' })
+      await sleep(200)
+      const after = await ask()
+      expect(after?.status === 'pass' && after.expected === BLUE && after.actual === BLUE && after.note === 'measured with :hover emulated', `after the edit: ${JSON.stringify(after)}`)
+      // The State control was at :hover all along: it is held again, on the new rules, with the previews back on.
+      const state = await testState(t)
+      expect(state.activeState === 'hover' && state.forced?.state === 'hover' && state.forced.rules > 0 && !state.previewsSuspended && (await computed(t, PLAN_CTA, 'background-color')) === BLUE, `after measuring: ${JSON.stringify({ active: state.activeState, forced: state.forced, suspended: state.previewsSuspended })}`)
+      expect(page.record.documentRequests.length === 1, 'the page reloaded')
+      return `before: ${before.status} (expected ${before.expected}, actual ${before.actual}, "${before.note}"); site.css edited so .plan__cta:hover is #2563eb, applied by HMR: ${after.status} (actual ${after.actual}, "${after.note}"); the dock's :hover is held again afterwards`
+    })
+
+    await report.attempt('Send: the State control goes back to Rest, no [data-reglet-force] remains and every selector is restored', async () => {
+      const held = await forceMarks(t)
+      const prompt = await t.evaluate(() => window.__reglet_test!.send())
+      const state = await testState(t)
+      const left = await forceMarks(t)
+      await away()
+      const rest = await computed(t, PLAN_CTA, 'background-color')
+      const pressed = await page.dock.evaluate(() => document.querySelector('.seg.states button[aria-pressed="true"]')?.textContent ?? '')
+      const showing = await page.dock.evaluate(() => document.querySelector('.chip.showing') !== null)
+      expect(held.elements > 0 && held.rules > 0, `nothing was forced before Send: ${JSON.stringify(held)}`)
+      expect(left.elements === 0 && left.rules === 0 && state.activeState === null && state.forced === null && state.previewCss === '' && (await marks(t)) === 0, `after Send: ${JSON.stringify({ left, active: state.activeState, forced: state.forced, css: state.previewCss })}`)
+      expect(rest === SLATE_900 && pressed === 'Rest' && !showing, `after Send: background ${rest}, control "${pressed}", indicator ${showing}`)
+      expect(prompt.includes('background-color') && prompt.includes('#2563eb'), `prompt: ${prompt.slice(0, 300)}`)
+      if (!prompt.includes(':hover')) report.info('the prompt the engine wrote does not mention :hover (packages/engine is being changed by another agent)')
+      return `before Send ${held.elements} marked elements and ${held.rules} marked rules; after: 0 and 0, control at Rest, no indicator, no previews, the button ${rest}; the prompt names background-color and #2563eb${prompt.includes(':hover') ? ' and :hover' : ''}`
+    })
+  } finally {
+    revert?.()
+    if (revert !== undefined) await waitFor(() => t.evaluate(() => [...document.querySelectorAll('style')].some((node) => (node.textContent ?? '').includes('background-color: #1e293b'))), { what: 'the fixture source to be restored' }).catch(() => undefined)
+    await page.close()
+  }
+
+  // A fresh page: forcing a state that moves things, and what the shift recorder and the settle detector make of it.
+  const quiet = await openDock(browser, lane, '/')
+  try {
+    const q = quiet.page
+    await report.attempt('a resting edit alone leaves the page\'s own :hover value in place, forced and real, as the source edit would', async () => {
+      await q.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), PLAN_CTA)
+      await q.mouse.move(2, 2)
+      await q.evaluate((selector) => window.__reglet_test!.select(selector), PLAN_CTA)
+      const result = await q.evaluate((value) => window.__reglet_test!.setStyle('background-color', value), '#7c3aed')
+      const item = style(result.item)
+      const rest = await computed(q, PLAN_CTA, 'background-color')
+      await q.evaluate(() => window.__reglet_test!.setState('hover'))
+      const forced = await computed(q, PLAN_CTA, 'background-color')
+      const row = await waitFor(() => quiet.dock.evaluate(() => document.querySelector<HTMLInputElement>('#v-background-color')?.value))
+      await q.evaluate(() => window.__reglet_test!.setState(null))
+      await q.locator(PLAN_CTA).first().hover()
+      const real = await computed(q, PLAN_CTA, 'background-color')
+      await q.mouse.move(2, 2)
+      const css = (await testState(q)).previewCss
+      expect(item.condition.state === undefined && rest === VIOLET, `resting edit: ${JSON.stringify(item.condition)}, at rest ${rest}`)
+      expect(forced === SLATE_800 && real === SLATE_800 && row === SLATE_800, `under :hover: forced ${forced}, real ${real}, the dock row ${row}`)
+      expect(css.includes(':not(:where(:hover, [data-reglet-force~="hover"]'), `preview rule: ${css}`)
+      await q.evaluate(() => window.__reglet_test!.undo())
+      return `resting background-color #7c3aed: at rest ${rest}; under the forced :hover ${forced} and under a real hover ${real} (the page's .plan__cta:hover), and the dock row says ${row}; preview rule "${css.slice(0, 140)}"`
+    })
+
+    await report.attempt('forcing a state that changes the layout adds no untagged layout-shift entry and is no page update for the settle detector', async () => {
+      await q.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), PLAN_CTA)
+      await q.mouse.move(2, 2)
+      await q.evaluate((selector) => window.__reglet_test!.select(selector), PLAN_CTA)
+      // A :hover edit that makes the button taller: forcing :hover now moves what is below it.
+      const edit = await q.evaluate(() => window.__reglet_test!.setStyle('padding', '24px 16px', { state: 'hover' }))
+      expect(edit.ok && edit.item?.kind === 'style' && edit.item.condition.state === 'hover', `edit: ${JSON.stringify(edit).slice(0, 200)}`)
+      await sleep(700)
+      const before = await unmarkedShifts(q)
+      const mark = lane.reglet.detector.journal().length
+      const heights: number[] = []
+      for (let i = 0; i < 3; i++) {
+        await q.evaluate(() => window.__reglet_test!.setState('hover'))
+        await sleep(150)
+        heights.push(Math.round((await rect(q, PLAN_CTA)).h))
+        await q.evaluate(() => window.__reglet_test!.setState(null))
+        await sleep(150)
+        heights.push(Math.round((await rect(q, PLAN_CTA)).h))
+      }
+      await sleep(700)
+      const after = await unmarkedShifts(q)
+      const updates = lane.reglet.detector.journal().slice(mark).filter((entry) => entry.source === 'browser' && (entry.name === 'mutation' || entry.name === 'sheet-loaded'))
+      expect(new Set(heights).size === 2, `the forced state did not change the layout: heights ${heights.join(', ')}`)
+      expect(after.unmarked === before.unmarked, `untagged layout-shift entries: ${before.unmarked} before, ${after.unmarked} after (tagged: ${before.own} -> ${after.own})`)
+      expect(updates.length === 0, `the settle detector saw ${updates.length} page change(s): ${JSON.stringify(updates).slice(0, 300)}`)
+      return `button height ${heights.join(' / ')} px over three :hover/Rest toggles; untagged shift entries ${before.unmarked} -> ${after.unmarked}, tagged as reglet's ${before.own} -> ${after.own}; 0 browser mutation notices in the settle journal`
+    })
+  } finally {
+    await quiet.close()
+  }
+}
+
+/** A server on another port that serves one stylesheet without CORS headers: the page may use it but not read it. */
+async function foreignStylesheet(css: string): Promise<{ url: string; close(): Promise<void> }> {
+  const server = createServer((_request, response) => {
+    response.writeHead(200, { 'content-type': 'text/css; charset=utf-8', 'cache-control': 'no-store' })
+    response.end(css)
+  })
+  await new Promise<void>((resolve) => server.listen(0, 'localhost', resolve))
+  const address = server.address() as AddressInfo
+  const close = (): Promise<void> => new Promise((resolve) => server.close(() => resolve()))
+  onCleanup(close)
+  return { url: `http://localhost:${address.port}/foreign.css`, close }
+}
+
+async function staticStates(browser: Browser, lane: Lane): Promise<void> {
+  const page = await openDock(browser, lane, '/')
+  const t = page.page
+  const CTA = '[data-label="hero-cta"]'
+  const AMBER = 'rgb(183, 121, 31)' // --warn
+  let revert: (() => void) | undefined
+  try {
+    await t.mouse.move(2, 2)
+    const ref = await t.evaluate((selector) => window.__reglet_test!.select(selector), CTA)
+    let item: StyleChange | undefined
+
+    await report.attempt(':focus-visible on plain HTML: the page\'s :focus-visible ring without focus, an edit recorded for it, measured with the state emulated', async () => {
+      const state0 = await testState(t)
+      const restOutline = await computed(t, CTA, 'outline-style')
+      await t.evaluate(() => window.__reglet_test!.setState('focus-visible'))
+      const ring = { style: await computed(t, CTA, 'outline-style'), color: await computed(t, CTA, 'outline-color'), focused: await t.evaluate((selector) => document.activeElement === document.querySelector(selector), CTA) }
+      // The bare :focus-visible rule does not apply to a plain :focus.
+      await t.evaluate(() => window.__reglet_test!.setState('focus'))
+      const plainFocus = await computed(t, CTA, 'outline-style')
+      await t.evaluate(() => window.__reglet_test!.setState('focus-visible'))
+      expect(state0.statesWithRules.includes('focus-visible') && state0.statesWithRules.includes('hover') && !state0.statesWithRules.includes('focus'), `statesWithRules ${JSON.stringify(state0.statesWithRules)}`)
+      expect(restOutline === 'none' && ring.style === 'solid' && ring.color === AMBER && !ring.focused && plainFocus === 'none', `outline at rest ${restOutline}; forced :focus-visible ${JSON.stringify(ring)}; forced :focus ${plainFocus}`)
+      const listed = await waitFor(() => page.dock.evaluate(() => [...document.querySelectorAll('.rule')].find((rule) => rule.querySelector('.sel')?.textContent === ':focus-visible')?.querySelector<HTMLInputElement>('#v-outline')?.value))
+      const result = await t.evaluate(() => window.__reglet_test!.setStyle('outline-color', '#2563eb'))
+      item = style(result.item)
+      expect(item.condition.state === 'focus-visible' && item.before.computed === AMBER && item.after.computed === BLUE && item.origin?.selector === ':focus-visible' && item.bystanders === undefined, `item: ${JSON.stringify({ condition: item.condition, before: item.before, after: item.after, origin: item.origin })}`)
+      const measured = await lane.reglet.session.measure([item], 5000)
+      const check = measured.status === 'measured' ? measured.results[0]?.checks[0] : undefined
+      expect(check?.status === 'fail' && check.actual === AMBER && check.expected === BLUE && check.note === 'measured with :focus-visible emulated', `before the source changed: ${JSON.stringify(check)}`)
+      // The source gets the new colour; plain HTML has no hot update, so the page is loaded again (the draft comes back from the server).
+      revert = editFile(lane.fixture, 'css/site.css', replaceOnce('outline: 2px solid var(--warn);', 'outline: 2px solid #2563eb;')).revert
+      await t.reload({ waitUntil: 'load' })
+      await t.waitForFunction(() => window.__reglet_test !== undefined)
+      await t.evaluate(() => window.__reglet_test!.ready())
+      const again = await lane.reglet.session.measure([item], 5000)
+      const pass = again.status === 'measured' ? again.results[0]?.checks[0] : undefined
+      expect(pass?.status === 'pass' && pass.actual === BLUE && pass.note === 'measured with :focus-visible emulated', `after the source changed: ${JSON.stringify(pass)}`)
+      expect((await forceMarks(t)).elements === 0, 'the reloaded page has a marker on it')
+      return `statesWithRules ${JSON.stringify(state0.statesWithRules)}; outline at rest ${restOutline}, forced :focus-visible ${ring.style} ${ring.color} with the focus elsewhere, forced :focus ${plainFocus}; the dock lists outline "${listed}" under :focus-visible; outline-color edit recorded for :focus-visible (before ${item.before.computed}); measured: ${check.status} (${check.actual}), after site.css changed and a reload: ${pass.status} (${pass.actual}), both "${pass.note}"`
+    })
+
+    await report.attempt('a rule the page cannot read (another origin) and a state value equal to rest: not_measurable "the state could not be emulated: ..."', async () => {
+      const foreign = await foreignStylesheet('.button:focus { color: rgb(255, 0, 0); }\n')
+      try {
+        await t.evaluate((href) => new Promise<void>((resolve, reject) => {
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = href
+          link.id = 'foreign-sheet'
+          link.onload = () => resolve()
+          link.onerror = () => reject(new Error('the foreign stylesheet did not load'))
+          document.head.append(link)
+        }), foreign.url)
+        const facts = await t.evaluate(() => {
+          const sheet = (document.getElementById('foreign-sheet') as HTMLLinkElement).sheet
+          let readable = true
+          try {
+            void sheet?.cssRules
+          } catch {
+            readable = false
+          }
+          return { loaded: sheet !== null, readable }
+        })
+        // The sheet applies (a real focus would turn the text red) but cannot be read.
+        await t.locator(CTA).focus()
+        const realFocus = await computed(t, CTA, 'color')
+        await t.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+        const condition = { ...(item?.condition ?? { viewport: { w: 1280, h: 800, dpr: 1 }, colorScheme: 'light' as const }) }
+        delete condition.state
+        const answer = await t.evaluate(([locator, cond]) => window.__reglet_test!.measure([{
+          itemId: 'foreign',
+          locator,
+          expect: [
+            { type: 'computed', property: 'color', value: 'rgb(255, 0, 0)', condition: { ...cond, state: 'focus' } },
+            // The same page, a state that does change the value: measured.
+            { type: 'computed', property: 'outline-style', value: 'solid', condition: { ...cond, state: 'focus-visible' } },
+          ],
+        }]), [ref.locator, condition] as const)
+        const [blocked, measured] = answer.results[0]!.checks
+        expect(facts.loaded && !facts.readable && realFocus === 'rgb(255, 0, 0)', `foreign sheet ${JSON.stringify(facts)}, colour under a real focus ${realFocus}`)
+        expect(blocked?.status === 'not_measurable' && blocked.note?.startsWith('the state could not be emulated: ') === true && blocked.note.includes('another origin'), `blocked: ${JSON.stringify(blocked)}`)
+        expect(measured?.status === 'pass' && measured.note === 'measured with :focus-visible emulated', `measured: ${JSON.stringify(measured)}`)
+        const server = await lane.reglet.session.measure([{ ...style(item), expect: [{ type: 'computed', property: 'color', value: 'rgb(255, 0, 0)', condition: { ...condition, state: 'focus' } }] }], 5000)
+        const viaServer = server.status === 'measured' ? server.results[0]?.checks[0] : undefined
+        expect(viaServer?.status === 'not_measurable' && viaServer.note === blocked.note, `through the server: ${JSON.stringify(viaServer)}`)
+        await t.evaluate(() => document.getElementById('foreign-sheet')?.remove())
+        return `a <link> to ${foreign.url.replace(/^http:\/\/localhost/, 'localhost')} (no CORS): applies (real focus -> red) but cannot be read; color under :focus -> ${blocked.status} "${blocked.note}"; outline-style under :focus-visible on the same page -> ${measured.status} ("${measured.note}"); the server's session:measure gets the same note`
+      } finally {
+        await foreign.close()
+      }
+    })
+  } finally {
+    revert?.()
+    await page.close()
+  }
+}
+
+// ---------------------------------------------------------------------------
 // next-16-turbopack and static-html
 // ---------------------------------------------------------------------------
 
@@ -1312,6 +1718,25 @@ async function screenshots(browser: Browser, vite: Lane, cls: Lane): Promise<voi
       } finally {
         await edits.close()
       }
+      // The Edits tab with :hover chosen: the State control, the indicator, the hover rule's rows, a :hover item in the tray.
+      const states = await openDock(browser, vite, '/', { context: { colorScheme: scheme } })
+      try {
+        await states.page.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), PLAN_CTA)
+        await states.page.mouse.move(2, 2)
+        await states.page.evaluate((selector) => window.__reglet_test!.select(selector), PLAN_CTA)
+        await waitFor(async () => (await testState(states.page)).source?.state === 'done')
+        await states.page.evaluate(() => window.__reglet_test!.setState('hover'))
+        await states.page.evaluate(() => window.__reglet_test!.setStyle('background-color', '#2563eb'))
+        await sleep(300)
+        files.push(`states-${scheme}.png`)
+        await states.page.screenshot({ path: join(SHOTS, `states-${scheme}.png`) })
+        await states.dock.evaluate(() => document.querySelector('#panel')?.scrollTo(0, 100000))
+        await sleep(200)
+        files.push(`states-tray-${scheme}.png`)
+        await states.page.screenshot({ path: join(SHOTS, `states-tray-${scheme}.png`) })
+      } finally {
+        await states.close()
+      }
       const shifts = await openDock(browser, cls, SHIFT_PAGE, { context: { colorScheme: scheme } })
       try {
         await shifts.page.evaluate(() => window.__reglet_test!.openTab('shifts'))
@@ -1372,6 +1797,13 @@ async function main(): Promise<void> {
     await viteMeasure(browser, vite)
     await viteKeyboardAndConnection(browser, vite)
     await viteBigPage(browser, vite)
+    await viteStates(browser, vite)
+  }
+  // Only the state checks of vite-react-19 (they also run as part of `vite`).
+  if (only.includes('vite-states') && !wants('vite')) {
+    report.section('vite-react-19 states')
+    vite = await startLane('vite-react-19')
+    await viteStates(browser, vite)
   }
   if (wants('next')) {
     report.section('next-16-turbopack')
@@ -1388,6 +1820,7 @@ async function main(): Promise<void> {
     const fixture = await startLane('static-html')
     await mountChecks(browser, fixture, '/', 1000)
     await staticEdits(browser, fixture)
+    await staticStates(browser, fixture)
   }
   if (wants('cls')) {
     report.section('cls-corpus injected-content/banner-innerhtml')

@@ -3,11 +3,12 @@
  * recorded changes with their side effects.
  */
 
-import type { ChangeItem, SideEffect } from '@reglet/protocol/change'
+import type { ChangeItem, ElementState, SideEffect } from '@reglet/protocol/change'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { describeEffect, summarizeRecorded } from '../probe/effects.ts'
 import { computedValue, suggestProperties, supportedProperties } from '../probe/properties.ts'
-import { customPropertiesOf, mediaOf, type DeclaredProperty } from '../probe/styles.ts'
+import { ELEMENT_STATES } from '../probe/specificity.ts'
+import { customPropertiesOf, declaredIn, draftShowsIn, mediaOf, type DeclaredProperty } from '../probe/styles.ts'
 import { summaryKey, type Controller } from '../state/controller.ts'
 import type { Selection } from '../state/store.ts'
 import { nudge } from './nudge.ts'
@@ -299,31 +300,42 @@ const sheetName = (sheet: string | undefined): string => {
   return path.slice(path.lastIndexOf('/') + 1)
 }
 
-function buildRows(selection: Selection, drafts: readonly ChangeItem[], media: string | null, scope: string): { declared: RuleGroup[]; base: Row[]; computed: Row[] } {
+function buildRows(
+  selection: Selection,
+  drafts: readonly ChangeItem[],
+  media: string | null,
+  scope: string,
+  state: ElementState | null,
+): { declared: RuleGroup[]; base: Row[]; computed: Row[] } {
   const mine = drafts.filter((item) => item.kind === 'style' && item.target.uid === selection.ref.uid)
-  const editOf = (property: string): string | undefined => {
+  const editOf = (property: string, ruleStates: readonly ElementState[] = []): string | undefined => {
     let found: string | undefined
+    let through: string | undefined
     for (const item of mine) {
       if (item.kind !== 'style' || item.property !== property) continue
-      // The draft for the scope and media the controls are set to is the one a new edit would update.
-      if ((item.condition.media ?? null) === media && item.scope === scope) return item.after.authored
-      found ??= item.after.authored
+      const shows = draftShowsIn(item.condition.state ?? null, state, ruleStates)
+      if (shows === 'exact') {
+        // The draft for the state, scope and media the controls are set to is the one a new edit would update.
+        if ((item.condition.media ?? null) === media && item.scope === scope) return item.after.authored
+        found ??= item.after.authored
+      } else if (shows === 'through') through ??= item.after.authored
     }
-    return found
+    return found ?? through
   }
   const seen = new Set<string>()
   const declared: RuleGroup[] = []
   const base: Row[] = []
-  for (const entry of selection.styles.declared) {
+  for (const entry of declaredIn(selection.styles, state)) {
     seen.add(entry.property)
-    const edit = editOf(entry.property)
+    const edit = editOf(entry.property, entry.rule?.states)
     const row: Row = { property: entry.property, value: edit ?? entry.value, from: describeOrigin(entry), edited: edit !== undefined }
     if (isBase(entry) && edit === undefined) {
       base.push(row)
       continue
     }
     const rule = entry.rule
-    const key = rule === undefined ? 'inline' : `rule-${rule.order}`
+    // A rule that is listed once per state it is reached through (`.a:hover, .a:focus`) has one `order`.
+    const key = rule === undefined ? 'inline' : `rule-${rule.order}-${rule.states.join('+')}`
     let group = declared.find((known) => known.key === key)
     if (group === undefined) {
       const query = rule === undefined ? undefined : mediaOf(rule)
@@ -341,8 +353,10 @@ function buildRows(selection: Selection, drafts: readonly ChangeItem[], media: s
   const added: Row[] = []
   for (const item of mine) {
     if (item.kind !== 'style' || seen.has(item.property) || COMMON.includes(item.property)) continue
+    const value = editOf(item.property)
+    if (value === undefined) continue
     seen.add(item.property)
-    added.push({ property: item.property, value: editOf(item.property) ?? item.after.authored, from: 'added here', edited: true })
+    added.push({ property: item.property, value, from: 'added here', edited: true })
   }
   if (added.length > 0) declared.unshift({ key: 'added', title: 'added here', detail: '', rows: added })
   const style = getComputedStyle(selection.element)
@@ -355,12 +369,52 @@ function buildRows(selection: Selection, drafts: readonly ChangeItem[], media: s
   return { declared, base, computed }
 }
 
+const STATE_HELP: Record<ElementState, string> = {
+  hover: 'as while the pointer is over it',
+  focus: 'as while it has the focus',
+  'focus-visible': 'as while it has the focus and the browser shows a focus ring (keyboard focus)',
+  active: 'as while it is being pressed',
+}
+
+/** Rest / :hover / :focus / :focus-visible / :active. A dot marks the states the page has rules for on this element. */
+function StateControl({ c, selection, state }: { c: Controller; selection: Selection; state: ElementState | null }) {
+  const withRules = selection.styles.states
+  return (
+    <div class="field">
+      <span id="state-label">State</span>
+      <div class="seg states" role="group" aria-labelledby="state-label">
+        <button type="button" aria-pressed={state === null} title="The element as it is at rest" onClick={() => c.setState(null)}>
+          Rest
+        </button>
+        {ELEMENT_STATES.map((name) => {
+          const has = withRules.includes(name)
+          return (
+            <button
+              key={name}
+              type="button"
+              class={`pseudo${has ? ' has' : ''}`}
+              aria-pressed={state === name}
+              data-state={name}
+              title={`Show and edit the element ${STATE_HELP[name]}.${has ? '\nThe page has rules for this element in this state.' : '\nNo rule of the page styles this element in this state yet.'}`}
+              onClick={() => c.setState(state === name ? null : name)}
+            >
+              :{name}
+              {has ? <span class="sr">, has rules</span> : null}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function SelectionPanel({ c, selection }: { c: Controller; selection: Selection }) {
   const { store } = c
   const source = store.source.value
   const media = store.media.value
   const scope = store.scope.value
-  const rows = buildRows(selection, store.drafts.value, media, scope)
+  const state = store.state.value
+  const rows = buildRows(selection, store.drafts.value, media, scope, state)
   const custom = customPropertiesOf(selection.styles)
   const options = selection.styles.media
 
@@ -394,34 +448,46 @@ function SelectionPanel({ c, selection }: { c: Controller; selection: Selection 
           </span>
           <SourceBadge loc={source?.loc ?? null} state={source?.state} />
         </div>
+        {state === null ? null : (
+          // Its own line, so the label keeps its width: this is what the page shows and what new edits are for.
+          <div class="showing-line" role="status" title={`The element is shown ${STATE_HELP[state]}, without the pointer or the focus being there. Edits made now are recorded for :${state} only. Choose Rest to go back.`}>
+            <span class="chip info showing">
+              showing <b>:{state}</b>
+            </span>
+            <span class="hint">new edits apply to :{state} only</span>
+          </div>
+        )}
       </div>
 
-      <div class="row" style="align-items:flex-end">
-        {selection.instances > 1 ? (
-          <div class="field" style="flex:none">
-            <span id="scope-label">Apply to</span>
-            <div class="seg" role="group" aria-labelledby="scope-label">
-              <button type="button" aria-pressed={scope === 'instance'} onClick={() => (store.scope.value = 'instance')}>
-                This element
-              </button>
-              <button type="button" aria-pressed={scope === 'all-instances'} onClick={() => (store.scope.value = 'all-instances')}>
-                All {selection.instances}
-              </button>
+      <div class="controls">
+        <div class="row" style="align-items:flex-end">
+          {selection.instances > 1 ? (
+            <div class="field" style="flex:none">
+              <span id="scope-label">Apply to</span>
+              <div class="seg" role="group" aria-labelledby="scope-label">
+                <button type="button" aria-pressed={scope === 'instance'} onClick={() => (store.scope.value = 'instance')}>
+                  This element
+                </button>
+                <button type="button" aria-pressed={scope === 'all-instances'} onClick={() => (store.scope.value = 'all-instances')}>
+                  All {selection.instances}
+                </button>
+              </div>
             </div>
-          </div>
-        ) : null}
-        <label class="field">
-          <span>Media query</span>
-          <select value={media ?? ''} onChange={(event) => (store.media.value = (event.currentTarget as HTMLSelectElement).value || null)}>
-            <option value="">No media query</option>
-            {options.map((option) => (
-              <option key={option.query} value={option.query} disabled={!option.matches}>
-                @media {option.query}
-                {option.matches ? '' : ' (not at this size)'}
-              </option>
-            ))}
-          </select>
-        </label>
+          ) : null}
+          <label class="field">
+            <span>Media query</span>
+            <select value={media ?? ''} onChange={(event) => (store.media.value = (event.currentTarget as HTMLSelectElement).value || null)}>
+              <option value="">No media query</option>
+              {options.map((option) => (
+                <option key={option.query} value={option.query} disabled={!option.matches}>
+                  @media {option.query}
+                  {option.matches ? '' : ' (not at this size)'}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <StateControl c={c} selection={selection} state={state} />
       </div>
 
       <div>

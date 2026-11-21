@@ -11,13 +11,16 @@
  *   - every creation, update and deletion of a draft goes to the server and can be undone;
  *   - the server's `session:state` is the truth for every status after `draft`;
  *   - one action at a time: actions queue behind each other, because measuring side effects
- *     waits for a frame.
+ *     waits for a frame;
+ *   - while a state is chosen (`store.state`) the selected element is held in it with
+ *     `forceState` (probe/states.ts). `holdState()` is the one function that brings the page in
+ *     line with the State control; it is called after everything that could put them apart.
  */
 
 import { batch, effect } from '@preact/signals'
 import { deriveExpectations } from '@reglet/engine/expect'
 import { editKey, emptyHistory, historyReducer, upsertEdit } from '@reglet/engine/items'
-import type { ChangeItem, Condition, SideEffect, SourceLoc, StructuralChange, StyleChange } from '@reglet/protocol/change'
+import type { ChangeItem, Condition, ElementState, SideEffect, SourceLoc, StructuralChange, StyleChange } from '@reglet/protocol/change'
 import type { ServerMessage, SessionInfo } from '@reglet/protocol/messages'
 import { collectEvidence } from '@reglet/source/browser/index'
 import type { RegletBus } from '../bus.ts'
@@ -26,9 +29,10 @@ import { measureEffects, type EffectsResult } from '../probe/effects.ts'
 import { measure, type MeasureRequest, type Measurement } from '../probe/measure.ts'
 import { createPreview, type Preview, type PreviewSpec } from '../probe/preview.ts'
 import { computedLonghands, computedValue, isCustomProperty, isSupportedProperty, isValidValue } from '../probe/properties.ts'
-import { buildRef, labelOf, locate, setUidPrefix, uidOf } from '../probe/ref.ts'
+import { buildRef, elementOfUid, labelOf, locate, setUidPrefix, uidOf } from '../probe/ref.ts'
 import { createPicker, neighbour, type Picker } from '../probe/select.ts'
-import { originOf, readStyles } from '../probe/styles.ts'
+import { forcedNow, forceState } from '../probe/states.ts'
+import { originOf, readStyles, statesCovering, type ElementStyles } from '../probe/styles.ts'
 import { createStore, type Crumb, type Selection, type ShiftState, type Store } from './store.ts'
 import { bySeq, diffLists, reconcile, withServerTruth } from './sync.ts'
 
@@ -40,6 +44,8 @@ export interface StyleEditOptions {
   /** `@media` query to scope the edit to; null: none. Default: the dock's current media control. */
   media?: string | null
   scope?: 'instance' | 'all-instances'
+  /** The state the edit is for (`:hover`...); null: the resting style. Default: the dock's current State control. */
+  state?: ElementState | null
 }
 
 export interface ControllerOptions {
@@ -56,6 +62,13 @@ export interface Controller {
   /** Moves the selection with an arrow key (parent, first child, siblings). */
   navigate(key: string): void
   setPickMode(on: boolean): void
+  /**
+   * Chooses the interaction state the selected element is shown in and new edits are made for;
+   * null: at rest. The element looks hovered (focused, pressed) without the pointer or the focus
+   * being on it, until the state is set back, another element is selected (the state moves with
+   * the selection), pick mode starts, or the changes are sent.
+   */
+  setState(state: ElementState | null): void
   setStyle(property: string, value: string, options?: StyleEditOptions): Promise<EditResult>
   structural(op: 'hide' | 'remove'): Promise<EditResult>
   deleteItem(id: string): void
@@ -81,6 +94,8 @@ export interface Controller {
   copy(text: string): Promise<boolean>
   /** Cost of the last side-effect measurement, for the budget check. */
   lastEffects(): EffectsCost | null
+  /** Takes reglet's marks off the page: the forced state, pick mode and every preview. The items are kept. */
+  dispose(): void
 }
 
 /**
@@ -137,6 +152,7 @@ export function specOf(item: ChangeItem): PreviewSpec {
     seq: item.seq,
   }
   if (item.kind === 'style' && item.condition.media !== undefined && item.condition.media !== '') spec.media = item.condition.media
+  if (item.kind === 'style' && item.condition.state !== undefined) spec.state = item.condition.state
   return spec
 }
 
@@ -176,6 +192,14 @@ export function createController(options: ControllerOptions): Controller {
       else next.delete(itemId)
       store.detached.value = next
     },
+    onPageChange() {
+      if (store.state.value === null) return
+      if (leftRoute()) return
+      // A framework may have replaced the selected node, and a dev server a stylesheet: hold the state on what is there now.
+      const selection = store.selection.value
+      if (selection !== null && !selection.element.isConnected) refresh()
+      else holdState()
+    },
   })
 
   const forget = (id: string): void => {
@@ -187,9 +211,33 @@ export function createController(options: ControllerOptions): Controller {
     }
   }
 
+  /** `specOf` plus what only the page can tell: the states a resting edit's preview must stay out of. */
+  const specFor = (item: ChangeItem, styles?: Pick<ElementStyles, 'rules'>): PreviewSpec => {
+    const spec = specOf(item)
+    if (item.kind !== 'style' || spec.state !== undefined || styles === undefined) return spec
+    const except = statesCovering(styles, item.property)
+    if (except.length > 0) spec.exceptIn = except
+    return spec
+  }
+
   const syncPreview = (item: ChangeItem): void => {
-    if (item.status === 'draft' && item.page === page) preview.restore(specOf(item))
-    else forget(item.id)
+    if (item.status !== 'draft' || item.page !== page) {
+      forget(item.id)
+      return
+    }
+    if (item.kind !== 'style' || item.condition.state !== undefined) {
+      preview.restore(specOf(item))
+      return
+    }
+    // A resting edit: its element (found again by the preview if need be) says which states keep their own value.
+    const known = preview.elementByUid(item.target.uid) ?? elementOfUid(item.target.uid)
+    const spec = specFor(item, known === null ? undefined : readStyles(known))
+    const elements = preview.restore(spec)
+    const found = elements?.[0]
+    if (known === null && found !== undefined) {
+      const placed = specFor(item, readStyles(found))
+      if (placed.exceptIn !== undefined) preview.restore(placed)
+    }
   }
 
   /** The server numbers the items; a draft goes out with seq 0. */
@@ -354,6 +402,50 @@ export function createController(options: ControllerOptions): Controller {
     })
   }
 
+  // -------------------------------------------------------------------------
+  // The state the selection is shown in
+  // -------------------------------------------------------------------------
+
+  /** An edit in flight keeps the element in the state it is made for until it has measured. */
+  let pinned = false
+
+  /**
+   * Brings the page in line with the State control: the selected element is held in the chosen
+   * state, and nothing is held while there is no selection, no state, or pick mode is on (the
+   * picker shows the page as it is). Safe to call at any time; it writes only when something
+   * differs, and looks at the stylesheets again when nothing does (one may have been replaced).
+   */
+  const holdState = (): void => {
+    if (pinned) return
+    const state = store.state.value
+    const element = store.selection.value?.element
+    const held = forcedNow()
+    if (state === null || element === undefined || !element.isConnected || store.pickMode.value) {
+      held?.release()
+      return
+    }
+    if (held !== undefined && held.element === element && held.state === state) held.refresh()
+    else forceState(element, state)
+  }
+
+  /** The route the State control was set on; a client-side navigation away from it puts the control back to rest. */
+  let stateRoute = page
+  const route = (): string => location.pathname + location.search
+  const leftRoute = (): boolean => {
+    if (store.state.value === null || route() === stateRoute) return false
+    store.state.value = null
+    holdState()
+    return true
+  }
+
+  const setState = (state: ElementState | null): void => {
+    store.error.value = null
+    store.state.value = state
+    stateRoute = route()
+    // Before the dock renders again: its computed rows read the element as it is then.
+    holdState()
+  }
+
   const select = (element: Element | null): void => {
     store.error.value = null
     if (element === null) {
@@ -361,6 +453,7 @@ export function createController(options: ControllerOptions): Controller {
         store.selection.value = null
         store.source.value = null
       })
+      holdState()
       return
     }
     const selection = describe(element)
@@ -370,6 +463,8 @@ export function createController(options: ControllerOptions): Controller {
       if (media !== null && !selection.styles.media.some((option) => option.query === media && option.matches)) store.media.value = null
       if (selection.instances < 2) store.scope.value = 'instance'
     })
+    // The chosen state moves with the selection.
+    holdState()
     resolveSource(element)
   }
 
@@ -387,6 +482,7 @@ export function createController(options: ControllerOptions): Controller {
       return
     }
     store.selection.value = describe(element)
+    holdState()
   }
 
   // -------------------------------------------------------------------------
@@ -400,6 +496,8 @@ export function createController(options: ControllerOptions): Controller {
       store.pickMode.value = on
       if (!on) store.hovered.value = null
     })
+    // Picking shows the page as it is; the state comes back on whatever is selected when it ends.
+    holdState()
   }
 
   const picker = createPicker({
@@ -425,12 +523,13 @@ export function createController(options: ControllerOptions): Controller {
   // Edits
   // -------------------------------------------------------------------------
 
-  const condition = (media: string | null): Condition => {
+  const condition = (media: string | null, state: ElementState | null): Condition => {
     const out: Condition = {
       viewport: { w: innerWidth, h: innerHeight, dpr: devicePixelRatio },
       colorScheme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
     }
     if (media !== null && media !== '') out.media = media
+    if (state !== null) out.state = state
     return out
   }
 
@@ -475,6 +574,7 @@ export function createController(options: ControllerOptions): Controller {
       if (!isValidValue(property, value)) return fail(`"${value}" is not a valid value for ${property}.`)
       const media = edit.media === undefined ? store.media.value : edit.media
       const scope = edit.scope ?? store.scope.value
+      const state = edit.state === undefined ? store.state.value : edit.state
       if (media !== null && media !== '' && !mediaMatches(media)) {
         return fail(`The viewport does not match @media ${media}. Resize the window until it does to edit under it.`)
       }
@@ -494,64 +594,86 @@ export function createController(options: ControllerOptions): Controller {
         scope,
         before: { computed: '' },
         after: { authored: value, computed: '' },
-        condition: condition(media),
+        condition: condition(media, state),
         stylingSystem: selection.styles.system,
       }
       const key = editKey(draft)
       const existing = present().find((item): item is StyleChange => item.kind === 'style' && item.status === 'draft' && editKey(item) === key)
       draft.id = existing?.id ?? newId('c')
 
-      // Measure "before" on the page without this edit's own earlier preview.
-      preview.mute(draft.id)
-      const styleBefore = getComputedStyle(element)
-      draft.before = { computed: computedValue(element, property, styleBefore) }
-      const longhandsBefore = computedLonghands(element, property, styleBefore)
-      const where = originOf(selection.styles, property)
-      if (where.authored !== undefined) draft.before.authored = where.authored
-      draft.origin = where.origin
-      draft.stylingSystem = where.system
-      // Who else the rule behind the old value styles, and what they look like before this edit is previewed.
-      const witnessed = longhandsBefore === undefined ? [property] : Object.keys(longhandsBefore)
-      const others = where.origin.via === 'rule' && where.ruleSelector !== undefined ? findBystanders(where.ruleSelector, element, scope) : null
-      const bystanders = (others?.elements ?? []).map((other) => ({ element: other, record: describeBystander(other, witnessed) }))
+      // From here until everything is measured the element is in the state the edit is for (at rest
+      // for a resting edit), whatever the State control is set to meanwhile: before and after
+      // values, longhands and side effects are then read by the same code as for any other edit.
+      pinned = true
+      try {
+        const held = forcedNow()
+        if (state === null) held?.release()
+        else if (held !== undefined && held.element === element && held.state === state) held.refresh()
+        else forceState(element, state)
 
-      const spec = specOf(draft)
-      const effects = await measureEffects(() => {
-        const elements = preview.apply(spec, element)
-        preview.mute(null)
-        return elements
-      })
+        const where = originOf(selection.styles, property, state)
+        // Measure "before" on the page without this edit's own earlier preview. For a state whose own
+        // rule sets the property, also without a resting draft of that property: its preview is
+        // `!important` and would cover the page's rule for the state, which in the source it cannot.
+        const covered =
+          state !== null && (where.ruleStates?.length ?? 0) > 0
+            ? present().filter((item) => item.kind === 'style' && item.status === 'draft' && item.target.uid === uid && item.property === property && item.condition.state === undefined)
+            : []
+        preview.mute([draft.id, ...covered.map((item) => item.id)])
+        const styleBefore = getComputedStyle(element)
+        draft.before = { computed: computedValue(element, property, styleBefore) }
+        const longhandsBefore = computedLonghands(element, property, styleBefore)
+        if (where.authored !== undefined) draft.before.authored = where.authored
+        draft.origin = where.origin
+        draft.stylingSystem = where.system
+        // Who else the rule behind the old value styles, and what they look like before this edit is previewed.
+        // Not for an edit in a state: bystanders are not recorded for those.
+        const witnessed = longhandsBefore === undefined ? [property] : Object.keys(longhandsBefore)
+        const others = state === null && where.origin.via === 'rule' && where.ruleSelector !== undefined ? findBystanders(where.ruleSelector, element, scope) : null
+        const bystanders = (others?.elements ?? []).map((other) => ({ element: other, record: describeBystander(other, witnessed) }))
 
-      const styleAfter = getComputedStyle(element)
-      draft.after.computed = computedValue(element, property, styleAfter)
-      const longhandsAfter = computedLonghands(element, property, styleAfter)
-      if (longhandsBefore !== undefined && longhandsAfter !== undefined) {
-        draft.longhands = {}
-        for (const name of Object.keys(longhandsAfter)) draft.longhands[name] = { before: longhandsBefore[name] ?? '', after: longhandsAfter[name] ?? '' }
-      }
-      draft.sideEffects = effects.sideEffects
-      if (effects.partial) draft.sideEffectsPartial = true
-      draft.target = withKnownSource(draft.target, element)
-      if (others !== null) {
-        draft.origin = { ...where.origin, alsoStyles: others.count }
-        if (bystanders.length > 0) {
-          // The preview styles only the changed elements. A bystander value that moved with it anyway follows
-          // them (a size the layout resolves, something inherited) and would move with a correct edit too: no witness.
-          draft.bystanders = bystanders.map(({ element: other, record }) => {
-            const now = valuesOf(other, witnessed)
-            return { ...record, values: Object.fromEntries(Object.entries(record.values).filter(([name, value]) => now[name] === value)) }
-          })
+        const spec = specFor(draft, selection.styles)
+        const effects = await measureEffects(() => {
+          const elements = preview.apply(spec, element)
+          preview.mute(null)
+          return elements
+        })
+
+        const styleAfter = getComputedStyle(element)
+        draft.after.computed = computedValue(element, property, styleAfter)
+        const longhandsAfter = computedLonghands(element, property, styleAfter)
+        if (longhandsBefore !== undefined && longhandsAfter !== undefined) {
+          draft.longhands = {}
+          for (const name of Object.keys(longhandsAfter)) draft.longhands[name] = { before: longhandsBefore[name] ?? '', after: longhandsAfter[name] ?? '' }
         }
-      }
-      draft.expect = deriveExpectations(draft)
+        draft.sideEffects = effects.sideEffects
+        if (effects.partial) draft.sideEffectsPartial = true
+        draft.target = withKnownSource(draft.target, element)
+        if (others !== null) {
+          draft.origin = { ...where.origin, alsoStyles: others.count }
+          if (bystanders.length > 0) {
+            // The preview styles only the changed elements. A bystander value that moved with it anyway follows
+            // them (a size the layout resolves, something inherited) and would move with a correct edit too: no witness.
+            draft.bystanders = bystanders.map(({ element: other, record }) => {
+              const now = valuesOf(other, witnessed)
+              return { ...record, values: Object.fromEntries(Object.entries(record.values).filter(([name, value]) => now[name] === value)) }
+            })
+          }
+        }
+        draft.expect = deriveExpectations(draft)
 
-      const next = upsertEdit(present(), draft)
-      const stored = next.find((item) => item.id === draft.id) ?? null
-      commit(next)
-      if (stored === null) forget(draft.id)
-      else remember(stored, effects)
-      refresh()
-      return { ok: true, item: stored }
+        const next = upsertEdit(present(), draft)
+        const stored = next.find((item) => item.id === draft.id) ?? null
+        commit(next)
+        if (stored === null) forget(draft.id)
+        else remember(stored, effects)
+        refresh()
+        return { ok: true, item: stored }
+      } finally {
+        preview.mute(null)
+        pinned = false
+        holdState()
+      }
     })
 
   const structural = (op: 'hide' | 'remove'): Promise<EditResult> =>
@@ -664,6 +786,9 @@ export function createController(options: ControllerOptions): Controller {
         }
         // The agent's hot reload must land on an untouched page: the sent previews go now.
         for (const id of sent.keys()) forget(id)
+        // ... and so does a state the dock was holding: back to rest, as the page is for everybody else.
+        store.state.value = null
+        holdState()
         const items = present()
           .map((item) => sent.get(item.id) ?? item)
           .sort(bySeq)
@@ -831,7 +956,14 @@ export function createController(options: ControllerOptions): Controller {
   // Wiring
   // -------------------------------------------------------------------------
 
-  const measureNow = (items: MeasureRequest): Measurement => measure(items, preview)
+  const measureNow = (items: MeasureRequest): Measurement => {
+    // `measure` lets go of a held state while it reads and puts it back; make sure of the latter.
+    try {
+      return measure(items, preview)
+    } finally {
+      holdState()
+    }
+  }
 
   bus.on('*', (event) => {
     switch (event.type) {
@@ -871,6 +1003,23 @@ export function createController(options: ControllerOptions): Controller {
     bus.send({ type: 'session:visibility', doc: bus.doc, visible: document.visibilityState === 'visible' })
   })
 
+  // A stylesheet that finished loading (a hot update that swaps a <link>) has rules the held state has not seen.
+  document.addEventListener(
+    'load',
+    (event) => {
+      const loaded = event.target
+      if (store.state.value !== null && loaded instanceof Element && (loaded.localName === 'link' || loaded.localName === 'style')) holdState()
+    },
+    true,
+  )
+  // Leaving the page: nothing stays forced in a document the browser may keep and show again.
+  addEventListener('pagehide', () => {
+    store.state.value = null
+    holdState()
+  })
+  // A client-side navigation (back and forward here; pushState is noticed by the DOM change that follows it).
+  addEventListener('popstate', () => void leftRoute())
+
   let resizeTimer: number | undefined
   addEventListener('resize', () => {
     if (resizeTimer !== undefined) window.clearTimeout(resizeTimer)
@@ -886,6 +1035,7 @@ export function createController(options: ControllerOptions): Controller {
     select,
     navigate,
     setPickMode,
+    setState,
     setStyle,
     structural,
     deleteItem,
@@ -905,5 +1055,12 @@ export function createController(options: ControllerOptions): Controller {
     },
     copy: (text) => copy(text),
     lastEffects: () => lastEffects,
+    dispose() {
+      store.state.value = null
+      pinned = false
+      holdState()
+      picker.stop()
+      preview.dispose()
+    },
   }
 }

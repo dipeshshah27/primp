@@ -56,7 +56,11 @@ export function createHighlighter(layer: HTMLElement, store: Store, view: Window
     scheduled = false
     const outlines: Outline[] = []
     const selection = store.selection.peek()
-    if (selection !== null) outlines.push({ kind: 'selected', element: selection.element })
+    if (selection !== null) {
+      // The state the element is held in is said on the page too: it is why it looks hovered with no pointer on it.
+      const state = store.pickMode.peek() ? null : store.state.peek()
+      outlines.push(state === null ? { kind: 'selected', element: selection.element } : { kind: 'selected', element: selection.element, label: `:${state}` })
+    }
     const hovered = store.hovered.peek()
     if (hovered !== null && hovered !== selection?.element) {
       const rect = hovered.getBoundingClientRect()
@@ -111,6 +115,9 @@ export function createHighlighter(layer: HTMLElement, store: Store, view: Window
     void store.outlines.value
     void store.items.value
     void store.detached.value
+    // A forced :hover or :focus can change the size of the selected element.
+    void store.state.value
+    void store.pickMode.value
     schedule()
   })
 

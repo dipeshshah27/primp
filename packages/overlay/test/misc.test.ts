@@ -2,7 +2,7 @@ import { pickBest } from '@reglet/engine/locator'
 import type { Locator, SideEffect } from '@reglet/protocol/change'
 import { describe, expect, it } from 'vitest'
 import { describeEffect, summarizeRecorded } from '../src/probe/effects.ts'
-import { ruleText } from '../src/probe/preview.ts'
+import { ruleOrder, ruleText, type PreviewSpec } from '../src/probe/preview.ts'
 import { contradicts, readableClass } from '../src/probe/ref.ts'
 import { isModuleClass, isUtilityClass } from '../src/probe/styles.ts'
 import { nudge } from '../src/ui/nudge.ts'
@@ -50,6 +50,50 @@ describe('preview rules', () => {
 
   it('writes nothing for an element that is not in the page', () => {
     expect(ruleText(spec, [])).toBe('')
+  })
+
+  it('a rule for a state applies in the real state and in the forced one', () => {
+    expect(ruleText({ ...spec, state: 'hover' }, ['a'])).toBe('[data-reglet-id="a"]:hover, [data-reglet-id="a"][data-reglet-force~="hover"] { padding: 28px !important }')
+    expect(ruleText({ ...spec, state: 'focus-visible' }, ['a'])).toBe(
+      '[data-reglet-id="a"]:focus-visible, [data-reglet-id="a"][data-reglet-force~="focus-visible"] { padding: 28px !important }',
+    )
+  })
+
+  it('a rule for a state lists both selectors for every instance', () => {
+    expect(ruleText({ ...spec, state: 'active', scope: 'all-instances' }, ['a', 'b'])).toBe(
+      '[data-reglet-id="a"]:active, [data-reglet-id="a"][data-reglet-force~="active"], [data-reglet-id="b"]:active, [data-reglet-id="b"][data-reglet-force~="active"] { padding: 28px !important }',
+    )
+  })
+
+  it('a rule for a state goes inside its media query like any other', () => {
+    expect(ruleText({ ...spec, state: 'hover', media: '(min-width: 768px)' }, ['a'])).toBe(
+      '@media (min-width: 768px) { [data-reglet-id="a"]:hover, [data-reglet-id="a"][data-reglet-force~="hover"] { padding: 28px !important } }',
+    )
+    expect(ruleText({ ...spec, state: 'hover' }, [])).toBe('')
+  })
+
+  it('a resting rule stays out of the states where the page has its own rule, without weighing more', () => {
+    expect(ruleText({ ...spec, exceptIn: ['hover', 'active'] }, ['a'])).toBe(
+      '[data-reglet-id="a"]:not(:where(:hover, [data-reglet-force~="hover"], :active, [data-reglet-force~="active"])) { padding: 28px !important }',
+    )
+    // Only a resting rule; a rule for a state ignores it.
+    expect(ruleText({ ...spec, state: 'hover', exceptIn: ['hover'] }, ['a'])).toBe('[data-reglet-id="a"]:hover, [data-reglet-id="a"][data-reglet-force~="hover"] { padding: 28px !important }')
+    expect(ruleText({ ...spec, exceptIn: [] }, ['a'])).toBe(ruleText(spec, ['a']))
+  })
+
+  it('orders the sheet: resting rules, then the states with :active last; unscoped before @media; then by seq', () => {
+    const of = (name: string, extra: Partial<PreviewSpec>): PreviewSpec => ({ ...spec, itemId: name, ...extra })
+    const specs = [
+      of('active', { state: 'active', seq: 0 }),
+      of('hover-media', { state: 'hover', media: '(min-width: 768px)', seq: 1 }),
+      of('hover', { state: 'hover', seq: 7 }),
+      of('rest-media', { media: '(min-width: 768px)', seq: 2 }),
+      of('focus-visible', { state: 'focus-visible', seq: 3 }),
+      of('rest-late', { seq: 9 }),
+      of('focus', { state: 'focus', seq: 8 }),
+      of('rest', { seq: 4 }),
+    ]
+    expect([...specs].sort(ruleOrder).map((entry) => entry.itemId)).toEqual(['rest', 'rest-late', 'rest-media', 'hover', 'hover-media', 'focus', 'focus-visible', 'active'])
   })
 })
 

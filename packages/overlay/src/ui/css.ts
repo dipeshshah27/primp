@@ -186,6 +186,16 @@ ul, ol { list-style: none; }
 .seg button + button { border-left: 1px solid var(--line-strong); }
 .seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
 .seg button:focus-visible { outline-offset: -2px; }
+.controls { display: flex; flex-direction: column; gap: 8px; }
+.seg.states { display: flex; width: 100%; }
+.seg.states button { position: relative; flex: 1 1 auto; padding: 0 5px; }
+.seg.states .pseudo { font-family: var(--mono); font-size: 11px; font-weight: 500; }
+/* The page has rules for the element in this state. */
+.seg.states .has::after { content: ""; position: absolute; top: 3px; right: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+.showing-line { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: 11.5px; min-width: 0; }
+.showing-line .hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip.showing { flex: none; white-space: nowrap; }
+.chip.showing b, .chip.state { font-family: var(--mono); font-size: 11px; font-weight: 600; }
 select, .input {
   height: 26px; min-width: 0; width: 100%; padding: 0 7px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--bg);
 }
@@ -228,6 +238,7 @@ details > summary + * { margin-top: 6px; }
 .item-head .label { flex: 1; min-width: 0; font-family: var(--mono); font-size: 11.5px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .change { font-family: var(--mono); font-size: 11.5px; overflow-wrap: anywhere; }
 .change .p { color: var(--accent); }
+.change .st { font-weight: 650; }
 .change del { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--faint); }
 .change ins { text-decoration: none; font-weight: 650; }
 .shared { color: var(--muted); font-size: 11.5px; overflow-wrap: anywhere; }

@@ -1,6 +1,6 @@
 import type { Expectation } from '@reglet/protocol/change'
 import { describe, expect, it } from 'vitest'
-import { toCheck, type Measured } from '../src/probe/measure.ts'
+import { emulatedNote, STATE_NOT_EMULATED, toCheck, type Measured } from '../src/probe/measure.ts'
 
 const view = { innerWidth: 600, innerHeight: 800 } as Window
 const condition = { viewport: { w: 1280, h: 800, dpr: 1 }, colorScheme: 'light' as const }
@@ -27,6 +27,39 @@ describe('toCheck: a raw measurement on the wire', () => {
     expect(check.status).toBe('not_measurable')
     expect(check.note).toContain('600x800')
     expect(toCheck(padding, { ...missing, mediaMatches: true }, view).status).toBe('unresolved')
+  })
+
+  it('computed in a state: measured results say that the state was emulated', () => {
+    const hover: Expectation = { type: 'computed', property: 'background-color', value: '#2563eb', condition: { ...condition, state: 'hover' } }
+    const pass = toCheck(hover, found({ mediaMatches: true, actual: 'rgb(37, 99, 235)', expectedComputed: 'rgb(37, 99, 235)' }), view)
+    expect(pass).toMatchObject({ status: 'pass', expected: 'rgb(37, 99, 235)', actual: 'rgb(37, 99, 235)', note: 'measured with :hover emulated' })
+    const fail = toCheck(hover, found({ mediaMatches: true, actual: 'rgb(30, 41, 59)', expectedComputed: 'rgb(37, 99, 235)' }), view)
+    expect(fail).toMatchObject({ status: 'fail', actual: 'rgb(30, 41, 59)', note: emulatedNote('hover') })
+    // Both notes when the expected value could not be resolved; the state comes first.
+    const raw = toCheck(hover, found({ mediaMatches: true, actual: 'rgb(30, 41, 59)' }), view)
+    expect(raw.note?.startsWith('measured with :hover emulated; ')).toBe(true)
+    expect(raw.note).toContain('could not be resolved')
+    // A resting check carries no such note.
+    expect(toCheck(padding, found({ mediaMatches: true, actual: '28px', expectedComputed: '28px' }), view).note).toBeUndefined()
+  })
+
+  it('computed in a state that could not be emulated: not_measurable with the agreed start of the note, whatever was read', () => {
+    const focus: Expectation = { type: 'computed', property: 'outline-color', value: 'red', condition: { ...condition, state: 'focus-visible' } }
+    const blocked = toCheck(focus, found({ mediaMatches: true, actual: 'rgb(255, 0, 0)', expectedComputed: 'rgb(255, 0, 0)', stateBlocked: '2 stylesheets from another origin cannot be read' }), view)
+    expect(blocked.status).toBe('not_measurable')
+    expect(blocked.note).toBe('the state could not be emulated: 2 stylesheets from another origin cannot be read')
+    expect(blocked.note?.startsWith(`${STATE_NOT_EMULATED}: `)).toBe(true)
+    expect(toCheck(focus, found({ mediaMatches: true, stateBlocked: 'forcing :focus-visible failed (boom)' }), view)).toMatchObject({ status: 'not_measurable', actual: '' })
+    // The media condition is checked first, and a missing element is still unresolved.
+    const scoped: Expectation = { ...focus, condition: { ...focus.condition, media: '(min-width: 768px)' } }
+    expect(toCheck(scoped, found({ mediaMatches: false, stateBlocked: 'x' }), view).note).toContain('does not match @media')
+    expect(toCheck(focus, { ...missing, mediaMatches: true }, view).status).toBe('unresolved')
+  })
+
+  it('order: not implemented in this build, and never a pass', () => {
+    const locator = { tag: 'li', indexPath: [0], ancestors: ['body'] }
+    const order: Expectation = { type: 'order', siblings: [{ label: 'li "A"', locator, self: true }, { label: 'li "B"', locator }] }
+    expect(toCheck(order, found(), view)).toMatchObject({ status: 'unresolved', expected: 'li "A" | li "B"', note: 'order checks are not implemented in this build' })
   })
 
   it('absent and hidden report absent | hidden | rendered', () => {

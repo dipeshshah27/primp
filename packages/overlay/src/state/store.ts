@@ -4,7 +4,7 @@
 
 import { computed, signal, type ReadonlySignal, type Signal } from '@preact/signals'
 import { canRedo, canUndo, emptyHistory, type ItemHistory } from '@reglet/engine/items'
-import type { ChangeItem, Ref, SourceLoc } from '@reglet/protocol/change'
+import type { ChangeItem, ElementState, Ref, SourceLoc } from '@reglet/protocol/change'
 import type { SessionInfo } from '@reglet/protocol/messages'
 import type { ShiftReport } from '@reglet/protocol/shift'
 import type { ElementStyles } from '../probe/styles.ts'
@@ -83,6 +83,11 @@ export interface Store {
   scope: Signal<'instance' | 'all-instances'>
   /** `@media` query new edits are scoped to; null: none. */
   media: Signal<string | null>
+  /**
+   * The interaction state the selected element is shown in and new edits are made for; null: at rest.
+   * Kept across selections, like a tool mode; back to rest after Send. Written through `controller.setState`.
+   */
+  state: Signal<ElementState | null>
   tab: Signal<TabName>
   shifts: Signal<ShiftState | null>
   /** A recording was sent and its report has not arrived. */
@@ -116,6 +121,7 @@ export function createStore(page: string): Store {
     outlines: signal([]),
     scope: signal('instance'),
     media: signal(null),
+    state: signal(null),
     tab: signal('edits'),
     shifts: signal(null),
     shiftsPending: signal(false),

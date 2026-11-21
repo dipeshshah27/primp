@@ -4,12 +4,17 @@ import {
   compareSpecificity,
   hasDynamicState,
   hasPseudoElement,
+  activeStates,
+  atRest,
+  inStates,
   kebab,
   parseDeclarations,
   pickWinner,
+  replaceState,
   resolveNested,
   specificityOf,
   splitSelectorList,
+  statesOf,
   withoutStates,
   type CascadeRank,
 } from '../src/probe/specificity.ts'
@@ -51,6 +56,107 @@ describe('withoutStates', () => {
     ['input::placeholder', 'input'],
   ])('%s -> %s', (selector, expected) => {
     expect(withoutStates(selector)).toBe(expected)
+  })
+})
+
+describe('replaceState', () => {
+  const MARK = '[data-reglet-force~="hover"]'
+  it.each<[string, string | null]>([
+    // simple
+    ['.btn:hover', `.btn${MARK}`],
+    ['a.btn:hover > span', `a.btn${MARK} > span`],
+    ['.card:hover .btn:hover', `.card${MARK} .btn${MARK}`],
+    [':hover', MARK],
+    ['.BTN:HOVER', `.BTN${MARK}`],
+    // inside :is(), :where(), :not() and :has()
+    ['.btn:is(:hover, .on)', `.btn:is(${MARK}, .on)`],
+    [':where(.a:hover, .b) p', `:where(.a${MARK}, .b) p`],
+    ['.btn:not(:hover)', `.btn:not(${MARK})`],
+    ['.card:has(> img:hover)', `.card:has(> img${MARK})`],
+    ['.btn:not(:is(:hover, :focus))', `.btn:not(:is(${MARK}, :focus))`],
+    // with pseudo-elements, which stay where they are
+    ['.btn:hover::before', `.btn${MARK}::before`],
+    ['.btn:hover:after', `.btn${MARK}:after`],
+    ['a:hover::first-line', `a${MARK}::first-line`],
+    // escaped colons are part of a class name, not a pseudo-class
+    ['.hover\\:bg:hover', `.hover\\:bg${MARK}`],
+    ['.sm\\:hover\\:p-2:hover', `.sm\\:hover\\:p-2${MARK}`],
+    ['.group:hover .group-hover\\:underline', `.group${MARK} .group-hover\\:underline`],
+    // other states and other pseudo-classes are left alone
+    ['.btn:hover:focus-visible', `.btn${MARK}:focus-visible`],
+    ['li:nth-child(2n + 1):hover', `li:nth-child(2n + 1)${MARK}`],
+    // no match
+    ['.btn', null],
+    ['.btn:focus', null],
+    ['.hover\\:bg', null],
+    ['[title="a:hover"]', null],
+    ['.btn::hover', null],
+    ['.btn:hoverable', null],
+    ['.btn:not(.on)', null],
+  ])('%s -> %s', (selector, expected) => {
+    expect(replaceState(selector, 'hover', MARK)).toBe(expected)
+  })
+
+  it('tells :focus from :focus-visible and :focus-within', () => {
+    expect(replaceState('.a:focus-visible', 'focus', '[f]')).toBeNull()
+    expect(replaceState('.a:focus-within', 'focus', '[f]')).toBeNull()
+    expect(replaceState('.a:focus:focus-visible', 'focus', '[f]')).toBe('.a[f]:focus-visible')
+    expect(replaceState('.a:focus:focus-visible', 'focus-visible', '[v]')).toBe('.a:focus[v]')
+  })
+})
+
+describe('statesOf', () => {
+  it.each<[string, string[], boolean]>([
+    ['.btn', [], false],
+    ['.btn:hover', ['hover'], false],
+    ['.card:hover .btn', ['hover'], false],
+    ['.btn:focus-visible', ['focus-visible'], false],
+    ['.btn:active:hover', ['hover', 'active'], false],
+    ['.btn:hover:focus', ['hover', 'focus'], false],
+    [':is(.a:hover, .b) p', ['hover'], false],
+    [':where(.a:focus) p', ['focus'], false],
+    ['.btn:hover:not(:disabled)', ['hover'], false],
+    ['.hover\\:underline', [], false],
+    // beyond what the dock models
+    ['.btn:not(:hover)', [], true],
+    ['.card:has(:focus)', [], true],
+    ['.field:focus-within label', [], true],
+    ['.btn:hover:not(:focus)', ['hover'], true],
+  ])('%s needs %j (beyond: %s)', (selector, states, beyond) => {
+    const needs = statesOf(selector)
+    expect(needs.states).toEqual(states)
+    expect(needs.beyond).toBe(beyond)
+    expect(needs.any).toBe(states.length > 0 || beyond)
+  })
+})
+
+describe('activeStates', () => {
+  it(':active is reached through :hover, a visible focus is a focus', () => {
+    expect(activeStates(null)).toEqual([])
+    expect(activeStates(undefined)).toEqual([])
+    expect(activeStates('hover')).toEqual(['hover'])
+    expect(activeStates('active')).toEqual(['hover', 'active'])
+    expect(activeStates('focus')).toEqual(['focus'])
+    expect(activeStates('focus-visible')).toEqual(['focus', 'focus-visible'])
+  })
+})
+
+describe('atRest and inStates: selectors that do not depend on where the pointer is', () => {
+  it('at rest no state holds anywhere', () => {
+    expect(atRest('.btn')).toBe('.btn')
+    expect(atRest('.btn:hover')).toBe('.btn:not(*)')
+    expect(atRest('.btn:not(:hover)')).toBe('.btn:not(:not(*))')
+    expect(atRest(':is(.on, :focus-visible)')).toBe(':is(.on, :not(*))')
+    expect(atRest('.field:focus-within label')).toBe('.field:not(*) label')
+  })
+
+  it('in a state, :hover and :active hold for the element and above, :focus and :focus-visible for the element', () => {
+    expect(inStates('.btn:hover', ['hover'])).toBe('.btn:is(:scope, :has(:scope))')
+    expect(inStates('.card:hover .btn', ['hover'])).toBe('.card:is(:scope, :has(:scope)) .btn')
+    expect(inStates('.btn:focus-visible', ['focus-visible'])).toBe('.btn:scope')
+    expect(inStates('.btn:hover:focus', ['hover'])).toBe('.btn:is(:scope, :has(:scope)):not(*)')
+    expect(inStates('.btn:active', ['hover'])).toBe('.btn:not(*)')
+    expect(inStates('.field:focus-within .btn:focus', ['focus'])).toBe('.field:is(:scope, :has(:scope)) .btn:scope')
   })
 })
 

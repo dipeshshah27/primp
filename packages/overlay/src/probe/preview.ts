@@ -10,6 +10,17 @@
  * Hide and remove are both previewed as `display: none !important`: the node stays where the
  * framework put it. `all-instances` marks every instance and lists them in the rule.
  *
+ * An edit made for a state applies in the real state and in the forced one (states.ts):
+ *
+ *   [data-reglet-id="x"]:hover, [data-reglet-id="x"][data-reglet-force~="hover"] { color: red !important }
+ *
+ * Both selectors weigh more than the resting one, and the rules for a state are written after
+ * the resting rules, so a resting preview and a state preview of one property resolve as the
+ * same two declarations in a stylesheet would. A resting preview is `!important` and would also
+ * cover the page's own rule for a state (`.btn:hover`); where the page has one for the property,
+ * the resting rule is written `[data-reglet-id="x"]:not(:where(:hover, [data-reglet-force~="hover"]))`
+ * (`exceptIn`, no added weight), so the state keeps its own value as it will once the edit is in the source.
+ *
  * Every write to the page (a mark, the stylesheet text) is announced to the layout-shift
  * recorder first with `window.__reglet.markSelf()`, so the shifts it causes count as reglet's own.
  *
@@ -18,9 +29,10 @@
  * preview is reported as detached (and tried again on later mutations), never dropped.
  */
 
-import type { Locator } from '@reglet/protocol/change'
+import type { ElementState, Locator } from '@reglet/protocol/change'
 import { adoptUid, elementOfUid, instancesOf, locate, MARK_ATTR, uidOf } from './ref.ts'
-import { ignoreSheet } from './styles.ts'
+import { ELEMENT_STATES } from './specificity.ts'
+import { FORCE_ATTR, ignoreSheet } from './styles.ts'
 
 export interface PreviewSpec {
   itemId: string
@@ -30,6 +42,13 @@ export interface PreviewSpec {
   scope: 'instance' | 'all-instances'
   /** `@media` query the rule is wrapped in. */
   media?: string
+  /** The rule only applies while the element is in this state, real or forced. Absent: at rest (and in every state no other rule covers). */
+  state?: ElementState
+  /**
+   * Resting rules only: states in which the page has its own rule for the property. The preview is
+   * left out of them (real or forced), as the edit, made in the resting rule of the source, would be.
+   */
+  exceptIn?: ElementState[]
   declarations: { property: string; value: string }[]
   /** Orders the rules. */
   seq: number
@@ -38,6 +57,8 @@ export interface PreviewSpec {
 export interface PreviewOptions {
   /** Called when a preview loses its element (`true`) or finds it again (`false`). */
   onDetached?: (itemId: string, detached: boolean) => void
+  /** Called a moment after the page's DOM changed (nodes added or removed, a `<style>` rewritten), once per burst. */
+  onPageChange?: () => void
   document?: Document
 }
 
@@ -57,8 +78,8 @@ export interface Preview {
   suspend(reason?: string): void
   resume(reason?: string): void
   suspended(): boolean
-  /** Leaves one preview out of the stylesheet (to measure the page without it); null puts it back. */
-  mute(itemId: string | null): void
+  /** Leaves one preview, or several, out of the stylesheet (to measure the page without them); null puts them back. */
+  mute(itemId: string | readonly string[] | null): void
   /** Looks for lost elements now; the MutationObserver calls this by itself. */
   check(): void
   /** The stylesheet text, for tests. */
@@ -83,11 +104,28 @@ const markSelf = (reason: string): void => {
   }
 }
 
+/**
+ * Where a rule goes in the stylesheet. Resting rules first, then the states in the order an author
+ * writes them (`:active` last: an active element is hovered too, and the later rule wins). Within
+ * each, unscoped rules before `@media` rules: a scoped rule for the same property then wins inside its query.
+ */
+export function ruleOrder(a: PreviewSpec, b: PreviewSpec): number {
+  const rank = (spec: PreviewSpec): number => (spec.state === undefined ? -1 : ELEMENT_STATES.indexOf(spec.state))
+  return rank(a) - rank(b) || Number(a.media !== undefined) - Number(b.media !== undefined) || a.seq - b.seq
+}
+
 const quoted = (value: string): string => `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`
 
 export function ruleText(spec: PreviewSpec, uids: readonly string[]): string {
   if (uids.length === 0 || spec.declarations.length === 0) return ''
-  const selector = uids.map((uid) => `[${MARK_ATTR}=${quoted(uid)}]`).join(',')
+  const state = spec.state
+  const except = state === undefined ? (spec.exceptIn ?? []) : []
+  // Inside `:where()`, so the rule weighs what any other resting preview weighs (an @media one written later still wins).
+  const outside = except.length === 0 ? '' : `:not(:where(${except.map((name) => `:${name}, [${FORCE_ATTR}~="${name}"]`).join(', ')}))`
+  const selector =
+    state === undefined
+      ? uids.map((uid) => `[${MARK_ATTR}=${quoted(uid)}]${outside}`).join(',')
+      : uids.map((uid) => `[${MARK_ATTR}=${quoted(uid)}]:${state}, [${MARK_ATTR}=${quoted(uid)}][${FORCE_ATTR}~="${state}"]`).join(', ')
   const body = spec.declarations.map((declaration) => `${declaration.property}: ${declaration.value} !important`).join('; ')
   const rule = `${selector} { ${body} }`
   return spec.media === undefined || spec.media === '' ? rule : `@media ${spec.media} { ${rule} }`
@@ -100,7 +138,7 @@ export function createPreview(options: PreviewOptions = {}): Preview {
   ignoreSheet(sheet)
   const entries = new Map<string, Entry>()
   let depth = 0
-  let muted: string | null = null
+  let muted: readonly string[] = []
   let text = ''
   let timer: number | undefined
 
@@ -111,12 +149,9 @@ export function createPreview(options: PreviewOptions = {}): Preview {
   const rebuild = (reason: string): void => {
     let next = ''
     if (depth === 0) {
-      // Unscoped rules first: a scoped rule for the same property then wins inside its query, as in authored CSS.
-      const ordered = [...entries.values()].sort(
-        (a, b) => Number(a.spec.media !== undefined) - Number(b.spec.media !== undefined) || a.spec.seq - b.spec.seq,
-      )
+      const ordered = [...entries.values()].sort((a, b) => ruleOrder(a.spec, b.spec))
       for (const entry of ordered) {
-        if (entry.spec.itemId === muted) continue
+        if (muted.includes(entry.spec.itemId)) continue
         const rule = ruleText(
           entry.spec,
           entry.elements.map((element) => uidOf(element)),
@@ -216,10 +251,15 @@ export function createPreview(options: PreviewOptions = {}): Preview {
   }
 
   const observer = new view.MutationObserver(() => {
-    if (entries.size === 0 || timer !== undefined) return
+    if (timer !== undefined || (entries.size === 0 && options.onPageChange === undefined)) return
     // A timer, not an animation frame: frames do not run in a hidden tab.
-    timer = view.setTimeout(check, CHECK_DELAY_MS)
+    timer = view.setTimeout(() => {
+      check()
+      options.onPageChange?.()
+    }, CHECK_DELAY_MS)
   })
+  // Of the attributes only reglet's mark is watched (a framework may rewrite it away). The marker of a
+  // forced state (`data-reglet-force`, states.ts) is reglet's own write and deliberately not in the filter.
   observer.observe(doc.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: [MARK_ATTR] })
 
   const register = (spec: PreviewSpec): Entry => {
@@ -251,7 +291,7 @@ export function createPreview(options: PreviewOptions = {}): Preview {
       const entry = entries.get(itemId)
       if (entry === undefined) return
       entries.delete(itemId)
-      if (muted === itemId) muted = null
+      if (muted.includes(itemId)) muted = muted.filter((id) => id !== itemId)
       rebuild('preview: remove')
       unmark(entry.elements)
     },
@@ -269,8 +309,7 @@ export function createPreview(options: PreviewOptions = {}): Preview {
     },
     suspended: () => depth > 0,
     mute(itemId) {
-      if (muted === itemId) return
-      muted = itemId
+      muted = itemId === null ? [] : typeof itemId === 'string' ? [itemId] : [...itemId]
       rebuild('preview: measure without one edit')
     },
     check,

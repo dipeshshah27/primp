@@ -6,6 +6,8 @@
  * cascade layers, specificity and source order. Scoping (`@scope`) proximity is not modelled.
  */
 
+import type { ElementState } from '@reglet/protocol/change'
+
 export type Specificity = readonly [ids: number, classes: number, types: number]
 
 /** Index just past the string that starts at `start` (a quote character). */
@@ -58,15 +60,29 @@ export const splitSelectorList = (text: string): string[] => splitTopLevel(text,
 const LEGACY_PSEUDO_ELEMENTS = new Set(['before', 'after', 'first-line', 'first-letter'])
 const LIST_PSEUDO_CLASSES = new Set(['is', 'not', 'has', 'matches', '-webkit-any', '-moz-any'])
 const DYNAMIC_STATES = new Set(['hover', 'active', 'focus', 'focus-visible', 'focus-within'])
+/** The states an edit can be made for, in the order a stylesheet usually writes them. */
+export const ELEMENT_STATES: readonly ElementState[] = ['hover', 'focus', 'focus-visible', 'active']
 
 interface Scan {
   spec: [number, number, number]
   pseudoElement: boolean
   dynamic: boolean
+  /** Editable states the selector asks for, outside `:not()` and `:has()`. */
+  states: Set<string>
+  /** A transient state is mentioned somewhere, at any depth. */
+  anyState: boolean
+  /** It depends on a state in a way the dock does not model: `:focus-within`, or a state inside `:not()` or `:has()`. */
+  beyond: boolean
 }
 
 function scan(selector: string): Scan {
-  const out: Scan = { spec: [0, 0, 0], pseudoElement: false, dynamic: false }
+  const out: Scan = { spec: [0, 0, 0], pseudoElement: false, dynamic: false, states: new Set(), anyState: false, beyond: false }
+  const absorb = (inner: Scan, negated: boolean): void => {
+    if (!inner.anyState) return
+    out.anyState = true
+    if (negated || inner.beyond) out.beyond = true
+    else for (const state of inner.states) out.states.add(state)
+  }
   const n = selector.length
   let i = 0
   const ident = (): string => {
@@ -107,20 +123,27 @@ function scan(selector: string): Scan {
         out.spec[2]++
         out.pseudoElement = true
       } else if (name === 'where') {
-        // Zero by definition.
+        // Zero by definition; the states inside still count.
+        if (args !== undefined) for (const part of splitSelectorList(args)) absorb(scan(part), false)
       } else if (args !== undefined && LIST_PSEUDO_CLASSES.has(name)) {
         let best: Specificity = [0, 0, 0]
         for (const part of splitSelectorList(args)) {
           const inner = scan(part)
           if (compareSpecificity(inner.spec, best) > 0) best = inner.spec
           if (name !== 'not' && name !== 'has' && inner.dynamic) out.dynamic = true
+          absorb(inner, name === 'not' || name === 'has')
         }
         out.spec[0] += best[0]
         out.spec[1] += best[1]
         out.spec[2] += best[2]
       } else {
         out.spec[1]++
-        if (DYNAMIC_STATES.has(name)) out.dynamic = true
+        if (DYNAMIC_STATES.has(name)) {
+          out.dynamic = true
+          out.anyState = true
+          if (name === 'focus-within') out.beyond = true
+          else out.states.add(name)
+        }
       }
     } else if (ch === '*' || ch === '&' || ch === '|' || ch === '>' || ch === '+' || ch === '~' || /\s/.test(ch)) {
       i++
@@ -147,6 +170,72 @@ export function hasPseudoElement(selector: string): boolean {
 /** Whether the selector only applies in a transient state (`:hover`, `:active`, `:focus`...). */
 export function hasDynamicState(selector: string): boolean {
   return scan(selector).dynamic
+}
+
+export interface StateNeeds {
+  /** The states ONE complex selector asks for (`.btn:hover:focus` asks for two), in the order of `ELEMENT_STATES`. */
+  states: ElementState[]
+  /** The selector mentions a transient state at all. */
+  any: boolean
+  /**
+   * It depends on a state in a way the dock does not model: `:focus-within`, or a state inside
+   * `:not()` or `:has()`. Such a selector is never treated as a rule "for" a state.
+   */
+  beyond: boolean
+}
+
+/** Which interaction states ONE complex selector (not a list) needs before it can match. */
+export function statesOf(selector: string): StateNeeds {
+  const found = scan(selector)
+  return { states: ELEMENT_STATES.filter((state) => found.states.has(state)), any: found.anyState, beyond: found.beyond }
+}
+
+/** The pseudo-classes that hold while `state` does: `:active` is only reached through `:hover`, a visible focus is still a focus. */
+export function activeStates(state: ElementState | null | undefined): ElementState[] {
+  switch (state) {
+    case 'hover':
+      return ['hover']
+    case 'active':
+      return ['hover', 'active']
+    case 'focus':
+      return ['focus']
+    case 'focus-visible':
+      return ['focus', 'focus-visible']
+    default:
+      return []
+  }
+}
+
+const NEVER = ':not(*)'
+/** In `el.matches()`, `:scope` is `el`: these stand for "the element under test" and "it or one of its ancestors". */
+const SELF = ':scope'
+const SELF_OR_ABOVE = ':is(:scope, :has(:scope))'
+
+/**
+ * ONE complex selector as it reads while no transient state holds anywhere on the page: every
+ * `:hover`, `:focus`... becomes a selector that matches nothing. `el.matches(atRest(s))` is then
+ * the same whatever the pointer and the focus are doing at that moment.
+ */
+export function atRest(selector: string): string {
+  let text = selector
+  for (const state of DYNAMIC_STATES) text = replaceState(text, state, NEVER) ?? text
+  return text
+}
+
+/**
+ * ONE complex selector as it reads, for `el.matches()`, while `el` is in every one of `states`
+ * and nothing else is: `:hover` and `:active` hold for `el` and its ancestors (as the real ones
+ * do), `:focus` and `:focus-visible` for `el` alone, every other transient state for nothing.
+ * So `.card:hover .btn` matches a button inside the card, and `.a:hover + .b` does not match `.b`.
+ */
+export function inStates(selector: string, states: readonly ElementState[]): string {
+  let text = selector
+  for (const state of DYNAMIC_STATES) {
+    // The focus is "within" the focused element and everything above it.
+    const holds = (states as readonly string[]).includes(state === 'focus-within' ? 'focus' : state)
+    text = replaceState(text, state, !holds ? NEVER : state === 'focus' || state === 'focus-visible' ? SELF : SELF_OR_ABOVE) ?? text
+  }
+  return text
 }
 
 /**

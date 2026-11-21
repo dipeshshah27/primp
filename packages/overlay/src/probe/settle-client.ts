@@ -35,8 +35,9 @@ import type {
  * listeners; it does not touch the DOM. Mutations inside an element marked
  * `data-reglet-root` (the dock) are ignored, and so is anything in a shadow
  * tree, which a document-level observer does not see. So are reglet's own
- * marks on the page: the `data-reglet-id` attribute of a previewed element and
- * the insertion or removal of a node that carries `data-reglet-root`.
+ * marks on the page: the `data-reglet-id` attribute of a previewed element, the
+ * `data-reglet-force` attribute of an element held in `:hover` or another state,
+ * and the insertion or removal of a node that carries `data-reglet-root`.
  */
 
 export interface SettleTransport {
@@ -98,14 +99,16 @@ function insideReglet(node: Node): boolean {
 
 /** Marks an element that has a preview on it (packages/overlay/src/probe/preview.ts). */
 const MARK_ATTR = 'data-reglet-id'
+/** Marks an element the dock holds in an interaction state, and its ancestors (packages/overlay/src/probe/states.ts). */
+const FORCE_ATTR = 'data-reglet-force'
 
 function isRegletNode(node: Node): boolean {
   return node.nodeType === 1 && (node as Element).hasAttribute('data-reglet-root')
 }
 
-/** A mutation reglet made itself: its mark on an element, or one of its own nodes coming or going. */
+/** A mutation reglet made itself: one of its marks on an element, or one of its own nodes coming or going. */
 function isOwnRecord(record: MutationRecord): boolean {
-  if (record.type === 'attributes') return record.attributeName === MARK_ATTR
+  if (record.type === 'attributes') return record.attributeName === MARK_ATTR || record.attributeName === FORCE_ATTR
   if (record.type !== 'childList') return false
   for (const node of record.addedNodes) if (!isRegletNode(node)) return false
   for (const node of record.removedNodes) if (!isRegletNode(node)) return false

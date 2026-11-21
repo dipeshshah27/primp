@@ -2,25 +2,33 @@
  * Which styles apply to an element, read from the CSSOM without the DevTools protocol.
  *
  * `readStyles(element)` walks every stylesheet the script may read (cross-origin sheets throw
- * and are skipped), keeps the rules whose selector matches the element, and works out for each
- * declared property which declaration wins. It also lists the `@media` queries an edit can be
- * scoped to and guesses the styling system.
+ * and are skipped), keeps the rules whose selector matches the element at rest or would match
+ * it in `:hover`, `:focus`, `:focus-visible` or `:active`, and works out for each declared
+ * property which declaration wins at rest (`declaredIn` does the same for a state). It also
+ * lists the `@media` queries an edit can be scoped to and guesses the styling system.
+ *
+ * Not modelled, and left out of the state views: `:focus-within`, and a state inside `:not()`
+ * or `:has()` (`.btn:not(:hover)` counts as a resting rule in every view).
  *
  * Reads only. The winner is "good enough for the common cases" (see specificity.ts); what the
  * browser really applies is always available as the computed style.
  */
 
-import type { StyleChange } from '@reglet/protocol/change'
+import type { ElementState, StyleChange } from '@reglet/protocol/change'
 import { longhandsOf } from './properties.ts'
 import {
+  activeStates,
+  atRest,
   compareCascade,
   compareSpecificity,
-  hasDynamicState,
+  ELEMENT_STATES,
   hasPseudoElement,
+  inStates,
   parseDeclarations,
   resolveNested,
   specificityOf,
   splitSelectorList,
+  statesOf,
   type CascadeRank,
   type ParsedDeclaration,
   type Specificity,
@@ -45,8 +53,13 @@ export interface MatchedRule {
   media: MediaContext[]
   /** Every enclosing `@media` matches now (and no enclosing `@supports` failed). */
   active: boolean
-  /** The selector only matches because of a transient state (`:hover`...). */
-  dynamic: boolean
+  /**
+   * The interaction states `matched` needs before it styles the element: `['hover']` for
+   * `.btn:hover` and for `.card:hover .btn`, both `hover` and `focus` for `.btn:hover:focus`.
+   * Empty: the rule applies at rest. A rule whose selector list reaches the element through
+   * different states (`.btn:hover, .btn:focus-visible`) is listed once for each, with the same `order`.
+   */
+  states: ElementState[]
   /** Condition of the innermost enclosing `@container`, which is assumed to hold. */
   container?: string
   layer?: string
@@ -72,16 +85,35 @@ export interface MediaOption {
 }
 
 export interface ElementStyles {
+  /** Every rule that styles the element at rest or in one of the states; see `MatchedRule.states`. */
   rules: MatchedRule[]
   inline: ParsedDeclaration[]
-  /** The winning declaration of every property some matching rule (or the style attribute) declares. */
+  /** The winning declaration of every property some rule that applies AT REST (or the style attribute) declares. For a state: `declaredIn`. */
   declared: DeclaredProperty[]
+  /** The states at least one rule styles this element in (under the media that match now). */
+  states: ElementState[]
+  /** Cascade layers in the order the page declared them; a rule's rank is its layer's index. */
+  layers: string[]
   media: MediaOption[]
   system: StylingSystem
   /** A Tailwind stylesheet is on the page. */
   tailwind: boolean
   /** Rules looked at, and sheets that could not be read. */
   stats: { rules: number; unreadableSheets: number; ms: number }
+}
+
+/** Marks an element (and what is above it) that `forceState` (states.ts) holds in a state. */
+export const FORCE_ATTR = 'data-reglet-force'
+
+/**
+ * A rule's selector as the page wrote it. While a state is forced, the page's rules for that
+ * state carry a second selector with reglet's marker in it (see states.ts); those are not the page's.
+ */
+export function pageSelector(selectorText: string): string {
+  if (!selectorText.includes(FORCE_ATTR)) return selectorText
+  return splitSelectorList(selectorText)
+    .filter((part) => !part.includes(`[${FORCE_ATTR}`))
+    .join(', ')
 }
 
 const ignoredSheets = new WeakSet<CSSStyleSheet>()
@@ -183,56 +215,65 @@ export function readStyles(el: Element): ElementStyles {
     return known
   }
 
-  const addRule = (selector: string, style: CSSStyleDeclaration, context: WalkContext): void => {
-    let matchedAll: boolean
+  const matches = (selector: string): boolean => {
     try {
-      matchedAll = el.matches(selector)
+      return el.matches(selector)
     } catch {
-      return
+      // A selector this browser does not parse.
+      return false
     }
-    if (!matchedAll) return
-    // A part that matches without a transient state (`:hover`) decides; among those, the most specific.
-    let matched = ''
-    let specificity: Specificity = [0, 0, 0]
-    let dynamic = true
-    let any = false
+  }
+
+  const addRule = (selector: string, style: CSSStyleDeclaration, context: WalkContext): void => {
+    // One candidate per set of states the selector list reaches the element through; of the parts
+    // with the same needs, the most specific one. Whether the pointer or the focus is on the element
+    // right now plays no part: the states in a selector are never asked of the browser.
+    const reached: { key: string; matched: string; specificity: Specificity; states: ElementState[] }[] = []
     for (const part of splitSelectorList(selector)) {
       if (hasPseudoElement(part)) continue
-      let hit = false
-      try {
-        hit = el.matches(part)
-      } catch {
-        // A selector this browser does not parse.
-      }
-      if (!hit) continue
+      const needs = statesOf(part)
+      let states: ElementState[]
+      if (!needs.any) {
+        if (!matches(part)) continue
+        states = []
+      } else if (matches(atRest(part))) {
+        // `:is(.on, :hover)` on an element with `.on`, or `:not(:hover)`.
+        states = []
+      } else if (!needs.beyond && needs.states.length > 0 && matches(inStates(part, needs.states))) {
+        states = needs.states
+      } else continue
+      const key = states.join(' ')
       const partSpecificity = specificityOf(part)
-      const partDynamic = hasDynamicState(part)
-      const better = !any || (dynamic && !partDynamic) || (dynamic === partDynamic && compareSpecificity(partSpecificity, specificity) > 0)
-      if (better) {
-        matched = part
-        specificity = partSpecificity
-        dynamic = partDynamic
+      const known = reached.find((entry) => entry.key === key)
+      if (known === undefined) reached.push({ key, matched: part, specificity: partSpecificity, states })
+      else if (compareSpecificity(partSpecificity, known.specificity) > 0) {
+        known.matched = part
+        known.specificity = partSpecificity
       }
-      any = true
     }
-    if (!any) return
+    if (reached.length === 0) return
     const declarations = parseDeclarations(style.cssText)
     if (declarations.length === 0) return
-    const rule: MatchedRule = {
-      selector,
-      matched,
-      specificity,
-      declarations,
-      media: context.media,
-      active: context.active,
-      dynamic,
-      cssInJs: context.cssInJs,
-      order: order++,
+    // A rule that applies at rest applies in every state too: its other parts add nothing.
+    const resting = reached.find((entry) => entry.key === '')
+    const at = order++
+    for (const entry of resting === undefined ? reached : [resting]) {
+      const rule: MatchedRule = {
+        selector,
+        matched: entry.matched,
+        specificity: entry.specificity,
+        declarations,
+        media: context.media,
+        active: context.active,
+        states: entry.states,
+        cssInJs: context.cssInJs,
+        order: at,
+      }
+      if (context.container !== undefined) rule.container = context.container
+      if (context.layer !== undefined) rule.layer = context.layer
+      if (context.sheet !== undefined) rule.sheet = context.sheet
+      rules.push(rule)
     }
-    if (context.container !== undefined) rule.container = context.container
-    if (context.layer !== undefined) rule.layer = context.layer
-    if (context.sheet !== undefined) rule.sheet = context.sheet
-    rules.push(rule)
   }
 
   const walk = (list: CSSRuleList, context: WalkContext): void => {
@@ -241,7 +282,8 @@ export function readStyles(el: Element): ElementStyles {
       seen++
       if (StyleRule !== undefined && rule instanceof StyleRule) {
         const styleRule = rule as CSSStyleRule
-        const selector = context.parent === undefined ? styleRule.selectorText : resolveNested(context.parent, styleRule.selectorText)
+        const own = pageSelector(styleRule.selectorText)
+        const selector = context.parent === undefined ? own : resolveNested(context.parent, own)
         addRule(selector, styleRule.style, context)
         if (styleRule.cssRules !== undefined && styleRule.cssRules.length > 0) walk(styleRule.cssRules, { ...context, parent: selector })
       } else if (NestedDeclarations !== undefined && rule instanceof NestedDeclarations) {
@@ -321,9 +363,65 @@ export function readStyles(el: Element): ElementStyles {
   }
 
   const inline = parseDeclarations(el.getAttribute('style') ?? '')
-  const rank = (rule: MatchedRule): number => (rule.layer === undefined ? Infinity : layers.indexOf(rule.layer))
 
-  // Winner per declared property name, among the rules that apply right now.
+  const media: MediaOption[] = []
+  for (const rule of rules) {
+    if (rule.states.length > 0) continue
+    const option = combineMedia(rule.media)
+    if (option !== undefined && !media.some((known) => known.query === option.query)) media.push(option)
+  }
+
+  return {
+    rules,
+    inline,
+    declared: declaredWinners(rules, inline, layers),
+    states: statesWithRules(rules),
+    layers,
+    media,
+    // As before states were read: from the rules that apply at rest.
+    system: detectSystem(
+      el,
+      rules.filter((rule) => rule.states.length === 0),
+      inline,
+      tailwind,
+    ),
+    tailwind,
+    stats: { rules: seen, unreadableSheets: unreadable, ms: performance.now() - started },
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Which declaration wins, at rest and in a state
+// ---------------------------------------------------------------------------
+
+/** Whether a rule styles the element while it is in `state` (null: at rest): its media match and every state it needs holds. */
+export function appliesIn(rule: Pick<MatchedRule, 'active' | 'states'>, state: ElementState | null = null): boolean {
+  if (!rule.active) return false
+  if (rule.states.length === 0) return true
+  const holding = activeStates(state)
+  return rule.states.every((needed) => holding.includes(needed))
+}
+
+/**
+ * The states for which at least one rule exists: the rule needs that very state and applies in
+ * it. A `:hover` rule alone does not make `:active` one of them, although it applies there too.
+ */
+export function statesWithRules(rules: readonly Pick<MatchedRule, 'active' | 'states'>[]): ElementState[] {
+  return ELEMENT_STATES.filter((state) => rules.some((rule) => rule.states.includes(state) && appliesIn(rule, state)))
+}
+
+/**
+ * The winning declaration of every property declared by the style attribute or by a rule that
+ * applies in `state` (null: at rest), strongest source first. In a state these are the resting
+ * rules plus the rules for that state, ranked as the cascade ranks them. Pure.
+ */
+export function declaredWinners(
+  rules: readonly MatchedRule[],
+  inline: readonly ParsedDeclaration[],
+  layers: readonly string[],
+  state: ElementState | null = null,
+): DeclaredProperty[] {
+  const rank = (rule: MatchedRule): number => (rule.layer === undefined ? Infinity : layers.indexOf(rule.layer))
   interface Entry extends CascadeRank {
     declaration: ParsedDeclaration
     rule?: MatchedRule
@@ -338,7 +436,7 @@ export function readStyles(el: Element): ElementStyles {
     push({ declaration, inline: true, important: declaration.important, layer: Infinity, specificity: [0, 0, 0], order: index }),
   )
   for (const rule of rules) {
-    if (!rule.active || rule.dynamic) continue
+    if (!appliesIn(rule, state)) continue
     for (const declaration of rule.declarations) {
       push({ declaration, rule, inline: false, important: declaration.important, layer: rank(rule), specificity: rule.specificity, order: rule.order })
     }
@@ -351,28 +449,57 @@ export function readStyles(el: Element): ElementStyles {
   }
   // Strongest source first, as a person reads a style panel; declarations of one rule stay together.
   winners.sort((a, b) => compareCascade({ ...b.entry, important: false }, { ...a.entry, important: false }))
-  const declared: DeclaredProperty[] = winners.map(({ entry, overrides }) => {
+  return winners.map(({ entry, overrides }) => {
     const out: DeclaredProperty = { ...entry.declaration, from: entry.inline ? 'inline' : 'rule', overrides }
     if (entry.rule !== undefined) out.rule = entry.rule
     return out
   })
+}
 
-  const media: MediaOption[] = []
-  for (const rule of rules) {
-    if (rule.dynamic) continue
-    const option = combineMedia(rule.media)
-    if (option !== undefined && !media.some((known) => known.query === option.query)) media.push(option)
+/**
+ * The states in which a rule of the page written for that state sets `property` (by its own name,
+ * through a shorthand or through its longhands) on this element under the media that match now.
+ * A resting edit of the property does not reach into those states once it is in the source: the
+ * state's rule still wins there. The preview of a resting edit is left out of them (preview.ts).
+ */
+export function statesCovering(styles: Pick<ElementStyles, 'rules'>, property: string): ElementState[] {
+  const longhands = longhandsOf(property)
+  const related = (name: string): boolean => name === property || longhands.includes(name) || longhandsOf(name).includes(property)
+  const out = new Set<ElementState>()
+  for (const rule of styles.rules) {
+    if (rule.states.length === 0 || !rule.active) continue
+    if (!rule.declarations.some((declaration) => related(declaration.property))) continue
+    for (const state of ELEMENT_STATES) if (appliesIn(rule, state)) out.add(state)
   }
+  return ELEMENT_STATES.filter((state) => out.has(state))
+}
 
-  return {
-    rules,
-    inline,
-    declared,
-    media,
-    system: detectSystem(el, rules, inline, tailwind),
-    tailwind,
-    stats: { rules: seen, unreadableSheets: unreadable, ms: performance.now() - started },
-  }
+const declaredByState = new WeakMap<ElementStyles, Map<ElementState, DeclaredProperty[]>>()
+
+/** The declared winners while the element is in `state`; at rest (null, undefined) that is `styles.declared`. */
+export function declaredIn(styles: ElementStyles, state?: ElementState | null): DeclaredProperty[] {
+  if (state === null || state === undefined) return styles.declared
+  // No rule is particular to this state: it looks as it does at rest.
+  if (!styles.rules.some((rule) => rule.states.length > 0 && appliesIn(rule, state))) return styles.declared
+  let known = declaredByState.get(styles)
+  if (known === undefined) declaredByState.set(styles, (known = new Map()))
+  let declared = known.get(state)
+  if (declared === undefined) known.set(state, (declared = declaredWinners(styles.rules, styles.inline, styles.layers, state)))
+  return declared
+}
+
+/**
+ * Whether a draft made for `draftState` decides the value shown in the view of `state`, on a row
+ * whose page rule needs `ruleStates`. The draft for the very state does. Otherwise a draft shows
+ * through from a weaker state (a resting edit seen under `:hover`, a `:hover` edit seen under
+ * `:active`) as long as the page has no rule of its own for the stronger one, which is what the
+ * stylesheet does once both edits are in the source.
+ */
+export function draftShowsIn(draftState: ElementState | null, state: ElementState | null, ruleStates: readonly ElementState[] = []): 'exact' | 'through' | false {
+  if (draftState === state) return 'exact'
+  if (draftState !== null && !activeStates(state).includes(draftState)) return false
+  const own = activeStates(draftState)
+  return ruleStates.every((needed) => own.includes(needed)) ? 'through' : false
 }
 
 // ---------------------------------------------------------------------------
@@ -412,7 +539,7 @@ function detectSystem(el: Element, rules: readonly MatchedRule[], inline: readon
   if (classes.some(isModuleClass)) return 'css-modules'
   if (tailwind && (rules.some(inUtilitiesLayer) || classes.some(isUtilityClass))) return 'tailwind'
   // Rules that name a class or an id of the element are the author's; bare tag rules are usually a reset.
-  const authored = rules.some((rule) => !rule.dynamic && (rule.specificity[0] > 0 || rule.specificity[1] > 0))
+  const authored = rules.some((rule) => rule.states.length === 0 && (rule.specificity[0] > 0 || rule.specificity[1] > 0))
   if (inline.length > 0 && !authored) return 'inline'
   if (authored || rules.length > 0) return 'plain-css'
   return 'unknown'
@@ -434,17 +561,24 @@ export interface PropertyOrigin {
   authored?: string
   /** For `via: 'rule'`: the rule's whole selector list (`origin.selector` is only the part of it that matched this element). */
   ruleSelector?: string
+  /** For `via: 'rule'`: the states that rule needs; empty when it is a resting rule (also when asked about a state). */
+  ruleStates?: ElementState[]
   system: StylingSystem
 }
 
-/** The declaration that sets `property` on the element before an edit: by its own name, through a shorthand, or through its longhands. */
-export function originOf(styles: ElementStyles, property: string): PropertyOrigin {
-  const exact = styles.declared.find((entry) => entry.property === property)
+/**
+ * The declaration that sets `property` on the element before an edit: by its own name, through a
+ * shorthand, or through its longhands. With `state`, the one that sets it while the element is in
+ * that state, which is a resting rule when no rule for the state declares the property.
+ */
+export function originOf(styles: ElementStyles, property: string, state?: ElementState | null): PropertyOrigin {
+  const declared = declaredIn(styles, state)
+  const exact = declared.find((entry) => entry.property === property)
   let found = exact
   if (found === undefined) {
     const longhands = longhandsOf(property)
-    // `styles.declared` is sorted strongest first, so the first relative found is the one that decides.
-    found = styles.declared.find((entry) => longhands.includes(entry.property) || longhandsOf(entry.property).includes(property))
+    // The list is sorted strongest first, so the first relative found is the one that decides.
+    found = declared.find((entry) => longhands.includes(entry.property) || longhandsOf(entry.property).includes(property))
   }
   if (found === undefined) {
     const inherited = property.startsWith('--') || INHERITED.has(property)
@@ -459,7 +593,7 @@ export function originOf(styles: ElementStyles, property: string): PropertyOrigi
   if (rule.sheet !== undefined) origin.sheet = rule.sheet
   const media = mediaOf(rule)
   if (media !== undefined) origin.media = media
-  return { origin, ...(authored === undefined ? {} : { authored }), ruleSelector: rule.selector, system: systemOfRule(rule, styles.tailwind) }
+  return { origin, ...(authored === undefined ? {} : { authored }), ruleSelector: rule.selector, ruleStates: rule.states, system: systemOfRule(rule, styles.tailwind) }
 }
 
 /** Custom properties declared by the rules matching the element. */

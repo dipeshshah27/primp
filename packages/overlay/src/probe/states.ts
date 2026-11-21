@@ -18,12 +18,13 @@
  *   - the browser's own default styles for a state (the focus ring of a control).
  */
 
-import { ignoreSheet } from './styles.ts'
+import { FORCE_ATTR, ignoreSheet } from './styles.ts'
 import { replaceState, splitSelectorList } from './specificity.ts'
 
 export type ForcedState = 'hover' | 'focus' | 'focus-visible' | 'active'
 export const FORCED_STATES: readonly ForcedState[] = ['hover', 'focus', 'focus-visible', 'active']
-export const FORCE_ATTR = 'data-reglet-force'
+// Declared in styles.ts, which has to tell the marker selectors from the page's own.
+export { FORCE_ATTR }
 
 export interface Forced {
   state: ForcedState
@@ -103,6 +104,7 @@ export function forceState(element: Element, state: ForcedState, doc: Document =
             if (replaced !== null) extra.push(replaced)
           }
           if (extra.length > 0) {
+            announce()
             try {
               styleRule.selectorText = `${original}, ${extra.join(', ')}`
               // A selector the browser refuses leaves the text as it was.
@@ -118,7 +120,16 @@ export function forceState(element: Element, state: ForcedState, doc: Document =
     }
   }
 
+  // A rewritten selector restyles the page: the layout-shift recorder hears of it first, once per pass.
+  let announced = false
+  const announce = (): void => {
+    if (announced) return
+    announced = true
+    markSelf(`force :${state}`)
+  }
+
   const scan = (): void => {
+    announced = false
     unreadable = 0
     for (const sheet of [...doc.styleSheets, ...doc.adoptedStyleSheets]) {
       if (sheet === calm || sheet.disabled) continue
@@ -138,7 +149,7 @@ export function forceState(element: Element, state: ForcedState, doc: Document =
   }
 
   scan()
-  markSelf(`force :${state}`)
+  announce()
   doc.adoptedStyleSheets = [...doc.adoptedStyleSheets, calm]
   mark(element, tokens.self)
   for (let up = element.parentElement; up !== null; up = up.parentElement) mark(up, tokens.ancestors)

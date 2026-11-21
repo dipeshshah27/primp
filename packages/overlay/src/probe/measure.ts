@@ -16,19 +16,40 @@
  *     so the DOM is never touched, and only reported when that rule demonstrably takes effect
  *     on the element (a page rule with `!important` could beat it; then it stays undefined).
  *
+ * An expectation for a state (`condition.state`) is read with that state forced on the element
+ * (states.ts): the page's own rules for the state apply, the pointer and the focus stay where
+ * they are. When a stylesheet cannot be read and the forced value is the resting value, a rule
+ * in that stylesheet may be the one that is missing: the check is then `not_measurable`, with a
+ * note that starts with `STATE_NOT_EMULATED`. A state the dock itself holds forced for its
+ * selection is let go for the whole measurement and put back afterwards.
+ *
  * Everything happens in one task, so no frame is rendered between switching the previews off
  * and on again.
  */
 
-import type { Measured } from '@reglet/engine/judge'
+import type { Measured as EngineMeasured } from '@reglet/engine/judge'
 import type { CheckResult, Expectation, Rect } from '@reglet/protocol/change'
 import type { ClientMessage, ServerMessage } from '@reglet/protocol/messages'
 import type { Preview } from './preview.ts'
 import { longhandsOf } from './properties.ts'
 import { buildSelector, locate, rectOf, type LocateResult } from './ref.ts'
+import { forcedNow, forceState, withState } from './states.ts'
 import { ignoreSheet } from './styles.ts'
 
-export type { Measured }
+/**
+ * What the engine's judge takes, plus what only matters on the way to the wire: why a state
+ * expectation could not be measured.
+ */
+export type Measured = EngineMeasured & {
+  /** `computed` with `condition.state`: the reason the state could not be emulated. The values are then not to be trusted. */
+  stateBlocked?: string
+}
+
+/** How the note of a check starts when its state could not be emulated; the server looks for exactly this. */
+export const STATE_NOT_EMULATED = 'the state could not be emulated'
+/** The note of a check that was read with its state forced. */
+export const emulatedNote = (state: string): string => `measured with :${state} emulated`
+
 export type MeasureRequest = Extract<ServerMessage, { type: 'session:measure' }>['items']
 export type MeasureResults = Extract<ClientMessage, { type: 'session:measured' }>['results']
 
@@ -132,19 +153,65 @@ export function measureExpectation(target: LocateResult, expectation: Expectatio
   }
   const element = target.element
   const base = { found: element !== null, locatorConfidence: target.confidence }
+  if (expectation.type === 'order') {
+    // Not implemented in this build: nothing is located and nothing is compared.
+    return { found: false, locatorConfidence: target.confidence }
+  }
   if (expectation.type === 'computed') {
     const mediaMatches = matches(expectation.condition.media, view)
     if (element === null || !mediaMatches) return { ...base, mediaMatches }
-    const actual = read(getComputedStyle(element), expectation.property, longhandsOf(expectation.property))
+    const longhands = longhandsOf(expectation.property)
     const recorded = expectation.value.trim()
-    // A recorded value that already reads the same needs no resolving.
-    const expectedComputed = actual === recorded ? recorded : resolveOn(element, expectation.property, recorded)
-    return expectedComputed === undefined ? { ...base, mediaMatches, actual } : { ...base, mediaMatches, actual, expectedComputed }
+    const measureNow = (): { actual: string; expectedComputed: string | undefined } => {
+      const actual = read(getComputedStyle(element), expectation.property, longhands)
+      // A recorded value that already reads the same needs no resolving.
+      return { actual, expectedComputed: actual === recorded ? recorded : resolveOn(element, expectation.property, recorded) }
+    }
+    const state = expectation.condition.state
+    if (state === undefined) {
+      const { actual, expectedComputed } = measureNow()
+      return expectedComputed === undefined ? { ...base, mediaMatches, actual } : { ...base, mediaMatches, actual, expectedComputed }
+    }
+    // In a state: the value at rest first (to tell "the state changes nothing" from "the state was not reached"), then the same with the state forced.
+    let blocked: string | undefined
+    let inState: { actual: string; expectedComputed: string | undefined } | undefined
+    try {
+      const resting = unforced(() => read(getComputedStyle(element), expectation.property, longhands))
+      inState = withState(element, state, (forced) => {
+        const now = measureNow()
+        if (forced.unreadable > 0 && now.actual === resting) {
+          blocked = `${forced.unreadable} ${forced.unreadable === 1 ? 'stylesheet' : 'stylesheets'} from another origin cannot be read`
+        }
+        return now
+      })
+    } catch (error) {
+      blocked = `forcing :${state} failed (${error instanceof Error ? error.message : String(error)})`.slice(0, 200)
+    }
+    const out: Measured = { ...base, mediaMatches }
+    if (inState !== undefined) {
+      out.actual = inState.actual
+      if (inState.expectedComputed !== undefined) out.expectedComputed = inState.expectedComputed
+    }
+    if (blocked !== undefined) out.stateBlocked = blocked
+    return out
   }
   // absent / hidden
   if (element !== null) return { ...base, present: true, rendered: isRendered(element) }
   // Two candidates too close to call: the element may well be there.
   return target.reason === 'ambiguous' ? base : { ...base, present: false }
+}
+
+/** Runs `read` with nothing forced, then forces again what was (the same element in the same state). */
+function unforced<T>(read: () => T): T {
+  const held = forcedNow()
+  if (held === undefined) return read()
+  const { element, state } = held
+  held.release()
+  try {
+    return read()
+  } finally {
+    if (element.isConnected) forceState(element, state)
+  }
 }
 
 const rectJson = (rect: Rect): string => JSON.stringify({ x: rect.x, y: rect.y, w: rect.w, h: rect.h })
@@ -157,9 +224,16 @@ export function toCheck(expectation: Expectation, measured: Measured, view: Wind
       if (measured.mediaMatches === false) {
         return { expectation, status: 'not_measurable', expected, actual: '', note: `the viewport (${view.innerWidth}x${view.innerHeight}) does not match @media ${expectation.condition.media}` }
       }
-      if (!measured.found || measured.actual === undefined) return { expectation, status: 'unresolved', expected, actual: '', note: 'the element was not found again' }
-      const note = measured.expectedComputed === undefined ? { note: 'the expected value could not be resolved on this element; compared as recorded' } : {}
-      return { expectation, status: measured.actual === expected ? 'pass' : 'fail', expected, actual: measured.actual, ...note }
+      if (!measured.found) return { expectation, status: 'unresolved', expected, actual: '', note: 'the element was not found again' }
+      const state = expectation.condition.state
+      if (state !== undefined && measured.stateBlocked !== undefined) {
+        return { expectation, status: 'not_measurable', expected, actual: measured.actual ?? '', note: `${STATE_NOT_EMULATED}: ${measured.stateBlocked}` }
+      }
+      if (measured.actual === undefined) return { expectation, status: 'unresolved', expected, actual: '', note: 'the element was not found again' }
+      const notes: string[] = []
+      if (state !== undefined) notes.push(emulatedNote(state))
+      if (measured.expectedComputed === undefined) notes.push('the expected value could not be resolved on this element; compared as recorded')
+      return { expectation, status: measured.actual === expected ? 'pass' : 'fail', expected, actual: measured.actual, ...(notes.length === 0 ? {} : { note: notes.join('; ') }) }
     }
     case 'absent':
     case 'hidden': {
@@ -180,6 +254,8 @@ export function toCheck(expectation: Expectation, measured: Measured, view: Wind
       if (!measured.found || measured.actual === undefined) return { expectation, status: 'unresolved', expected, actual: '', note: `${expectation.label} was not found again` }
       return { expectation, status: measured.actual === expected ? 'pass' : 'fail', expected, actual: measured.actual }
     }
+    case 'order':
+      return { expectation, status: 'unresolved', expected: expectation.siblings.map((sibling) => sibling.label).join(' | '), actual: '', note: 'order checks are not implemented in this build' }
   }
 }
 
@@ -187,6 +263,10 @@ export function toCheck(expectation: Expectation, measured: Measured, view: Wind
 export function measure(items: MeasureRequest, preview: Pick<Preview, 'suspend' | 'resume'>, doc: Document = document): Measurement {
   const view = doc.defaultView ?? window
   preview.suspend('measure: previews off')
+  // A state the dock holds for its selection would be read as the resting style of that element.
+  const held = forcedNow()
+  const holding = held === undefined ? undefined : { element: held.element, state: held.state }
+  held?.release()
   try {
     const results: MeasureResults = items.map((item) => {
       let target: LocateResult
@@ -204,6 +284,7 @@ export function measure(items: MeasureRequest, preview: Pick<Preview, 'suspend' 
     })
     return { visible: doc.visibilityState === 'visible', results }
   } finally {
+    if (holding !== undefined && holding.element.isConnected) forceState(holding.element, holding.state)
     preview.resume('measure: previews back on')
   }
 }
