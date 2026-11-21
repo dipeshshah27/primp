@@ -54,7 +54,8 @@ export function onExitSync(hook: () => void): () => void {
 
 /** Runs and removes every registered cleanup, newest first. Errors are printed, never thrown. */
 export function runCleanups(): Promise<void> {
-  cleaning ??= (async () => {
+  if (cleaning !== undefined) return cleaning
+  const run = (async () => {
     while (cleanups.length > 0) {
       const cleanup = cleanups.pop()
       try {
@@ -63,9 +64,15 @@ export function runCleanups(): Promise<void> {
         console.error('cleanup failed:', error)
       }
     }
-    cleaning = undefined
   })()
-  return cleaning
+  cleaning = run
+  // Cleared only after the assignment above. Clearing it inside the function did nothing when there was
+  // nothing to clean: the function then finished before `cleaning` was assigned, the finished promise
+  // stayed in place, and every later call returned it without running the cleanups registered since.
+  void run.finally(() => {
+    if (cleaning === run) cleaning = undefined
+  })
+  return run
 }
 
 /** Repeats of a signal this soon after the first are the same Ctrl-C arriving twice, not impatience. */

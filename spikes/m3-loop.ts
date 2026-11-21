@@ -19,7 +19,7 @@
  */
 
 import type { ChangeItem } from '../packages/protocol/src/change.ts'
-import { createReport, editFile, expect, replaceOnce, runCleanups, sleep, waitFor } from './lib/index.ts'
+import { createReport, editFile, expect, newPage, replaceOnce, runCleanups, sleep, waitFor } from './lib/index.ts'
 import { startLoop } from './lib/loop.ts'
 
 const only = process.argv[2]
@@ -196,11 +196,24 @@ async function next(): Promise<void> {
   const { fixture, page, record, verify, describe, itemStatus } = loop
   const one = loop.only
 
+  // Next's own dev tools violate the fixture's strict policy by themselves. A violation counts against
+  // reglet unless the same one happens on the page without it, or it is on reglet's own elements.
+  const key = (violation: { effectiveDirective: string; blockedURI: string; target: string }): string => `${violation.effectiveDirective} ${violation.blockedURI} (${violation.target})`
+  const baseline = await newPage(loop.browser)
+  await baseline.page.goto(`${fixture.url}/`, { waitUntil: 'load' })
+  await sleep(1500)
+  const own = new Set(baseline.record.cspViolations.map(key))
+  const ownCount = baseline.record.cspViolations.length
+  await baseline.close()
+  const fromReglet = (): string[] =>
+    record.cspViolations.filter((violation) => !own.has(key(violation)) || violation.target === 'reglet-root' || violation.documentURI === 'about:blank').map((violation) => `${key(violation)} in ${violation.documentURI}`)
+
   report.section('Next 16 + Turbopack (strict nonce CSP): setup')
-  const ready = await report.attempt('the dock loads under the strict CSP with no violation', async () => {
+  const ready = await report.attempt('the dock loads under the strict CSP and adds no violation of its own', async () => {
     await loop.open('/')
-    expect(record.cspViolations.length === 0, `CSP violations: ${JSON.stringify(record.cspViolations.slice(0, 3))}`)
-    return `dock ready at ${loop.reglet.url}; framework ${loop.reglet.framework}; CSP violations 0`
+    await sleep(1000)
+    expect(fromReglet().length === 0, `CSP violations from reglet: ${fromReglet().slice(0, 3).join(' | ')}`)
+    return `dock ready at ${loop.reglet.url}; framework ${loop.reglet.framework}; 0 violations from reglet (the page has ${ownCount} of its own without reglet, ${record.cspViolations.length} with it)`
   })
   if (!ready) return
 
@@ -254,7 +267,7 @@ async function next(): Promise<void> {
     return `broken: ${first.status}; hint: ${first.hint.slice(0, 160)}\n        repaired: ${describe(second)}`
   })
 
-  report.check('no CSP violation during the whole Next loop', record.cspViolations.length === 0, JSON.stringify(record.cspViolations.slice(0, 3)))
+  report.check('reglet added no CSP violation during the whole Next loop', fromReglet().length === 0, fromReglet().slice(0, 3).join(' | ') || 'none')
 }
 
 try {
@@ -267,4 +280,10 @@ try {
 } finally {
   await runCleanups()
   report.finish()
+  // If something still holds the process open two seconds from now, say what, and leave.
+  setTimeout(() => {
+    const handles = (process as unknown as { _getActiveHandles(): { constructor: { name: string }; remoteAddress?: string; remotePort?: number; spawnfile?: string }[] })._getActiveHandles()
+    console.error(`still open after cleanup: ${handles.map((handle) => `${handle.constructor.name}${handle.remotePort === undefined ? '' : `(${handle.remoteAddress}:${handle.remotePort})`}${handle.spawnfile === undefined ? '' : `(${handle.spawnfile})`}`).join(', ')}`)
+    process.exit(process.exitCode ?? 0)
+  }, 2000).unref()
 }
