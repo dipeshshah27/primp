@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.next/
+.svelte-kit/
+.vite/
+*.log
+.DS_Store
+test-results/
+playwright-report/
+.tmp/
+spikes/.out/

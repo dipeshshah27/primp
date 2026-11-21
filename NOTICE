@@ -1,0 +1,40 @@
+reglet
+Copyright (c) 2026 reglet contributors
+
+This product includes ideas and, where listed below, adapted code from MIT-licensed projects.
+
+Derived files
+-------------
+(none yet; add an entry here whenever a file adapts upstream code)
+
+Format:
+  <path in this repo>  <-  <upstream repo and path>, Copyright (c) <year> <holder>, MIT
+
+packages/server/src/tunnel.ts  <-  https://github.com/0xnyn/airship packages/server/src/proxy.ts (tunnelUpgrade: handshake replay over a raw net/tls socket, two-way pipe, teardown), Copyright (c) 2026 Nayan Kumar, MIT
+packages/server/src/upstream.ts  <-  https://github.com/0xnyn/airship packages/server/src/proxy.ts (tlsClientOptions: no certificate verification and no IP-literal SNI for a loopback dev server), Copyright (c) 2026 Nayan Kumar, MIT
+packages/server/src/headers.ts  <-  https://github.com/0xnyn/airship packages/server/src/proxy.ts (hop-by-hop list; identity encoding and dropped conditional headers on document requests), Copyright (c) 2026 Nayan Kumar, MIT
+packages/server/src/proxy.ts  <-  https://github.com/0xnyn/airship packages/server/src/proxy.ts (request forwarding outline; validators stripped from injected documents), Copyright (c) 2026 Nayan Kumar, MIT
+
+Airship licence (applies to the portions listed above as derived from https://github.com/0xnyn/airship):
+
+  MIT License
+
+  Copyright (c) 2026 Nayan Kumar
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.

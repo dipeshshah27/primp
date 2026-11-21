@@ -1,0 +1,48 @@
+{
+  "name": "reglet-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.25.0",
+  "engines": {
+    "node": "^22.22.0 || >=24.11.0"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "e2e": "playwright test -c e2e/playwright.config.ts",
+    "spike:s1": "tsx spikes/s1-proxy.ts",
+    "spike:s2": "tsx spikes/s2-source.ts",
+    "spike:s3": "tsx spikes/s3-self-noise.ts",
+    "spike:s4": "tsx spikes/s4-settle.ts",
+    "spike:s5": "tsx spikes/s5-rect-diff.ts",
+    "spike:s6": "tsx spikes/s6-mcp.ts",
+    "spike:s7": "tsx spikes/s7-shifts.ts",
+    "spike:m1-overlay": "tsx spikes/m1-overlay.ts",
+    "spike:m1-server": "tsx spikes/m1-server.ts",
+    "spike:m3-loop": "tsx spikes/m3-loop.ts",
+    "spike:m4-shifts": "tsx spikes/m4-shifts.ts"
+  },
+  "devDependencies": {
+    "@jridgewell/trace-mapping": "0.3.31",
+    "@modelcontextprotocol/client": "2.4.0",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "@modelcontextprotocol/server": "2.4.0",
+    "@playwright/test": "1.65.1",
+    "@preact/signals": "2.11.4",
+    "@types/node": "^22.0.0",
+    "@types/ws": "^8.18.0",
+    "bippy": "0.7.3",
+    "chokidar": "6.0.0",
+    "citty": "0.2.2",
+    "esbuild": "^0.25.0",
+    "parse5": "8.1.1",
+    "preact": "11.2.0",
+    "tsup": "9.0.0",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.1.1",
+    "ws": "8.23.0",
+    "zod": "4.6.7"
+  }
+}

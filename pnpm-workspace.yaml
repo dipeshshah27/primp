@@ -1,0 +1,5 @@
+packages:
+  - "packages/*"
+  - "e2e"
+# fixtures/* are standalone apps with their own lockfiles (install with --ignore-workspace);
+# tests copy them to a temp directory before starting a dev server.
