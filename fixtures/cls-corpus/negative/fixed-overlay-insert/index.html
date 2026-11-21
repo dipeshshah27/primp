@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>negative / fixed-overlay-insert</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { height: 56px; padding: 0 24px; display: flex; align-items: center; background: #111827; color: #fff; }
+  #main { position: relative; max-width: 800px; margin: 0 auto; padding: 24px; }
+  #title { margin: 0 0 16px; font-size: 32px; line-height: 40px; }
+  #content p { margin: 16px 0; }
+  #cookie-bar { position: fixed; left: 0; right: 0; bottom: 0; box-sizing: border-box; height: 72px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; background: #e0f2fe; color: #0c4a6e; }
+  #toast { position: absolute; top: 24px; right: 24px; width: 260px; padding: 12px 16px; border-radius: 8px; background: #111827; color: #fff; }
+</style>
+</head>
+<body>
+<header id="site-header">Corpus Gazette</header>
+<main id="main">
+  <h1 id="title">Overlays that sit on top of the page</h1>
+  <div id="content">
+    <p id="p1">A consent bar is inserted as the first child of the body 700 ms after load, exactly as on the cookie-bar page of this corpus, but here it is fixed to the bottom of the viewport.</p>
+    <p id="p2">A toast is appended inside the main column at the same moment. It is absolutely positioned, so it covers part of the heading without pushing it.</p>
+    <p id="p3">Both are new elements. Nothing that was already on screen changes position, so no layout shift is reported.</p>
+    <p id="p4">This is the usual fix for the injected-content pages: take the late element out of the flow, or reserve its space.</p>
+  </div>
+</main>
+<script>
+  fetch('/delay/700/assets/data/promo.json').then(() => {
+    const bar = document.createElement('div');
+    bar.id = 'cookie-bar';
+    bar.textContent = 'We use two cookies: one keeps you signed in and one remembers your home stop.';
+    document.body.insertBefore(bar, document.body.firstChild);
+
+    const toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.textContent = 'Timetable updated a minute ago.';
+    document.getElementById('main').appendChild(toast);
+  });
+</script>
+</body>
+</html>

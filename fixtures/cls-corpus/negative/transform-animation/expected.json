@@ -1,0 +1,33 @@
+{
+  "page": "negative/transform-animation/index.html",
+  "positive": false,
+  "observeMs": 2200,
+  "shifts": [],
+  "assertAfter": [
+    "document.querySelector('#card').classList.contains('raised')",
+    "document.querySelector('#card').getBoundingClientRect().left > document.querySelector('#content').getBoundingClientRect().left + 20"
+  ],
+  "notes": "Three elements move visibly using CSS transforms only: a keyframe animation that slides a ticker in, an endless animation on a square, and a transition on a card started by a class added after a 700 ms fetch. getBoundingClientRect() of these elements changes, but no layout-shift entry is produced and nothing else moves. An engine that diffs rects must not report these as shifts.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0
+      }
+    ]
+  }
+}

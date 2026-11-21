@@ -1,0 +1,91 @@
+{
+  "page": "unsized-media/img-in-flex/index.html",
+  "positive": true,
+  "observeMs": 2000,
+  "entryCount": 1,
+  "shifts": [
+    {
+      "cause": "unsized-media",
+      "culpritSelector": "#portrait",
+      "culpritFile": "unsized-media/img-in-flex/index.html",
+      "culpritLine": 27,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<img id=\"portrait\"",
+      "culpritInSources": false,
+      "victimSelectors": [
+        "#bio",
+        "#posts"
+      ],
+      "alsoMoves": [
+        "#name",
+        "#bio-text",
+        "#posts-title",
+        "#post-1"
+      ],
+      "minValue": 0.05,
+      "measuredValues": [
+        0.113916,
+        0.113916,
+        0.113916
+      ],
+      "measuredSources": [
+        {
+          "node": "section#posts",
+          "previousRect": {
+            "x": 240,
+            "y": 226,
+            "width": 800,
+            "height": 328
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 378,
+            "width": 800,
+            "height": 328
+          }
+        },
+        {
+          "node": "div#bio",
+          "previousRect": {
+            "x": 281,
+            "y": 97,
+            "width": 742,
+            "height": 88
+          },
+          "currentRect": {
+            "x": 601,
+            "y": 97,
+            "width": 422,
+            "height": 136
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "document.querySelector('#portrait').naturalWidth === 320"
+  ],
+  "notes": "A 320x240 image without dimensions is the first item of a flex row. When it arrives its sibling #bio moves 320px to the RIGHT (inline-axis shift) and becomes narrower and taller, and #posts below the row moves down. One culprit, two victims moving in different directions.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.113916
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.113916
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.113916
+      }
+    ]
+  }
+}

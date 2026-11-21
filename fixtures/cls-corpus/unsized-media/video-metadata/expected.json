@@ -1,0 +1,133 @@
+{
+  "page": "unsized-media/video-metadata/index.html",
+  "positive": true,
+  "observeMs": 2000,
+  "entryCount": 1,
+  "shifts": [
+    {
+      "cause": "unsized-media",
+      "culpritSelector": "#clip",
+      "culpritFile": "unsized-media/video-metadata/index.html",
+      "culpritLine": 22,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<video id=\"clip\"",
+      "culpritInSources": false,
+      "victimSelectors": [
+        "#transcript"
+      ],
+      "alsoMoves": [
+        "#p1",
+        "#p2"
+      ],
+      "minValue": 0.05,
+      "measuredValues": [
+        0.110461,
+        0.110461,
+        0.110461
+      ],
+      "measuredSources": [
+        {
+          "node": "div#transcript",
+          "previousRect": {
+            "x": 240,
+            "y": 302,
+            "width": 800,
+            "height": 304
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 512,
+            "width": 800,
+            "height": 288
+          }
+        },
+        {
+          "node": null,
+          "previousRect": {
+            "x": 240,
+            "y": 214,
+            "width": 300,
+            "height": 48
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 424,
+            "width": 640,
+            "height": 48
+          }
+        },
+        {
+          "node": null,
+          "previousRect": {
+            "x": 241,
+            "y": 249,
+            "width": 298,
+            "height": 34
+          },
+          "currentRect": {
+            "x": 241,
+            "y": 459,
+            "width": 638,
+            "height": 34
+          }
+        },
+        {
+          "node": null,
+          "previousRect": {
+            "x": 240,
+            "y": 262,
+            "width": 300,
+            "height": 24
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 472,
+            "width": 640,
+            "height": 24
+          }
+        },
+        {
+          "node": null,
+          "previousRect": {
+            "x": 354,
+            "y": 163,
+            "width": 72,
+            "height": 72
+          },
+          "currentRect": {
+            "x": 524,
+            "y": 268,
+            "width": 72,
+            "height": 72
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "document.querySelector('#clip').videoWidth === 640"
+  ],
+  "notes": "A <video> without width/height is 300x150 until its metadata arrives (700 ms), then takes the intrinsic 640x360 and pushes #transcript down by 210px. Four of the five entry.sources have node === null: they are parts of the built-in media controls, which live in a user-agent shadow tree and are not exposed. An engine must tolerate null nodes and must not let them crowd out the real victim.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.110461
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.110461
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.110461
+      }
+    ]
+  }
+}

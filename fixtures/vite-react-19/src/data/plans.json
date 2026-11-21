@@ -1,0 +1,5 @@
+[
+  { "id": "starter", "name": "Starter", "price": "$0", "period": "forever", "featured": false, "features": ["1 project", "Community support", "7 day history"] },
+  { "id": "team", "name": "Team", "price": "$29", "period": "per seat / month", "featured": true, "features": ["Unlimited projects", "Email support", "90 day history", "Shared sessions"] },
+  { "id": "scale", "name": "Scale", "price": "$99", "period": "per seat / month", "featured": false, "features": ["Unlimited projects", "Priority support", "Unlimited history", "Single sign-on"] }
+]

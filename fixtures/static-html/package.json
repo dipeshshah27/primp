@@ -1,0 +1,14 @@
+{
+  "name": "reglet-fixture-static-html",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Plain HTML, CSS and JavaScript with no build step, served by a dependency-free Node server.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "labels": "node scripts/gen-labels.mjs",
+    "labels:check": "node scripts/gen-labels.mjs --check",
+    "smoke": "node scripts/smoke.mjs"
+  }
+}

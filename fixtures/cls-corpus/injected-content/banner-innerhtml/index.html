@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>injected-content / banner-innerhtml</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { height: 56px; padding: 0 24px; display: flex; align-items: center; background: #111827; color: #fff; }
+  #main { max-width: 800px; margin: 0 auto; padding: 24px; }
+  #title { margin: 0 0 16px; font-size: 32px; line-height: 40px; }
+  #content p { margin: 16px 0; }
+  .banner { box-sizing: border-box; height: 96px; padding: 0 24px; display: flex; align-items: center; gap: 16px; background: #fef3c7; color: #78350f; }
+  .banner a { color: inherit; font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="promo-slot"></div>
+<header id="site-header">Corpus Gazette</header>
+<main id="main">
+  <h1 id="title">Harbour ferry fares for the winter season</h1>
+  <div id="content">
+    <p id="p1">Single fares stay at the summer price until the new year. A return bought before nine in the morning costs the same as two singles; after nine it is a fifth cheaper.</p>
+    <p id="p2">Books of ten tickets are sold at the office on the north pier and can be shared between people travelling together. They do not expire.</p>
+    <p id="p3">Children under five travel free. Older children pay half fare, and a family ticket covers two adults and up to three children for the whole day.</p>
+    <p id="p4">Bicycles travel free outside the two peak hours. Motorcycles are carried on the larger boat only and need a vehicle ticket, which must be bought in advance.</p>
+    <p id="p5">Refunds for cancelled crossings are paid at the ticket office or, for tickets bought by card on board, returned to the card within five working days.</p>
+  </div>
+</main>
+<script>
+  // The promotion arrives late and is written into a slot that reserved no space for it.
+  fetch('/delay/700/assets/data/promo.json')
+    .then((response) => response.json())
+    .then((promo) => {
+      const slot = document.getElementById('promo-slot');
+      slot.innerHTML = '<div id="promo-banner" class="banner"><strong>' + promo.title + '</strong><span>' + promo.text + '</span><a href="#pass">' + promo.cta + '</a></div>';
+    });
+</script>
+</body>
+</html>

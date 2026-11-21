@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>injected-content / feed-prepend</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { height: 56px; padding: 0 24px; display: flex; align-items: center; background: #111827; color: #fff; }
+  #main { max-width: 800px; margin: 0 auto; padding: 24px; }
+  #title { margin: 0 0 16px; font-size: 32px; line-height: 40px; }
+  #feed { margin: 0; padding: 0; list-style: none; }
+  .post { box-sizing: border-box; height: 96px; margin: 0 0 12px; padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 8px; }
+  .post h2 { margin: 0 0 4px; font-size: 18px; line-height: 24px; }
+  .post p { margin: 0; }
+  .post.fresh { height: 132px; background: #ecfdf5; border-color: #6ee7b7; }
+  #feed-footer { margin: 12px 0 0; color: #6b7280; }
+</style>
+</head>
+<body>
+<header id="site-header">Corpus Gazette</header>
+<main id="main">
+  <h1 id="title">Live: harbour notices</h1>
+  <ul id="feed">
+    <li class="post" id="post-1"><h2>09:40 Fuel berth open</h2><p>Diesel and petrol until four this afternoon.</p></li>
+    <li class="post" id="post-2"><h2>09:10 Dredger moving</h2><p>Keep clear of the inner basin entrance for twenty minutes.</p></li>
+    <li class="post" id="post-3"><h2>08:30 Visitor buoys</h2><p>Buoys seven and eight are free; six is reserved.</p></li>
+    <li class="post" id="post-4"><h2>08:05 First ferry sailed</h2><p>On time, forty passengers and nine bicycles.</p></li>
+    <li class="post" id="post-5"><h2>07:50 Ticket office open</h2><p>Card machine working again after yesterday's fault.</p></li>
+    <li class="post" id="post-6"><h2>07:15 Fog lifting</h2><p>Visibility two miles and improving from the west.</p></li>
+  </ul>
+  <p id="feed-footer">Notices older than a day are in the archive.</p>
+</main>
+<script>
+  // A new notice arrives and is put at the top of the feed, pushing every older notice down.
+  fetch('/delay/700/assets/data/status.json')
+    .then((response) => response.json())
+    .then((status) => {
+      const feed = document.getElementById('feed');
+      feed.insertAdjacentHTML('afterbegin', '<li class="post fresh" id="new-post"><h2>09:55 Route ' + status.route + ' ' + status.status + '</h2><p>' + status.message + '</p></li>');
+    });
+</script>
+</body>
+</html>

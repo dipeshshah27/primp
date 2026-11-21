@@ -1,0 +1,113 @@
+{
+  "page": "multi/two-causes/index.html",
+  "positive": true,
+  "observeMs": 2600,
+  "entryCount": 2,
+  "shifts": [
+    {
+      "cause": "unsized-media",
+      "culpritSelector": "#hero",
+      "culpritFile": "multi/two-causes/index.html",
+      "culpritLine": 27,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<img id=\"hero\"",
+      "culpritInSources": false,
+      "victimSelectors": [
+        "#article-body"
+      ],
+      "alsoMoves": [
+        "#p1",
+        "#p2"
+      ],
+      "minValue": 0.035,
+      "measuredValues": [
+        0.072,
+        0.072,
+        0.072
+      ],
+      "measuredSources": [
+        {
+          "node": "div#article-body",
+          "previousRect": {
+            "x": 90,
+            "y": 152,
+            "width": 768,
+            "height": 240
+          },
+          "currentRect": {
+            "x": 90,
+            "y": 408,
+            "width": 768,
+            "height": 240
+          }
+        }
+      ]
+    },
+    {
+      "cause": "injected-content",
+      "culpritSelector": "#sidebar-ad",
+      "culpritFile": "multi/two-causes/index.html",
+      "culpritLine": 55,
+      "culpritLineKind": "script-insert",
+      "culpritLineContains": ".appendChild(ad)",
+      "culpritInSources": false,
+      "victimSelectors": [
+        "#related"
+      ],
+      "alsoMoves": [
+        "#related-1",
+        "#related-2"
+      ],
+      "minValue": 0.015,
+      "measuredValues": [
+        0.029832,
+        0.029832,
+        0.029832
+      ],
+      "measuredSources": [
+        {
+          "node": "ul#related",
+          "previousRect": {
+            "x": 890,
+            "y": 120,
+            "width": 300,
+            "height": 245
+          },
+          "currentRect": {
+            "x": 890,
+            "y": 386,
+            "width": 300,
+            "height": 245
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "document.querySelector('#hero').naturalWidth === 1200",
+    "document.querySelector('#sidebar-ad') !== null"
+  ],
+  "notes": "Two independent shifts in two columns of a grid (align-items: start, so the columns do not affect each other). At about 500 ms an image without dimensions pushes the article text down; at about 1300 ms an advert is appended into an empty slot in the sidebar and pushes the list of links down. Two entries, two causes, two culprits, disjoint victims. The gap between them is under one second, so both fall in the same CLS session window.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 2,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.101832
+      },
+      {
+        "withoutRecentInput": 2,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.101832
+      },
+      {
+        "withoutRecentInput": 2,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.101832
+      }
+    ]
+  }
+}

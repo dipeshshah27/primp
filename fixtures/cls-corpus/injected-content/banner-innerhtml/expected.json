@@ -1,0 +1,89 @@
+{
+  "page": "injected-content/banner-innerhtml/index.html",
+  "positive": true,
+  "observeMs": 2000,
+  "entryCount": 1,
+  "shifts": [
+    {
+      "cause": "injected-content",
+      "culpritSelector": "#promo-banner",
+      "culpritFile": "injected-content/banner-innerhtml/index.html",
+      "culpritLine": 38,
+      "culpritLineKind": "script-insert",
+      "culpritLineContains": "slot.innerHTML =",
+      "culpritInSources": false,
+      "victimSelectors": [
+        "#site-header",
+        "#main"
+      ],
+      "alsoMoves": [
+        "#title",
+        "#content"
+      ],
+      "minValue": 0.02,
+      "measuredValues": [
+        0.039319,
+        0.039319,
+        0.039319
+      ],
+      "measuredSources": [
+        {
+          "node": "main#main",
+          "previousRect": {
+            "x": 216,
+            "y": 56,
+            "width": 848,
+            "height": 424
+          },
+          "currentRect": {
+            "x": 216,
+            "y": 152,
+            "width": 848,
+            "height": 424
+          }
+        },
+        {
+          "node": "header#site-header",
+          "previousRect": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 56
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 96,
+            "width": 1280,
+            "height": 56
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "document.querySelector('#promo-banner') !== null"
+  ],
+  "notes": "A script fetches JSON that arrives after 700 ms and writes a 96px banner into an empty slot at the top of <body> with innerHTML. The header and the main column move down 96px. culpritLine is the script line with the innerHTML assignment; the culprit element #promo-banner does not exist in the HTML source.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.039319
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.039319
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.039319
+      }
+    ]
+  }
+}

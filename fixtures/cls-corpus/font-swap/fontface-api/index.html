@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>font-swap / fontface-api</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 Arial, Helvetica, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { height: 56px; padding: 0 24px; display: flex; align-items: center; background: #111827; color: #fff; }
+  #main { max-width: 800px; margin: 0 auto; padding: 24px; }
+  #title { margin: 0 0 16px; font-size: 32px; line-height: 40px; }
+  #intro { margin: 0 0 16px; }
+  #pull-quote { margin: 0 0 16px; padding: 16px 24px; border-left: 6px solid #7c3aed; background: #f5f3ff; font-family: "Press Start 2P", Arial, Helvetica, sans-serif; font-size: 18px; line-height: 36px; }
+  #rest p { margin: 16px 0; }
+</style>
+</head>
+<body>
+<header id="site-header">Corpus Gazette</header>
+<main id="main">
+  <h1 id="title">The lighthouse keeper retires</h1>
+  <p id="intro">After thirty-one winters on the rock, the last resident keeper on this coast handed over the keys on Friday. The light has been automatic for years; she stayed to look after the building.</p>
+  <blockquote id="pull-quote">You learn the weather by the sound of the door.</blockquote>
+  <div id="rest">
+    <p id="p1">The trust that owns the lighthouse will open it to visitors from the spring. The lamp room, the kitchen and the logbooks stay as they are.</p>
+    <p id="p2">Boats to the rock leave from the fishing quay on calm days only. The crossing takes forty minutes and the landing is by ladder.</p>
+    <p id="p3">The keeper is moving to a house on the mainland from which, she says, she can still see the light if she stands on a chair.</p>
+    <p id="p4">Her logbooks, which record the wind and the sea state four times a day, are being copied by volunteers at the town library.</p>
+  </div>
+</main>
+<script>
+  // No @font-face rule: the face is loaded with the CSS Font Loading API and added when ready.
+  const face = new FontFace('Press Start 2P', 'url("/delay/700/assets/fonts/press-start-2p-latin-400-normal.woff2") format("woff2")');
+  face.load().then((loaded) => {
+    document.fonts.add(loaded);
+  });
+</script>
+</body>
+</html>

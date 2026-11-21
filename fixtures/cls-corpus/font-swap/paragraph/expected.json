@@ -1,0 +1,76 @@
+{
+  "page": "font-swap/paragraph/index.html",
+  "positive": true,
+  "observeMs": 2000,
+  "entryCount": 1,
+  "shifts": [
+    {
+      "cause": "font-swap",
+      "culpritSelector": "#lead",
+      "culpritFile": "font-swap/paragraph/index.html",
+      "culpritLine": 23,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<p id=\"lead\"",
+      "culpritInSources": false,
+      "triggerFile": "font-swap/paragraph/index.html",
+      "triggerLine": 9,
+      "triggerLineContains": "@font-face { font-family: \"Press Start 2P\"",
+      "victimSelectors": [
+        "#content"
+      ],
+      "alsoMoves": [
+        "#p1",
+        "#p2"
+      ],
+      "minValue": 0.006,
+      "measuredValues": [
+        0.016611,
+        0.016611,
+        0.016611
+      ],
+      "measuredSources": [
+        {
+          "node": "div#content",
+          "previousRect": {
+            "x": 240,
+            "y": 216,
+            "width": 800,
+            "height": 240
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 300,
+            "width": 800,
+            "height": 240
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "document.fonts.check('14px \"Press Start 2P\"')"
+  ],
+  "notes": "A multi-line lead paragraph in the web font. After the swap it re-wraps from two lines to five (28px each, on the recorded platform), pushing #content down. The paragraph itself and its re-wrapped lines are not in entry.sources.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.016611
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.016611
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.016611
+      }
+    ]
+  }
+}

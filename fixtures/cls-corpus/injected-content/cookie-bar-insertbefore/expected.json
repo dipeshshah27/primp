@@ -1,0 +1,89 @@
+{
+  "page": "injected-content/cookie-bar-insertbefore/index.html",
+  "positive": true,
+  "observeMs": 2000,
+  "entryCount": 1,
+  "shifts": [
+    {
+      "cause": "injected-content",
+      "culpritSelector": "#cookie-bar",
+      "culpritFile": "injected-content/cookie-bar-insertbefore/consent.js",
+      "culpritLine": 18,
+      "culpritLineKind": "script-insert",
+      "culpritLineContains": "document.body.insertBefore(bar",
+      "culpritInSources": false,
+      "victimSelectors": [
+        "#site-header",
+        "#main"
+      ],
+      "alsoMoves": [
+        "#title",
+        "#content"
+      ],
+      "minValue": 0.014,
+      "measuredValues": [
+        0.028371,
+        0.028371,
+        0.028371
+      ],
+      "measuredSources": [
+        {
+          "node": "main#main",
+          "previousRect": {
+            "x": 216,
+            "y": 56,
+            "width": 848,
+            "height": 424
+          },
+          "currentRect": {
+            "x": 216,
+            "y": 128,
+            "width": 848,
+            "height": 424
+          }
+        },
+        {
+          "node": "header#site-header",
+          "previousRect": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 56
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 72,
+            "width": 1280,
+            "height": 56
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "document.querySelector('#cookie-bar') !== null"
+  ],
+  "notes": "An external script (consent.js, served 700 ms late, loaded with async) builds a consent bar with createElement/appendChild and puts it in front of everything with document.body.insertBefore. The whole page moves down 72px. culpritFile is consent.js and culpritLine is the insertBefore call. The page requests the script as /delay/700/injected-content/cookie-bar-insertbefore/consent.js, so the script URL seen in the browser carries the /delay/700 prefix.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.028371
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.028371
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.028371
+      }
+    ]
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "page": "font-swap/nav/index.html",
+  "positive": true,
+  "observeMs": 2000,
+  "entryCount": 1,
+  "shifts": [
+    {
+      "cause": "font-swap",
+      "culpritSelector": "#nav",
+      "culpritFile": "font-swap/nav/index.html",
+      "culpritLine": 22,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<nav id=\"nav\"",
+      "culpritInSources": false,
+      "triggerFile": "font-swap/nav/index.html",
+      "triggerLine": 9,
+      "triggerLineContains": "@font-face { font-family: \"Press Start 2P\"",
+      "victimSelectors": [
+        "#main"
+      ],
+      "alsoMoves": [
+        "#nav-timetables",
+        "#nav-tickets",
+        "#nav-routes",
+        "#nav-accessibility",
+        "#nav-lost",
+        "#nav-contact",
+        "#title"
+      ],
+      "minValue": 0.05,
+      "measuredValues": [
+        0.138026,
+        0.138026,
+        0.138026
+      ],
+      "measuredSources": [
+        {
+          "node": "main#main",
+          "previousRect": {
+            "x": 216,
+            "y": 56,
+            "width": 848,
+            "height": 424
+          },
+          "currentRect": {
+            "x": 216,
+            "y": 96,
+            "width": 848,
+            "height": 424
+          }
+        },
+        {
+          "node": "a#nav-lost",
+          "previousRect": {
+            "x": 668.265625,
+            "y": 8,
+            "width": 94,
+            "height": 40
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 48,
+            "width": 208,
+            "height": 40
+          }
+        },
+        {
+          "node": "a#nav-accessibility",
+          "previousRect": {
+            "x": 556.125,
+            "y": 8,
+            "width": 89,
+            "height": 40
+          },
+          "currentRect": {
+            "x": 768,
+            "y": 8,
+            "width": 208,
+            "height": 40
+          }
+        },
+        {
+          "node": "a#nav-timetables",
+          "previousRect": {
+            "x": 306.6875,
+            "y": 8,
+            "width": 77.65625,
+            "height": 40
+          },
+          "currentRect": {
+            "x": 328,
+            "y": 8,
+            "width": 160,
+            "height": 40
+          }
+        },
+        {
+          "node": "a#nav-contact",
+          "previousRect": {
+            "x": 785.65625,
+            "y": 8,
+            "width": 55.140625,
+            "height": 40
+          },
+          "currentRect": {
+            "x": 472,
+            "y": 48,
+            "width": 112,
+            "height": 40
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "document.fonts.check('16px \"Press Start 2P\"')"
+  ],
+  "notes": "A wrapping flex nav in the web font. After the swap every link is about twice as wide: the links after the first move right, the last two wrap onto a second line, and the nav grows by 40px, pushing #main down. Seven nodes move (six links and #main) but entry.sources holds five, the largest by area; which four links make the cut depends on the fallback font. Only #main is asserted as a victim; the links are listed in alsoMoves.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.138026
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.138026
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.138026
+      }
+    ]
+  }
+}

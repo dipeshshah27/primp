@@ -1,0 +1,137 @@
+{
+  "page": "injected-content/feed-prepend/index.html",
+  "positive": true,
+  "observeMs": 2000,
+  "entryCount": 1,
+  "shifts": [
+    {
+      "cause": "injected-content",
+      "culpritSelector": "#new-post",
+      "culpritFile": "injected-content/feed-prepend/index.html",
+      "culpritLine": 42,
+      "culpritLineKind": "script-insert",
+      "culpritLineContains": "feed.insertAdjacentHTML('afterbegin'",
+      "culpritInSources": false,
+      "victimSelectors": [
+        "#post-1",
+        "#post-2",
+        "#post-3",
+        "#post-4",
+        "#post-5"
+      ],
+      "alsoMoves": [
+        "#post-6",
+        "#feed-footer"
+      ],
+      "minValue": 0.028,
+      "measuredValues": [
+        0.057305,
+        0.057305,
+        0.057305
+      ],
+      "measuredSources": [
+        {
+          "node": "li#post-1",
+          "previousRect": {
+            "x": 240,
+            "y": 136,
+            "width": 800,
+            "height": 96
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 280,
+            "width": 800,
+            "height": 96
+          }
+        },
+        {
+          "node": "li#post-2",
+          "previousRect": {
+            "x": 240,
+            "y": 244,
+            "width": 800,
+            "height": 96
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 388,
+            "width": 800,
+            "height": 96
+          }
+        },
+        {
+          "node": "li#post-3",
+          "previousRect": {
+            "x": 240,
+            "y": 352,
+            "width": 800,
+            "height": 96
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 496,
+            "width": 800,
+            "height": 96
+          }
+        },
+        {
+          "node": "li#post-4",
+          "previousRect": {
+            "x": 240,
+            "y": 460,
+            "width": 800,
+            "height": 96
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 604,
+            "width": 800,
+            "height": 96
+          }
+        },
+        {
+          "node": "li#post-5",
+          "previousRect": {
+            "x": 240,
+            "y": 568,
+            "width": 800,
+            "height": 96
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 712,
+            "width": 800,
+            "height": 88
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "document.querySelector('#new-post') !== null"
+  ],
+  "notes": "A new item is put at the top of a list with insertAdjacentHTML(\"afterbegin\"). All six existing items and the footer line move down 144px, but there is no moved wrapper (the <ul> grows, it does not move), so they compete for the five source slots: items 1 to 5 win, item 6 and the footer are left out. Item 5 is clipped by the viewport after the move and item 6 leaves it completely.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.057305
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.057305
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.057305
+      }
+    ]
+  }
+}

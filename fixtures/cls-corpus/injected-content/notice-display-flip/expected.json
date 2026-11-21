@@ -1,0 +1,76 @@
+{
+  "page": "injected-content/notice-display-flip/index.html",
+  "positive": true,
+  "observeMs": 2000,
+  "entryCount": 1,
+  "shifts": [
+    {
+      "cause": "injected-content",
+      "culpritSelector": "#service-notice",
+      "culpritFile": "injected-content/notice-display-flip/index.html",
+      "culpritLine": 24,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<div id=\"service-notice\"",
+      "culpritInSources": false,
+      "triggerFile": "injected-content/notice-display-flip/index.html",
+      "triggerLine": 39,
+      "triggerLineContains": ".style.display = 'block'",
+      "victimSelectors": [
+        "#content"
+      ],
+      "alsoMoves": [
+        "#p1",
+        "#p2"
+      ],
+      "minValue": 0.018,
+      "measuredValues": [
+        0.036523,
+        0.036523,
+        0.036523
+      ],
+      "measuredSources": [
+        {
+          "node": "div#content",
+          "previousRect": {
+            "x": 240,
+            "y": 136,
+            "width": 800,
+            "height": 304
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 272,
+            "width": 800,
+            "height": 304
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "getComputedStyle(document.querySelector('#service-notice')).display === 'block'"
+  ],
+  "notes": "The notice is in the HTML from the start but has display: none. A script shows it (style.display = \"block\") after a fetch that takes 700 ms. No node is inserted, so a childList MutationObserver sees nothing: only an attribute change. culpritLine is the opening tag of the notice; triggerLine is the script line that flips it.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.036523
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.036523
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.036523
+      }
+    ]
+  }
+}

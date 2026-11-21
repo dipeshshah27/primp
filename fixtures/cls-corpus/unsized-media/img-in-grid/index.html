@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>unsized-media / img-in-grid</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { height: 56px; padding: 0 24px; display: flex; align-items: center; background: #111827; color: #fff; }
+  #main { max-width: 800px; margin: 0 auto; padding: 24px; }
+  #cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 0; padding: 0; list-style: none; }
+  .card { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+  .thumb { display: block; width: 100%; height: auto; }
+  .card-body { padding: 12px; }
+  .card-body h2 { margin: 0 0 4px; font-size: 18px; line-height: 24px; }
+  .card-body p { margin: 0; font-size: 14px; line-height: 20px; }
+  #after-grid { margin: 24px 0 0; }
+</style>
+</head>
+<body>
+<header id="site-header">Corpus Gazette</header>
+<main id="main">
+  <ul id="cards">
+    <li class="card" id="card-1">
+      <div class="card-body" id="card-1-body"><h2>Tide tables</h2><p>High and low water for the next seven days, corrected for the inner basin.</p></div>
+    </li>
+    <li class="card" id="card-2">
+      <img class="thumb" id="card-2-img" src="/delay/700/assets/img/card-600x400.png" alt="Fishing boats on the east wall">
+      <div class="card-body" id="card-2-body"><h2>East wall moorings</h2><p>Twelve berths reopen after the dredging, with new ladders and shore power.</p></div>
+    </li>
+    <li class="card" id="card-3">
+      <div class="card-body" id="card-3-body"><h2>Notices to mariners</h2><p>Three new notices this week, including the yellow visitor buoys.</p></div>
+    </li>
+    <li class="card" id="card-4">
+      <img class="thumb" id="card-4-img" src="/assets/img/card-600x400.png" width="600" height="400" alt="The lifeboat station">
+      <div class="card-body" id="card-4-body"><h2>Lifeboat open day</h2><p>The station opens its doors on the last Saturday of the month.</p></div>
+    </li>
+    <li class="card" id="card-5">
+      <img class="thumb" id="card-5-img" src="/assets/img/card-600x400.png" width="600" height="400" alt="The fuel berth">
+      <div class="card-body" id="card-5-body"><h2>Fuel berth hours</h2><p>Closed on Sunday afternoons until the spring; diesel on request.</p></div>
+    </li>
+    <li class="card" id="card-6">
+      <img class="thumb" id="card-6-img" src="/assets/img/card-600x400.png" width="600" height="400" alt="The ticket office">
+      <div class="card-body" id="card-6-body"><h2>Ticket office</h2><p>Opens half an hour before the first departure, every day of the week.</p></div>
+    </li>
+  </ul>
+  <p id="after-grid">The harbour authority publishes these pages every Friday. Corrections can be sent by post or left at the ticket office on the north pier.</p>
+</main>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>negative / transform-animation</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #1f2937; background: #fff; overflow-x: hidden; }
+  #site-header { height: 56px; padding: 0 24px; display: flex; align-items: center; background: #111827; color: #fff; }
+  #main { max-width: 800px; margin: 0 auto; padding: 24px; }
+  #title { margin: 0 0 16px; font-size: 32px; line-height: 40px; }
+  #ticker { height: 48px; margin: 0 0 16px; display: flex; align-items: center; padding: 0 16px; background: #dbeafe; color: #1e3a8a; animation: slide-in 600ms ease-out 300ms both; }
+  #badge { width: 120px; height: 120px; margin: 0 0 16px; border-radius: 12px; background: #7c3aed; animation: bob 800ms ease-in-out infinite alternate; }
+  #card { padding: 16px; margin: 0 0 16px; border: 1px solid #e5e7eb; border-radius: 8px; transition: transform 400ms ease; }
+  #card.raised { transform: translate(40px, 60px) scale(1.05); }
+  #content p { margin: 16px 0; }
+  @keyframes slide-in { from { transform: translateY(-160px); } to { transform: translateY(0); } }
+  @keyframes bob { from { transform: translateX(0); } to { transform: translateX(480px); } }
+</style>
+</head>
+<body>
+<header id="site-header">Corpus Gazette</header>
+<main id="main">
+  <h1 id="title">Things that move without shifting layout</h1>
+  <div id="ticker">Platform change: the 08:15 to the south quay leaves from the east steps.</div>
+  <div id="badge"></div>
+  <div id="card">This card is moved 40px right and 60px down with a transform when a class is added 700 ms after load.</div>
+  <div id="content">
+    <p id="p1">Every movement on this page is a CSS transform: a keyframe animation that slides the ticker in, a looping animation on the square, and a transition on the card.</p>
+    <p id="p2">Transforms change where an element is painted, not where it is laid out. The boxes around these elements stay where they are, and so does this text.</p>
+    <p id="p3">A layout-shift observer must therefore stay silent on this page for as long as it is open.</p>
+  </div>
+</main>
+<script>
+  fetch('/delay/700/assets/data/status.json').then(() => {
+    document.getElementById('card').classList.add('raised');
+  });
+</script>
+</body>
+</html>

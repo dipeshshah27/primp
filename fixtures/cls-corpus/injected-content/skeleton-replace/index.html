@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>injected-content / skeleton-replace</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { height: 56px; padding: 0 24px; display: flex; align-items: center; background: #111827; color: #fff; }
+  #main { max-width: 800px; margin: 0 auto; padding: 24px; }
+  #title { margin: 0 0 16px; font-size: 32px; line-height: 40px; }
+  #intro { margin: 0 0 16px; }
+  #weather { margin: 0 0 16px; }
+  #weather-skeleton { height: 40px; border-radius: 8px; background: #e5e7eb; }
+  #weather-panel { box-sizing: border-box; height: 220px; padding: 16px; border-radius: 8px; background: #eff6ff; color: #1e3a8a; }
+  #weather-panel h2 { margin: 0 0 8px; font-size: 20px; line-height: 28px; }
+  #weather-panel p { margin: 0 0 8px; }
+  #content p { margin: 16px 0; }
+</style>
+</head>
+<body>
+<header id="site-header">Corpus Gazette</header>
+<main id="main">
+  <h1 id="title">Sea conditions today</h1>
+  <p id="intro">The forecast panel below is filled in by a script once the observations have been fetched. Until then a short grey placeholder stands in for it.</p>
+  <div id="weather"><div id="weather-skeleton"></div></div>
+  <div id="content">
+    <p id="p1">Small craft should check the forecast before leaving the breakwater. The harbour office hoists a red flag when the wind at the pier head is above force six.</p>
+    <p id="p2">The ferry sails in anything up to force seven from the west. Easterly winds close the island landing sooner, because the swell runs straight onto the steps.</p>
+    <p id="p3">Tide times on this site are corrected for the inner basin, where high water is about ten minutes later than at the pier head.</p>
+    <p id="p4">Fog signals sound from the lighthouse whenever visibility drops below two miles. The signal is one long blast every thirty seconds.</p>
+  </div>
+</main>
+<script>
+  // The placeholder is 40px tall, the real panel 220px: replacing one with the other moves the text below.
+  fetch('/delay/700/assets/data/status.json')
+    .then((response) => response.json())
+    .then(() => {
+      const panel = document.createElement('section');
+      panel.id = 'weather-panel';
+      panel.innerHTML = '<h2>West, force four</h2><p>Sea state slight. Visibility good, fog patches before dawn.</p><p>High water 11:42, low water 17:58.</p>';
+      document.getElementById('weather').replaceChildren(panel);
+    });
+</script>
+</body>
+</html>

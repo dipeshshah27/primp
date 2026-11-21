@@ -1,0 +1,27 @@
+{
+  "name": "reglet-fixture-next-16-turbopack",
+  "version": "0.0.0",
+  "private": true,
+  "description": "reglet test fixture: Next.js 16 App Router on Turbopack with a nonce CSP, cookie auth, a Server Action and a streaming page.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev --hostname localhost",
+    "build": "next build",
+    "start": "next start --hostname localhost",
+    "typecheck": "tsc --noEmit",
+    "gen-labels": "node scripts/gen-labels.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "break": "node scripts/break.mjs"
+  },
+  "dependencies": {
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "^5.9.0"
+  }
+}

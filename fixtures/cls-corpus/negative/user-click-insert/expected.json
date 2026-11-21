@@ -1,0 +1,39 @@
+{
+  "page": "negative/user-click-insert/index.html",
+  "positive": false,
+  "observeMs": 1800,
+  "interactions": [
+    {
+      "afterMs": 600,
+      "click": "#show-fares"
+    }
+  ],
+  "minEntriesWithRecentInput": 1,
+  "shifts": [],
+  "assertAfter": [
+    "document.querySelector('#fares') !== null"
+  ],
+  "notes": "A real click on the button (600 ms after navigation) inserts a 180px table above the text. The text moves 196px and Chromium does report a layout-shift entry, but with hadRecentInput: true, because it happens within 500 ms of the input. Such entries are excluded from CLS and must not be reported as a problem. \"interactions\" in this file tells the validator to click; \"minEntriesWithRecentInput\" makes sure the excused entry really occurs.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 1,
+        "sumWithoutRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 1,
+        "sumWithoutRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 1,
+        "sumWithoutRecentInput": 0
+      }
+    ]
+  }
+}

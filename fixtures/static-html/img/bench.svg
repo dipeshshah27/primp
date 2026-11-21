@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240" role="img" aria-label="Drawing of a workbench">
+  <rect width="480" height="240" fill="#ebe7dc"/>
+  <rect x="60" y="92" width="360" height="22" rx="3" fill="#8a5a2b"/>
+  <rect x="84" y="114" width="18" height="96" fill="#6f4520"/>
+  <rect x="378" y="114" width="18" height="96" fill="#6f4520"/>
+  <rect x="102" y="170" width="276" height="10" fill="#6f4520"/>
+  <rect x="150" y="60" width="120" height="32" rx="2" fill="#22543d"/>
+  <rect x="290" y="72" width="70" height="20" rx="2" fill="#b7791f"/>
+</svg>

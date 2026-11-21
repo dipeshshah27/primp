@@ -1,0 +1,14 @@
+{
+  "name": "reglet-fixture-cls-corpus",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Deterministic layout-shift test pages for reglet's shift attribution engine. No dependencies.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "validate": "node scripts/validate.mjs",
+    "probe": "node scripts/probe.mjs",
+    "make-assets": "node scripts/make-assets.mjs"
+  }
+}

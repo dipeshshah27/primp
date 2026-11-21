@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>font-swap / sidebar-external-css</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/font-swap/sidebar-external-css/fonts.css">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 Arial, Helvetica, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { height: 56px; padding: 0 24px; display: flex; align-items: center; background: #111827; color: #fff; }
+  #layout { max-width: 1100px; margin: 0 auto; padding: 24px; display: flex; align-items: flex-start; gap: 32px; }
+  #side-nav { flex: none; margin: 0; padding: 8px 16px; list-style: none; white-space: nowrap; background: #f3f4f6; border-radius: 8px; }
+  #side-nav a { color: #1f2937; text-decoration: none; }
+  #main-col { flex: 1; min-width: 0; }
+  #title { margin: 0 0 16px; font-size: 32px; line-height: 40px; }
+  #main-col p { margin: 16px 0; }
+</style>
+</head>
+<body>
+<header id="site-header">Corpus Gazette</header>
+<div id="layout">
+  <ul id="side-nav" class="side-nav">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#timetables">Timetables</a></li>
+    <li><a href="#tickets">Tickets</a></li>
+    <li><a href="#routes">Routes</a></li>
+    <li><a href="#accessibility">Accessibility</a></li>
+    <li><a href="#lost">Lost property</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <main id="main-col">
+    <h1 id="title">Planning a journey</h1>
+    <p id="p1">The side navigation is as wide as its longest label. Its labels are set in a web font that is declared in a separate stylesheet, fonts.css.</p>
+    <p id="p2">When the font arrives the labels become about twice as wide, the navigation grows with them, and this whole column is pushed to the right.</p>
+    <p id="p3">The navigation keeps its seven lines, so the shift on this page is horizontal. Text in this column re-wraps because the column is now narrower.</p>
+    <p id="p4">A day ticket covers all buses and the harbour ferry. Children under eleven travel free with an adult, and dogs travel free at any time.</p>
+  </main>
+</div>
+</body>
+</html>

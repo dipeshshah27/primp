@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>unsized-media / iframe-autoheight</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { height: 56px; padding: 0 24px; display: flex; align-items: center; background: #111827; color: #fff; }
+  #main { max-width: 800px; margin: 0 auto; padding: 24px; }
+  #title { margin: 0 0 16px; font-size: 32px; line-height: 40px; }
+  #embed { display: block; width: 100%; border: 0; }
+  #content p { margin: 16px 0; }
+</style>
+</head>
+<body>
+<header id="site-header">Corpus Gazette</header>
+<main id="main">
+  <h1 id="title">Today's departures</h1>
+  <iframe id="embed" title="Departures" src="/delay/700/unsized-media/iframe-autoheight/embed.html"></iframe>
+  <div id="content">
+    <p id="p1">Times are shown for the north pier. Add ten minutes for the south quay and twenty-five for the island landing, where the boat waits for the returning passengers.</p>
+    <p id="p2">Boarding closes two minutes before departure. The gangway is level with the pier at half tide and steep at low water, when the crew will help with prams and bicycles.</p>
+    <p id="p3">A cancelled crossing is replaced by a bus that follows the coast road. The bus leaves from the stop outside the ticket office at the time the boat would have sailed.</p>
+    <p id="p4">Season tickets are valid on both boats. Single tickets bought on board cost slightly more than those bought at the office or from the machine on the pier.</p>
+  </div>
+</main>
+<script>
+  // The embed has no reserved height: it is resized to fit its document once that document has loaded.
+  const embed = document.getElementById('embed');
+  const fitEmbed = () => {
+    if (embed.contentDocument && embed.contentDocument.getElementById('timetable')) {
+      embed.style.height = embed.contentDocument.documentElement.scrollHeight + 'px';
+    }
+  };
+  embed.addEventListener('load', fitEmbed);
+  fitEmbed();
+</script>
+</body>
+</html>

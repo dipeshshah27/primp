@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>multi / font-then-banner</title>
+<link rel="icon" href="data:,">
+<style>
+  @font-face { font-family: "Press Start 2P"; src: url("/delay/500/assets/fonts/press-start-2p-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 Arial, Helvetica, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { height: 56px; padding: 0 24px; display: flex; align-items: center; background: #111827; color: #fff; }
+  #main { max-width: 800px; margin: 0 auto; padding: 24px; }
+  #title { margin: 0 0 16px; font-family: "Press Start 2P", Arial, Helvetica, sans-serif; font-weight: 400; font-size: 40px; line-height: 56px; }
+  #content p { margin: 16px 0; }
+  .banner { box-sizing: border-box; height: 96px; padding: 0 24px; display: flex; align-items: center; gap: 16px; background: #fef3c7; color: #78350f; }
+</style>
+</head>
+<body>
+<div id="promo-slot"></div>
+<header id="site-header">Corpus Gazette</header>
+<main id="main">
+  <h1 id="title">Night buses return this winter</h1>
+  <div id="content">
+    <p id="p1">The ring road service starts again on the first Friday of December and runs every half hour between midnight and five in the morning, seven nights a week.</p>
+    <p id="p2">Buses stop at every shelter on the ring and wait for up to three minutes at the station, so that passengers from the last train can make the connection.</p>
+    <p id="p3">Day tickets bought after six in the evening stay valid until the first morning bus. Season tickets and concession passes are accepted without a supplement.</p>
+    <p id="p4">The council paid for the service after a petition signed by hospital staff, who finish their late shift after the last ordinary bus has gone.</p>
+  </div>
+</main>
+<script>
+  // Shift 2 of 2: the same text that the font swap moved at 500 ms is moved again at 1300 ms.
+  fetch('/delay/1300/assets/data/promo.json')
+    .then((response) => response.json())
+    .then((promo) => {
+      const slot = document.getElementById('promo-slot');
+      slot.innerHTML = '<div id="promo-banner" class="banner"><strong>' + promo.title + '</strong><span>' + promo.text + '</span></div>';
+    });
+</script>
+</body>
+</html>

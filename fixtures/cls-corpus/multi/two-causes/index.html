@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>multi / two-causes</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { height: 56px; padding: 0 24px; display: flex; align-items: center; background: #111827; color: #fff; }
+  #layout { max-width: 1100px; margin: 0 auto; padding: 24px; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 32px; align-items: start; }
+  #title { margin: 0 0 16px; font-size: 32px; line-height: 40px; }
+  #hero { display: block; max-width: 100%; height: auto; }
+  #article-body p { margin: 16px 0; }
+  #sidebar-title { margin: 0 0 12px; font-size: 20px; line-height: 28px; }
+  #sidebar-ad { box-sizing: border-box; height: 250px; margin: 0 0 16px; padding: 16px; background: #fef3c7; color: #78350f; }
+  #related { margin: 0; padding: 0; list-style: none; }
+  #related li { padding: 12px 0; border-top: 1px solid #e5e7eb; }
+</style>
+</head>
+<body>
+<header id="site-header">Corpus Gazette</header>
+<div id="layout">
+  <article id="article">
+    <h1 id="title">Harbour ferry timetable changes from Monday</h1>
+    <img id="hero" src="/delay/500/assets/img/hero-1200x400.png" alt="Ferry leaving the harbour">
+    <div id="article-body">
+      <p id="p1">The morning crossing moves fifteen minutes earlier so that it meets the first train. Passengers who hold a season ticket do not need to do anything; the new times apply automatically.</p>
+      <p id="p2">The last evening sailing stays where it is. On Fridays an extra boat leaves at half past eleven, which is the service people asked for most often in the spring survey.</p>
+      <p id="p3">Bicycles travel free on every crossing outside the two peak hours. During the peak, the lower deck takes twelve bicycles and the crew will ask the rest to wait for the next boat.</p>
+      <p id="p4">The ticket office on the north pier opens half an hour before the first departure. Card payments work on board, and paper tickets bought before the change remain valid.</p>
+    </div>
+  </article>
+  <aside id="sidebar">
+    <h2 id="sidebar-title">More from the harbour</h2>
+    <div id="ad-slot"></div>
+    <ul id="related">
+      <li id="related-1">Tide tables for the next seven days</li>
+      <li id="related-2">Three new notices to mariners</li>
+      <li id="related-3">Lifeboat station open day</li>
+      <li id="related-4">Fuel berth closed on Sunday afternoons</li>
+      <li id="related-5">Waiting list for permanent moorings</li>
+    </ul>
+  </aside>
+</div>
+<script>
+  // Shift 2 of 2: an advert is appended into a slot that reserved no space, 1300 ms after load.
+  fetch('/delay/1300/assets/data/promo.json')
+    .then((response) => response.json())
+    .then((promo) => {
+      const ad = document.createElement('div');
+      ad.id = 'sidebar-ad';
+      ad.textContent = promo.title + ': ' + promo.text;
+      document.getElementById('ad-slot').appendChild(ad);
+    });
+</script>
+</body>
+</html>

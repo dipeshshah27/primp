@@ -1,0 +1,132 @@
+{
+  "page": "multi/font-then-banner/index.html",
+  "positive": true,
+  "observeMs": 2600,
+  "entryCount": 2,
+  "shifts": [
+    {
+      "cause": "font-swap",
+      "culpritSelector": "#title",
+      "culpritFile": "multi/font-then-banner/index.html",
+      "culpritLine": 23,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<h1 id=\"title\"",
+      "culpritInSources": false,
+      "triggerFile": "multi/font-then-banner/index.html",
+      "triggerLine": 9,
+      "triggerLineContains": "@font-face { font-family: \"Press Start 2P\"",
+      "victimSelectors": [
+        "#content"
+      ],
+      "alsoMoves": [
+        "#p1",
+        "#p2"
+      ],
+      "minValue": 0.004,
+      "measuredValues": [
+        0.010117,
+        0.010117,
+        0.010117
+      ],
+      "measuredSources": [
+        {
+          "node": "div#content",
+          "previousRect": {
+            "x": 240,
+            "y": 152,
+            "width": 800,
+            "height": 240
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 208,
+            "width": 800,
+            "height": 240
+          }
+        }
+      ]
+    },
+    {
+      "cause": "injected-content",
+      "culpritSelector": "#promo-banner",
+      "culpritFile": "multi/font-then-banner/index.html",
+      "culpritLine": 37,
+      "culpritLineKind": "script-insert",
+      "culpritLineContains": "slot.innerHTML =",
+      "culpritInSources": false,
+      "victimSelectors": [
+        "#site-header",
+        "#main"
+      ],
+      "alsoMoves": [
+        "#title",
+        "#content"
+      ],
+      "minValue": 0.02,
+      "measuredValues": [
+        0.039816,
+        0.039816,
+        0.039816
+      ],
+      "measuredSources": [
+        {
+          "node": "main#main",
+          "previousRect": {
+            "x": 216,
+            "y": 56,
+            "width": 848,
+            "height": 432
+          },
+          "currentRect": {
+            "x": 216,
+            "y": 152,
+            "width": 848,
+            "height": 432
+          }
+        },
+        {
+          "node": "header#site-header",
+          "previousRect": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 56
+          },
+          "currentRect": {
+            "x": 0,
+            "y": 96,
+            "width": 1280,
+            "height": 56
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "document.fonts.check('40px \"Press Start 2P\"')",
+    "document.querySelector('#promo-banner') !== null"
+  ],
+  "notes": "The same text is moved twice by different causes. At about 500 ms the heading swaps to the web font and grows by one line, pushing #content down 56px. At about 1300 ms a banner is written above the header with innerHTML and pushes the header and the main column down 96px. In the second entry #content is hidden inside the #main source. An engine that blames one culprit for everything a victim did gets this page wrong.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 2,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.049933
+      },
+      {
+        "withoutRecentInput": 2,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.049933
+      },
+      {
+        "withoutRecentInput": 2,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.049933
+      }
+    ]
+  }
+}

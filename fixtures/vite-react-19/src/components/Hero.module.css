@@ -1,0 +1,27 @@
+.art {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 220px;
+  padding: 20px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+.bar {
+  width: 40%;
+  height: 14px;
+  border-radius: 7px;
+  background-color: rgb(255 255 255 / 0.9);
+}
+
+.row,
+.rowShort {
+  height: 36px;
+  border-radius: 8px;
+  background-color: rgb(255 255 255 / 0.25);
+}
+
+.rowShort {
+  width: 60%;
+}

@@ -1,0 +1,74 @@
+{
+  "page": "unsized-media/img-block/index.html",
+  "positive": true,
+  "observeMs": 2000,
+  "entryCount": 1,
+  "shifts": [
+    {
+      "cause": "unsized-media",
+      "culpritSelector": "#hero",
+      "culpritFile": "unsized-media/img-block/index.html",
+      "culpritLine": 22,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<img id=\"hero\"",
+      "culpritInSources": false,
+      "victimSelectors": [
+        "#content"
+      ],
+      "alsoMoves": [
+        "#p1",
+        "#p2",
+        "#p3"
+      ],
+      "minValue": 0.05,
+      "measuredValues": [
+        0.105465,
+        0.105465,
+        0.105465
+      ],
+      "measuredSources": [
+        {
+          "node": "div#content",
+          "previousRect": {
+            "x": 240,
+            "y": 152,
+            "width": 800,
+            "height": 432
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 418.65625,
+            "width": 800,
+            "height": 381.34375
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "document.querySelector('#hero').complete && document.querySelector('#hero').naturalWidth === 1200"
+  ],
+  "notes": "A 1200x400 PNG without width/height arrives 700 ms after the request. Until then the <img> is 0px tall; then it becomes 800x267 and pushes #content down by 267px. Chromium reports the wrapper #content only: its paragraphs move by the same amount but lie inside the wrapper rect, so they are dropped from entry.sources. The culprit <img> is not a source (it grew, it did not move).",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.105465
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.105465
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.105465
+      }
+    ]
+  }
+}

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fieldnotes: static HTML fixture</title>
+    <meta name="description" content="reglet fixture: plain HTML, CSS and JavaScript with no build step">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/site.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header" data-label="site-header">
+      <a class="brand" href="/" data-label="brand">
+        <img src="/img/mark.svg" alt="" width="32" height="32" data-label="brand-mark">
+        Fieldnotes
+      </a>
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="site-nav"
+        data-label="menu-toggle"
+      >
+        Menu
+      </button>
+      <nav class="site-nav" id="site-nav" aria-label="Main" data-label="site-nav">
+        <a href="/" aria-current="page" data-label="nav-home">Home</a>
+        <a href="/about.html" data-label="nav-about">About</a>
+      </nav>
+    </header>
+
+    <main class="page" data-label="page-main">
+      <section class="hero" data-label="hero">
+        <h1 class="hero-title" data-label="hero-title">Notebooks that lie flat and stay shut</h1>
+        <p class="hero-lede" data-label="hero-lede">
+          Stitched by hand in small batches. This page is plain HTML with one stylesheet and
+          <em data-label="hero-emphasis">one short script</em>.
+        </p>
+        <a class="button" href="#estimate" data-label="hero-cta">Estimate an order</a>
+      </section>
+
+      <section class="cards" data-label="cards">
+        <h2 class="section-title" data-label="cards-title">Three papers</h2>
+        <div class="card-grid" data-label="card-grid">
+          <article class="card" data-label="card-plain">
+            <h3 class="card-title" data-label="card-plain-title">Plain</h3>
+            <p class="card-body" data-label="card-plain-body">Cream stock, 90 gsm. Takes pencil and fountain pen.</p>
+            <p class="card-price" data-label="card-plain-price">14 EUR</p>
+          </article>
+          <article class="card" data-label="card-grid-paper">
+            <h3 class="card-title" data-label="card-grid-paper-title">Grid</h3>
+            <p class="card-body" data-label="card-grid-paper-body">Five millimetre squares in pale grey.</p>
+            <p class="card-price" data-label="card-grid-paper-price">14 EUR</p>
+          </article>
+          <article class="card" data-label="card-dot">
+            <h3 class="card-title" data-label="card-dot-title">Dot</h3>
+            <p class="card-body" data-label="card-dot-body">A dot every five millimetres, for sketches and lists.</p>
+            <p class="card-price" data-label="card-dot-price">14 EUR</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="estimate" id="estimate" data-label="estimate">
+        <h2 class="section-title" data-label="estimate-title">Estimate an order</h2>
+        <form class="estimate-form" data-label="estimate-form">
+          <label for="estimate-count" data-label="estimate-label">Notebooks</label>
+          <input
+            class="estimate-input"
+            id="estimate-count"
+            name="count"
+            type="number"
+            min="0"
+            max="500"
+            value="3"
+            data-label="estimate-input"
+          >
+          <output class="estimate-total" for="estimate-count" data-label="estimate-total">42 EUR</output>
+        </form>
+        <p class="estimate-note" data-label="estimate-note">Order 7 more for the bulk price.</p>
+      </section>
+    </main>
+
+    <footer class="site-footer" data-label="site-footer">
+      <p data-label="footer-note">Fieldnotes is a made-up stationer used as a test page.</p>
+      <a href="/about.html" data-label="footer-link">How the notebooks are made</a>
+    </footer>
+  </body>
+</html>

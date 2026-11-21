@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>unsized-media / img-in-flex</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { height: 56px; padding: 0 24px; display: flex; align-items: center; background: #111827; color: #fff; }
+  #main { max-width: 800px; margin: 0 auto; padding: 24px; }
+  #profile { display: flex; align-items: flex-start; gap: 24px; padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px; }
+  #portrait { flex: none; display: block; }
+  #bio { flex: 1; min-width: 0; }
+  #bio h1 { margin: 0 0 8px; font-size: 24px; line-height: 32px; }
+  #bio p { margin: 0; }
+  #posts { margin-top: 24px; }
+  #posts h2 { margin: 0 0 8px; font-size: 20px; line-height: 28px; }
+  #posts p { margin: 12px 0; }
+</style>
+</head>
+<body>
+<header id="site-header">Corpus Gazette</header>
+<main id="main">
+  <section id="profile">
+    <img id="portrait" src="/delay/700/assets/img/thumb-320x240.png" alt="Portrait of the harbour master">
+    <div id="bio">
+      <h1 id="name">Ines Okafor, harbour master</h1>
+      <p id="bio-text">Ines has run the north pier since the ferry company moved its office there. She writes the weekly notice to mariners and answers questions about moorings, tides and the winter timetable.</p>
+    </div>
+  </section>
+  <section id="posts">
+    <h2 id="posts-title">Recent notices</h2>
+    <p id="post-1">Dredging starts in the inner basin on the first Monday of the month. Boats moored on the east wall need to move to the visitor pontoon for three days.</p>
+    <p id="post-2">The fuel berth is closed on Sunday afternoons until the spring. Diesel is available from the fishing quay on request during the closure.</p>
+    <p id="post-3">Two new visitor buoys have been laid outside the breakwater. They are yellow, numbered seven and eight, and rated for boats up to twelve metres.</p>
+    <p id="post-4">The harbour office keeps a list of people who want a permanent mooring. The list is reviewed in January and offers go out in the order of joining.</p>
+    <p id="post-5">Lost property handed in at the pier is kept for one month. After that it goes to the lifeboat station shop, which sells it for the crew fund.</p>
+  </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>negative / user-click-insert</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { height: 56px; padding: 0 24px; display: flex; align-items: center; background: #111827; color: #fff; }
+  #main { max-width: 800px; margin: 0 auto; padding: 24px; }
+  #title { margin: 0 0 16px; font-size: 32px; line-height: 40px; }
+  #show-fares { font: inherit; padding: 8px 16px; }
+  #fares { box-sizing: border-box; height: 180px; margin: 16px 0 0; padding: 16px; background: #ecfdf5; color: #064e3b; }
+  #content p { margin: 16px 0; }
+</style>
+</head>
+<body>
+<header id="site-header">Corpus Gazette</header>
+<main id="main">
+  <h1 id="title">Harbour ferry: fares</h1>
+  <button id="show-fares" type="button">Show the fare table</button>
+  <div id="fares-slot"></div>
+  <div id="content">
+    <p id="p1">Fares depend on the time of day and on whether you hold a season ticket. Press the button to see the full table for this season.</p>
+    <p id="p2">The table opens in place, above this text, so this text moves down by 196 pixels when the button is pressed. Because the move follows a click within half a second, the browser marks the layout-shift entry with hadRecentInput and leaves it out of the page's CLS.</p>
+    <p id="p3">Nothing on this page moves until the button is pressed.</p>
+    <p id="p4">Books of ten tickets are sold at the office on the north pier and can be shared between people travelling together.</p>
+  </div>
+</main>
+<script>
+  document.getElementById('show-fares').addEventListener('click', () => {
+    if (document.getElementById('fares')) return;
+    const table = document.createElement('div');
+    table.id = 'fares';
+    table.textContent = 'Single 3.20. Return before nine 6.40, after nine 5.10. Book of ten 26.00. Family day ticket 12.00.';
+    document.getElementById('fares-slot').appendChild(table);
+  });
+</script>
+</body>
+</html>

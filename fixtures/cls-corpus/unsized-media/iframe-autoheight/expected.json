@@ -1,0 +1,76 @@
+{
+  "page": "unsized-media/iframe-autoheight/index.html",
+  "positive": true,
+  "observeMs": 2000,
+  "entryCount": 1,
+  "shifts": [
+    {
+      "cause": "unsized-media",
+      "culpritSelector": "#embed",
+      "culpritFile": "unsized-media/iframe-autoheight/index.html",
+      "culpritLine": 22,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<iframe id=\"embed\"",
+      "culpritInSources": false,
+      "triggerFile": "unsized-media/iframe-autoheight/index.html",
+      "triggerLine": 35,
+      "triggerLineContains": "embed.style.height =",
+      "victimSelectors": [
+        "#content"
+      ],
+      "alsoMoves": [
+        "#p1",
+        "#p2"
+      ],
+      "minValue": 0.035,
+      "measuredValues": [
+        0.072949,
+        0.072949,
+        0.072949
+      ],
+      "measuredSources": [
+        {
+          "node": "div#content",
+          "previousRect": {
+            "x": 240,
+            "y": 302,
+            "width": 800,
+            "height": 240
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 551,
+            "width": 800,
+            "height": 240
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "document.querySelector('#embed').getBoundingClientRect().height > 300"
+  ],
+  "notes": "An <iframe> with no height (150px by default) whose document arrives after 700 ms; a load handler then sets its height to the height of the embedded document, pushing #content down. The culprit is the iframe element (opening tag); triggerLine is the script line that assigns the height. Nothing shifts inside the iframe, and shifts inside an iframe would not appear on this page's timeline anyway.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.072949
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.072949
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.072949
+      }
+    ]
+  }
+}

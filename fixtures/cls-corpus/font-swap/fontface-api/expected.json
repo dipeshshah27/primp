@@ -1,0 +1,76 @@
+{
+  "page": "font-swap/fontface-api/index.html",
+  "positive": true,
+  "observeMs": 2000,
+  "entryCount": 1,
+  "shifts": [
+    {
+      "cause": "font-swap",
+      "culpritSelector": "#pull-quote",
+      "culpritFile": "font-swap/fontface-api/index.html",
+      "culpritLine": 24,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<blockquote id=\"pull-quote\"",
+      "culpritInSources": false,
+      "triggerFile": "font-swap/fontface-api/index.html",
+      "triggerLine": 36,
+      "triggerLineContains": "document.fonts.add(loaded)",
+      "victimSelectors": [
+        "#rest"
+      ],
+      "alsoMoves": [
+        "#p1",
+        "#p2"
+      ],
+      "minValue": 0.0025,
+      "measuredValues": [
+        0.006064,
+        0.006064,
+        0.006064
+      ],
+      "measuredSources": [
+        {
+          "node": "div#rest",
+          "previousRect": {
+            "x": 240,
+            "y": 284,
+            "width": 800,
+            "height": 240
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 320,
+            "width": 800,
+            "height": 240
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "document.fonts.check('18px \"Press Start 2P\"')"
+  ],
+  "notes": "There is no @font-face rule and no font-display: the face is loaded with new FontFace(...).load() and added to document.fonts when ready (triggerLine). The pull quote goes from one line to two and pushes #rest down 36px. A deliberately small shift (about 0.006), in the middle of the page: the paragraph above the quote does not move.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.006064
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.006064
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.006064
+      }
+    ]
+  }
+}

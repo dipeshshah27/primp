@@ -1,0 +1,17 @@
+[
+	{
+		"title": "Measure twice",
+		"body": "Every change is checked against the page as it renders, not against a guess.",
+		"tone": "warm"
+	},
+	{
+		"title": "Square corners",
+		"body": "Spacing and alignment stay on the grid at every breakpoint.",
+		"tone": "cool"
+	},
+	{
+		"title": "No surprises",
+		"body": "If something else moved, you hear about it before the work is signed off.",
+		"tone": "plain"
+	}
+]

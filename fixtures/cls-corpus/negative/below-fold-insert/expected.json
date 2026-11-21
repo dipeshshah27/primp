@@ -1,0 +1,34 @@
+{
+  "page": "negative/below-fold-insert/index.html",
+  "positive": false,
+  "observeMs": 2000,
+  "shifts": [],
+  "assertAfter": [
+    "document.querySelector('#late-promo') !== null",
+    "document.querySelector('#related') !== null",
+    "document.querySelector('#late-promo').getBoundingClientRect().top > innerHeight"
+  ],
+  "notes": "After a 700 ms fetch a 200px block is inserted between two sections that are below the 800px fold, and another block is appended at the very end. Sections 4 and 5 move down 224px, but they are outside the viewport before and after, so no entry is produced. Nothing inside the viewport moves. The validator does not scroll.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0
+      }
+    ]
+  }
+}

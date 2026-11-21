@@ -1,0 +1,76 @@
+{
+  "page": "font-swap/sidebar-external-css/index.html",
+  "positive": true,
+  "observeMs": 2000,
+  "entryCount": 1,
+  "shifts": [
+    {
+      "cause": "font-swap",
+      "culpritSelector": "#side-nav",
+      "culpritFile": "font-swap/sidebar-external-css/index.html",
+      "culpritLine": 24,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<ul id=\"side-nav\"",
+      "culpritInSources": false,
+      "triggerFile": "font-swap/sidebar-external-css/fonts.css",
+      "triggerLine": 2,
+      "triggerLineContains": "@font-face {",
+      "victimSelectors": [
+        "#main-col"
+      ],
+      "alsoMoves": [
+        "#title",
+        "#p1"
+      ],
+      "minValue": 0.01,
+      "measuredValues": [
+        0.025271,
+        0.025271,
+        0.025271
+      ],
+      "measuredSources": [
+        {
+          "node": "main#main-col",
+          "previousRect": {
+            "x": 246.390625,
+            "y": 80,
+            "width": 943.609375,
+            "height": 264
+          },
+          "currentRect": {
+            "x": 361,
+            "y": 80,
+            "width": 829,
+            "height": 312
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "document.fonts.check('16px \"Press Start 2P\"')"
+  ],
+  "notes": "The @font-face rule and the rule that uses it are in a separate stylesheet (fonts.css), so triggerFile differs from culpritFile. The side navigation is as wide as its longest label; after the swap it is about 115px wider and the main column moves to the RIGHT. The shift is horizontal; nothing is pushed down except text that re-wraps inside the narrower column.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.025271
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.025271
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.025271
+      }
+    ]
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "page": "font-swap/heading/index.html",
+  "positive": true,
+  "observeMs": 2000,
+  "entryCount": 1,
+  "shifts": [
+    {
+      "cause": "font-swap",
+      "culpritSelector": "#title",
+      "culpritFile": "font-swap/heading/index.html",
+      "culpritLine": 21,
+      "culpritLineKind": "opening-tag",
+      "culpritLineContains": "<h1 id=\"title\"",
+      "culpritInSources": false,
+      "triggerFile": "font-swap/heading/index.html",
+      "triggerLine": 9,
+      "triggerLineContains": "@font-face { font-family: \"Press Start 2P\"",
+      "victimSelectors": [
+        "#content"
+      ],
+      "alsoMoves": [
+        "#p1",
+        "#p2"
+      ],
+      "minValue": 0.006,
+      "measuredValues": [
+        0.014492,
+        0.014492,
+        0.014492
+      ],
+      "measuredSources": [
+        {
+          "node": "div#content",
+          "previousRect": {
+            "x": 240,
+            "y": 152,
+            "width": 800,
+            "height": 368
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 208,
+            "width": 800,
+            "height": 368
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "document.fonts.check('40px \"Press Start 2P\"')"
+  ],
+  "notes": "The <h1> uses the self-hosted face \"Press Start 2P\" with font-display: swap; the font file arrives after 700 ms. In the fallback font the heading fits on one 56px line, in the web font it needs two, so #content moves down 56px. The heading is not in entry.sources: it grows but its top-left corner stays put. culpritLine is the heading; triggerLine is the @font-face rule. Fallback metrics differ between platforms, so the measured value is for the recorded platform.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.014492
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.014492
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.014492
+      }
+    ]
+  }
+}

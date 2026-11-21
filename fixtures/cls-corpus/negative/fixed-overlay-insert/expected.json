@@ -1,0 +1,33 @@
+{
+  "page": "negative/fixed-overlay-insert/index.html",
+  "positive": false,
+  "observeMs": 2000,
+  "shifts": [],
+  "assertAfter": [
+    "document.querySelector('#cookie-bar') !== null",
+    "document.querySelector('#toast') !== null"
+  ],
+  "notes": "After a 700 ms fetch a consent bar is inserted as the first child of <body> (as on cookie-bar-insertbefore) and a toast is appended to the main column, but the bar is position: fixed and the toast is position: absolute. New elements appear on top of the page; nothing that was already there moves. The DOM mutations look the same as on the positive pages, so mutation evidence alone must not produce a culprit.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0
+      },
+      {
+        "withoutRecentInput": 0,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0
+      }
+    ]
+  }
+}

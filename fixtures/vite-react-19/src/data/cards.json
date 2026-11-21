@@ -1,0 +1,8 @@
+[
+  { "id": "edits", "icon": "01", "title": "Visual edits", "body": "Change spacing, colour and type on the running page and keep a record of every change." },
+  { "id": "shifts", "icon": "02", "title": "Layout shifts", "body": "See which element moved during load, what pushed it and where it lives in the source." },
+  { "id": "effects", "icon": "03", "title": "Side effects", "body": "Each edit lists the other elements that changed size or position because of it." },
+  { "id": "handoff", "icon": "04", "title": "Agent handoff", "body": "Send the recorded changes to a coding agent over MCP or copy them as a prompt." },
+  { "id": "verify", "icon": "05", "title": "Verification", "body": "After the agent edits the code the page is measured again and compared with the request." },
+  { "id": "source", "icon": "06", "title": "Source lines", "body": "Every element is traced back to the file and line that rendered it." }
+]

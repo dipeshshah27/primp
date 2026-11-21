@@ -1,0 +1,12 @@
+/* Loaded by index.html. The face arrives 700 ms after the request. */
+@font-face {
+  font-family: "Press Start 2P";
+  src: url("/delay/700/assets/fonts/press-start-2p-latin-400-normal.woff2") format("woff2");
+  font-display: swap;
+}
+
+.side-nav {
+  font-family: "Press Start 2P", Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 40px;
+}

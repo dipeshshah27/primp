@@ -1,0 +1,74 @@
+{
+  "page": "injected-content/skeleton-replace/index.html",
+  "positive": true,
+  "observeMs": 2000,
+  "entryCount": 1,
+  "shifts": [
+    {
+      "cause": "injected-content",
+      "culpritSelector": "#weather-panel",
+      "culpritFile": "injected-content/skeleton-replace/index.html",
+      "culpritLine": 44,
+      "culpritLineKind": "script-insert",
+      "culpritLineContains": ".replaceChildren(panel)",
+      "culpritInSources": false,
+      "victimSelectors": [
+        "#content"
+      ],
+      "alsoMoves": [
+        "#p1",
+        "#p2"
+      ],
+      "minValue": 0.023,
+      "measuredValues": [
+        0.046143,
+        0.046143,
+        0.046143
+      ],
+      "measuredSources": [
+        {
+          "node": "div#content",
+          "previousRect": {
+            "x": 240,
+            "y": 256,
+            "width": 800,
+            "height": 240
+          },
+          "currentRect": {
+            "x": 240,
+            "y": 436,
+            "width": 800,
+            "height": 240
+          }
+        }
+      ]
+    }
+  ],
+  "assertAfter": [
+    "document.querySelector('#weather-panel') !== null",
+    "document.querySelector('#weather-skeleton') === null"
+  ],
+  "notes": "A 40px placeholder is replaced by a 220px panel with replaceChildren after a fetch that takes 700 ms, pushing #content down 180px. The paragraph above the panel does not move. One node is removed and one is added in the same mutation; the added one is the culprit.",
+  "measured": {
+    "browser": "Chromium 159.0.8154.6 (headless)",
+    "platform": "darwin arm64",
+    "viewport": "1280x800",
+    "entriesPerLoad": [
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.046143
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.046143
+      },
+      {
+        "withoutRecentInput": 1,
+        "withRecentInput": 0,
+        "sumWithoutRecentInput": 0.046143
+      }
+    ]
+  }
+}

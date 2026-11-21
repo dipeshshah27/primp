@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>reglet layout-shift corpus</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #1f2937; background: #fff; }
+  main { max-width: 960px; margin: 0 auto; padding: 24px; }
+  h1 { margin: 0 0 8px; font-size: 28px; line-height: 36px; }
+  h2 { margin: 32px 0 8px; font-size: 20px; line-height: 28px; }
+  p { margin: 8px 0; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 8px 12px 8px 0; text-align: left; vertical-align: top; border-top: 1px solid #e5e7eb; }
+  th { font-weight: 600; white-space: nowrap; }
+  td:first-child { white-space: nowrap; }
+  td:last-child { white-space: nowrap; }
+  code { font: 14px/1.4 ui-monospace, Menlo, Consolas, monospace; }
+  .hint { color: #6b7280; }
+</style>
+</head>
+<body>
+<main>
+  <h1>reglet layout-shift corpus</h1>
+  <p>Static pages whose layout shifts are deterministic: every late resource is served through <code>/delay/&lt;ms&gt;/&lt;path&gt;</code>, which answers a fixed number of milliseconds after the request. Each page has an <code>expected.json</code> beside it with the cause, the culprit, its source line and the elements that move.</p>
+  <p class="hint">Labels were measured in headless Chromium at 1280x800. See <a href="README.md">README.md</a> for the label format and for what was learned about the Layout Instability API.</p>
+
+  <h2>Cause: unsized-media</h2>
+  <table>
+    <tr><th>Page</th><th>What happens</th><th>Labels</th></tr>
+    <tr><td><a href="unsized-media/img-block/">img-block</a></td><td>An image without width/height arrives late and pushes the article text down.</td><td><a href="unsized-media/img-block/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="unsized-media/video-metadata/">video-metadata</a></td><td>A video without dimensions grows from 300x150 to 640x360 when its metadata arrives.</td><td><a href="unsized-media/video-metadata/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="unsized-media/iframe-autoheight/">iframe-autoheight</a></td><td>An iframe with no reserved height is resized to fit its document once that has loaded.</td><td><a href="unsized-media/iframe-autoheight/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="unsized-media/img-in-flex/">img-in-flex</a></td><td>An unsized image in a flex row pushes its sibling to the right and the next section down.</td><td><a href="unsized-media/img-in-flex/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="unsized-media/img-in-grid/">img-in-grid</a></td><td>An unsized image in one grid card makes its row taller and moves the second row.</td><td><a href="unsized-media/img-in-grid/expected.json">expected.json</a></td></tr>
+  </table>
+
+  <h2>Cause: font-swap</h2>
+  <table>
+    <tr><th>Page</th><th>What happens</th><th>Labels</th></tr>
+    <tr><td><a href="font-swap/heading/">heading</a></td><td>A heading wraps onto a second line when the web font replaces the fallback.</td><td><a href="font-swap/heading/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="font-swap/nav/">nav</a></td><td>Navigation links widen, move sideways and wrap; the page below moves down.</td><td><a href="font-swap/nav/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="font-swap/paragraph/">paragraph</a></td><td>A multi-line lead paragraph re-wraps onto more lines.</td><td><a href="font-swap/paragraph/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="font-swap/sidebar-external-css/">sidebar-external-css</a></td><td>A side navigation widens and pushes the main column to the right; the @font-face rule is in fonts.css.</td><td><a href="font-swap/sidebar-external-css/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="font-swap/fontface-api/">fontface-api</a></td><td>A pull quote re-wraps when a face loaded with the Font Loading API is added.</td><td><a href="font-swap/fontface-api/expected.json">expected.json</a></td></tr>
+  </table>
+
+  <h2>Cause: injected-content</h2>
+  <table>
+    <tr><th>Page</th><th>What happens</th><th>Labels</th></tr>
+    <tr><td><a href="injected-content/banner-innerhtml/">banner-innerhtml</a></td><td>A banner is written into an empty slot above the header with innerHTML.</td><td><a href="injected-content/banner-innerhtml/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="injected-content/cookie-bar-insertbefore/">cookie-bar-insertbefore</a></td><td>A late external script builds a consent bar with appendChild and inserts it with insertBefore.</td><td><a href="injected-content/cookie-bar-insertbefore/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="injected-content/notice-display-flip/">notice-display-flip</a></td><td>A notice that is already in the HTML flips from display: none to block.</td><td><a href="injected-content/notice-display-flip/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="injected-content/feed-prepend/">feed-prepend</a></td><td>A new item is put at the top of a list with insertAdjacentHTML.</td><td><a href="injected-content/feed-prepend/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="injected-content/skeleton-replace/">skeleton-replace</a></td><td>A short placeholder is replaced by a taller panel with replaceChildren.</td><td><a href="injected-content/skeleton-replace/expected.json">expected.json</a></td></tr>
+  </table>
+
+  <h2>Two shifts, two causes</h2>
+  <table>
+    <tr><th>Page</th><th>What happens</th><th>Labels</th></tr>
+    <tr><td><a href="multi/two-causes/">two-causes</a></td><td>An unsized image moves the article column; later an injected advert moves the sidebar.</td><td><a href="multi/two-causes/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="multi/font-then-banner/">font-then-banner</a></td><td>A font swap moves the text; later an injected banner moves the same text again.</td><td><a href="multi/font-then-banner/expected.json">expected.json</a></td></tr>
+  </table>
+
+  <h2>Negative pages (no layout-shift problem)</h2>
+  <table>
+    <tr><th>Page</th><th>What happens</th><th>Labels</th></tr>
+    <tr><td><a href="negative/transform-animation/">transform-animation</a></td><td>Elements move with CSS transforms only.</td><td><a href="negative/transform-animation/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="negative/user-click-insert/">user-click-insert</a></td><td>Content is inserted above the text in response to a click (hadRecentInput).</td><td><a href="negative/user-click-insert/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="negative/below-fold-insert/">below-fold-insert</a></td><td>Content is inserted below the fold and at the end; nothing visible moves.</td><td><a href="negative/below-fold-insert/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="negative/reserved-space/">reserved-space</a></td><td>An image, a banner and a video arrive late into space that was reserved for them.</td><td><a href="negative/reserved-space/expected.json">expected.json</a></td></tr>
+    <tr><td><a href="negative/fixed-overlay-insert/">fixed-overlay-insert</a></td><td>A fixed consent bar and an absolutely positioned toast are inserted on top of the page.</td><td><a href="negative/fixed-overlay-insert/expected.json">expected.json</a></td></tr>
+  </table>
+</main>
+</body>
+</html>

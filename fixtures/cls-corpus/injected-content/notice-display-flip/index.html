@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>injected-content / notice-display-flip</title>
+<link rel="icon" href="data:,">
+<style>
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { height: 56px; padding: 0 24px; display: flex; align-items: center; background: #111827; color: #fff; }
+  #main { max-width: 800px; margin: 0 auto; padding: 24px; }
+  #title { margin: 0 0 16px; font-size: 32px; line-height: 40px; }
+  #service-notice { display: none; box-sizing: border-box; height: 120px; margin: 0 0 16px; padding: 16px 20px; border-left: 6px solid #dc2626; background: #fee2e2; color: #7f1d1d; }
+  #service-notice h2 { margin: 0 0 4px; font-size: 18px; line-height: 28px; }
+  #service-notice p { margin: 0; }
+  #content p { margin: 16px 0; }
+</style>
+</head>
+<body>
+<header id="site-header">Corpus Gazette</header>
+<main id="main">
+  <h1 id="title">Route 9: station to the old tram shed</h1>
+  <div id="service-notice" role="status">
+    <h2 id="notice-title">Diversion this weekend</h2>
+    <p id="notice-text">Route 9 does not serve the market square on Saturday. Use the stop outside the library instead.</p>
+  </div>
+  <div id="content">
+    <p id="p1">Buses leave the station every twelve minutes on weekdays and every fifteen at the weekend. The journey to the tram shed takes about a quarter of an hour.</p>
+    <p id="p2">The route passes the hospital, the library and the market square. All stops have a shelter and a printed timetable; the four busiest also show live times.</p>
+    <p id="p3">The first bus leaves the station at ten to six and the last at half past eleven. On Friday and Saturday nights the night bus takes over on the same stops.</p>
+    <p id="p4">Low-floor buses run on this route. The space by the middle doors takes two wheelchairs or prams, and drivers will lower the ramp on request.</p>
+    <p id="p5">A single ticket costs the same from any stop. Day tickets bought on this route are valid on the whole network and on the harbour ferry.</p>
+  </div>
+</main>
+<script>
+  // The notice is in the HTML but hidden; the status check shows it after the page has painted.
+  fetch('/delay/700/assets/data/status.json').then(() => {
+    document.getElementById('service-notice').style.display = 'block';
+  });
+</script>
+</body>
+</html>

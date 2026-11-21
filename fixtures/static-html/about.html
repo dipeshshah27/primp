@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>About: static HTML fixture</title>
+    <meta name="description" content="reglet fixture: the second page of the static site">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/site.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header" data-label="about-site-header">
+      <a class="brand" href="/" data-label="about-brand">
+        <img src="/img/mark.svg" alt="" width="32" height="32" data-label="about-brand-mark">
+        Fieldnotes
+      </a>
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="site-nav"
+        data-label="about-menu-toggle"
+      >
+        Menu
+      </button>
+      <nav class="site-nav" id="site-nav" aria-label="Main" data-label="about-site-nav">
+        <a href="/" data-label="about-nav-home">Home</a>
+        <a href="/about.html" aria-current="page" data-label="about-nav-about">About</a>
+      </nav>
+    </header>
+
+    <main class="page" data-label="about-page-main">
+      <article class="about" data-label="about">
+        <h1 class="about-title" data-label="about-title">How the notebooks are made</h1>
+        <p class="about-lede" data-label="about-lede">
+          Every notebook goes through the same three steps, on the same bench, in the same order.
+        </p>
+
+        <ol class="about-steps" data-label="about-steps">
+          <li data-label="about-step-fold">Fold the sheets into signatures of eight pages.</li>
+          <li data-label="about-step-stitch">Stitch the signatures with <strong data-label="about-step-thread">waxed linen thread</strong>.</li>
+          <li data-label="about-step-press">Press overnight, then trim the three open edges.</li>
+        </ol>
+
+        <figure class="about-figure" data-label="about-figure">
+          <img src="/img/bench.svg" alt="Drawing of a workbench" width="480" height="240" data-label="about-figure-image">
+          <figcaption class="about-caption" data-label="about-caption">The bench. The image has its width and height set, so it does not shift the page.</figcaption>
+        </figure>
+
+        <a href="/" data-label="about-back">Back to the front page</a>
+      </article>
+    </main>
+
+    <footer class="site-footer" data-label="about-site-footer">
+      <p data-label="about-footer-note">Fieldnotes is a made-up stationer used as a test page.</p>
+      <a href="/" data-label="about-footer-link">Front page</a>
+    </footer>
+  </body>
+</html>

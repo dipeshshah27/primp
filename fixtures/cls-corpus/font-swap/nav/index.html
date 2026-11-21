@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>font-swap / nav</title>
+<link rel="icon" href="data:,">
+<style>
+  @font-face { font-family: "Press Start 2P"; src: url("/delay/700/assets/fonts/press-start-2p-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+  html { scrollbar-gutter: stable; }
+  body { margin: 0; font: 16px/1.5 Arial, Helvetica, sans-serif; color: #1f2937; background: #fff; }
+  #site-header { background: #111827; color: #fff; }
+  #nav { max-width: 800px; margin: 0 auto; padding: 8px 24px; display: flex; flex-wrap: wrap; gap: 0 24px; font-family: "Press Start 2P", Arial, Helvetica, sans-serif; font-size: 16px; line-height: 40px; }
+  #nav a { color: #fff; text-decoration: none; }
+  #main { max-width: 800px; margin: 0 auto; padding: 24px; }
+  #title { margin: 0 0 16px; font-size: 32px; line-height: 40px; }
+  #content p { margin: 16px 0; }
+</style>
+</head>
+<body>
+<header id="site-header">
+  <nav id="nav">
+    <a id="nav-home" href="#home">Home</a>
+    <a id="nav-timetables" href="#timetables">Timetables</a>
+    <a id="nav-tickets" href="#tickets">Tickets</a>
+    <a id="nav-routes" href="#routes">Routes</a>
+    <a id="nav-accessibility" href="#accessibility">Accessibility</a>
+    <a id="nav-lost" href="#lost">Lost property</a>
+    <a id="nav-contact" href="#contact">Contact</a>
+  </nav>
+</header>
+<main id="main">
+  <h1 id="title">Planning a journey</h1>
+  <div id="content">
+    <p id="p1">Every route on the network is drawn on the map at the main stops, with the first and last bus of the day printed underneath the stop name.</p>
+    <p id="p2">Timetables change twice a year, at the end of March and at the end of October. The printed booklets are free from the travel shop at the station.</p>
+    <p id="p3">A day ticket covers all buses and the harbour ferry. Children under eleven travel free with an adult, and dogs travel free at any time.</p>
+    <p id="p4">Low-floor buses run on every route. Drivers will lower the ramp on request and the space by the middle doors takes two wheelchairs or prams.</p>
+    <p id="p5">Things left on a bus are taken to the depot overnight and to the travel shop the next morning, where they are kept for a month.</p>
+  </div>
+</main>
+</body>
+</html>

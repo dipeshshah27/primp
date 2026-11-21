@@ -1,0 +1,28 @@
+{
+  "name": "reglet-fixture-vite-react-19",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "reglet test fixture: Vite 8 + React 19 + Tailwind CSS v4. Not published.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "gen-labels": "node scripts/gen-labels.mjs",
+    "check-labels": "node scripts/gen-labels.mjs --check",
+    "verify": "node scripts/verify.mjs"
+  },
+  "dependencies": {
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0"
+  }
+}
