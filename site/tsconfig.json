@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.base.json",
+  "include": ["**/*.ts", "../packages/overlay/src/hook/index.ts"],
+  "exclude": ["dist", "demo/sw.ts"]
+}
