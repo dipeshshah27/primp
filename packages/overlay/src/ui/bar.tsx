@@ -47,6 +47,8 @@ function shiftBadge(c: Controller): { text: string; tone: string } | null {
   const scored = state.report.issues.filter((issue) => issue.scored).length
   if (scored === 0) return null
   const cls = state.report.cls ?? 0
+  // A score that shows as 0.000 is not worth a warning on the toolbar; the panel still lists it.
+  if (cls < 0.0005) return null
   return { text: cls >= 0.0995 ? cls.toFixed(2) : cls.toFixed(3), tone: cls >= 0.1 ? 'bad' : 'warn' }
 }
 
