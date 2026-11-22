@@ -1,6 +1,5 @@
 import { ArrowRightIcon, MousePointerClickIcon } from 'lucide-react'
 import Link from 'next/link'
-import { Callout } from '@/components/callout'
 import { CommandPill } from '@/components/command-pill'
 import { Bento } from '@/components/landing/bento'
 import { Hero } from '@/components/landing/hero'
@@ -45,11 +44,6 @@ export default async function Home() {
       >
         <div className="grid gap-4">
           <InstallTabs />
-          <Callout title="Pre-release" className="my-0">
-            <p>
-              primp is not on npm yet, so these commands work once it is. Until then, run it from the repository (see <Link href="/docs/#before-it-is-on-npm">Getting started</Link>), or open the dock right here: this site runs it.
-            </p>
-          </Callout>
         </div>
       </Section>
 

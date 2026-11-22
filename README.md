@@ -12,7 +12,7 @@ primp never writes to your source files. Nothing is installed in your project.
 
 ![The dock open on a page: numbered pins on the changed elements, the Changes panel with what each change moved, and the toolbar](docs/img/edits.png)
 
-> Status: pre-release. Not on npm yet. Built and tested on macOS with Chromium; see [What is tested](#what-is-tested).
+> Status: 0.1, the first release. Built and tested on macOS with Chromium; see [What is tested](#what-is-tested).
 
 ## Try it
 

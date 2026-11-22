@@ -22,8 +22,8 @@ export interface ShimCommand {
 }
 
 /**
- * `npx -y primp mcp` for the published package. From a checkout the package
- * is not on npm, so the shim is started the way the CLI itself was: Node with
+ * `npx -y primp mcp` for the published package. From a checkout, the shim
+ * is started the way the CLI itself was: Node with
  * tsx's loader and the entry file, both as absolute paths so it works from any
  * working directory an agent host picks.
  */

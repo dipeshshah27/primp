@@ -8,7 +8,7 @@
  * prebuilt assets next to cli.js are used (see packages/server/src/assets.ts).
  */
 
-import { copyFileSync, cpSync, mkdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { copyFileSync, cpSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build } from 'esbuild'
@@ -48,7 +48,14 @@ writeFileSync(join(DIST, 'assets/overlay.js'), assets.overlay.code)
 cpSync(join(HERE, 'demo-site'), join(DIST, 'demo'), { recursive: true })
 
 // npm packs these from the package directory; they are copies, kept out of git.
-for (const file of ['README.md', 'LICENSE', 'NOTICE']) copyFileSync(join(REPO, file), join(HERE, file))
+for (const file of ['LICENSE', 'NOTICE']) copyFileSync(join(REPO, file), join(HERE, file))
+// The README is shown on npmjs.com, where links relative to the repository root do not
+// resolve: images point at the raw files on GitHub, other files at their GitHub pages.
+const REPO_URL = 'https://github.com/dipeshshah27/primp'
+const readme = readFileSync(join(REPO, 'README.md'), 'utf8').replace(/(!?)\[([^\]]*)\]\((?![a-z]+:|#|\/)([^)\s]+)\)/g, (_match, image: string, text: string, path: string) =>
+  image === '!' ? `![${text}](${REPO_URL.replace('github.com', 'raw.githubusercontent.com')}/main/${path})` : `[${text}](${REPO_URL}/blob/main/${path})`,
+)
+writeFileSync(join(HERE, 'README.md'), readme)
 
 const kb = (file: string): string => `${(statSync(join(DIST, file)).size / 1024).toFixed(1)} kB`
 const inputs = Object.keys(result.metafile.inputs).length
