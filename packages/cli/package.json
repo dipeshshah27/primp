@@ -3,6 +3,13 @@
   "version": "0.0.0",
   "description": "Visual edits, layout shifts and verification for AI coding agents",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dipeshshah27/primp.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/dipeshshah27/primp#readme",
+  "bugs": "https://github.com/dipeshshah27/primp/issues",
   "type": "module",
   "bin": {
     "primp": "./dist/cli.js"

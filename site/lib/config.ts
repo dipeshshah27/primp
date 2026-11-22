@@ -4,7 +4,7 @@
  */
 
 /** PLACEHOLDER: the public repository. */
-export const GITHUB_URL = 'https://github.com/OWNER/primp'
+export const GITHUB_URL = 'https://github.com/dipeshshah27/primp'
 
 /** Canonical origin, used only for metadata (canonical link, Open Graph). Not registered yet. */
 export const SITE_URL = 'https://primp.dev'
