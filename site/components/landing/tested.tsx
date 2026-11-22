@@ -8,11 +8,11 @@ import { cn } from '@/lib/utils'
 function Dots() {
   const pages = Array.from({ length: 10 }, (_, index) => (index < 7 ? 'right' : 'unknown'))
   return (
-    <div className="flex flex-wrap gap-1.5" role="img" aria-label="10 pages that shift: 7 named correctly with confidence, 3 reported as unknown, none wrong">
+    <div className="flex flex-wrap gap-1 sm:gap-1.5" role="img" aria-label="10 pages that shift: 7 named correctly with confidence, 3 reported as unknown, none wrong">
       {pages.map((kind, index) => (
         <span
           key={index}
-          className={cn('flex size-7 items-center justify-center rounded-md border', kind === 'right' ? 'border-pass/40 bg-pass/15 text-pass' : 'border-dashed text-muted-foreground')}
+          className={cn('flex size-6 items-center justify-center rounded-md border sm:size-7', kind === 'right' ? 'border-pass/40 bg-pass/15 text-pass' : 'border-dashed text-muted-foreground')}
         >
           {kind === 'right' ? <CheckIcon className="size-3.5" /> : <MinusIcon className="size-3.5" />}
         </span>
