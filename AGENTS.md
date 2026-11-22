@@ -53,3 +53,5 @@ The website: `pnpm site:assets`, then `cd site && pnpm install --ignore-workspac
 - Wait for the HMR socket before editing a fixture file, or the update is missed.
 - The proxy sends every response `no-store` on purpose (cold loads, no stale stylesheet after an edit).
 - In the dock, change the forced state only through `holdState()` in `state/controller.ts`, and call `markSelf` before any DOM write so layout-shift attribution counts it as primp's own.
+- The dock starts closed on every load. While it is open, the page's clicks select instead of reaching the app (Alt+click goes through), and `__primp_test.select()` opens it. Before a check clicks the app itself, close the dock (`__primp_test.open(false)`); closing also lets go of the selection.
+- Anything the dock draws on the page (outlines, pins, the label chip, tooltips) lives in the host's shadow root and is placed with `transform`; its two frames (`iframe[data-primp-dock="bar"]` and `"pop"`) are sized to their content. Never lay anything of primp's out in the page's flow.
