@@ -24,7 +24,9 @@ export function plain(text: string): string {
   return text
     .replace(/<[^>]+>/g, '')
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/[`*_]/g, '')
+    .replace(/[`*]/g, '')
+    // `_emphasis_`, but not the underscores of a name such as get_session (as rehype-slug sees it).
+    .replace(/(^|[^\w])_([^_]+)_(?=[^\w]|$)/g, '$1$2')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&amp;/g, '&')
@@ -74,5 +76,6 @@ export function sections(source: string): SearchSection[] {
     const words = plain(line.replace(/^\s*[-*|>]\s?/, ''))
     if (words !== '') current.text = current.text === '' ? words : `${current.text} ${words}`
   }
-  return result.filter((section) => section.heading !== '' || section.text !== '')
+  // The page itself is always an entry, even when it starts with a heading.
+  return result
 }
