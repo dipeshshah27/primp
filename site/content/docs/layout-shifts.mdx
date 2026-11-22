@@ -1,0 +1,50 @@
+A layout shift is visible content jumping after it was first shown, scored as in Cumulative Layout Shift (CLS). primp tells you which element caused each one, why, and where it is in your source.
+
+<Shot name="shifts" alt="The Shifts tab of the dock: one issue, cause unsized media, the culprit image with its source line and the evidence; on the page the picture is outlined as the culprit." caption="The seeded shift of the demo site, outlined on the page as the culprit. (Captured from an earlier version of the dock.)" />
+
+## Try it on this page
+
+This site has no layout shift: open the dock's **Shifts** tab and it says so. To see one, replay the home page with its hero screenshot served without reserved space and held back for a moment. primp records the load from its first script and names the image, the cause and a source line.
+
+<ReplayShiftButton variant="accent" />
+
+## What is recorded
+
+primp's head script is the first script of every page it serves. From there it records the load: the browser's layout-shift entries, changes to the DOM and who made them, element sizes, images and fonts as they arrive, and resource timing. Everything stays in your browser until primp's own process analyses it.
+
+Every response through primp is sent uncached, so each load is a first visit: the load whose shifts matter most, and the one a cache would otherwise hide.
+
+## Culprit, cause, evidence
+
+The elements that move are the victims; primp looks for the element whose change accounts for their movement. Each issue in the **Shifts** tab has:
+
+- **The culprit**, with its source position when primp can find it.
+- **The cause**: *unsized media* (an image, video or frame without reserved space), *font swap* (a web font arriving and changing the size of text), *injected content* (something inserted above existing content), or *unknown*. Restyling done by the dev server itself, such as a hot update of a stylesheet, is listed but not scored.
+- **A confidence**. A high confidence needs a geometric match: the culprit's change in size must account for how far the victims moved.
+- **The evidence**, in plain sentences: sizes before and after, timings, whether space was reserved.
+
+When nothing explains the movement well enough, the cause is *unknown* and no culprit is named. primp prefers that to a confident guess.
+
+primp's own changes to the page (its previews, the dock) are marked as they happen and never counted as your page's shifts.
+
+## Fixing one with your agent
+
+Ask your agent to fix the layout shift primp found. It reads the shifts with `get_layout_shifts`, which includes the usual fix for each cause, edits the source and calls `verify_layout_shift`. That reloads your tab three times with the cache switched off for the page and reports <Status s="pass" /> only if the shift did not come back in any of them.
+
+In the dock, **Measure again** reports the shifts of the current load again.
+
+## How accurate it is
+
+Attribution is measured on sets of pages written without sight of its code. On the current held-out set of 14 realistic pages, scored once:
+
+- on 7 of the 10 pages that shift, the cause and the culprit were named correctly, with confidence;
+- the other 3 were reported as unknown, without a confident claim;
+- no page was given a confident wrong answer, and none of the 4 pages that must not be accused was.
+
+The goal was 8 of 10. An earlier blind set scored 5 of 11 and led to three fixes, after which it scores 11 of 11; that is no longer a measurement, so it is not quoted as one.
+
+## Limits
+
+- Layout shifts need Chromium: it is the only engine with the Layout Instability API.
+- Resources from other origins never pass through the proxy, so their timing cannot be replayed cold.
+- A dev server's shifts can differ from production. Point primp at a preview build (`vite preview`, `next start`) to check; source positions are then less precise.

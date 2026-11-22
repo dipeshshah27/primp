@@ -1,0 +1,28 @@
+## Privacy
+
+primp runs on your machine and talks only to your dev server and your browser. It has no telemetry and makes no network requests of its own. The proxy accepts connections from `localhost` only. The MCP server it registers runs on your machine too, started by your agent's host.
+
+This website follows the same rule: it requests nothing from any other origin, and the dock that runs on it keeps everything in your tab.
+
+## What has been tested
+
+<TestedMatrix />
+
+- **Other frameworks** (Vue, Astro, Solid, Angular, server-rendered templates): the proxy and the dock are framework-independent and should work; source positions fall back to ranked guesses. Untested.
+- **Browsers:** only Chromium has been run. Layout shifts need it in any case.
+- **Systems:** only macOS has been run. On Windows, pass `--target`.
+- **Layout-shift attribution:** 7 of 10 shifting pages named correctly with confidence on a held-out set, the other 3 reported as unknown, no confident wrong answer. See [How accurate it is](/docs/layout-shifts/#how-accurate-it-is).
+
+## Known limits
+
+- Because the proxy listens on its own port, logins kept in `localStorage` and OAuth redirect URLs tied to the dev server's port do not carry over.
+- Every response through primp is sent uncached, so each load is a first visit. That is deliberate (it is the load whose layout shifts matter, and an edit is never hidden by a stale stylesheet), but pages load a little slower than straight from the dev server.
+- A dev server's shifts can differ from production. Point primp at `vite preview` or `next start` to check; source positions are then less precise.
+- Resources from other origins never pass through the proxy, so their timing cannot be replayed cold.
+- If your app opens a modal `<dialog>`, the dock cannot be used until it closes.
+- Reordering moves an element among the children of its parent only, never into another parent.
+- Resize has right, bottom and corner handles; there are none on the left and top edges.
+- `:hover` and focus changes are verified by emulating the state from the page's readable stylesheets. Behaviour made by script (a class added on mouse-over) and rules in stylesheets from another origin cannot be checked: such a change is reported as `fail` or `not_measurable`, never as a pass.
+- State changes do not get the bystander check: other elements that share the rule are not recorded for them.
+- Notes cannot be measured: they are reported as `not_checkable`, never as a pass.
+- A preview cannot override an author `!important` of higher specificity.

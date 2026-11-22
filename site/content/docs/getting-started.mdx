@@ -1,0 +1,69 @@
+primp is a proxy you run in front of your dev server. It serves your app through its own port, adds a dock to every page, and remembers the changes you make there until your coding agent has implemented them and primp has checked the result.
+
+It never writes to your source files and installs nothing in your project. It runs on your machine and talks only to your dev server and your browser.
+
+<Callout title="The dock is running on this page">
+  This website runs primp's real dock, with a small in-browser stand-in for primp's server. Press <kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>E</kbd> (<kbd>Ctrl</kbd> <kbd>⇧</kbd> <kbd>E</kbd> elsewhere) or the round button in the corner, click any element and change it. See [What runs on this website](/docs/faq/#what-runs-on-this-website).
+</Callout>
+
+## What you need
+
+- Node 22.22 or later in the 22 line, or 24.11 and later.
+- A dev server for your app (Vite, Next, SvelteKit, a plain static server, or anything else that serves HTML).
+- A Chromium-based browser. It is the only engine primp has been run in, and layout shifts need it in any case.
+- Optionally a coding agent that speaks MCP (Claude Code, Codex, Cursor or another client). Without one, you paste a prompt.
+
+primp has been run on macOS only. On Windows, pass `--target`, because finding the dev server automatically is untested there.
+
+## Try the demo
+
+<Terminal command="npx primp demo" />
+
+This copies a small one-page site with one deliberate layout shift into `./primp-demo`, serves it, starts primp in front of it and opens it in your browser with the dock. The terminal tells you what to say to your agent. Pass `--dir <directory>` to put the site elsewhere, and `--no-open` to skip opening the browser.
+
+The site's one deliberate problem: a picture near the top has no reserved space, so everything below it jumps when it loads. Open the dock's **Shifts** tab to see it, then ask your agent to *"Fix the layout shift primp found, then verify it."*
+
+## Use it on your project
+
+Start your dev server as usual, then, in the project directory:
+
+<Terminal command="npx primp" />
+
+primp finds the dev server by looking at the processes of this project, starts a proxy on the next port and opens your app through it. Use the page it opens; the dock is only there.
+
+| Option | What it does |
+| --- | --- |
+| `--target <url or port>` | The dev server to sit in front of, when primp cannot find it or finds the wrong one. |
+| `--exec "<command>"` | Start the dev server too, and stop it on exit: `npx primp --exec "npm run dev"`. |
+| `--port <n>` | Port for the proxy. Default: the dev server's port plus one, or the next free one. |
+| `--project <dir>` | The project directory, when it is not the working directory. |
+| `--no-open` | Do not open the browser. |
+
+primp keeps running in that terminal; stop it with <kbd>Ctrl</kbd> <kbd>C</kbd>. With `--exec`, that stops the dev server as well.
+
+If something does not work, `npx primp doctor` checks the environment: Node, the project, the framework, the dev server, a running session and the dock's bundles.
+
+## Connect your agent
+
+<Terminal command="npx primp setup" />
+
+This registers primp's MCP server with Claude Code and Codex, after asking, and prints the configuration for Cursor. See [Connecting your agent](/docs/agents/) for what it runs and for the clipboard flow without MCP.
+
+## Before it is on npm
+
+primp is pre-release and not published to npm yet, so the `npx` commands above work once it is. Until then, run it from a checkout of the repository, in the checkout's directory:
+
+```sh
+pnpm install
+pnpm exec tsx packages/cli/src/index.ts demo
+pnpm exec tsx packages/cli/src/index.ts --project ~/code/your-app
+pnpm exec tsx packages/cli/src/index.ts setup
+```
+
+Run this way, `setup` registers the MCP server with absolute paths into the checkout, so your agent can reach it without the npm package.
+
+## Next
+
+- [Using the dock](/docs/dock/): selecting, edits, states, reorder, resize, notes, Send.
+- [Verification statuses](/docs/verification/): what pass, drift and fail mean, and the statuses that are not a pass.
+- [Limits and privacy](/docs/limits/).

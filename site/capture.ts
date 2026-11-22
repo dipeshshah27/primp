@@ -1,25 +1,26 @@
 /**
- * Screenshots for the landing page, taken from the real product: `primp demo`'s site served by
- * its own demo server, primp started in front of it (as spikes/agent-check.ts does), headless
+ * Screenshots and facts for the website, taken from the real product: `primp demo`'s site served
+ * by its own demo server, primp started in front of it (as spikes/agent-check.ts does), headless
  * Chromium driving the dock through `window.__primp_test`, and primp's MCP tools called over
  * stdio, as an agent would.
  *
  * The "agent" here is this script: it edits the demo copy's css/site.css the way the shots need
  * (one change implemented correctly, one by editing a shared rule in place, which primp must
- * fail because another button changed with it). Everything primp reports is its own.
+ * fail because another button changed with it; a note it leaves alone, which primp reports as
+ * not_checkable). Everything primp reports is its own.
  *
- * Writes into site/assets/shots/:
- *   shifts-{light,dark}.jpg   the Shifts tab with the seeded layout shift
- *   edit-{light,dark}.jpg     an edit in the Edits tab: the selected button and its rules
- *   tray-{light,dark}.jpg     the recorded changes, with what else moved and the bystander
- *   step-edit-*, step-verify-*   the dock alone, cropped from the tray and verify shots
- *   verify-{light,dark}.jpg   the Verify tab after the "agent" edited the source: one pass, one fail
- *   hover-light.jpg           a :hover edit previewed with the state held
- *   resize-light.jpg          a resize handle drag in progress
- *   facts.json                the strings the landing page quotes (summaries, hints, the shift)
- *   prompt.txt                the prompt Send produced
+ * Writes into site/public/shots/ (JPEG at 1.5x of a 1280x800 viewport unless noted):
+ *   tray-{light,dark}       the dock open with the Changes panel: numbered pins, recorded changes
+ *   edit-{light,dark}       the inspector next to the selected button
+ *   shifts-{light,dark}     the Layout shifts panel with the seeded shift shown on the page
+ *   verify-{light,dark}     the Verification panel after the "agent" edited the source
+ *   step-edit-*, step-verify-*   the dock alone (popover and toolbar), cropped from tray and verify
+ *   hover-light             a :hover edit previewed with the state held
+ *   resize-light            a resize handle drag in progress
+ *   facts.json              the strings the site quotes (summaries, hints, the shift, the change)
+ *   prompt.txt              the prompt Send produced
  *
- *   pnpm exec tsx site/capture.ts
+ *   pnpm site:capture       (at the repository root; then rebuild the site)
  */
 
 import { mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
@@ -37,59 +38,71 @@ import { startPrimp } from '../packages/server/src/app.ts'
 import { launchBrowser, newPage, onCleanup, REPO_ROOT, runCleanups, sleep, TMP_ROOT, waitFor } from '../spikes/lib/index.ts'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
-const OUT = join(HERE, 'assets/shots')
+const OUT = join(HERE, 'public/shots')
 const WORK = join(TMP_ROOT, `site-capture-${process.pid}`)
 const SITE = join(WORK, 'primp-demo')
 const SESSIONS = join(WORK, 'sessions')
 const CLI = join(REPO_ROOT, 'packages/cli/src/index.ts')
 const TSX = pathToFileURL(createRequire(import.meta.url).resolve('tsx')).href
+const VIEWPORT = { width: 1280, height: 800 }
 /** Screenshots are taken at 1.5 times the CSS size and kept as JPEG (each stays under ~300 kB). */
 const SCALE = 1.5
 const QUALITY = 84
 
+/** The demo site's elements this script works on (packages/cli/demo-site/index.html). */
+const PRIMARY_BUTTON = '.btn-primary'
+const HEADLINE = '.hero-title'
+const LEDE = '.hero-lede'
+const CARD = '#features .feature-grid > li.feature:nth-child(1)'
+
 type Dock = <M extends keyof PrimpTestHandle>(method: M, ...args: Parameters<PrimpTestHandle[M]>) => Promise<Awaited<ReturnType<PrimpTestHandle[M]>>>
+type Box = { x: number; y: number; width: number; height: number }
 
 function dockOf(page: Page): Dock {
   return ((method: string, ...args: unknown[]) =>
     page.evaluate(([name, values]) => (window as unknown as { __primp_test: Record<string, (...a: unknown[]) => unknown> }).__primp_test[name as string]?.(...(values as unknown[])), [method, args] as const)) as Dock
 }
 
-/** Runs `body` with the dock's own document (inside the shadow root of `<primp-root>`). */
-async function inDock(page: Page, body: string): Promise<unknown> {
-  return page.evaluate((code) => {
-    const frame = document.querySelector('primp-root')?.shadowRoot?.querySelector('iframe')
-    const doc = frame?.contentDocument
-    if (doc == null) throw new Error('the dock frame is not there')
-    return new Function('doc', code)(doc)
-  }, body)
+/** Clicks the first button whose text is `text` in any of the dock's frames. */
+async function clickInDock(page: Page, text: string): Promise<boolean> {
+  return page.evaluate((label) => {
+    const frames = [...(document.querySelector('primp-root')?.shadowRoot?.querySelectorAll('iframe') ?? [])]
+    for (const frame of frames) {
+      const button = [...(frame.contentDocument?.querySelectorAll('button') ?? [])].find((candidate) => candidate.textContent?.trim() === label)
+      if (button !== undefined) {
+        button.click()
+        return true
+      }
+    }
+    return false
+  }, text)
 }
 
-async function shoot(page: Page, name: string, clip?: { x: number; y: number; width: number; height: number }): Promise<void> {
+async function shoot(page: Page, name: string, clip?: Box): Promise<void> {
   const path = join(OUT, `${name}.jpg`)
-  await sleep(400)
+  await sleep(450)
   await page.screenshot({ path, type: 'jpeg', quality: QUALITY, ...(clip === undefined ? {} : { clip }) })
   console.log(`  ${name}.jpg  ${(statSync(path).size / 1024).toFixed(0)} kB`)
 }
 
-/** The dock's frame on the page, with a margin. */
-async function dockClip(page: Page, margin = 14): Promise<{ x: number; y: number; width: number; height: number }> {
-  const rect = await page.evaluate(() => {
-    const frame = document.querySelector('primp-root')?.shadowRoot?.querySelector('iframe')
-    if (frame == null) throw new Error('the dock frame is not there')
-    const box = frame.getBoundingClientRect()
-    return { x: box.x, y: box.y, width: box.width, height: box.height }
-  })
-  const x = Math.max(0, rect.x - margin)
-  const y = Math.max(0, rect.y - margin)
-  return { x, y, width: Math.min(1280 - x, rect.width + 2 * margin), height: Math.min(800 - y, rect.height + 2 * margin) }
+/** The dock's popover and toolbar together, with a margin. */
+async function dockClip(dock: Dock, margin = 14): Promise<Box> {
+  const { bar, pop } = await dock('geometry')
+  const boxes = [bar, ...(pop === null ? [] : [pop])]
+  const left = Math.max(0, Math.min(...boxes.map((box) => box.x)) - margin)
+  const top = Math.max(0, Math.min(...boxes.map((box) => box.y)) - margin)
+  const right = Math.min(VIEWPORT.width, Math.max(...boxes.map((box) => box.x + box.width)) + margin)
+  const bottom = Math.min(VIEWPORT.height, Math.max(...boxes.map((box) => box.y + box.height)) + margin)
+  return { x: left, y: top, width: right - left, height: bottom - top }
 }
 
-/** Light, then dark (the dock follows the colour scheme; the demo site has none of its own). */
-async function both(page: Page, name: string, clip?: { x: number; y: number; width: number; height: number }): Promise<void> {
-  await page.emulateMedia({ colorScheme: 'light' })
-  await shoot(page, `${name}-light`, clip)
-  await page.emulateMedia({ colorScheme: 'dark' })
-  await shoot(page, `${name}-dark`, clip)
+/** Light, then dark: the dock (theme "auto") and the demo site both follow the colour scheme. */
+async function both(page: Page, name: string, clip?: () => Promise<Box>): Promise<void> {
+  for (const scheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: scheme })
+    await sleep(250)
+    await shoot(page, `${name}-${scheme}`, clip === undefined ? undefined : await clip())
+  }
   await page.emulateMedia({ colorScheme: 'light' })
 }
 
@@ -115,7 +128,7 @@ try {
   }
 
   const browser = await launchBrowser()
-  const { page } = await newPage(browser, { viewport: { width: 1280, height: 800 }, context: { deviceScaleFactor: SCALE } })
+  const { page } = await newPage(browser, { viewport: VIEWPORT, context: { deviceScaleFactor: SCALE } })
   await page.addInitScript(() => {
     ;(globalThis as unknown as { __name: (fn: unknown) => unknown }).__name = (fn) => fn
   })
@@ -124,6 +137,7 @@ try {
     await page.goto(`${primp.url}/`)
     await page.waitForFunction(() => (window as unknown as { __primp_test?: unknown }).__primp_test !== undefined, undefined, { timeout: 15_000 })
     await dock('ready')
+    await dock('open', true)
   }
 
   // --- The seeded layout shift ------------------------------------------------
@@ -143,94 +157,101 @@ try {
     source: tool?.source == null ? null : `${tool.source.file}:${tool.source.line}`,
     level: tool?.source?.level ?? null,
   }
-  dock('openTab', 'shifts')
+  await dock('panel', 'shifts')
   await sleep(600)
-  await inDock(page, `const button = [...doc.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Show on page'); if (!button) throw new Error('no Show on page button'); button.click()`)
+  if (!(await clickInDock(page, 'Show on page'))) console.warn('  (no "Show on page" button in the shifts panel)')
   await sleep(600)
   await both(page, 'shifts')
   // Unpin the culprit outline again, or it stays on the page in the next shots.
-  await inDock(page, `const button = [...doc.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Shown on page'); if (button) button.click()`)
+  await clickInDock(page, 'Shown on page')
+  await dock('panel', null)
 
-  // --- An edit: side effects and a bystander ---------------------------------
-  dock('openTab', 'edits')
-  await dock('select', '.btn-primary')
+  // --- An edit: side effects and a bystander; a second edit; a note -------------
+  await dock('select', PRIMARY_BUTTON)
   const padding = await dock('setStyle', 'padding', '14px 26px', { media: null, scope: 'all-instances' })
   if (!padding.ok || padding.item === null) throw new Error(`padding: ${padding.error}`)
   const paddingItem = padding.item as ChangeItem
   await sleep(500)
   facts.edit = {
+    id: paddingItem.id,
     label: paddingItem.target.label,
     summary: await dock('summary', paddingItem.id),
     source: `${paddingItem.target.source?.file}:${paddingItem.target.source?.line}`,
+    change: paddingItem.kind === 'style' ? { property: paddingItem.property, before: paddingItem.before.authored ?? paddingItem.before.computed, after: paddingItem.after.authored ?? paddingItem.after.computed } : undefined,
     origin: paddingItem.kind === 'style' ? paddingItem.origin : undefined,
     bystanders: paddingItem.kind === 'style' ? (paddingItem.bystanders ?? []).map((entry) => entry.label) : [],
     sideEffects: paddingItem.sideEffects.slice(0, 6),
   }
   await both(page, 'edit')
 
-  await dock('select', '.hero-title')
-  const spacing = await dock('setStyle', 'letter-spacing', '-1px', { media: null, scope: 'instance' })
+  await dock('select', HEADLINE)
+  const spacing = await dock('setStyle', 'letter-spacing', '-3px', { media: null, scope: 'instance' })
   if (!spacing.ok || spacing.item === null) throw new Error(`letter-spacing: ${spacing.error}`)
+  await dock('select', LEDE)
+  const note = await dock('addNote', 'Shorten this to one sentence.', { on: 'element' })
+  if (!note.ok || note.item === null) throw new Error(`note: ${note.error}`)
   await sleep(500)
-  await inDock(page, `const body = doc.querySelector('.body'); body.scrollTop = body.scrollHeight`)
+  await dock('panel', 'changes')
+  await sleep(500)
   await both(page, 'tray')
-  await both(page, 'step-edit', await dockClip(page))
+  await both(page, 'step-edit', () => dockClip(dock))
   const prompt = await dock('send')
   writeFileSync(join(OUT, 'prompt.txt'), prompt)
 
-  // --- The "agent": one change made right, one by editing the shared rule in place
+  // --- The "agent": one change made right, one by editing the shared rule in place, the note left
   const pending = await call<PendingChanges>('get_pending_changes')
   const ids = pending.files.flatMap((group) => group.items).map((item) => item.id)
   const css = join(SITE, 'css/site.css')
   const sheet = readFileSync(css, 'utf8')
   const edited = sheet
-    .replace('.btn {\n  display: inline-block;\n  padding: 10px 18px;', '.btn {\n  display: inline-block;\n  padding: 14px 26px;')
-    .replace('  line-height: 1.1;\n  letter-spacing: -0.02em;', '  line-height: 1.1;\n  letter-spacing: -1px;')
-  if (edited === sheet || edited.split('14px 26px').length !== 2 || !edited.includes('letter-spacing: -1px')) throw new Error('the css patch did not apply')
+    .replace('.btn {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  padding: 12px 20px;', '.btn {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  padding: 14px 26px;')
+    .replace('  line-height: 1.02;\n  letter-spacing: -0.04em;\n  text-wrap: balance;', '  line-height: 1.02;\n  letter-spacing: -3px;\n  text-wrap: balance;')
+  if (edited === sheet || edited.split('padding: 14px 26px').length !== 2 || !edited.includes('letter-spacing: -3px')) throw new Error('the css patch did not apply')
   writeFileSync(css, edited)
   const verified = await call<VerifyChangesResult>('verify_changes', { ids, waitMs: 2000 })
   facts.verify = {
     summary: verified.summary,
     results: verified.results.map((result) => ({ id: result.itemId, status: result.status, hint: result.hint })),
   }
-  await waitFor(async () => (await dock('items')).filter((item) => item.verification !== undefined).length >= 2, { what: 'the dock to show both verdicts', timeoutMs: 10_000 })
-  dock('openTab', 'verify')
+  await waitFor(async () => (await dock('items')).filter((item) => item.verification !== undefined).length >= 2, { what: 'the dock to show the verdicts', timeoutMs: 10_000 })
+  await dock('panel', 'verify')
   await sleep(600)
   await both(page, 'verify')
-  await both(page, 'step-verify', await dockClip(page))
+  await both(page, 'step-verify', () => dockClip(dock))
   writeFileSync(css, sheet)
 
   // --- States and resize, on a fresh load of the original page ----------------
   await sleep(1500)
   await open()
-  dock('openTab', 'edits')
-  await dock('select', '.btn-primary')
+  await dock('select', PRIMARY_BUTTON)
   await dock('setState', 'hover')
-  const hover = await dock('setStyle', 'background-color', '#0a3f44', { media: null, scope: 'all-instances', state: 'hover' })
+  const hover = await dock('setStyle', 'background-color', '#3b2fd0', { media: null, scope: 'all-instances', state: 'hover' })
   if (!hover.ok) throw new Error(`hover: ${hover.error}`)
   await page.emulateMedia({ colorScheme: 'light' })
   await shoot(page, 'hover-light')
 
   await dock('setState', null)
-  await dock('collapse', true)
-  await page.evaluate(() => document.querySelector('#beans')?.scrollIntoView({ block: 'start' }))
+  await dock('panel', null)
+  await page.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), CARD)
   await sleep(500)
-  await dock('select', '.bean-grid > li.bean:nth-child(1)')
-  const grid = await page.evaluate(() => {
-    const rect = (document.querySelector('.bean-grid') as Element).getBoundingClientRect()
+  await dock('select', CARD)
+  await dock('panel', null)
+  const grid = await page.evaluate((selector) => {
+    const rect = (document.querySelector(selector)?.parentElement as Element).getBoundingClientRect()
     return { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
-  })
+  }, CARD)
   const handles = await dock('handles')
   const east = handles.e
   if (east === undefined) throw new Error(`no east handle: ${JSON.stringify(handles)}`)
   await page.mouse.move(east.x + east.width / 2, east.y + east.height / 2)
   await page.mouse.down()
   await page.mouse.move(east.x + east.width / 2 + 60, east.y + east.height / 2, { steps: 8 })
-  await shoot(page, 'resize-light', { x: Math.max(0, grid.x - 40), y: Math.max(0, grid.y - 90), width: Math.min(1280, grid.width + 80), height: grid.height + 160 })
+  const top = Math.max(0, grid.y - 90)
+  await shoot(page, 'resize-light', { x: Math.max(0, grid.x - 40), y: top, width: Math.min(VIEWPORT.width, grid.width + 80), height: Math.min(VIEWPORT.height - top, grid.height + 160) })
   await page.mouse.up()
 
   writeFileSync(join(OUT, 'facts.json'), `${JSON.stringify(facts, null, 2)}\n`)
-  console.log(JSON.stringify(facts, null, 2))
+  console.log(JSON.stringify({ ...facts, edit: { ...(facts.edit as object), sideEffects: '...' } }, null, 2))
 } catch (error) {
   process.exitCode = 1
   console.error(error)

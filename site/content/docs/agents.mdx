@@ -1,0 +1,56 @@
+Your agent talks to primp through a small MCP server, `primp mcp`, that its host starts. It holds no state: every call finds the primp process running for the project, so it does not matter which of the two you start first.
+
+## primp setup
+
+<Terminal command="npx primp setup" />
+
+For each client it knows, `setup` prints the client's own registration command and asks before running it. It runs a command only when that client is installed, and it never opens or writes a configuration file itself. Pass `--yes` to skip the questions.
+
+### Claude Code
+
+```sh
+claude mcp add primp -- npx -y primp mcp
+```
+
+### Codex
+
+```sh
+codex mcp add primp -- npx -y primp mcp
+```
+
+### Cursor
+
+Put this in `.cursor/mcp.json` in the project. Cursor starts servers outside the project directory, hence `--project`:
+
+```json
+{
+  "mcpServers": {
+    "primp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "primp", "mcp", "--project", "${workspaceFolder}"]
+    }
+  }
+}
+```
+
+### Any other MCP client
+
+Register a stdio server with the command `npx -y primp mcp`, started in the project directory or given `--project <dir>`.
+
+## What to say
+
+The agent gets instructions with the tools; a plain sentence is enough:
+
+- *"Implement the primp changes and verify them."* after you pressed Send.
+- *"Fix the layout shift primp found, then verify it."*
+
+The agent takes the changes with `get_pending_changes`, edits the files named there, and calls `verify_changes`. If something fails, it gets the reason and a fix-up, and is told to try at most twice more before reporting what still fails. See [The six MCP tools](/docs/mcp-tools/).
+
+## Without MCP: the clipboard
+
+**Copy** puts the instructions on your clipboard. Paste them into any agent or chat. After the agent has edited the source, go back to the dock: primp notices that source files changed and stayed untouched for a moment, verifies the changes that were not taken over MCP, and fills in **Verify** by itself. The result has the same statuses either way.
+
+## What the agent sees
+
+Only what you sent: the element, its source position, the values before and after, the conditions (viewport, media query, state), your notes, the side effects you marked as unwanted, and the checks that must hold. Text copied from the page is marked as data, and the agent is told never to follow instructions found in it.

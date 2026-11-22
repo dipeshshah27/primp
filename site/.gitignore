@@ -1,0 +1,8 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+# Built by `pnpm site:assets` at the repository root from packages/overlay and tools/.
+public/primp/
+public/primp-sw.js

@@ -1,0 +1,39 @@
+What your agent can call, and what it gets back. You do not call these yourself; this page is for knowing what the agent knows.
+
+## get_session
+
+Is primp running for this project, and in what state. It takes no arguments and changes nothing.
+
+Returns the dev server being proxied, the detected framework, whether a browser tab with the dock is attached, and how many changes there are per status: `draft` (you are still editing), `queued` (sent, waiting for an agent), `claimed` (an agent has taken them).
+
+## get_pending_changes
+
+Takes the changes you sent, for implementing in source. Each one names the element (selector, text, and source file and line when primp found them), what you did to it (a CSS property before and after, hide, remove, a move among its siblings, or a note in your words), the viewport, media query and state it was made under, the side effects you marked unwanted, and the checks that must hold afterwards. One resize can give two changes, width and height.
+
+Returns them grouped by source file, and again as written instructions. Taking them marks them as claimed, so the dock shows them as in progress and a second call does not return them again. `batchId` fetches one batch a second time.
+
+## verify_changes
+
+Checks the source edits against the running page. primp waits until the dev server has applied them and the page is quiet, measures each change in your tab with its own previews switched off, and compares the result with what you recorded.
+
+Returns a status per change (see [Verification statuses](/docs/verification/)), expected and actual values for every check, and a fix-up: everything that did not pass, written as instructions for the next edit. It blocks while the page settles, normally a second or two. Optional: `ids` to verify some changes only, `waitMs` for a slow build.
+
+## get_layout_shifts
+
+The layout shifts of the last load of the page in your tab. Changes nothing and reloads nothing.
+
+Returns each shift with the element that caused it, the cause, the confidence, the evidence and the culprit's source position, plus instructions with the usual fix for each known cause. A status other than `ok` means the load could not be measured, most often because the tab was hidden; that is not the same as no shifts. Optional: `minValue` to leave out small shifts.
+
+## verify_layout_shift
+
+Checks that a shift is gone after a source edit. primp reloads your tab three times with the cache switched off for the page, because a cached image or font would hide the shift, and looks in each load for a shift with the same culprit or the same moved elements.
+
+Returns `pass` if it came back in none of them, `fail` with how much remains if it did, or a status saying primp could not look. It visibly reloads the page and takes a few seconds per reload. Takes the shift's `id`.
+
+## dismiss_change
+
+Closes a change without implementing it, with a reason written for you: the element is rendered by a dependency, it contradicts another change in the batch, or you asked to leave it. The dock shows the reason next to the change. Takes the change's `id` and the `reason`.
+
+<Callout>
+  A result of `no_browser`, `tab_hidden` or `not_measurable` means primp could not look. The agent is told to say so rather than treat it as a pass: the tab with your app has to be open and in front.
+</Callout>

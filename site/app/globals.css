@@ -1,0 +1,209 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Dark first: near-black, zinc greys, hairline borders and one accent (violet). Status colours
+ * (pass, drift, fail) are kept for primp's verdicts only.
+ */
+:root {
+  --radius: 0.625rem;
+  --background: oklch(0.993 0 0);
+  --foreground: oklch(0.16 0.004 286);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.16 0.004 286);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.16 0.004 286);
+  --primary: oklch(0.21 0.006 286);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.967 0.001 286);
+  --secondary-foreground: oklch(0.21 0.006 286);
+  --muted: oklch(0.965 0.001 286);
+  --muted-foreground: oklch(0.5 0.014 286);
+  --accent: oklch(0.967 0.001 286);
+  --accent-foreground: oklch(0.21 0.006 286);
+  --border: oklch(0.91 0.004 286);
+  --input: oklch(0.9 0.004 286);
+  --ring: oklch(0.6 0.12 290);
+  --accent-brand: oklch(0.55 0.2 290);
+  --accent-brand-foreground: oklch(0.985 0 0);
+  --accent-brand-text: oklch(0.5 0.2 290);
+  --pass: oklch(0.55 0.14 155);
+  --drift: oklch(0.6 0.14 70);
+  --fail: oklch(0.56 0.2 25);
+  --grid-line: oklch(0.16 0.004 286 / 0.055);
+  --glow: oklch(0.62 0.2 290 / 0.16);
+  --code-bg: oklch(0.975 0.001 286);
+}
+
+.dark {
+  --background: oklch(0.13 0.003 286);
+  --foreground: oklch(0.97 0 0);
+  --card: oklch(0.16 0.004 286);
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.17 0.004 286);
+  --popover-foreground: oklch(0.97 0 0);
+  --primary: oklch(0.96 0 0);
+  --primary-foreground: oklch(0.17 0.004 286);
+  --secondary: oklch(0.22 0.005 286);
+  --secondary-foreground: oklch(0.97 0 0);
+  --muted: oklch(0.2 0.005 286);
+  --muted-foreground: oklch(0.69 0.012 286);
+  --accent: oklch(0.22 0.005 286);
+  --accent-foreground: oklch(0.97 0 0);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 13%);
+  --ring: oklch(0.7 0.15 290);
+  --accent-brand: oklch(0.72 0.16 290);
+  --accent-brand-foreground: oklch(0.15 0.02 290);
+  --accent-brand-text: oklch(0.78 0.13 290);
+  --pass: oklch(0.76 0.15 155);
+  --drift: oklch(0.8 0.14 75);
+  --fail: oklch(0.7 0.18 25);
+  --grid-line: oklch(1 0 0 / 0.05);
+  --glow: oklch(0.65 0.2 290 / 0.22);
+  --code-bg: oklch(0.155 0.004 286);
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-accent-brand: var(--accent-brand);
+  --color-accent-brand-foreground: var(--accent-brand-foreground);
+  --color-accent-brand-text: var(--accent-brand-text);
+  --color-pass: var(--pass);
+  --color-drift: var(--drift);
+  --color-fail: var(--fail);
+  --color-code: var(--code-bg);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --animate-rise: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 5rem;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+  ::selection {
+    background: oklch(0.65 0.2 290 / 0.3);
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+}
+
+@layer components {
+  /* A square grid that fades out towards the edges. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+  }
+  .bg-dots {
+    background-image: radial-gradient(var(--grid-line) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+  .glow {
+    background: radial-gradient(closest-side, var(--glow), transparent);
+  }
+  .text-gradient {
+    background: linear-gradient(180deg, var(--foreground) 30%, color-mix(in oklch, var(--foreground) 55%, transparent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  kbd {
+    @apply inline-flex h-5 min-w-5 items-center justify-center rounded border bg-muted px-1 font-sans text-[11px] font-medium text-muted-foreground;
+  }
+}
+
+/* Shiki through rehype-pretty-code and codeToHtml: both themes as CSS variables. */
+[data-rehype-pretty-code-figure] code span,
+.shiki span {
+  color: var(--shiki-light);
+}
+.dark [data-rehype-pretty-code-figure] code span,
+.dark .shiki span {
+  color: var(--shiki-dark);
+}
+[data-rehype-pretty-code-figure] pre,
+pre.shiki {
+  background: transparent !important;
+}
+[data-rehype-pretty-code-figure] code {
+  display: grid;
+  counter-reset: line;
+}
+[data-rehype-pretty-code-figure] [data-line] {
+  padding: 0 1rem;
+}
+
+/*
+ * The layout-shift replay (`?shift=1`, see tools/standin/head.ts): the hero screenshot is shown
+ * WITHOUT reserved space, so the page jumps when it arrives. On every other load the unsized copy
+ * is not rendered (and, being lazy, not fetched).
+ */
+.shift-replay-only {
+  display: none;
+}
+html[data-primp-shift] .shift-replay-only {
+  display: block;
+}
+html[data-primp-shift] .shift-replay-hide {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

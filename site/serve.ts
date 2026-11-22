@@ -1,9 +1,11 @@
 /**
- * A tiny static server for site/dist, behaving like a plain static host: `/dir/` serves
+ * A tiny static server for site/out (the static export of `cd site && pnpm build`), behaving like a plain static host: `/dir/` serves
  * `dir/index.html`, `/dir` redirects to `/dir/`, anything else missing is a 404 with `404.html`.
  * Used by spikes/site-check.ts and for a local preview:
  *
  *   pnpm exec tsx site/serve.ts [port]
+ *
+ * Every page is served `no-cache`, like a host that revalidates, so a rebuilt site shows at once.
  */
 
 import { existsSync, readFileSync, statSync } from 'node:fs'
@@ -23,6 +25,8 @@ const TYPES: Record<string, string> = {
   '.json': 'application/json',
   '.txt': 'text/plain; charset=utf-8',
   '.xml': 'application/xml',
+  '.woff2': 'font/woff2',
+  '.ico': 'image/x-icon',
 }
 
 export interface StaticServer {
@@ -84,7 +88,7 @@ export function startStaticServer(root: string, port = 0): Promise<StaticServer>
 }
 
 if (process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const dist = join(dirname(fileURLToPath(import.meta.url)), 'dist')
-  const served = await startStaticServer(dist, Number(process.argv[2] ?? 0) || 0)
-  console.log(`site/dist at ${served.url} (Ctrl+C to stop)`)
+  const out = join(dirname(fileURLToPath(import.meta.url)), 'out')
+  const served = await startStaticServer(out, Number(process.argv[2] ?? 0) || 0)
+  console.log(`site/out at ${served.url} (Ctrl+C to stop)`)
 }

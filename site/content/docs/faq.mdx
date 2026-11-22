@@ -1,0 +1,39 @@
+## How is this different from a screenshot and a prompt?
+
+A screenshot shows the result you want; it does not say which element, which source line, which property, under which media query or state, or what else on the page moved. The agent has to guess all of that, and you have to check its work by eye.
+
+primp records the change itself: the element and its line in your source, the exact values before and after, the conditions, the side effects and the elements that share the rule. After the agent's edit it measures the page and reports pass, drift or fail per change, so the agent can correct itself without you looking at every pixel.
+
+## Does it write my code?
+
+No. primp never writes to your source files. Your agent makes the edits, in your project's own style; primp tells it what to change and checks the result.
+
+## Does it work with my framework?
+
+It has been tested end to end with Vite + React 19, Next 16 (Turbopack, Server Components, strict CSP), SvelteKit (Svelte 5) and plain HTML. The proxy and the dock do not depend on a framework, so others should work, but they are untested and source positions fall back to ranked guesses. See [What has been tested](/docs/limits/#what-has-been-tested).
+
+## Which browsers?
+
+Only Chromium has been run. The dock may work elsewhere, untested; layout shifts need Chromium in any case, as it is the only engine with the Layout Instability API.
+
+## Does it send anything anywhere?
+
+No. No telemetry, no requests of its own; the proxy accepts connections from `localhost` only. What reaches your agent is what you send, and the agent's own host decides where that goes.
+
+## Which agents?
+
+Any MCP client: `primp setup` registers it with Claude Code and Codex and prints the Cursor configuration. Without MCP, paste the prompt that Copy puts on your clipboard; primp still verifies once the source changes.
+
+## Can I point it at production?
+
+primp is for development: it sits in front of a server on your machine. To see shifts closer to production, run it in front of a local preview build.
+
+## What runs on this website?
+
+primp's real dock and head script run on every page of this site, in your browser. A small stand-in replaces primp's server; there is no server and no agent.
+
+- **Real:** the dock, its measurements and side effects, the layout-shift recorder and attribution, and the prompt Send produces, all primp's own code.
+- **Stand-in:** the source lookup. A production React build carries no source positions, so the stand-in uses primp's text-search fallback over this site's own source files, bundled into the page. The results are ranked guesses, as primp reports them on any project without framework evidence.
+- **Not here:** an agent, and so verification. With `npx primp`, after your agent edits the source, primp measures the page again and reports pass, drift or fail.
+
+This site has no layout shift of its own. [Replay the home page with one](/docs/layout-shifts/#try-it-on-this-page) to see primp attribute it.

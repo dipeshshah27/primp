@@ -1,5 +1,21 @@
 {
-  "extends": "../tsconfig.base.json",
-  "include": ["**/*.ts", "../packages/overlay/src/hook/index.ts"],
-  "exclude": ["dist", "demo/sw.ts"]
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": { "@/*": ["./*"] }
+  },
+  "include": ["next-env.d.ts", "app", "components", "lib", "content", "mdx-components.tsx", "next.config.ts", ".next/types/**/*.ts", ".next/dev/types/**/*.ts"],
+  "exclude": ["node_modules", "out", "tools", "capture.ts", "serve.ts"]
 }
