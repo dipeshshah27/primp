@@ -750,23 +750,19 @@ export function Inspector({ c, selection, onClose }: { c: Controller; selection:
     <div class="pop inspector" role="dialog" aria-label={`Edit ${name}`}>
       <header class="pop-head">
         <nav class="crumbs" aria-label="Ancestors of the selected element">
-          {selection.crumbs.map((crumb, index) => {
-            const current = index === selection.crumbs.length - 1
-            // The nearest three ancestors; the rest are one click away on the nearest.
-            if (index < selection.crumbs.length - 4) return null
-            return (
-              <>
-                {index > selection.crumbs.length - 4 ? (
-                  <span class="chev" aria-hidden="true">
-                    {'›'}
-                  </span>
-                ) : null}
-                <button type="button" class="crumb" aria-current={current ? 'true' : undefined} title={current ? 'Selected' : 'Select this ancestor'} onClick={() => c.select(crumb.element)}>
-                  {crumb.label}
-                </button>
-              </>
-            )
-          })}
+          {selection.crumbs.slice(-4, -1).map((crumb) => (
+            <>
+              <button type="button" class="crumb" title="Select this ancestor" onClick={() => c.select(crumb.element)}>
+                {crumb.label}
+              </button>
+              <span class="chev" aria-hidden="true">
+                {'\u203a'}
+              </span>
+            </>
+          ))}
+          <span class="crumb" aria-current="true">
+            {name}
+          </span>
           {selection.hasChild ? (
             <>
               <span class="chev" aria-hidden="true">

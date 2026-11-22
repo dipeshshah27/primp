@@ -169,7 +169,6 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
     swallowing = false
     for (const type of SWALLOWED) view.removeEventListener(type, onSwallow, { capture: true })
     view.removeEventListener('pointercancel', onCancelEvent, { capture: true })
-    view.removeEventListener('keydown', onKey, true)
     for (const target of options.keyTargets?.() ?? []) target?.removeEventListener('keydown', onKey, true)
   }
 
@@ -180,7 +179,6 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
     swallowing = true
     for (const type of SWALLOWED) view.addEventListener(type, onSwallow, { capture: true, passive: false })
     view.addEventListener('pointercancel', onCancelEvent, { capture: true })
-    view.addEventListener('keydown', onKey, true)
     for (const target of options.keyTargets?.() ?? []) target?.addEventListener('keydown', onKey, true)
   }
 
@@ -359,6 +357,9 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
     begin(name, nodes[name], event)
   }
   view.addEventListener('pointerdown', onDown, { capture: true })
+  // Always there, and so before the selection's own key listener (added when the dock opens): an
+  // Escape during a drag cancels the drag and nothing else.
+  view.addEventListener('keydown', onKey, true)
 
   return {
     place,
@@ -373,6 +374,7 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
       finish()
       stopSwallowing()
       view.removeEventListener('pointerdown', onDown, { capture: true })
+      view.removeEventListener('keydown', onKey, true)
       for (const node of [...Object.values(nodes), line, tag]) node.remove()
     },
   }

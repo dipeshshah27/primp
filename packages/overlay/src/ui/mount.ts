@@ -205,7 +205,7 @@ export function mountDock(c: Controller): DockHandle {
     const barAtBottom = barBox.y + barBox.h / 2 > view.h / 2
     let maxHeight: number
     if (sheet) maxHeight = Math.round((barAtBottom ? barTop - 8 : view.h) * 0.85)
-    else if (anchoredToSelection) maxHeight = view.h - 16
+    else if (anchoredToSelection) maxHeight = Math.min(720, view.h - 16)
     else maxHeight = barAtBottom ? barTop - GAP - 8 : view.h - barBottom - GAP - 8
     maxHeight = Math.max(160, maxHeight)
     doc.documentElement.style.setProperty('--w', `${width}px`)

@@ -42,7 +42,7 @@ function SettingsPanel({ c, ui, onClose }: { c: Controller; ui: DockUi; onClose(
           </button>
         </div>
         <p class="project">
-          {connected ? (info === null ? 'Connected' : `${info.projectName} · ${hostOf(info.target)} · ${info.framework}, primp ${info.version}`) : 'Reconnecting to primp…'}
+          {connected ? (info === null ? 'Connected' : `${info.projectName} · ${hostOf(info.target)} · ${info.framework}, primp ${info.version}`) : 'Not connected: reconnecting to primp…'}
         </p>
       </header>
       <div class="pop-body" id="panel">

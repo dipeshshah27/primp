@@ -200,7 +200,7 @@ export function ChangesPanel({ c, onClose }: { c: Controller; onClose(): void })
           {groups.map((group) => (
             <section key={group.uid} class="target-group" data-pin={group.number} aria-label={`${group.number}: ${group.target.label}`}>
               <div class="tg-head">
-                <span class="num" data-status={group.status}>
+                <span class="num" data-pin-status={group.status}>
                   {group.number}
                 </span>
                 <button

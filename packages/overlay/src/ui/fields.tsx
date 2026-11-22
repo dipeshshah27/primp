@@ -20,6 +20,8 @@ export interface EditOptions {
   unit?: boolean
   /** How the value is shown in the field (the box model drops `px`). */
   compact?: boolean
+  /** An opaque `rgb()` colour is shown as hex. */
+  color?: boolean
 }
 
 export interface ValueEdit {
@@ -35,7 +37,7 @@ export interface ValueEdit {
 
 /** The editing behaviour every value field shares. `value` is what the element has now (or the recorded edit). */
 export function useValueEdit(c: Controller, property: string, value: string, options: EditOptions = {}): ValueEdit {
-  const shown = (raw: string): string => (options.compact === true ? stripPx(raw) : raw)
+  const shown = (raw: string): string => (options.compact === true ? stripPx(raw) : options.color === true ? (/^rgb\(/.test(raw) ? (toHex(raw) ?? raw) : raw) : raw)
   const [text, setText] = useState(shown(value))
   const [error, setError] = useState<string | null>(null)
   const dirty = useRef(false)
@@ -174,7 +176,7 @@ export function toHex(color: string): string | null {
 }
 
 export function ColorField({ c, property, value, k, edited }: FieldProps) {
-  const edit = useValueEdit(c, property, value)
+  const edit = useValueEdit(c, property, value, { color: true })
   const hex = toHex(edit.text) ?? toHex(value) ?? '#000000'
   const id = `f-${property}`
   return (

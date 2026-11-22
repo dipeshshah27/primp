@@ -17,7 +17,8 @@
  *
  * Run: pnpm spike:m1-overlay                  (exit 0 = every check passed)
  *      pnpm spike:m1-overlay vite next ...    only these sections: vite, next, static, cls, shots
- *                                             (vite-states: only the :hover checks of vite;
+ *                                             (vite-ux: only the launcher, toolbar, selection, pins and pause checks;
+ *                                              vite-states: only the :hover checks of vite;
  *                                              vite-moves: only its reorder and resize checks)
  * Screenshots go to .tmp/m1-overlay-shots/.
  */
@@ -30,7 +31,7 @@ import type { Browser } from '@playwright/test'
 import type { ChangeItem, Expectation, StructuralChange, StyleChange } from '../packages/protocol/src/change.ts'
 import type { ShiftReport } from '../packages/protocol/src/shift.ts'
 import { createReport, editFile, expect, launchBrowser, newPage, onCleanup, replaceOnce, runCleanups, sleep, TMP_ROOT, waitFor } from './lib/index.ts'
-import { buildBundles, computed, computedAll, items, marks, openDock, px, rect, restartPrimp, startFakeLane, startLane, testState, type Bundles, type DockPage, type Lane } from './m1-overlay-assets/harness.ts'
+import { buildBundles, computed, computedAll, dockFrame, items, marks, openDock, px, rect, restartPrimp, startFakeLane, startLane, testState, type Bundles, type DockPage, type Lane } from './m1-overlay-assets/harness.ts'
 import { fixed, readPlainEntries, sum, type PlainEntry } from './s7-assets/measure.ts'
 
 const report = createReport('M1 overlay: head script, dock and probe against the real primp server')
@@ -128,8 +129,9 @@ async function mountChecks(browser: Browser, lane: Lane, path: string, observeMs
       const facts = await page.page.evaluate(() => {
         const hosts = document.querySelectorAll('primp-root')
         const host = hosts[0]
-        const frame = host?.shadowRoot?.querySelector('iframe')
+        const frame = host?.shadowRoot?.querySelector('iframe[data-primp-dock="bar"]')
         const box = frame?.getBoundingClientRect()
+        const pop = host?.shadowRoot?.querySelector('iframe[data-primp-dock="pop"]')
         return {
           hosts: hosts.length,
           marked: host?.hasAttribute('data-primp-root') ?? false,
@@ -138,6 +140,7 @@ async function mountChecks(browser: Browser, lane: Lane, path: string, observeMs
           position: host === undefined ? '' : getComputedStyle(host).position,
           hostBox: host === undefined ? '' : `${host.getBoundingClientRect().width}x${host.getBoundingClientRect().height}`,
           frame: box === undefined ? undefined : { w: Math.round(box.width), h: Math.round(box.height), inView: box.left >= 0 && box.top >= 0 && box.right <= innerWidth && box.bottom <= innerHeight },
+          popHidden: pop === null || pop === undefined ? false : getComputedStyle(pop).display === 'none',
           leftoverScript: document.querySelectorAll('script[data-primp-root]').length,
           focusStolen: document.activeElement !== document.body && document.activeElement !== null && document.activeElement.localName === 'primp-root',
           hook: typeof window.__primp?.recording === 'function',
@@ -145,15 +148,20 @@ async function mountChecks(browser: Browser, lane: Lane, path: string, observeMs
         }
       })
       const state = await testState(page.page)
-      const dockText = await page.dock.evaluate(() => ({ text: document.body.innerText, tabs: document.querySelectorAll('[role="tab"]').length, lang: document.documentElement.lang }))
+      const launcher = await page.bar.evaluate(() => ({ label: document.querySelector('.launcher')?.getAttribute('aria-label') ?? '', lang: document.documentElement.lang }))
       expect(facts.hosts === 1 && facts.marked && facts.parent === 'html', `host: ${JSON.stringify(facts)}`)
       expect(facts.topLayer && facts.position === 'fixed' && facts.hostBox === '0x0', `host is not a 0x0 fixed box in the top layer: ${JSON.stringify(facts)}`)
-      expect(facts.frame !== undefined && facts.frame.w >= 240 && facts.frame.h >= 200 && facts.frame.inView, `dock frame: ${JSON.stringify(facts.frame)}`)
+      expect(facts.frame !== undefined && facts.frame.w === 44 && facts.frame.h === 44 && facts.frame.inView && facts.popHidden, `closed on load: launcher frame ${JSON.stringify(facts.frame)}, popover hidden ${facts.popHidden}`)
       expect(facts.hook && facts.bus, 'window.__primp or window.__primp_bus is missing')
       expect(facts.leftoverScript === 0, 'the loader script element was left in the document')
       expect(!facts.focusStolen, 'the dock took focus on load')
       expect(state.connected && state.ready && state.mounted, `state: ${JSON.stringify(state)}`)
-      expect(dockText.tabs === 3 && dockText.text.includes('primp') && dockText.text.includes(lane.name), `dock content: ${JSON.stringify(dockText).slice(0, 200)}`)
+      expect(launcher.label.startsWith('Open primp') && launcher.lang === 'en', `launcher: ${JSON.stringify(launcher)}`)
+      // The project is named in the settings of the open dock.
+      await page.page.evaluate(() => window.__primp_test!.panel('settings'))
+      const project = await waitFor(() => page.dock.evaluate(() => document.querySelector('.project')?.textContent ?? undefined), { timeoutMs: 3000, what: 'the settings to show the project' })
+      expect(project.includes(lane.name), `settings name the project as "${project}"`)
+      await page.page.evaluate(() => window.__primp_test!.open(false))
       const documents = lane.primp.session.documents()
       await waitFor(() => lane.primp.detector.status().browsers === 1, { timeoutMs: 3000, what: 'the settle detector to count the document' })
       expect(documents.length === 1 && documents[0]?.url.endsWith(path) === true, `the session knows ${documents.length} document(s): ${JSON.stringify(documents).slice(0, 200)}`)
@@ -161,7 +169,7 @@ async function mountChecks(browser: Browser, lane: Lane, path: string, observeMs
       expect(problems.length === 0, problems.join('; '))
       const sockets = page.record.webSockets.filter((url) => url.includes('/__primp/'))
       expect(sockets.length === 1, `expected ONE overlay socket, the page opened ${sockets.length}: ${sockets.join(', ')}`)
-      return `host 0x0 fixed in the top layer, dock ${facts.frame.w}x${facts.frame.h}, project "${lane.name}" shown, 1 overlay socket serving the session (1 document) and the settle detector (1 browser), ${hygieneText(page, lane)}`
+      return `host 0x0 fixed in the top layer, closed: launcher ${facts.frame.w}x${facts.frame.h} and no popover; settings name "${project}"; 1 overlay socket serving the session (1 document) and the settle detector (1 browser), ${hygieneText(page, lane)}`
     } finally {
       await page.close()
     }
@@ -230,10 +238,12 @@ async function viteSelection(browser: Browser, lane: Lane): Promise<void> {
       return `${ref.label} -> selector "${ref.selector}" (1 match), 6 instances, locator without class names; the real resolver answered ${state.source.file}:${state.source.line} (${state.source.level}) = labels.json; badge "${badge.text.trim()}", full path in the tooltip`
     })
 
-    await report.attempt('pick mode with a real mouse: hover highlight, click selects, the app\'s own click handler does not fire', async () => {
+    await report.attempt('selection with a real mouse while the dock is open: hover highlight, click selects, the app\'s own click handler does not fire, a link is not followed; closed, the click is the app\'s', async () => {
       const documents = page.record.documentRequests.length
-      await page.dock.locator('button', { hasText: 'Pick element' }).click()
-      expect((await testState(page.page)).pickMode, 'pick mode did not turn on')
+      // Selecting through the handle opened the dock; start from the launcher.
+      await page.page.evaluate(() => window.__primp_test!.open(false))
+      await page.bar.locator('.launcher').click()
+      expect((await testState(page.page)).open, 'the dock did not open')
       const dismiss = await rect(page.page, '[data-label="banner-dismiss"]')
       const x = dismiss.x + dismiss.w / 2
       const y = dismiss.y + dismiss.h / 2
@@ -243,32 +253,31 @@ async function viteSelection(browser: Browser, lane: Lane): Promise<void> {
           const box = document.querySelector('primp-root')?.shadowRoot?.querySelector<HTMLElement>('.box.hover')
           if (box === null || box === undefined || getComputedStyle(box).display === 'none') return undefined
           const r = box.getBoundingClientRect()
-          return { x: r.left, y: r.top, w: r.width, h: r.height, label: box.textContent ?? '' }
+          return { x: r.left, y: r.top, w: r.width, h: r.height }
         }),
       )
       expect(Math.abs(hover.x - dismiss.x) <= 1 && Math.abs(hover.y - dismiss.y) <= 1 && Math.abs(hover.w - dismiss.w) <= 1, `hover box ${JSON.stringify(hover)} is not on the button ${JSON.stringify(dismiss)}`)
       await page.page.mouse.click(x, y)
-      const afterPick = await page.page.evaluate(() => ({ selected: window.__primp_test!.selection()?.label, banner: document.querySelector('[data-label="banner"]') !== null, pick: window.__primp_test!.state().pickMode }))
+      const afterPick = await page.page.evaluate(() => ({ selected: window.__primp_test!.selection()?.label, banner: document.querySelector('[data-label="banner"]') !== null, open: window.__primp_test!.state().open }))
       expect(afterPick.selected?.startsWith('button.banner__dismiss') === true, `selected ${afterPick.selected}`)
       expect(afterPick.banner, 'the Dismiss handler of the app ran: the banner is gone')
-      expect(!afterPick.pick, 'pick mode stayed on after the click')
+      expect(afterPick.open, 'the dock closed after the click: selection must stay on while it is open')
       // A link is not followed either.
-      await page.page.evaluate(() => window.__primp_test!.pick(true))
       const link = await rect(page.page, '[data-label="nav-big"]')
       await page.page.mouse.click(link.x + link.w / 2, link.y + link.h / 2)
       await sleep(150)
       expect(page.record.documentRequests.length === documents && new URL(page.page.url()).pathname === '/', `the link was followed: ${page.page.url()}`)
       expect((await page.page.evaluate(() => window.__primp_test!.selection()?.tag)) === 'a', 'the link was not selected')
-      // With pick mode off the same click reaches the app.
+      // With the dock closed the same click reaches the app.
+      await page.page.evaluate(() => window.__primp_test!.open(false))
       await page.page.mouse.click(x, y)
       const dismissed = await waitFor(() => page.page.evaluate(() => document.querySelector('[data-label="banner"]') === null))
-      expect(dismissed, 'with pick mode off the click did not reach the app')
-      return `hover box on the button (${Math.round(hover.w)}x${Math.round(hover.h)}, "${hover.label.trim()}"); click selected ${afterPick.selected}, banner still mounted, link not followed; the same click with pick mode off dismissed the banner`
+      expect(dismissed, 'with the dock closed the click did not reach the app')
+      return `hover box on the button (${Math.round(hover.w)}x${Math.round(hover.h)}); click selected ${afterPick.selected}, banner still mounted, the dock stayed open; link not followed; the same click with the dock closed dismissed the banner`
     })
 
-    await report.attempt('keyboard in pick mode: arrows walk parent / child / siblings, Escape leaves (from the page and from the dock)', async () => {
+    await report.attempt('keyboard while open: arrows walk parent / child / siblings, Escape closes the inspector and then the dock (from the page and from the popover)', async () => {
       await page.page.evaluate((selector) => window.__primp_test!.select(`${selector}:nth-of-type(2)`), CARD)
-      await page.page.evaluate(() => window.__primp_test!.pick(true))
       await page.page.locator('body').focus()
       const label = (): Promise<string | undefined> => page.page.evaluate(() => window.__primp_test!.selection()?.label)
       await page.page.keyboard.press('ArrowRight')
@@ -280,12 +289,265 @@ async function viteSelection(browser: Browser, lane: Lane): Promise<void> {
       const child = await label()
       expect(next?.includes('03') === true && parent === 'div' && child?.includes('01') === true, `right -> ${next}; up -> ${parent}; down -> ${child}`)
       await page.page.keyboard.press('Escape')
-      expect(!(await testState(page.page)).pickMode, 'Escape on the page did not leave pick mode')
-      await page.dock.locator('button', { hasText: 'Pick element' }).click()
-      expect((await testState(page.page)).pickMode, 'pick mode did not turn on')
+      const one = await testState(page.page)
       await page.page.keyboard.press('Escape')
-      expect(!(await testState(page.page)).pickMode, 'Escape in the dock did not leave pick mode')
-      return `ArrowRight -> card 03, ArrowUp -> the grid div, ArrowDown -> card 01; Escape left pick mode with focus on the page and with focus in the dock`
+      const two = await testState(page.page)
+      expect(one.open && one.panel === null && !two.open, `Escape from the page: ${JSON.stringify({ one: [one.open, one.panel], two: two.open })}`)
+      // From inside the popover: focus a button of the inspector, then Escape twice.
+      await page.page.evaluate((selector) => window.__primp_test!.select(selector), CARD)
+      await page.dock.locator('.inspector button[aria-label="Close the inspector"]').focus()
+      await page.dock.locator('.inspector button[aria-label="Close the inspector"]').press('Escape')
+      const three = await testState(page.page)
+      expect(three.open && three.panel === null, `Escape in the popover: ${JSON.stringify([three.open, three.panel])}`)
+      await page.page.evaluate(() => window.__primp_test!.open(false))
+      return `ArrowRight -> card 03, ArrowUp -> the grid div, ArrowDown -> card 01; Escape closed the inspector and then the dock with focus on the page, and closed the inspector with focus in it`
+    })
+  } finally {
+    await page.close()
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The interaction model: closed by default, selection while open, popover, pins, pause
+// ---------------------------------------------------------------------------
+
+/** The two frames and the layer's nodes, read with code that shares nothing with the overlay. */
+async function dockBoxes(page: DockPage['page']) {
+  return page.evaluate(() => {
+    const shadow = document.querySelector('primp-root')!.shadowRoot!
+    const box = (node: Element | null): { x: number; y: number; w: number; h: number; shown: boolean } | null => {
+      if (node === null) return null
+      const r = node.getBoundingClientRect()
+      return { x: r.left, y: r.top, w: r.width, h: r.height, shown: getComputedStyle(node).display !== 'none' && getComputedStyle(node).visibility !== 'hidden' }
+    }
+    const chip = shadow.querySelector('.label-chip')
+    return {
+      bar: box(shadow.querySelector('iframe[data-primp-dock="bar"]'))!,
+      pop: box(shadow.querySelector('iframe[data-primp-dock="pop"]'))!,
+      chip: { ...box(chip)!, text: chip?.textContent ?? '' },
+      pins: [...shadow.querySelectorAll<HTMLElement>('.pin')].filter((pin) => pin.style.display !== 'none').map((pin) => ({ ...box(pin)!, number: pin.textContent ?? '', status: pin.dataset.status ?? '' })),
+      view: { w: document.documentElement.clientWidth, h: innerHeight },
+    }
+  })
+}
+
+/** "All CSS" (every declared rule, raw) is collapsed until opened; it stays open for the next element. */
+async function openAllCss(page: DockPage): Promise<void> {
+  await waitFor(() => page.dock.evaluate(() => document.querySelector('details.all') !== null), { timeoutMs: 3000, what: 'the inspector' })
+  if (!(await page.dock.evaluate(() => (document.querySelector('details.all') as HTMLDetailsElement).open))) await page.dock.locator('details.all > summary').click()
+}
+
+const inside = (r: { x: number; y: number; w: number; h: number }, view: { w: number; h: number }): boolean => r.x >= -0.5 && r.y >= -0.5 && r.x + r.w <= view.w + 0.5 && r.y + r.h <= view.h + 0.5
+
+async function viteDockUx(browser: Browser, lane: Lane): Promise<void> {
+  const page = await openDock(browser, lane, '/')
+  const t = page.page
+  const first = `${CARD}:nth-of-type(1)`
+  const second = `${CARD}:nth-of-type(2)`
+  try {
+    const shiftsBefore = await unmarkedShifts(t)
+
+    await report.attempt('the dock starts closed: a round launcher in the bottom-right corner, no popover, and the page gets its clicks', async () => {
+      const state = await testState(t)
+      const boxes = await dockBoxes(t)
+      const launcher = await page.bar.evaluate(() => ({ label: document.querySelector('.launcher')?.getAttribute('aria-label') ?? '', toolbar: document.querySelector('[role="toolbar"]') !== null }))
+      expect(!state.open && state.panel === null && !boxes.pop.shown, `state ${JSON.stringify({ open: state.open, panel: state.panel })}, popover ${JSON.stringify(boxes.pop)}`)
+      expect(boxes.bar.w === 44 && boxes.bar.h === 44 && near(boxes.view.w - boxes.bar.x - boxes.bar.w, 16) && near(boxes.view.h - boxes.bar.y - boxes.bar.h, 16), `launcher frame ${JSON.stringify(boxes.bar)}`)
+      expect(launcher.label.startsWith('Open primp') && !launcher.toolbar, `launcher: ${JSON.stringify(launcher)}`)
+      // Closed, a click on the page is the app's.
+      await countAppEvents(t, '[data-label="banner-dismiss"]')
+      const dismiss = await rect(t, '[data-label="nav-big"]')
+      await t.mouse.move(dismiss.x + 4, dismiss.y + 4)
+      const hover = (await dockBoxes(t)).chip
+      expect(!hover.shown, `a label chip is shown while closed: ${JSON.stringify(hover)}`)
+      // Open once, then load the page again: closed again.
+      await t.evaluate(() => window.__primp_test!.open(true))
+      await t.reload({ waitUntil: 'load' })
+      await t.waitForFunction(() => window.__primp_test !== undefined)
+      await t.evaluate(() => window.__primp_test!.ready())
+      page.dock = await dockFrame(t)
+      page.bar = await dockFrame(t, 'bar')
+      const again = await testState(t)
+      expect(!again.open, 'the dock was open again after a reload')
+      return `closed on load and after a reload that followed an open dock: launcher 44x44, 16px from the right and bottom edges ("${launcher.label}"), no toolbar, no popover, no label chip`
+    })
+
+    await report.attempt('Ctrl+Shift+E and the launcher open the toolbar; every toolbar button has a name and a tooltip', async () => {
+      await t.locator('body').focus()
+      await t.keyboard.press('Control+Shift+E')
+      const opened = (await testState(t)).open
+      await t.keyboard.press('Control+Shift+E')
+      const closed = !(await testState(t)).open
+      await page.bar.locator('.launcher').click()
+      await waitFor(async () => (await testState(t)).open, { timeoutMs: 2000, what: 'the dock to open from the launcher' })
+      const buttons = await page.bar.evaluate(() => [...document.querySelectorAll<HTMLButtonElement>('[role="toolbar"] button')].map((button) => button.getAttribute('aria-label') ?? ''))
+      const wanted = ['Changes', 'Layout shifts', 'Verification', 'Pause animations', 'Hide pins', 'Copy prompt', 'Send to your agent', 'Settings', 'Close primp']
+      const missing = wanted.filter((label) => !buttons.includes(label))
+      // A tooltip outside the frame, above the toolbar.
+      await page.bar.locator('button[aria-label="Pause animations"]').hover()
+      const tip = await waitFor(() =>
+        t.evaluate(() => {
+          const node = document.querySelector('primp-root')!.shadowRoot!.querySelector<HTMLElement>('.tip')!
+          return node.style.display === 'block' ? { text: node.textContent ?? '', y: node.getBoundingClientRect().bottom } : undefined
+        }),
+      )
+      const boxes = await dockBoxes(t)
+      expect(opened && closed && missing.length === 0, `opened ${opened}, closed again ${closed}; toolbar buttons ${buttons.join(', ')}; missing ${missing.join(', ')}`)
+      expect(tip.text.includes('Pause animations') && tip.text.includes('P') && tip.y <= boxes.bar.y, `tooltip ${JSON.stringify(tip)}, toolbar at y ${boxes.bar.y}`)
+      return `Ctrl+Shift+E opened and closed, the launcher opened: toolbar ${Math.round(boxes.bar.w)}x${boxes.bar.h} with ${buttons.length} named buttons; hover shows "${tip.text}" above it`
+    })
+
+    await report.attempt('open: a real click selects with no pick button, the app does not get it, Alt+click goes through, the inspector opens next to the element', async () => {
+      await t.mouse.move(2, 2)
+      await countAppEvents(t, '[data-label="banner-dismiss"]')
+      const dismiss = await rect(t, '[data-label="banner-dismiss"]')
+      const x = dismiss.x + dismiss.w / 2
+      const y = dismiss.y + dismiss.h / 2
+      const pickButton = await page.dock.evaluate(() => [...document.querySelectorAll('button')].some((button) => /pick/i.test(button.textContent ?? '')))
+      await t.mouse.move(x, y)
+      const chip = await waitFor(async () => {
+        const boxes = await dockBoxes(t)
+        return boxes.chip.shown ? boxes.chip : undefined
+      })
+      await t.mouse.click(x, y)
+      const picked = await t.evaluate(() => ({ label: window.__primp_test!.selection()?.label, banner: document.querySelector('[data-label="banner"]') !== null }))
+      const events = await appEvents(t)
+      const state = await testState(t)
+      await waitFor(async () => (await dockBoxes(t)).pop.shown, { timeoutMs: 2000, what: 'the inspector to show' })
+      const boxes = await dockBoxes(t)
+      const name = await page.dock.evaluate(() => document.querySelector('.inspector .title-row .label')?.textContent ?? '')
+      expect(!pickButton, 'the popover still has a pick button')
+      expect(chip.text.startsWith('button.banner__dismiss'), `label chip "${chip.text}"`)
+      expect(picked.label?.startsWith('button.banner__dismiss') === true && picked.banner && Object.keys(events).length === 0, `selected ${picked.label}; banner still there ${picked.banner}; the app saw ${JSON.stringify(events)}`)
+      expect(state.open && state.panel === 'inspector' && name.startsWith('button.banner__dismiss') && inside(boxes.pop, boxes.view), `panel ${state.panel}, inspector "${name}" at ${JSON.stringify(boxes.pop)}`)
+      // Alt+click: the app's own handler runs and nothing is selected.
+      await t.keyboard.down('Alt')
+      await t.mouse.click(x, y)
+      await t.keyboard.up('Alt')
+      const dismissed = await waitFor(() => t.evaluate(() => document.querySelector('[data-label="banner"]') === null), { timeoutMs: 2000, what: 'the Alt+click to reach the app' })
+      const still = await t.evaluate(() => window.__primp_test!.selection()?.label)
+      expect(dismissed && still?.startsWith('button.banner__dismiss') === true, `Alt+click: banner dismissed ${dismissed}, selection ${still}`)
+      return `hover chip "${chip.text}"; click selected ${picked.label} with the app seeing no event and the inspector opened inside the viewport at ${Math.round(boxes.pop.x)},${Math.round(boxes.pop.y)} (${Math.round(boxes.pop.w)}x${Math.round(boxes.pop.h)}); Alt+click dismissed the banner (the app's handler ran)`
+    })
+
+    await report.attempt('the hover chip names the source once it is known; Escape closes the inspector, then the dock', async () => {
+      await t.evaluate((selector) => window.__primp_test!.select(selector), first)
+      await waitFor(async () => (await testState(t)).source?.state === 'done', { timeoutMs: 10_000 })
+      await t.evaluate((selector) => window.__primp_test!.select(selector), second)
+      const card = await rect(t, first)
+      await t.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), first)
+      const now = await t.evaluate((selector) => document.querySelector(selector)!.getBoundingClientRect().toJSON() as DOMRect, first)
+      await t.mouse.move(now.x + now.width - 6, now.y + now.height - 6)
+      const chip = await waitFor(async () => {
+        const boxes = await dockBoxes(t)
+        return boxes.chip.shown && boxes.chip.text.includes('Card.tsx') ? boxes.chip : undefined
+      }, { timeoutMs: 3000, what: `the chip to name Card.tsx (card at ${card.x},${card.y})` })
+      await t.keyboard.press('Escape')
+      const afterOne = await testState(t)
+      await t.keyboard.press('Escape')
+      const afterTwo = await testState(t)
+      expect(afterOne.open && afterOne.panel === null && t !== null, `after one Escape: open ${afterOne.open}, panel ${afterOne.panel}`)
+      expect(!afterTwo.open && (await t.evaluate(() => window.__primp_test!.selection())) === null, `after two: open ${afterTwo.open}`)
+      return `chip "${chip.text}"; Escape closed the inspector (dock still open), a second Escape closed the dock`
+    })
+
+    await report.attempt('pins: numbered in change order on their elements, coloured by status, hidden with H; a click on a pin selects its element', async () => {
+      await t.evaluate((selector) => window.__primp_test!.select(selector), first)
+      await t.evaluate(() => window.__primp_test!.setStyle('gap', '6px'))
+      await t.evaluate((selector) => window.__primp_test!.select(selector), second)
+      await t.evaluate(() => window.__primp_test!.addNote('Say "Layout shifts, explained" here'))
+      await t.evaluate(() => window.__primp_test!.panel(null))
+      await sleep(150)
+      const pins = await t.evaluate(() => window.__primp_test!.pins())
+      const drawn = (await dockBoxes(t)).pins
+      const cards = await t.evaluate(([a, b]) => [a, b].map((selector) => document.querySelector(selector)!.getBoundingClientRect().toJSON() as DOMRect), [first, second] as const)
+      const at = (number: number) => pins.find((pin) => pin.number === number)
+      const onCorner = (pin: { x: number; y: number; width: number; height: number } | undefined, r: DOMRect): boolean => pin !== undefined && Math.abs(pin.x + pin.width / 2 - r.left) <= 1 && Math.abs(pin.y + pin.height / 2 - r.top) <= 1
+      expect(pins.length === 2 && onCorner(at(1), cards[0]!) && onCorner(at(2), cards[1]!), `pins ${JSON.stringify(pins)}; cards at ${cards.map((r) => `${r.left},${r.top}`).join(' / ')}`)
+      expect(drawn.length === 2 && drawn.map((pin) => pin.number).join() === '1,2' && drawn.every((pin) => pin.status === 'draft'), `drawn: ${JSON.stringify(drawn)}`)
+      await t.locator('body').focus()
+      await t.keyboard.press('h')
+      const hidden = await waitFor(async () => ((await dockBoxes(t)).pins.length === 0 ? 0 : undefined), { timeoutMs: 2000, what: 'H to hide the pins' }).catch(() => (dockBoxes(t) as Promise<{ pins: unknown[] }>).then((boxes) => boxes.pins.length))
+      await t.keyboard.press('h')
+      await waitFor(async () => (await dockBoxes(t)).pins.length === 2, { timeoutMs: 2000, what: 'H to show the pins again' }).catch(() => undefined)
+      const pin = at(1)!
+      await countAppEvents(t, first)
+      await t.mouse.click(pin.x + pin.width / 2, pin.y + pin.height / 2)
+      const selected = await t.evaluate(() => window.__primp_test!.selection()?.label)
+      const panel = (await testState(t)).panel
+      expect(hidden === 0 && (await dockBoxes(t)).pins.length === 2, `H hid ${2 - hidden} pins`)
+      expect(selected?.startsWith('article.card "01') === true && panel === 'inspector' && Object.keys(await appEvents(t)).length === 0, `pin click selected ${selected}, panel ${panel}, app saw ${JSON.stringify(await appEvents(t))}`)
+      return `pin 1 on card 01 (a gap edit), pin 2 on card 02 (a note), both centred on the top-left corner and "draft" blue; H hid and showed them; clicking pin 1 selected card 01 and opened the inspector, the card's handlers saw nothing`
+    })
+
+    await report.attempt('the inspector stays inside the viewport at 1280 px, and is a bottom sheet at 390 px', async () => {
+      const results: string[] = []
+      for (const selector of [first, `${CARD}:nth-of-type(3)`, '[data-label="header-inner"]']) {
+        await t.evaluate((sel) => document.querySelector(sel)?.scrollIntoView({ block: 'center' }), selector)
+        await t.evaluate((sel) => window.__primp_test!.select(sel), selector)
+        await sleep(150)
+        const boxes = await dockBoxes(t)
+        expect(boxes.pop.shown && inside(boxes.pop, boxes.view), `${selector}: inspector at ${JSON.stringify(boxes.pop)} in ${JSON.stringify(boxes.view)}`)
+        results.push(`${Math.round(boxes.pop.x)},${Math.round(boxes.pop.y)} ${Math.round(boxes.pop.w)}x${Math.round(boxes.pop.h)}`)
+      }
+      await t.setViewportSize({ width: 390, height: 844 })
+      await sleep(300)
+      await t.evaluate((sel) => window.__primp_test!.select(sel), first)
+      await sleep(200)
+      const narrow = await dockBoxes(t)
+      const geometry = await t.evaluate(() => window.__primp_test!.geometry())
+      await t.setViewportSize({ width: 1280, height: 800 })
+      await sleep(200)
+      expect(narrow.pop.shown && geometry.pop?.sheet === true && near(narrow.pop.x, 0) && near(narrow.pop.w, narrow.view.w) && inside(narrow.pop, narrow.view) && inside(narrow.bar, narrow.view) && narrow.pop.y + narrow.pop.h <= narrow.bar.y + 0.5, `390px: pop ${JSON.stringify(narrow.pop)}, bar ${JSON.stringify(narrow.bar)}, view ${JSON.stringify(narrow.view)}`)
+      return `1280px: ${results.join(' | ')}; 390px: a ${Math.round(narrow.pop.w)}px wide sheet from y ${Math.round(narrow.pop.y)}, ending above the toolbar`
+    })
+
+    await report.attempt('pause stops a running CSS animation and resume plays it again; the rule is taken away', async () => {
+      await t.evaluate(() => {
+        const style = document.createElement('style')
+        style.textContent = '@keyframes ux-spin { to { transform: rotate(360deg) } } .ux-spin { position: fixed; left: 4px; bottom: 4px; width: 8px; height: 8px; background: red; animation: ux-spin 1s linear infinite; }'
+        const node = document.createElement('div')
+        node.className = 'ux-spin'
+        document.head.append(style)
+        document.body.append(node)
+      })
+      await sleep(200)
+      const time = (): Promise<number> => t.evaluate(() => Number(document.querySelector('.ux-spin')!.getAnimations()[0]!.currentTime))
+      const sheets = (): Promise<number> => t.evaluate(() => document.adoptedStyleSheets.length)
+      const before = await sheets()
+      await t.locator('body').focus()
+      await t.keyboard.press('p')
+      // A pause takes hold on the next frame.
+      await sleep(60)
+      const pausedAt = await time()
+      await sleep(250)
+      const stillAt = await time()
+      const during = await t.evaluate(() => ({ state: document.querySelector('.ux-spin')!.getAnimations()[0]!.playState, paused: window.__primp_test!.state().paused }))
+      const withRule = await sheets()
+      await t.keyboard.press('p')
+      await sleep(250)
+      const runningAt = await time()
+      const after = await t.evaluate(() => document.querySelector('.ux-spin')!.getAnimations()[0]!.playState)
+      expect(during.paused && during.state === 'paused' && Math.abs(stillAt - pausedAt) < 1 && withRule === before + 1, `paused: ${JSON.stringify(during)}, time ${pausedAt} -> ${stillAt}, sheets ${before} -> ${withRule}`)
+      expect(after === 'running' && runningAt > stillAt + 100 && (await sheets()) === before, `resumed: ${after}, time ${stillAt} -> ${runningAt}, sheets ${await sheets()}`)
+      await t.evaluate(() => document.querySelector('.ux-spin')?.remove())
+      return `P: the animation paused at ${Math.round(pausedAt)} ms and stayed there, a pause rule added; P again: running (${Math.round(runningAt)} ms), rule gone`
+    })
+
+    await report.attempt('the toolbar, popovers, pins, chip and tooltips added no layout-shift entry that is not tagged as primp\'s own', async () => {
+      for (const label of ['Changes', 'Layout shifts', 'Verification', 'Settings']) {
+        await page.bar.locator(`button[aria-label="${label}"]`).click()
+        await sleep(120)
+      }
+      await t.evaluate((selector) => window.__primp_test!.select(selector), second)
+      await t.mouse.move(300, 300)
+      await t.mouse.move(600, 500)
+      await sleep(200)
+      await t.evaluate(() => window.__primp_test!.open(false))
+      await sleep(200)
+      const after = await unmarkedShifts(t)
+      expect(after.unmarked === shiftsBefore.unmarked, `untagged entries: ${shiftsBefore.unmarked} before, ${after.unmarked} after`)
+      return `${after.unmarked - shiftsBefore.unmarked} untagged entries over opening, four panels, the inspector, hovering, pins and closing`
     })
   } finally {
     await page.close()
@@ -391,6 +653,7 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
       expect(!important.ok, '"12px !important" was accepted')
       expect((await items(t)).length === 0 && (await computed(t, first, 'padding')) === '20px', 'something was recorded or applied')
       // The same through the dock: type into the padding row and press Enter.
+      await openAllCss(page)
       const input = page.dock.locator('#v-padding')
       await input.fill('12pxx')
       await input.press('Enter')
@@ -403,6 +666,7 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
     })
 
     await report.attempt('the dock\'s own inputs: Enter applies, ArrowUp nudges by 1 and Shift+ArrowUp by 10', async () => {
+      await openAllCss(page)
       const input = page.dock.locator('#v-padding')
       await input.fill('24px')
       await input.press('Enter')
@@ -445,14 +709,13 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
       await t.evaluate(() => window.__primp_test!.undo())
       const u1 = await snapshot()
       expect(JSON.stringify(u1) === JSON.stringify(s1), `after one undo the state differs from the state after the first edit:\n${JSON.stringify(u1).slice(0, 300)}\n${JSON.stringify(s1).slice(0, 300)}`)
-      // The second undo with the keyboard, in pick mode.
+      // The second undo with the keyboard, on the page with the dock open.
       await t.evaluate(() => window.__primp_test!.pick(true))
       await t.locator('body').focus()
       await t.keyboard.press('Control+z')
       const u0 = await snapshot()
       expect(JSON.stringify(u0) === JSON.stringify(s0), `after two undos the state differs from the start: ${JSON.stringify(u0).slice(0, 300)}`)
       await t.keyboard.press('Control+Shift+z')
-      await t.evaluate(() => window.__primp_test!.pick(false))
       const r1 = await snapshot()
       expect(JSON.stringify(r1) === JSON.stringify(s1), 'after redo the state differs from the state after the first edit')
       await t.evaluate(() => window.__primp_test!.redo())
@@ -560,6 +823,7 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
       expect(names.length >= 300 && missing.length === 0, `${names.length} properties; missing: ${missing.join(', ')}`)
       expect(names.every((name) => name === name.toLowerCase() || name.startsWith('--')) && new Set(names).size === names.length && !names.includes('cssText') && !names.includes('css-text'), 'the list has names that are not kebab-case properties, or duplicates')
       await t.evaluate((selector) => window.__primp_test!.select(selector), first)
+      await openAllCss(page)
       const input = page.dock.locator('input[aria-label="Property to add"]')
       await input.fill('pad')
       const options = await waitFor(() => page.dock.evaluate(() => {
@@ -620,6 +884,7 @@ async function viteVerdictAndSend(browser: Browser, lane: Lane): Promise<void> {
       await t.evaluate(() => window.__primp_test!.hide())
       await t.evaluate((id) => window.__primp_test!.setNote(id, 'Keep the pricing section where it is.'), (await items(t))[0]!.id)
       expect((await computed(t, first, 'padding')) === '28px' && (await computed(t, BANNER, 'display')) === 'none', 'the two previews are not applied before sending')
+      await page.bar.locator('button[aria-label="Changes"]').click()
       const button = page.dock.locator('.foot button.primary')
       const label = (await button.textContent()) ?? ''
       expect(label.includes('Send 2 changes'), `Send button reads "${label}"`)
@@ -682,9 +947,11 @@ async function viteVerdictAndSend(browser: Browser, lane: Lane): Promise<void> {
         await denied.page.evaluate((selector) => window.__primp_test!.select(selector), first)
         await denied.page.evaluate(() => window.__primp_test!.setStyle('gap', '2px'))
         // Make the clipboard refuse, as it does without focus or permission.
-        await denied.dock.evaluate(() => {
-          Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new DOMException('denied', 'NotAllowedError')) } })
-        })
+        for (const frame of [denied.dock, denied.bar]) {
+          await frame.evaluate(() => {
+            Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new DOMException('denied', 'NotAllowedError')) } })
+          })
+        }
         await denied.page.evaluate(() => {
           Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new DOMException('denied', 'NotAllowedError')) } })
         })
@@ -843,7 +1110,8 @@ async function viteMeasure(browser: Browser, lane: Lane): Promise<void> {
       const rectNow = JSON.parse(checks[6]!.actual) as { x: number; y: number; w: number; h: number }
       expect(near(rectNow.y, now.y) && near(rectNow.h, now.h) && near(checks[7]!.delta ?? 0, 40) && JSON.parse(checks[7]!.expected).y === now.y + 40, `no-move: ${lines[6]}; ${lines[7]}`)
       expect(!gone.found && gone.checks[0]!.status === 'pass' && gone.checks[0]!.actual === 'absent' && gone.checks[1]!.status === 'unresolved', `missing element: ${JSON.stringify(gone)}`)
-      const left = await t.evaluate(() => document.adoptedStyleSheets.map((sheet) => sheet.cssRules.length))
+      // The selection cursor of the open dock is a sheet of its own; it is not part of measuring.
+      const left = await t.evaluate(() => document.adoptedStyleSheets.filter((sheet) => ![...sheet.cssRules].some((rule) => rule.cssText.includes('crosshair'))).map((sheet) => sheet.cssRules.length))
       expect((await computed(t, first, 'padding')) === '28px' && left.filter((rules) => rules > 0).length === 1, `after measuring: adopted sheets with rules ${JSON.stringify(left)}`)
       return `1.75rem -> expected "28px" (pass); 30px fail; shorthand padding pass; "1px solid #e2e8f0" -> "1px solid rgb(226, 232, 240)" (pass); hidden/absent report "rendered"; no-move carries the rectangle now as JSON (pass; fail with delta 40 against a shifted one); a missing element: absent "absent" (pass), hidden unresolved; the probe rule is gone afterwards`
     })
@@ -934,35 +1202,38 @@ async function viteKeyboardAndConnection(browser: Browser, lane: Lane): Promise<
       return `${total} focusable controls (header, tabs, pick, breadcrumb, scope, media, property inputs, add row, hide/remove, tray, undo/redo/send), all reached by Tab in DOM order; every control has a name; keyboard focus draws a ring`
     })
 
-    await report.attempt('collapse to a button and back, move to another corner', async () => {
-      await page.dock.locator('button[aria-label="Collapse primp"]').click()
+    await report.attempt('close to the launcher and open again, move to another corner', async () => {
+      await page.bar.locator('button[aria-label="Close primp"]').click()
       await sleep(350)
       const small = await t.evaluate(() => {
-        const frame = document.querySelector('primp-root')!.shadowRoot!.querySelector('iframe')!
+        const frame = document.querySelector('primp-root')!.shadowRoot!.querySelector('iframe[data-primp-dock="bar"]')!
         const r = frame.getBoundingClientRect()
-        return { w: r.width, h: r.height, right: innerWidth - r.right, bottom: innerHeight - r.bottom }
+        return { w: r.width, h: r.height, right: document.documentElement.clientWidth - r.right, bottom: innerHeight - r.bottom }
       })
-      await waitFor(() => page.dock.evaluate(() => document.activeElement?.classList.contains('launcher') === true), { timeoutMs: 2000, what: 'focus to land on the collapsed dock' })
-      const launcher = await page.dock.evaluate(() => ({ label: document.querySelector('.launcher')?.getAttribute('aria-label') ?? '', focused: document.activeElement?.classList.contains('launcher') ?? false }))
-      expect(small.w === 44 && small.h === 44 && near(small.right, 12) && near(small.bottom, 12) && launcher.label.includes('2 unsent changes') && launcher.focused, `collapsed: ${JSON.stringify(small)}, ${JSON.stringify(launcher)}`)
-      await page.dock.locator('.launcher').press('Enter')
+      await waitFor(() => page.bar.evaluate(() => document.activeElement?.classList.contains('launcher') === true), { timeoutMs: 2000, what: 'focus to land on the launcher' })
+      const launcher = await page.bar.evaluate(() => ({ label: document.querySelector('.launcher')?.getAttribute('aria-label') ?? '', focused: document.activeElement?.classList.contains('launcher') ?? false }))
+      expect(small.w === 44 && small.h === 44 && near(small.right, 16) && near(small.bottom, 16) && launcher.label.includes('2 unsent changes') && launcher.focused, `closed: ${JSON.stringify(small)}, ${JSON.stringify(launcher)}`)
+      await page.bar.locator('.launcher').press('Enter')
+      expect((await testState(t)).open, 'Enter on the launcher did not open the dock')
+      await page.bar.locator('button[aria-label="Settings"]').click()
       await page.dock.locator('button[aria-label="Move the dock to the next corner"]').click()
       await sleep(400)
       const moved = await t.evaluate(() => {
-        const r = document.querySelector('primp-root')!.shadowRoot!.querySelector('iframe')!.getBoundingClientRect()
+        const r = document.querySelector('primp-root')!.shadowRoot!.querySelector('iframe[data-primp-dock="bar"]')!.getBoundingClientRect()
         return { left: Math.round(r.left), bottom: Math.round(innerHeight - r.bottom), w: Math.round(r.width) }
       })
-      expect(moved.left === 12 && moved.bottom === 12 && moved.w > 300, `after moving: ${JSON.stringify(moved)}`)
-      return `collapsed to 44x44 in the corner (label "${launcher.label}", focus kept on it), reopened with Enter, moved to the bottom-left corner with the move button`
+      expect(moved.left === 16 && moved.bottom === 16 && moved.w > 300, `after moving: ${JSON.stringify(moved)}`)
+      return `closed to the 44x44 launcher in the corner (label "${launcher.label}", focus kept on it), opened with Enter, moved to the bottom-left corner from the settings`
     })
 
     await report.attempt('primp is restarted under a Vite app (whose own client then reloads the page): no draft is lost', async () => {
       const loads = page.record.documentRequests.length
       const closing = lane.primp.close()
       await waitFor(async () => !(await testState(t)).connected, { timeoutMs: 3000, what: 'the dock to notice the lost connection' })
-      const indicator = await waitFor(() => page.dock.evaluate(() => (document.querySelector('.conn')?.getAttribute('aria-label') === 'Reconnecting' ? 'Reconnecting' : undefined)), { timeoutMs: 1500, what: 'the indicator to say Reconnecting' })
+      const indicator = await waitFor(() => page.bar.evaluate(() => (document.querySelector('.conn')?.getAttribute('aria-label') === 'Reconnecting' ? 'Reconnecting' : undefined)), { timeoutMs: 1500, what: 'the indicator to say Reconnecting' })
       const header = await page.dock.evaluate(() => document.querySelector('.project')?.textContent ?? '')
-      // An edit made while primp is down is kept too.
+      // An edit made while primp is down is kept too. (Closing the dock let go of the selection.)
+      await t.evaluate((selector) => window.__primp_test!.select(selector), first)
       const offline = await t.evaluate(() => window.__primp_test!.setStyle('border-radius', '6px'))
       expect(offline.ok && indicator === 'Reconnecting' && header.includes('reconnecting'), `edit while down: ${JSON.stringify(offline).slice(0, 100)}; indicator "${indicator}", header "${header}"`)
       await closing
@@ -987,8 +1258,8 @@ async function viteKeyboardAndConnection(browser: Browser, lane: Lane): Promise<
       const all = await items(t)
       const state = await testState(t)
       expect(restored && all.length === 3 && all.every((item) => item.status === 'draft') && state.detached.length === 0, `${all.length} items, detached ${state.detached.join(',')}`)
-      const left = await t.evaluate(() => Math.round(document.querySelector('primp-root')!.shadowRoot!.querySelector('iframe')!.getBoundingClientRect().left))
-      expect(left === 12, `the dock did not keep its corner over the reload: left ${left}`)
+      const left = await t.evaluate(() => Math.round(document.querySelector('primp-root')!.shadowRoot!.querySelector('iframe[data-primp-dock="bar"]')!.getBoundingClientRect().left))
+      expect(left === 16, `the dock did not keep its corner over the reload: left ${left}`)
       return 'reload: 3 drafts adopted from session:state, all three previews applied again to the re-found card, the dock is still in the corner it was moved to'
     })
   } finally {
@@ -1125,6 +1396,7 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
       expect(rest === SLATE_900 && state0.activeState === null && state0.forced === null, `at rest: ${rest}, ${JSON.stringify({ active: state0.activeState, forced: state0.forced })}`)
       expect(state0.statesWithRules.includes('hover') && dots.includes(':hover*') && dots[0] === 'Rest', `statesWithRules ${JSON.stringify(state0.statesWithRules)}; control: ${dots.join(' ')}`)
       // A real click in the dock.
+      await openAllCss(page)
       await page.dock.locator('.seg.states button[data-state="hover"]').click()
       await away()
       const shown = await waitFor(async () => ((await computed(t, PLAN_CTA, 'background-color')) === SLATE_800 ? true : undefined), { timeoutMs: 3000, what: 'the hover background' })
@@ -1269,6 +1541,9 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
       const left = await forceMarks(t)
       await away()
       const rest = await computed(t, PLAN_CTA, 'background-color')
+      // Send shows what was sent in the Changes panel; the State control is the inspector's, on the element again.
+      await t.evaluate((selector) => window.__primp_test!.select(selector), PLAN_CTA)
+      await waitFor(() => page.dock.evaluate(() => document.querySelector('.seg.states') !== null), { timeoutMs: 3000, what: 'the inspector' })
       const pressed = await page.dock.evaluate(() => document.querySelector('.seg.states button[aria-pressed="true"]')?.textContent ?? '')
       const showing = await page.dock.evaluate(() => document.querySelector('.chip.showing') !== null)
       expect(held.elements > 0 && held.rules > 0, `nothing was forced before Send: ${JSON.stringify(held)}`)
@@ -1297,6 +1572,7 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
       const rest = await computed(q, PLAN_CTA, 'background-color')
       await q.evaluate(() => window.__primp_test!.setState('hover'))
       const forced = await computed(q, PLAN_CTA, 'background-color')
+      await openAllCss(quiet)
       const row = await waitFor(() => quiet.dock.evaluate(() => document.querySelector<HTMLInputElement>('#v-background-color')?.value))
       await q.evaluate(() => window.__primp_test!.setState(null))
       await q.locator(PLAN_CTA).first().hover()
@@ -1684,7 +1960,7 @@ async function viteDrags(browser: Browser, lane: Lane): Promise<void> {
     })
 
     await report.attempt('the handles and the drags added no layout-shift entry that is not tagged as primp\'s own', async () => {
-      // Handles coming and going: pick mode, another selection, none.
+      // Handles coming and going: the dock opened and closed, another selection, none.
       await t.evaluate(() => window.__primp_test!.pick(true))
       await sleep(150)
       const inPick = await t.evaluate(() => window.__primp_test!.handles())
@@ -1695,9 +1971,9 @@ async function viteDrags(browser: Browser, lane: Lane): Promise<void> {
       await sleep(150)
       const none = await t.evaluate(() => window.__primp_test!.handles())
       const after = await unmarkedShifts(t)
-      expect(Object.keys(inPick).length === 0 && Object.keys(none).length === 0, `handles in pick mode ${JSON.stringify(inPick)}, without a selection ${JSON.stringify(none)}`)
+      expect(Object.keys(inPick).length > 0 && Object.keys(none).length === 0, `handles on the selection of the open dock ${JSON.stringify(inPick)}, without a selection ${JSON.stringify(none)}`)
       expect(after.unmarked === shiftsBefore.unmarked, `untagged entries: ${shiftsBefore.unmarked} before, ${after.unmarked} after (${after.own - shiftsBefore.own} tagged)`)
-      return `no handles in pick mode or without a selection; ${after.unmarked - shiftsBefore.unmarked} untagged entries added over two drags, a resize and handles shown and hidden; ${after.own - shiftsBefore.own} tagged as primp's own (the previews)`
+      return `handles on the selection while the dock is open, none without a selection; ${after.unmarked - shiftsBefore.unmarked} untagged entries added over two drags, a resize and handles shown and hidden; ${after.own - shiftsBefore.own} tagged as primp's own (the previews)`
     })
 
     await report.attempt('screenshots: the selection with its handles, a reorder drag with its insertion line, and the tray with a move and a resize', async () => {
@@ -1748,6 +2024,7 @@ async function staticStates(browser: Browser, lane: Lane): Promise<void> {
       await t.evaluate(() => window.__primp_test!.setState('focus-visible'))
       expect(state0.statesWithRules.includes('focus-visible') && state0.statesWithRules.includes('hover') && !state0.statesWithRules.includes('focus'), `statesWithRules ${JSON.stringify(state0.statesWithRules)}`)
       expect(restOutline === 'none' && ring.style === 'solid' && ring.color === AMBER && !ring.focused && plainFocus === 'none', `outline at rest ${restOutline}; forced :focus-visible ${JSON.stringify(ring)}; forced :focus ${plainFocus}`)
+      await openAllCss(page)
       const listed = await waitFor(() => page.dock.evaluate(() => [...document.querySelectorAll('.rule')].find((rule) => rule.querySelector('.sel')?.textContent === ':focus-visible')?.querySelector<HTMLInputElement>('#v-outline')?.value))
       const result = await t.evaluate(() => window.__primp_test!.setStyle('outline-color', '#2563eb'))
       item = style(result.item)
@@ -1858,9 +2135,9 @@ async function nextEdits(browser: Browser, lane: Lane): Promise<void> {
       expect(hidden.ok && hidden.moved > 0 && hidden.effects > 0, `hide: ${JSON.stringify(hidden)}`)
       await t.evaluate(() => window.__primp_test!.undo())
       const prompt = await t.evaluate(() => window.__primp_test!.send())
-      await page.dock.locator('[role="tab"]', { hasText: 'Verify' }).click()
-      await page.dock.locator('[role="tab"]', { hasText: 'Shifts' }).click()
-      await page.dock.locator('[role="tab"]', { hasText: 'Edits' }).click()
+      await page.bar.locator('button[aria-label="Verification"]').click()
+      await page.bar.locator('button[aria-label="Layout shifts"]').click()
+      await page.bar.locator('button[aria-label="Changes"]').click()
       await sleep(200)
       expect(prompt.includes('padding') && prompt.includes('24px') && prompt.includes(truth.file) && (await computedAll(t, 'li[data-label^="home-card-"]', 'padding')).every((value) => value === '16px'), `prompt "${prompt.slice(0, 200)}"`)
       const problems = hygiene(page, lane)
@@ -1989,10 +2266,17 @@ async function shiftsTab(browser: Browser, lane: Lane, bundles: Bundles): Promis
       expect(boxes.filter((kind) => kind.startsWith('previous')).length === 2 && boxes.filter((kind) => kind.startsWith('current')).length === 2 && boxes.includes('culprit@0'), `boxes: ${boxes.join(', ')}`)
       expect(boxes.includes('previous@0') && boxes.includes('current@96'), `the header's rectangles are not at 0 and 96: ${boxes.join(', ')}`)
       await t.mouse.move(5, 400)
-      await waitFor(() => t.evaluate(() => [...document.querySelector('primp-root')!.shadowRoot!.querySelectorAll<HTMLElement>('.box')].every((node) => getComputedStyle(node).display === 'none')))
+      // While the panel is open the main culprit stays outlined; the victims' rectangles go with the pointer.
+      // (The outline of the page element under the pointer is the open dock's hover, not the issue's.)
+      const left = await waitFor(() =>
+        t.evaluate(() => {
+          const kinds = [...document.querySelector('primp-root')!.shadowRoot!.querySelectorAll<HTMLElement>('.box')].filter((node) => getComputedStyle(node).display !== 'none' && !node.classList.contains('hover')).map((node) => node.className.replace('box ', ''))
+          return kinds.length === 1 && kinds[0] === 'culprit' ? kinds : undefined
+        }),
+      )
       const entries = scored(await readPlainEntries(t)).length
       expect(entries === 1, `drawing the outlines added layout-shift entries: ${entries}`)
-      return `on hover: ${boxes.join(', ')}; gone when the pointer leaves; still 1 layout-shift entry on the page`
+      return `on hover: ${boxes.join(', ')}; when the pointer leaves only the main culprit stays outlined (${left.join(', ')}); still 1 layout-shift entry on the page`
     })
 
     await report.attempt('a report that could not measure is shown as such (tab_hidden), not as "no shifts" [fake session server]', async () => {
@@ -2006,7 +2290,7 @@ async function shiftsTab(browser: Browser, lane: Lane, bundles: Bundles): Promis
           const alert = document.querySelector('[data-shift-status="tab_hidden"]')
           return alert === null ? undefined : (document.querySelector('#panel')?.textContent ?? '')
         }))
-        const badge = await hidden.dock.evaluate(() => document.querySelector('#tab-shifts .pill')?.textContent ?? '')
+        const badge = await hidden.bar.evaluate(() => document.querySelector('#tab-shifts .pill')?.textContent ?? '')
         expect(text.includes('Not measured: the tab was in the background') && text.includes('hidden from 0 to 412 ms') && !/no layout shifts/i.test(text) && !text.includes('CLS of this load'), `Shifts tab: ${text.slice(0, 300)}`)
         fake.session.pushShiftReport({ status: 'not_measurable', reason: 'no layout-shift entry type', cls: null, windows: [], issues: [], cachedResources: [], notes: [] })
         const other = await waitFor(() => hidden.dock.evaluate(() => (document.querySelector('[data-shift-status="not_measurable"]') === null ? undefined : (document.querySelector('#panel')?.textContent ?? ''))))
@@ -2055,74 +2339,102 @@ async function shiftsTab(browser: Browser, lane: Lane, bundles: Bundles): Promis
 
 async function screenshots(browser: Browser, vite: Lane, cls: Lane): Promise<void> {
   mkdirSync(SHOTS, { recursive: true })
-  await report.attempt('screenshots of the dock, light and dark', async () => {
+  await report.attempt('screenshots of the dock: closed, toolbar, hover, inspector, pins, panels, bottom sheet; dark and light', async () => {
     const files: string[] = []
-    for (const scheme of ['light', 'dark'] as const) {
-      const edits = await openDock(browser, vite, '/', { context: { colorScheme: scheme } })
+    const shot = async (page: DockPage['page'], name: string): Promise<void> => {
+      await sleep(250)
+      files.push(name)
+      await page.screenshot({ path: join(SHOTS, name) })
+    }
+    const verdict = (status: 'pass' | 'drift' | 'fail', item: ChangeItem): NonNullable<ChangeItem['verification']> => ({
+      itemId: item.id,
+      attempt: 1,
+      at: Date.now(),
+      status,
+      checks: item.expect.slice(0, 1).map((expectation) => ({ expectation, status, expected: '28px', actual: status === 'pass' ? '28px' : status === 'drift' ? '27px' : '20px' })),
+      hint: status === 'pass' ? '' : status === 'drift' ? 'padding-top is 27px, close to the 28px asked for.' : 'padding-top is 20px, expected 28px.',
+    })
+    for (const scheme of ['dark', 'light'] as const) {
+      const p = await openDock(browser, vite, '/', { context: { colorScheme: scheme } })
+      const t = p.page
       try {
-        await edits.page.evaluate((selector) => window.__primp_test!.select(selector), `${CARD}:nth-of-type(1)`)
-        await waitFor(async () => (await testState(edits.page)).source?.state === 'done')
-        await edits.page.evaluate(() => window.__primp_test!.setStyle('padding', '28px'))
-        await edits.page.evaluate(() => window.__primp_test!.setStyle('border-radius', '4px', { scope: 'all-instances' }))
-        await sleep(300)
-        files.push(`edits-${scheme}.png`)
-        await edits.page.screenshot({ path: join(SHOTS, `edits-${scheme}.png`) })
-        // The tray, with the side effects of the first item open.
-        await edits.dock.locator('.tray .item button.chip').first().click()
-        await edits.dock.locator('.tray').last().scrollIntoViewIfNeeded()
-        await edits.dock.evaluate(() => document.querySelector('#panel')?.scrollTo(0, 100000))
-        await edits.page.mouse.move(300, 450)
-        await sleep(200)
-        files.push(`tray-${scheme}.png`)
-        await edits.page.screenshot({ path: join(SHOTS, `tray-${scheme}.png`) })
-        if (scheme === 'light') {
-          await edits.page.evaluate(() => window.__primp_test!.pick(true))
-          const target = await rect(edits.page, '[data-label="hero-cta-primary"]')
-          await edits.page.mouse.move(target.x + 10, target.y + 10)
-          await sleep(200)
-          files.push('pick-light.png')
-          await edits.page.screenshot({ path: join(SHOTS, 'pick-light.png') })
-          await edits.page.evaluate(() => window.__primp_test!.pick(false))
-          await edits.page.evaluate(() => window.__primp_test!.collapse(true))
-          await sleep(200)
-          files.push('collapsed-light.png')
-          await edits.page.screenshot({ path: join(SHOTS, 'collapsed-light.png') })
+        if (scheme === 'dark') await shot(t, 'closed-dark.png')
+        await t.evaluate(() => window.__primp_test!.open(true))
+        if (scheme === 'dark') await shot(t, 'toolbar-dark.png')
+        const card = await rect(t, `${CARD}:nth-of-type(2)`)
+        await t.mouse.move(card.x + card.w - 30, card.y + card.h - 12)
+        await shot(t, `hover-${scheme}.png`)
+        await t.mouse.click(card.x + card.w - 30, card.y + card.h - 12)
+        await waitFor(async () => (await testState(t)).source?.state === 'done')
+        await t.evaluate(() => window.__primp_test!.setStyle('padding', '28px'))
+        await t.mouse.move(card.x + card.w - 30, card.y + card.h + 40)
+        await shot(t, `inspector-${scheme}.png`)
+        // Three more changed elements, then pins in every status.
+        for (const selector of [`${CARD}:nth-of-type(1)`, `${CARD}:nth-of-type(3)`, '[data-label="hero-cta-primary"]']) {
+          await t.evaluate((sel) => window.__primp_test!.select(sel), selector)
+          await t.evaluate(() => window.__primp_test!.setStyle('border-radius', '20px'))
+        }
+        await t.evaluate(() => window.__primp_test!.select('[data-label="banner"]'))
+        await t.evaluate(() => window.__primp_test!.addNote('Shorter copy: "Side effects, in every report."'))
+        await t.evaluate(() => window.__primp_test!.panel('changes'))
+        await t.mouse.move(640, 560)
+        await shot(t, `changes-${scheme}.png`)
+        if (scheme === 'dark') {
+          await t.evaluate(() => window.__primp_test!.send())
+          const sent = vite.primp.session.items().filter((item) => item.kind !== 'note')
+          const statuses = ['pass', 'drift', 'fail'] as const
+          sent.slice(0, 3).forEach((item, index) => vite.primp.session.patchItem(item.id, { status: index === 2 ? 'failed' : 'verified', verification: verdict(statuses[index]!, item) }))
+          await waitFor(async () => (await t.evaluate(() => window.__primp_test!.pins())).filter((pin) => pin.status !== 'draft').length >= 3, { timeoutMs: 5000, what: 'the pins to take their statuses' })
+          await t.evaluate(() => window.__primp_test!.panel(null))
+          await t.evaluate(() => scrollTo(0, 380))
+          await t.mouse.move(5, 790)
+          const pins = await t.evaluate(() => window.__primp_test!.pins())
+          const pin = pins.find((one) => one.status === 'fail') ?? pins[0]!
+          await t.mouse.move(pin.x + 11, pin.y + 11)
+          await shot(t, 'pins-dark.png')
+          await t.evaluate(() => window.__primp_test!.panel('verify'))
+          await t.mouse.move(5, 790)
+          await shot(t, 'verify-dark.png')
         }
       } finally {
-        await edits.close()
+        await p.close()
       }
-      // The Edits tab with :hover chosen: the State control, the indicator, the hover rule's rows, a :hover item in the tray.
-      const states = await openDock(browser, vite, '/', { context: { colorScheme: scheme } })
-      try {
-        await states.page.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), PLAN_CTA)
-        await states.page.mouse.move(2, 2)
-        await states.page.evaluate((selector) => window.__primp_test!.select(selector), PLAN_CTA)
-        await waitFor(async () => (await testState(states.page)).source?.state === 'done')
-        await states.page.evaluate(() => window.__primp_test!.setState('hover'))
-        await states.page.evaluate(() => window.__primp_test!.setStyle('background-color', '#2563eb'))
-        await sleep(300)
-        files.push(`states-${scheme}.png`)
-        await states.page.screenshot({ path: join(SHOTS, `states-${scheme}.png`) })
-        await states.dock.evaluate(() => document.querySelector('#panel')?.scrollTo(0, 100000))
-        await sleep(200)
-        files.push(`states-tray-${scheme}.png`)
-        await states.page.screenshot({ path: join(SHOTS, `states-tray-${scheme}.png`) })
-      } finally {
-        await states.close()
+      // :hover chosen: the State control and the indicator.
+      if (scheme === 'light') {
+        const states = await openDock(browser, vite, '/', { context: { colorScheme: scheme } })
+        try {
+          await states.page.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), PLAN_CTA)
+          await states.page.mouse.move(2, 2)
+          await states.page.evaluate((selector) => window.__primp_test!.select(selector), PLAN_CTA)
+          await waitFor(async () => (await testState(states.page)).source?.state === 'done')
+          await states.page.evaluate(() => window.__primp_test!.setState('hover'))
+          await states.page.evaluate(() => window.__primp_test!.setStyle('background-color', '#2563eb'))
+          await openAllCss(states)
+          await shot(states.page, 'states-light.png')
+        } finally {
+          await states.close()
+        }
       }
       const shifts = await openDock(browser, cls, SHIFT_PAGE, { context: { colorScheme: scheme } })
       try {
         await shifts.page.evaluate(() => window.__primp_test!.openTab('shifts'))
         await shifts.page.evaluate(() => window.__primp_test!.shiftReport())
-        await shifts.dock.locator('[data-issue] button', { hasText: 'Show on page' }).click()
         await waitFor(() => shifts.dock.evaluate(() => (document.querySelector('[data-issue] .source')?.textContent ?? '').includes('index.html')), { timeoutMs: 5000 })
         await shifts.page.mouse.move(300, 500)
-        await sleep(300)
-        files.push(`shifts-${scheme}.png`)
-        await shifts.page.screenshot({ path: join(SHOTS, `shifts-${scheme}.png`) })
+        await shot(shifts.page, `shifts-${scheme}.png`)
       } finally {
         await shifts.close()
       }
+    }
+    // 390 px: the inspector is a bottom sheet above the toolbar.
+    const phone = await openDock(browser, vite, '/', { viewport: { width: 390, height: 844 }, context: { colorScheme: 'dark' } })
+    try {
+      await phone.page.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), `${CARD}:nth-of-type(1)`)
+      await phone.page.evaluate((selector) => window.__primp_test!.select(selector), `${CARD}:nth-of-type(1)`)
+      await waitFor(async () => (await testState(phone.page)).source?.state === 'done')
+      await shot(phone.page, 'sheet-390-dark.png')
+    } finally {
+      await phone.close()
     }
     return `${files.length} files in .tmp/m1-overlay-shots/: ${files.join(', ')}`
   })
@@ -2164,6 +2476,7 @@ async function main(): Promise<void> {
     report.info(`primp built the bundles itself from packages/overlay/src/entry: hook.js ${vite.primp.assets.hook.bytes} bytes (${vite.primp.assets.hook.from}), overlay.js ${vite.primp.assets.overlay.bytes} bytes`)
     await mountChecks(browser, vite, '/', 1200)
     await viteSelection(browser, vite)
+    await viteDockUx(browser, vite)
     await viteEdits(browser, vite)
     await viteVerdictAndSend(browser, vite)
     await viteHmr(browser, vite)
@@ -2173,6 +2486,12 @@ async function main(): Promise<void> {
     await viteStates(browser, vite)
     await viteReorder(browser, vite)
     await viteDrags(browser, vite)
+  }
+  // Only the interaction-model checks of vite-react-19 (they also run as part of `vite`).
+  if (only.includes('vite-ux') && !wants('vite')) {
+    report.section('vite-react-19 interaction model')
+    vite ??= await startLane('vite-react-19')
+    await viteDockUx(browser, vite)
   }
   // Only the state checks of vite-react-19 (they also run as part of `vite`).
   if (only.includes('vite-states') && !wants('vite')) {

@@ -74,7 +74,7 @@ function VerifyItem({ c, item, number }: { c: Controller; item: ChangeItem; numb
     <li class="item" data-item={item.id}>
       <div class="item-head">
         {number === undefined ? null : (
-          <span class="num" data-status={itemPinStatus(item)}>
+          <span class="num" data-pin-status={itemPinStatus(item)}>
             {number}
           </span>
         )}

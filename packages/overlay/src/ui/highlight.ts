@@ -14,6 +14,7 @@
  */
 
 import { effect } from '@preact/signals'
+import { SWALLOWED } from '../probe/select.ts'
 import type { PinStatus } from '../state/pins.ts'
 import type { Outline, Store } from '../state/store.ts'
 
@@ -97,6 +98,12 @@ export function createHighlighter(layer: HTMLElement, store: Store, view: Window
   let shownPins: { spec: PinSpec; rect: ViewBox }[] = []
   let scheduled = false
 
+  // A press on a pin is primp's: it does not bubble out of the layer to the page's own listeners.
+  const keepIn = (event: Event): void => {
+    if (event.target instanceof Element && event.target.classList.contains('pin')) event.stopPropagation()
+  }
+  for (const type of SWALLOWED) layer.addEventListener(type, keepIn)
+
   const chip = doc.createElement('div')
   chip.className = 'label-chip'
   layer.append(chip)
@@ -159,7 +166,7 @@ export function createHighlighter(layer: HTMLElement, store: Store, view: Window
     const hovered = store.hovered.peek()
     const pointer = options.pointer?.() ?? null
     const text = hovered === null || options.label === undefined ? null : options.label(hovered)
-    if (text === null || pointer === null || !store.open.peek()) {
+    if (text === null || pointer === null || !store.open.peek() || hovered === store.selection.peek()?.element) {
       chip.style.display = 'none'
       return
     }
@@ -269,6 +276,7 @@ export function createHighlighter(layer: HTMLElement, store: Store, view: Window
     pins: () => shownPins.map(({ spec, rect }) => ({ number: spec.number, status: spec.status, uid: spec.uid, ...rect })),
     dispose() {
       stop()
+      for (const type of SWALLOWED) layer.removeEventListener(type, keepIn)
       resized.disconnect()
       view.removeEventListener('scroll', schedule, { capture: true })
       view.removeEventListener('resize', schedule)

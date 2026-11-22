@@ -402,8 +402,8 @@ details > summary + * { margin-top: 6px; }
   flex: none; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; color: #fff; background: var(--pending);
   font: 650 10.5px/20px var(--sans); text-align: center; font-variant-numeric: tabular-nums;
 }
-.num[data-status="draft"] { background: var(--accent); }
-.num[data-status="pass"] { background: #16a34a; } .num[data-status="drift"] { background: #d97706; } .num[data-status="fail"] { background: #dc2626; }
+.num[data-pin-status="draft"] { background: var(--accent); }
+.num[data-pin-status="pass"] { background: #16a34a; } .num[data-pin-status="drift"] { background: #d97706; } .num[data-pin-status="fail"] { background: #dc2626; }
 .num.page { background: var(--raised-2); color: var(--muted); }
 .item { border-radius: 9px; background: var(--raised); padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; min-width: 0; border: 1px solid transparent; }
 .item.detached { border-color: var(--warn); }
