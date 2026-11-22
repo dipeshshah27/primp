@@ -13,6 +13,7 @@ packages/overlay    browser code: the injected hook (src/hook, entry/hook.ts) an
 packages/cli        the published `primp` binary: run, demo, setup, doctor, mcp (stdio MCP shim)
 fixtures/           apps the checks run against; standalone, NOT in the pnpm workspace
 spikes/             end-to-end checks; each prints a table and exits 0 or 1
+site/               the website: Next.js static export with its own install; tools/ (run from the root) builds the dock and an in-browser stand-in for the server into public/primp
 ```
 
 How a change flows: the dock records a `ChangeItem` (protocol) -> the server stores it -> `get_pending_changes` renders it with `engine/prompt.ts` -> the agent edits source -> `verify_changes` waits for settle (`server/settle.ts`), the dock measures (`overlay/probe/measure.ts`), the engine judges (`engine/judge.ts`).
@@ -29,6 +30,8 @@ pnpm spike:<name>              # end-to-end checks; list in package.json
 The end-to-end checks that matter for most changes: `spike:m3-loop` (edit -> agent -> verify, four frameworks), `spike:m1-overlay` (the dock), `spike:m1-server`, `spike:m4-shifts`, `spike:demo`, `spike:pack`. `spike:agent` calls the real `claude` CLI and costs money; run it only when asked. Several spikes accept a section argument to run part of them (read the file header).
 
 Fixtures have their own installs: `pnpm install --ignore-workspace` inside each `fixtures/*` directory. Tests copy a fixture to `.tmp/` before editing it; never edit the checked-in fixtures to make a test pass.
+
+The website: `pnpm site:assets`, then `cd site && pnpm install --ignore-workspace && pnpm build` (writes `site/out`), and `pnpm spike:site` to check it (builds both first; `--no-build` skips that). `pnpm site:capture` retakes the screenshots and `facts.json` in `site/public/shots` from a real run on the demo site. The site uses TypeScript 5 for Next's type check; the root `pnpm typecheck` covers only `site/tools`, `site/capture.ts` and `site/serve.ts`. `pnpm site:assets --ref HEAD` builds the dock from the last commit when `packages/overlay` is mid-change.
 
 ## Rules
 

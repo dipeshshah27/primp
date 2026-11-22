@@ -20,12 +20,13 @@
  *   facts.json              the strings the site quotes (summaries, hints, the shift, the change)
  *   prompt.txt              the prompt Send produced
  *
- *   pnpm site:capture       (at the repository root; then rebuild the site)
+ *   pnpm site:capture                    (at the repository root; then rebuild the site)
+ *   pnpm site:capture --out .tmp/shots   (a dry run into another directory)
  */
 
 import { mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { Client, type CallToolResult } from '@modelcontextprotocol/client'
 import { getDefaultEnvironment, StdioClientTransport } from '@modelcontextprotocol/client/stdio'
@@ -38,7 +39,9 @@ import { startPrimp } from '../packages/server/src/app.ts'
 import { launchBrowser, newPage, onCleanup, REPO_ROOT, runCleanups, sleep, TMP_ROOT, waitFor } from '../spikes/lib/index.ts'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
-const OUT = join(HERE, 'public/shots')
+/** `--out <dir>`: write somewhere else (a dry run that leaves the site's shots alone). */
+const outAt = process.argv.indexOf('--out')
+const OUT = outAt < 0 ? join(HERE, 'public/shots') : resolve(process.argv[outAt + 1] ?? '.tmp/site-capture-out')
 const WORK = join(TMP_ROOT, `site-capture-${process.pid}`)
 const SITE = join(WORK, 'primp-demo')
 const SESSIONS = join(WORK, 'sessions')
@@ -235,7 +238,6 @@ try {
   await page.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), CARD)
   await sleep(500)
   await dock('select', CARD)
-  await dock('panel', null)
   const grid = await page.evaluate((selector) => {
     const rect = (document.querySelector(selector)?.parentElement as Element).getBoundingClientRect()
     return { x: rect.x, y: rect.y, width: rect.width, height: rect.height }

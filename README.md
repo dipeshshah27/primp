@@ -131,6 +131,7 @@ packages/overlay    the injected hook and the dock
 packages/cli        the published `primp` binary
 fixtures/           apps the checks run against
 spikes/             end-to-end checks; `pnpm spike:<name>`
+site/               the website: a static Next.js export, with primp's dock running on every page
 ```
 
 ```sh
@@ -142,6 +143,20 @@ pnpm build         # packages/cli/dist
 ```
 
 Fixtures have their own installs: `pnpm install --ignore-workspace` inside each `fixtures/*` directory.
+
+### The website
+
+`site/` is a Next.js app (App Router, static export, Tailwind, MDX docs) with its own install, like a fixture. primp's real dock and head script run on every page, with an in-browser stand-in for primp's server (`site/tools/standin`): the prompt and the layout-shift attribution are primp's own code, the source lookup is primp's text search over the site's sources, and nothing is verified (there is no agent).
+
+```sh
+pnpm site:assets                                  # the dock, head script and stand-in into site/public/primp
+cd site && pnpm install --ignore-workspace && pnpm build   # site/out, plain files for any static host
+pnpm exec tsx site/serve.ts                       # serve site/out locally
+pnpm spike:site                                   # build and check: pages, links, CLS 0, the live dock
+pnpm site:capture                                 # new screenshots and facts from a real run on the demo site
+```
+
+The repository URL on the site is a placeholder in `site/lib/config.ts`.
 
 ## Licence
 

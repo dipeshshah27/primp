@@ -45,7 +45,7 @@ export function InstallTabs() {
           </TabsPrimitive.Trigger>
         ))}
       </TabsPrimitive.List>
-      <div className="grid">
+      <div className="grid grid-cols-[minmax(0,1fr)]">
         {TABS.map((tab) => (
           <TabsPrimitive.Content key={tab.value} value={tab.value} forceMount className="col-start-1 row-start-1 p-5 outline-none data-[state=inactive]:invisible sm:p-7">
             <div className="overflow-hidden rounded-xl border bg-code font-mono text-[13px]">

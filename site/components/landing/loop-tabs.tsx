@@ -34,7 +34,7 @@ export function LoopTabs({ steps }: { steps: LoopStep[] }) {
           </TabsPrimitive.Trigger>
         ))}
       </TabsPrimitive.List>
-      <div className="grid">
+      <div className="grid grid-cols-[minmax(0,1fr)]">
         {steps.map((step) => (
           <TabsPrimitive.Content
             key={step.value}

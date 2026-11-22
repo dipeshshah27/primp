@@ -204,7 +204,7 @@ function ReplayNotice({ held, onClose }: { held: boolean; onClose: () => void })
           <p className="font-medium">This load had a layout shift, on purpose.</p>
           <p className="text-muted-foreground">
             {held
-              ? 'The hero screenshot was served without reserved space and held back, so the page jumped when it arrived. Open the dock’s Shifts tab: primp names the image, the cause and a source line.'
+              ? 'The hero screenshot was served without reserved space and held back, so the page jumped when it arrived. Open the dock’s Layout shifts panel: primp names the image, the cause and a source line. (Its note that a resource came from a cache is about this replay: a service worker hands the screenshot over. Through npx primp every response is uncached.)'
               : 'This browser did not let the site install the small service worker that holds the screenshot back, so it may arrive before the first paint and the shift may not happen.'}
           </p>
           <div className="flex flex-wrap gap-2 pt-1">

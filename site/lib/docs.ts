@@ -20,6 +20,17 @@ export const DOCS: DocEntry[] = [
   { slug: 'faq', title: 'FAQ', file: 'faq', description: 'How primp differs from a screenshot and a prompt, whether it writes code, frameworks, browsers, and this site.' },
 ]
 
+/** Sidebar groups, in order. */
+export const DOC_GROUPS: { title: string; slugs: string[] }[] = [
+  { title: 'Start', slugs: ['', 'dock', 'layout-shifts'] },
+  { title: 'Your agent', slugs: ['agents', 'mcp-tools', 'verification'] },
+  { title: 'Reference', slugs: ['limits', 'faq'] },
+]
+
+export function docGroup(entry: DocEntry): string {
+  return DOC_GROUPS.find((group) => group.slugs.includes(entry.slug))?.title ?? 'Docs'
+}
+
 export function docHref(entry: DocEntry): string {
   return entry.slug === '' ? '/docs/' : `/docs/${entry.slug}/`
 }

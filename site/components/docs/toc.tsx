@@ -11,7 +11,7 @@ export interface TocItem {
 
 /** "On this page": rendered on the server, highlighted here as you scroll (colour only, no layout change). */
 export function Toc({ items }: { items: TocItem[] }) {
-  const [active, setActive] = useState<string | null>(null)
+  const [active, setActive] = useState<string | null>(items[0]?.id ?? null)
   useEffect(() => {
     const elements = items.map((item) => document.getElementById(item.id)).filter((element): element is HTMLElement => element !== null)
     if (elements.length === 0) return

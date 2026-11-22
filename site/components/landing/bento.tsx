@@ -39,7 +39,7 @@ export function Bento({ facts, shiftShots }: { facts: Facts; shiftShots: { light
   const fail = facts.verify.results.find((result) => result.status === 'fail')
   const firstSentence = fail === undefined ? '' : `${fail.hint.split('. ')[0]}.`
   const reserved = facts.shift.evidence.find((line) => line.includes('not reserved'))
-  const moved = facts.shift.evidence.find((line) => line.includes('moved down'))
+  const moved = facts.shift.evidence.find((line) => / (moved|pushed) (down|up)/.test(line))
   return (
     <Section
       id="different"
@@ -130,62 +130,6 @@ export function Bento({ facts, shiftShots }: { facts: Facts; shiftShots: { light
             <p className="mt-0.5 text-sm text-muted-foreground">
               The culprit outlined on the page, with the evidence. <Link href="/docs/layout-shifts/" className="text-foreground underline underline-offset-4">How attribution works</Link>
             </p>
-          </div>
-        </Card>
-
-        <Card className="lg:col-span-2">
-          <CardTitle icon={ShieldCheckIcon} title="Never passes unmeasured">
-            A change passes only when the page was measured and the value is there. Everything else has a status of its own, and none of them counts as success.
-          </CardTitle>
-          <div className="mt-6 space-y-3">
-            <div className="flex flex-wrap gap-1.5">
-              <Status s="pass" />
-              <Status s="drift" />
-              <Status s="fail" />
-              <Status s="build_error" />
-            </div>
-            <div className="flex flex-wrap gap-1.5 border-t pt-3">
-              {UNMEASURED.map((status) => (
-                <Status key={status} s={status} />
-              ))}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Grey: primp could not look, or there was nothing to measure. <Link href="/docs/verification/" className="text-foreground underline underline-offset-4">All statuses</Link>
-            </p>
-          </div>
-        </Card>
-
-        <Card className="lg:col-span-3">
-          <CardTitle icon={ActivityIcon} title="Layout shifts, attributed">
-            primp records the page load from its first script and names the element that caused each shift, the cause (an image without reserved space, a web font swapping in, content inserted above) and the line in your source.
-          </CardTitle>
-          <Output>
-            <p>
-              <span className="text-muted-foreground">culprit</span> {facts.shift.culprit}
-            </p>
-            <p>
-              <span className="text-muted-foreground">cause</span> {facts.shift.cause} <span className="text-muted-foreground">· {Math.round(facts.shift.confidence * 100)}% confident</span>
-            </p>
-            <p>
-              <span className="text-muted-foreground">source</span> {facts.shift.source}
-            </p>
-            {reserved !== undefined && <p className="text-foreground/80">{reserved}</p>}
-            {moved !== undefined && <p className="text-foreground/80">{moved}</p>}
-          </Output>
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <ReplayShiftButton />
-            <span className="text-xs text-muted-foreground">Reloads this page with one, for the dock to find.</span>
-          </div>
-        </Card>
-
-        <Card className="p-0 sm:p-0 lg:col-span-3">
-          <div className="relative h-full min-h-[300px] overflow-hidden">
-            <img src={shiftShots.light.src} width={shiftShots.light.width} height={shiftShots.light.height} alt="The Shifts tab of the dock on the demo site: the culprit image outlined on the page, its cause, source line and evidence." loading="lazy" className="absolute inset-0 size-full object-cover object-[78%_20%] dark:hidden" />
-            <img src={shiftShots.dark.src} width={shiftShots.dark.width} height={shiftShots.dark.height} alt="The Shifts tab of the dock on the demo site: the culprit image outlined on the page, its cause, source line and evidence." loading="lazy" className="absolute inset-0 hidden size-full object-cover object-[78%_20%] dark:block" />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/70 to-transparent p-6 pt-16">
-              <p className="text-sm font-medium">The Shifts tab</p>
-              <p className="text-sm text-muted-foreground">The culprit outlined on the page, with the evidence. <Link href="/docs/layout-shifts/" className="text-foreground underline underline-offset-4">How attribution works</Link></p>
-            </div>
           </div>
         </Card>
 

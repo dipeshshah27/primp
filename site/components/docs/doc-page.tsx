@@ -2,7 +2,7 @@ import type { MDXContent } from 'mdx/types'
 import { Pager } from '@/components/docs/pager'
 import { Toc } from '@/components/docs/toc'
 import { docSource, headings } from '@/lib/doc-source'
-import type { DocEntry } from '@/lib/docs'
+import { docGroup, type DocEntry } from '@/lib/docs'
 
 const CONTENT: Record<string, () => Promise<{ default: MDXContent }>> = {
   'getting-started': () => import('@/content/docs/getting-started.mdx'),
@@ -24,7 +24,7 @@ export async function DocPage({ entry }: { entry: DocEntry }) {
     <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_13rem]">
       <article id="main" className="min-w-0">
         <header className="mb-8 border-b pb-8">
-          <p className="mb-3 text-sm font-medium text-accent-brand-text">Docs</p>
+          <p className="mb-3 text-sm font-medium text-accent-brand-text">{docGroup(entry)}</p>
           <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{entry.title}</h1>
           <p className="mt-3 text-lg text-pretty text-muted-foreground">{entry.description}</p>
         </header>
