@@ -24,7 +24,7 @@ interface DockHandle {
   panel?: (name: string | null) => void
   collapse?: (collapsed: boolean) => void
   openTab?: (tab: string) => void
-  state?: () => { collapsed?: boolean; open?: boolean }
+  state?: () => { collapsed?: boolean; open?: boolean; panel?: string | null }
 }
 
 function handle(): DockHandle | undefined {
@@ -126,6 +126,15 @@ export function LiveDock() {
       const detail = (event as CustomEvent<{ prompt: string; count: number }>).detail
       setSent(detail)
       setOpen(true)
+      // After a Send the dock opens its Changes panel, which talks about MCP and the clipboard,
+      // and its outlines sit above everything. Here the sheet says what happened: the dock steps
+      // aside while it is open and comes back when it closes.
+      void (async () => {
+        const dock = handle()
+        for (let i = 0; i < 40 && dock?.state?.().panel !== 'changes'; i++) await new Promise((resolve) => setTimeout(resolve, 50))
+        dock?.panel?.(null)
+        dock?.open?.(false)
+      })()
     }
     window.addEventListener(SENT_EVENT, onSent)
     // Stopgap for a dock that opens by default (before its redesign, which starts closed and has
@@ -144,7 +153,13 @@ export function LiveDock() {
 
   return (
     <>
-      <Sheet open={open} onOpenChange={setOpen}>
+      <Sheet
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next)
+          if (!next) handle()?.open?.(true)
+        }}
+      >
         <SheetContent primpRoot className="gap-0 sm:max-w-2xl">
           <SheetHeader className="border-b p-5">
             <div className="flex items-center gap-2">

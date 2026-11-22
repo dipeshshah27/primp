@@ -47,6 +47,8 @@ The state is emulated from the page's own stylesheets, and verification reads th
 
 A selected element has handles on its right edge, its bottom edge and the corner. Drag one; the size is shown as you go. <kbd>Shift</kbd> on the corner keeps the aspect ratio and <kbd>Esc</kbd> cancels the drag. A resize is recorded as an ordinary `width` and `height` change (one or both) and checked like any other. There are no handles on the left and top edges.
 
+<Shot name="resize" alt="A card being resized by its right-hand handle; a label shows the new size." caption="Dragging the right-hand handle of a card. The label shows the border-box size." />
+
 ## Reorder
 
 Drag the grip above a selected element to another place among its siblings, or use **Move earlier** and **Move later**. An element moves only among the children of its parent, never into another parent. The change is verified by the order of the elements in the page, and when the elements come from a list, the agent is told to reorder the data rather than the markup.
