@@ -12,7 +12,7 @@
   "bugs": "https://github.com/dipeshshah27/primp/issues",
   "type": "module",
   "bin": {
-    "primp": "./dist/cli.js"
+    "primp": "dist/cli.js"
   },
   "files": [
     "dist",
