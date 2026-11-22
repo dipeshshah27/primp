@@ -1,13 +1,10 @@
-/**
- * Site-wide constants. The repository URL is a placeholder until the project has a public home:
- * change it here and every page follows.
- */
+/** Site-wide constants: change them here and every page follows. */
 
-/** PLACEHOLDER: the public repository. */
+/** The repository. */
 export const GITHUB_URL = 'https://github.com/dipeshshah27/primp'
 
-/** Canonical origin, used only for metadata (canonical link, Open Graph). Not registered yet. */
-export const SITE_URL = 'https://primp.dev'
+/** Canonical origin, used only for metadata (canonical link, Open Graph). Switch to https://primp.dev once that domain is registered and attached. */
+export const SITE_URL = 'https://primp-dev.vercel.app'
 
 export const SITE_NAME = 'primp'
 

@@ -2,6 +2,8 @@
 
 Edit your running app by hand, let your coding agent write the code, and have the result checked against the page.
 
+**[Website and live demo](https://primp-dev.vercel.app)** · [Docs](https://primp-dev.vercel.app/docs/) · `npx @primpdev/cli demo`
+
 primp is a proxy you run in front of your dev server. It adds a dock to your app with three jobs:
 
 - **Edits.** Open the dock (its button in the corner, or Cmd/Ctrl+Shift+E), click any element, change any CSS property (at rest or for `:hover`, `:focus`, `:focus-visible` or `:active`), resize it by dragging its edge, move it among its siblings, hide or remove it, or leave a note in your own words for what CSS cannot say (new copy, "make this a link"). primp records what you changed, where the element lives in your source, and what else on the page moved because of it.
