@@ -14,7 +14,7 @@
  *   edit-{light,dark}       the inspector next to the selected button
  *   shifts-{light,dark}     the Layout shifts panel with the seeded shift shown on the page
  *   verify-{light,dark}     the Verification panel after the "agent" edited the source
- *   step-edit-*, step-verify-*   the dock alone (popover and toolbar), cropped from edit and verify
+ *   step-edit-*, step-verify-*   the dock's popover alone (inspector, Verification), cropped from edit and verify
  *   hover-light             a :hover edit previewed with the state held
  *   resize-light            a resize handle drag in progress
  *   facts.json              the strings the site quotes (summaries, hints, the shift, the change)
@@ -88,10 +88,10 @@ async function shoot(page: Page, name: string, clip?: Box): Promise<void> {
   console.log(`  ${name}.jpg  ${(statSync(path).size / 1024).toFixed(0)} kB`)
 }
 
-/** The dock's popover and toolbar together, with a margin. */
+/** The dock's popover (the toolbar when no popover is shown), with a margin. */
 async function dockClip(dock: Dock, margin = 14): Promise<Box> {
   const { bar, pop } = await dock('geometry')
-  const boxes = [bar, ...(pop === null ? [] : [pop])]
+  const boxes = [pop ?? bar]
   const left = Math.max(0, Math.min(...boxes.map((box) => box.x)) - margin)
   const top = Math.max(0, Math.min(...boxes.map((box) => box.y)) - margin)
   const right = Math.min(VIEWPORT.width, Math.max(...boxes.map((box) => box.x + box.width)) + margin)

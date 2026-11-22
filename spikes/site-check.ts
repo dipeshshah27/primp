@@ -114,14 +114,14 @@ async function factsOf(page: Page): Promise<PageFacts> {
   })
 }
 
-async function scrollThrough(page: Page): Promise<void> {
-  await page.evaluate(async () => {
+async function scrollThrough(page: Page, pauseMs = 50): Promise<void> {
+  await page.evaluate(async (pause) => {
     for (let y = 0; y < document.documentElement.scrollHeight; y += 400) {
       scrollTo(0, y)
-      await new Promise((resolve) => setTimeout(resolve, 50))
+      await new Promise((resolve) => setTimeout(resolve, pause))
     }
     scrollTo(0, 0)
-  })
+  }, pauseMs)
 }
 
 /** Text of every frame of the dock (toolbar and popover). */
@@ -456,7 +456,8 @@ try {
       const shot = await freshPage(browser, { viewport: { width: job.width, height: job.height }, theme: job.theme })
       await shot.page.goto(origin + job.path)
       await waitFor(() => shot.page.evaluate(() => (window as unknown as { __primp_test?: unknown }).__primp_test !== undefined), { what: 'the dock', timeoutMs: 15_000 })
-      if (job.full) await scrollThrough(shot.page)
+      // Slowly enough for every lazy image to arrive before the full-page screenshot.
+      if (job.full) await scrollThrough(shot.page, 250)
       await sleep(900)
       await job.then?.(shot.page)
       await shot.page.screenshot({ path: join(SHOTS, `${job.name}.png`), fullPage: job.full })

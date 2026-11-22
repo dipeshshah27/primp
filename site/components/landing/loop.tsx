@@ -132,7 +132,7 @@ export function Loop({ facts, change, promptHtml, editShots, verifyShots }: { fa
                           <Status s={result.status} />
                           <code className="truncate font-mono text-xs text-muted-foreground">{result.id}</code>
                         </div>
-                        <p className="mt-2 line-clamp-4 leading-relaxed text-foreground/85">
+                        <p className="mt-2 line-clamp-3 leading-relaxed text-foreground/85">
                           <CodeSpans text={result.hint} />
                         </p>
                       </li>

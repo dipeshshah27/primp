@@ -7,9 +7,9 @@
     "culprit": "#hero-art",
     "confidence": 0.95,
     "evidence": [
-      "img#hero-art went from 1120x0 to 1120x700 at 744.4 ms",
+      "img#hero-art went from 1120x0 to 1120x700 at 745.3 ms",
       "its space was not reserved: no width/height attribute, no aspect-ratio",
-      "its load event fired at 759.9 ms (intrinsic size 1200x750)",
+      "its load event fired at 760.6 ms (intrinsic size 1200x750)",
       "section#customers was pushed down 700px, below the visible area: the same distance, and img#hero-art is right before it",
       "100% of the moved area is explained directly"
     ],
@@ -17,7 +17,7 @@
     "level": "exact"
   },
   "edit": {
-    "id": "c_d300ae_2scuh",
+    "id": "c_2dbe12_2hqsl",
     "label": "a.btn \"Start free trial\"",
     "summary": "131 elements moved down 4px; .btn became 4px taller",
     "source": "index.html:35",
@@ -29,7 +29,7 @@
     "origin": {
       "via": "rule",
       "selector": ".btn",
-      "sheet": "http://localhost:61323/css/site.css",
+      "sheet": "http://localhost:61451/css/site.css",
       "alsoStyles": 1
     },
     "bystanders": [
@@ -240,20 +240,20 @@
     ]
   },
   "verify": {
-    "summary": "Verified 3 changes: 1 fail, 1 pass, 1 not checkable. c_d300ae_6z3rl is a note: nothing to measure, so neither a pass nor a fail; the user checks it by eye.",
+    "summary": "Verified 3 changes: 1 fail, 1 pass, 1 not checkable. c_2dbe12_61u0u is a note: nothing to measure, so neither a pass nor a fail; the user checks it by eye.",
     "results": [
       {
-        "id": "c_d300ae_2scuh",
+        "id": "c_2dbe12_2hqsl",
         "status": "fail",
         "hint": "`a.btn \"Read the docs\"` was not part of this change, but its `padding-bottom` went from `12px` to `14px`. The rule you edited is shared: restore it and make the change with a more specific rule or a class on the changed element(s). Also not passing: `a.btn \"Read the docs\"` was not part of this change, but its `padding-left` went from `20px` to `26px`; `a.btn \"Read the docs\"` was not part of this change, but its `padding-right` went from `20px` to `26px`; `a.btn \"Read the docs\"` was not part of this change, but its `padding-top` went from `12px` to `14px`."
       },
       {
-        "id": "c_d300ae_4xmig",
+        "id": "c_2dbe12_42a8c",
         "status": "pass",
         "hint": "The check passes."
       },
       {
-        "id": "c_d300ae_6z3rl",
+        "id": "c_2dbe12_61u0u",
         "status": "not_checkable",
         "hint": "A note from the user: check it by eye. It is free text, so primp has nothing to measure and cannot tell whether it is done; this is neither a pass nor a fail. Tell the user what you changed for it, so they can check it on the page."
       }
