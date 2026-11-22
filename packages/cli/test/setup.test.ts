@@ -10,7 +10,7 @@ import { isOnPath, runSetup, type SetupDeps } from '../src/setup.ts'
  * `claude` or `codex`, and nothing touches a client's configuration.
  */
 
-const SHIM: ShimCommand = { command: 'npx', args: ['-y', '@primp/cli', 'mcp'], fromSource: false }
+const SHIM: ShimCommand = { command: 'npx', args: ['-y', '@primpdev/cli', 'mcp'], fromSource: false }
 
 interface Script {
   installed: string[]
@@ -46,15 +46,15 @@ describe('primp setup', () => {
     const outcomes = await runSetup(d, { shim: SHIM })
     expect(d.asked).toHaveLength(2)
     expect(d.ran).toEqual([
-      ['claude', ['mcp', 'add', 'primp', '--', 'npx', '-y', '@primp/cli', 'mcp']],
-      ['codex', ['mcp', 'add', 'primp', '--', 'npx', '-y', '@primp/cli', 'mcp']],
+      ['claude', ['mcp', 'add', 'primp', '--', 'npx', '-y', '@primpdev/cli', 'mcp']],
+      ['codex', ['mcp', 'add', 'primp', '--', 'npx', '-y', '@primpdev/cli', 'mcp']],
     ])
     expect(outcomes).toEqual([
       { client: 'Claude Code', result: 'registered', exitCode: 0 },
       { client: 'Codex', result: 'registered', exitCode: 0 },
     ])
     // The command is shown before the question, so the user knows what they agree to.
-    expect(d.printed.indexOf('  claude mcp add primp -- npx -y @primp/cli mcp')).toBeGreaterThan(-1)
+    expect(d.printed.indexOf('  claude mcp add primp -- npx -y @primpdev/cli mcp')).toBeGreaterThan(-1)
   })
 
   it('runs nothing on no (the default answer)', async () => {
@@ -70,7 +70,7 @@ describe('primp setup', () => {
     expect(d.asked).toHaveLength(1)
     expect(d.ran.map(([binary]) => binary)).toEqual(['codex'])
     expect(outcomes.map((outcome) => outcome.result)).toEqual(['not-installed', 'registered'])
-    expect(d.printed).toContain('  claude mcp add primp -- npx -y @primp/cli mcp')
+    expect(d.printed).toContain('  claude mcp add primp -- npx -y @primpdev/cli mcp')
     expect(d.printed.some((line) => line.includes('`claude` command was not found'))).toBe(true)
   })
 
@@ -96,7 +96,7 @@ describe('primp setup', () => {
     const d = deps({ installed: [], answers: [] })
     await runSetup(d, { shim: SHIM })
     const json = d.printed.at(-1) ?? ''
-    expect(JSON.parse(json).mcpServers.primp.args).toEqual(['-y', '@primp/cli', 'mcp', '--project', '${workspaceFolder}'])
+    expect(JSON.parse(json).mcpServers.primp.args).toEqual(['-y', '@primpdev/cli', 'mcp', '--project', '${workspaceFolder}'])
     expect(d.printed.at(-2)).toMatch(/Cursor: put this in \.cursor\/mcp\.json/)
     expect(d.ran).toEqual([])
   })

@@ -22,13 +22,13 @@ export interface ShimCommand {
 }
 
 /**
- * `npx -y @primp/cli mcp` for the published package. From a checkout, the shim
+ * `npx -y @primpdev/cli mcp` for the published package. From a checkout, the shim
  * is started the way the CLI itself was: Node with
  * tsx's loader and the entry file, both as absolute paths so it works from any
  * working directory an agent host picks.
  */
 export function shimCommand(entryUrl: string = import.meta.url): ShimCommand {
-  if (!entryUrl.endsWith('.ts')) return { command: 'npx', args: ['-y', '@primp/cli', 'mcp'], fromSource: false }
+  if (!entryUrl.endsWith('.ts')) return { command: 'npx', args: ['-y', '@primpdev/cli', 'mcp'], fromSource: false }
   const entry = fileURLToPath(new URL('./index.ts', entryUrl))
   let loader = 'tsx'
   try {
@@ -83,6 +83,6 @@ export function registrationText(shim: ShimCommand): string {
     `  Codex         ${codexRegistration(shim).line}`,
     '  Cursor        put this in .cursor/mcp.json in the project:',
     indent(cursorConfig(shim), '                  '),
-    ...(shim.fromSource ? ['  (running from a checkout: the published package registers as `npx -y @primp/cli mcp`)'] : []),
+    ...(shim.fromSource ? ['  (running from a checkout: the published package registers as `npx -y @primpdev/cli mcp`)'] : []),
   ].join('\n')
 }

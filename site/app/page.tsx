@@ -83,7 +83,7 @@ export default async function Home() {
             </Button>
           </div>
           <div className="mt-6 flex justify-center">
-            <CommandPill command="npx @primp/cli" className="w-full max-w-xs" />
+            <CommandPill command="npx @primpdev/cli" className="w-full max-w-xs" />
           </div>
         </div>
       </section>

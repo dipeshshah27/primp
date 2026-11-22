@@ -22,7 +22,7 @@
     "spike:m1-server": "tsx spikes/m1-server.ts",
     "spike:m3-loop": "tsx spikes/m3-loop.ts",
     "spike:m4-shifts": "tsx spikes/m4-shifts.ts",
-    "build": "pnpm --filter @primp/cli build",
+    "build": "pnpm --filter @primpdev/cli build",
     "spike:pack": "tsx spikes/pack-check.ts",
     "spike:demo": "tsx spikes/demo-check.ts",
     "spike:agent": "tsx spikes/agent-check.ts",

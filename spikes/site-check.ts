@@ -361,7 +361,7 @@ try {
       await sheet.waitFor({ state: 'visible', timeout: 5000 })
       const shown = (await sheet.locator('[data-copy-source]').textContent()) ?? ''
       expect(shown === prompt, `the sheet shows another text (${shown.length} vs ${prompt.length} characters)`)
-      expect((await sheet.textContent())?.includes('verification needs') === true, 'the sheet does not say that verification needs npx @primp/cli and an agent')
+      expect((await sheet.textContent())?.includes('verification needs') === true, 'the sheet does not say that verification needs npx @primpdev/cli and an agent')
       await sleep(700)
       await live.page.screenshot({ path: join(SHOTS, 'prompt-sheet.png') })
       expect(!(await live.page.evaluate(() => (window as unknown as { __primp_dock: { isOpen(): boolean } }).__primp_dock.isOpen())), 'the dock stayed open over the sheet')

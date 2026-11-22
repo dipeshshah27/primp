@@ -17,7 +17,7 @@ primp never writes to your source files. Nothing is installed in your project.
 ## Try it
 
 ```sh
-npx @primp/cli demo
+npx @primpdev/cli demo
 ```
 
 This copies a one-page site with one seeded layout shift into `./primp-demo`, serves it, and opens it with the dock. The terminal tells you what to say to your agent.
@@ -27,7 +27,7 @@ This copies a one-page site with one seeded layout shift into `./primp-demo`, se
 Start your dev server as usual, then, in the project directory:
 
 ```sh
-npx @primp/cli
+npx @primpdev/cli
 ```
 
 primp finds the dev server, starts a proxy on the next port and opens your app through it. Useful options:
@@ -35,14 +35,14 @@ primp finds the dev server, starts a proxy on the next port and opens your app t
 | Option | What it does |
 |---|---|
 | `--target <url or port>` | The dev server to sit in front of, when primp cannot find it or finds the wrong one |
-| `--exec "<command>"` | Start the dev server too, and stop it on exit: `npx @primp/cli --exec "npm run dev"` |
+| `--exec "<command>"` | Start the dev server too, and stop it on exit: `npx @primpdev/cli --exec "npm run dev"` |
 | `--port <n>` | Port for the proxy |
 | `--no-open` | Do not open the browser |
 
 ### Connect your agent
 
 ```sh
-npx @primp/cli setup
+npx @primpdev/cli setup
 ```
 
 This asks before running your client's own command (`claude mcp add ...`, `codex mcp add ...`) and prints the JSON for Cursor. It never edits a configuration file itself. Without MCP, the **Send** button copies the same instructions to your clipboard.

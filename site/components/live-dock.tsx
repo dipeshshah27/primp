@@ -146,7 +146,7 @@ export function LiveDock() {
               {sent !== null && <Badge variant="outline">{sent.count === 1 ? '1 change' : `${sent.count} changes`}</Badge>}
             </div>
             <SheetDescription>
-              Rendered by primp&apos;s own prompt code from the changes you just made on this page. With <code className="font-mono text-foreground">npx @primp/cli</code>, your agent takes it over MCP, or you paste it.
+              Rendered by primp&apos;s own prompt code from the changes you just made on this page. With <code className="font-mono text-foreground">npx @primpdev/cli</code>, your agent takes it over MCP, or you paste it.
             </SheetDescription>
           </SheetHeader>
           <div className="relative min-h-0 flex-1" data-copy-root>
@@ -159,7 +159,7 @@ export function LiveDock() {
           </div>
           <div className="space-y-3 border-t bg-muted/30 p-5">
             <p className="text-sm text-muted-foreground">
-              Nothing is verified on this site: verification needs <code className="font-mono text-foreground">npx @primp/cli</code> and an agent that edits your source. Then primp waits for the page to update, measures every change again and reports pass, drift or fail.
+              Nothing is verified on this site: verification needs <code className="font-mono text-foreground">npx @primpdev/cli</code> and an agent that edits your source. Then primp waits for the page to update, measures every change again and reports pass, drift or fail.
             </p>
             <div className="flex flex-wrap gap-2">
               <Button asChild size="sm">
@@ -200,7 +200,7 @@ function ReplayNotice({ held, onClose }: { held: boolean; onClose: () => void })
               ? 'The hero screenshot came without reserved space and was held back, so the page jumped. Open Layout shifts: primp names the image, the cause and a source line.'
               : 'This browser did not let the site install the small service worker that holds the screenshot back, so it may arrive before the first paint and the shift may not happen.'}
           </p>
-          {held && <p className="text-xs text-muted-foreground/80">Its note that a resource came from a cache is this replay&apos;s service worker. Through npx @primp/cli every response is uncached.</p>}
+          {held && <p className="text-xs text-muted-foreground/80">Its note that a resource came from a cache is this replay&apos;s service worker. Through npx @primpdev/cli every response is uncached.</p>}
           <div className="flex flex-wrap gap-2 pt-1">
             <Button size="sm" variant="accent" onClick={() => void openDock('shifts')}>
               Open Layout shifts

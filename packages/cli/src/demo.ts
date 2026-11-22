@@ -133,6 +133,6 @@ export function demoGuide(dir: string, cwd: string = process.cwd()): string {
     '  3. Try an edit: in the Edits tab pick the "Start free trial" button, change its padding or',
     '     colour, press Send, and tell your agent: "Implement the primp changes and verify them."',
     '',
-    'No agent registered yet? Run `npx @primp/cli setup` in another terminal, or paste the prompt that Send copies.',
+    'No agent registered yet? Run `npx @primpdev/cli setup` in another terminal, or paste the prompt that Send copies.',
   ].join('\n')
 }

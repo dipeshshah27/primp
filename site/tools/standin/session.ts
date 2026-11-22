@@ -40,7 +40,7 @@ declare const __PRIMP_VERSION__: string
 
 /** What the dock says after Send on this site, instead of its words about MCP and the clipboard. */
 const SENT_NOTE =
-  'This page runs primp in your browser with no agent, so nothing is queued. The prompt is shown in the sheet; with npx @primp/cli your agent receives it and primp verifies the result.'
+  'This page runs primp in your browser with no agent, so nothing is queued. The prompt is shown in the sheet; with npx @primpdev/cli your agent receives it and primp verifies the result.'
 
 /**
  * The parts of ProjectFiles the text search uses (`list`, `read`), over the bundled sources.

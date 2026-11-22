@@ -49,7 +49,7 @@ export const SERVER_NAME = 'primp'
 const DEFAULT_CONTROL_TIMEOUT_MS = 10_000
 
 /** Start of the message agents see when nothing is running; kept stable so it can be matched. */
-export const NOT_RUNNING = 'primp is not running for this project; start it with npx @primp/cli'
+export const NOT_RUNNING = 'primp is not running for this project; start it with npx @primpdev/cli'
 
 const INSTRUCTIONS = [
   'primp runs next to a web project during development. It serves the app through a local proxy and gives the developer a dock in the page for trying visual changes (CSS values, also for a state such as :hover or :focus, resizing by dragging, hiding or removing elements, and moving an element among its siblings), for writing notes about an element or the whole page when CSS cannot say what they want, and for inspecting layout shifts. It measures the rendered page; it never writes to source files, so the source edits are yours to make.',
@@ -323,7 +323,7 @@ async function callControl<M extends ControlMethod>(
     }
     const reason = error instanceof Error ? error.message : String(error)
     throw new ShimError(
-      `The primp process (pid ${session.file.pid}) did not answer ${method}: ${reason}. If it is stuck, restart it with npx @primp/cli.`,
+      `The primp process (pid ${session.file.pid}) did not answer ${method}: ${reason}. If it is stuck, restart it with npx @primpdev/cli.`,
     )
   }
 
@@ -345,7 +345,7 @@ async function callControl<M extends ControlMethod>(
     }
     if (code === 'method_not_found') {
       throw new ShimError(
-        `The running primp does not know ${method}; it is probably an older version than this MCP server. Restart it with npx @primp/cli.`,
+        `The running primp does not know ${method}; it is probably an older version than this MCP server. Restart it with npx @primpdev/cli.`,
       )
     }
     throw new ShimError(`primp could not complete ${method}: ${message}`)
@@ -354,7 +354,7 @@ async function callControl<M extends ControlMethod>(
   const result = controlMethods[method].result.safeParse(response.data.result)
   if (!result.success) {
     throw new ShimError(
-      `primp answered ${method} in a shape this MCP server does not understand; the two are probably different versions. Restart primp with npx @primp/cli.`,
+      `primp answered ${method} in a shape this MCP server does not understand; the two are probably different versions. Restart primp with npx @primpdev/cli.`,
     )
   }
   return result.data as ControlResult<M>

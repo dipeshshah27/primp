@@ -120,7 +120,7 @@ export async function startLane(name: FixtureName): Promise<Lane> {
   return { name, fixture, primp, control, logs }
 }
 
-/** Stops primp and starts it again on the same port with an empty session, as after `npx @primp/cli` was restarted. */
+/** Stops primp and starts it again on the same port with an empty session, as after `npx @primpdev/cli` was restarted. */
 export async function restartPrimp(lane: Lane): Promise<void> {
   const { port, assets } = lane.primp
   await lane.primp.close()

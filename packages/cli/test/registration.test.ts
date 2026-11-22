@@ -3,22 +3,22 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { claudeRegistration, codexRegistration, cursorConfig, registrationText, shellQuote, shimCommand, type ShimCommand } from '../src/registration.ts'
 
-const PUBLISHED: ShimCommand = { command: 'npx', args: ['-y', '@primp/cli', 'mcp'], fromSource: false }
+const PUBLISHED: ShimCommand = { command: 'npx', args: ['-y', '@primpdev/cli', 'mcp'], fromSource: false }
 
 describe('registration commands', () => {
   it('are the ones spike S6 verified for the published package', () => {
-    expect(claudeRegistration(PUBLISHED).line).toBe('claude mcp add primp -- npx -y @primp/cli mcp')
-    expect(claudeRegistration(PUBLISHED)).toMatchObject({ binary: 'claude', args: ['mcp', 'add', 'primp', '--', 'npx', '-y', '@primp/cli', 'mcp'] })
-    expect(codexRegistration(PUBLISHED).line).toBe('codex mcp add primp -- npx -y @primp/cli mcp')
+    expect(claudeRegistration(PUBLISHED).line).toBe('claude mcp add primp -- npx -y @primpdev/cli mcp')
+    expect(claudeRegistration(PUBLISHED)).toMatchObject({ binary: 'claude', args: ['mcp', 'add', 'primp', '--', 'npx', '-y', '@primpdev/cli', 'mcp'] })
+    expect(codexRegistration(PUBLISHED).line).toBe('codex mcp add primp -- npx -y @primpdev/cli mcp')
     expect(JSON.parse(cursorConfig(PUBLISHED))).toEqual({
-      mcpServers: { primp: { type: 'stdio', command: 'npx', args: ['-y', '@primp/cli', 'mcp', '--project', '${workspaceFolder}'] } },
+      mcpServers: { primp: { type: 'stdio', command: 'npx', args: ['-y', '@primpdev/cli', 'mcp', '--project', '${workspaceFolder}'] } },
     })
   })
 
   it('print all three clients in the block shown at start-up', () => {
     const text = registrationText(PUBLISHED)
-    expect(text).toContain('claude mcp add primp -- npx -y @primp/cli mcp')
-    expect(text).toContain('codex mcp add primp -- npx -y @primp/cli mcp')
+    expect(text).toContain('claude mcp add primp -- npx -y @primpdev/cli mcp')
+    expect(text).toContain('codex mcp add primp -- npx -y @primpdev/cli mcp')
     expect(text).toContain('.cursor/mcp.json')
     expect(text).toContain('"${workspaceFolder}"')
     expect(text).not.toContain('checkout')
