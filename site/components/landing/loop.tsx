@@ -1,4 +1,5 @@
 import { FileCodeIcon, MoveVerticalIcon, PaintbrushIcon, UsersIcon } from 'lucide-react'
+import { CopyButton } from '@/components/copy-button'
 import { CodeSpans } from '@/components/mdx/bystander-example'
 import { LoopTabs } from '@/components/landing/loop-tabs'
 import { Section } from '@/components/landing/section'
@@ -88,20 +89,27 @@ export function Loop({ facts, change, promptHtml, editShots, verifyShots }: { fa
             title: 'Your agent writes it',
             text: 'Send. Your agent takes the changes over MCP, or you paste the prompt. This is the prompt primp produced for that edit.',
             panel: (
-              <div className="flex flex-col">
-                <div className="flex items-center justify-between gap-3 border-b px-5 py-3 sm:px-8">
-                  <p className="font-mono text-xs text-muted-foreground">get_pending_changes · the prompt, as the agent received it</p>
-                  <Badge variant="outline" className="font-mono font-normal">
-                    markdown
-                  </Badge>
+              <div className="flex flex-col" data-copy-root>
+                <div className="flex items-center justify-between gap-3 border-b px-5 py-2.5 sm:px-8">
+                  <p className="truncate font-mono text-xs text-muted-foreground">get_pending_changes · the prompt, as the agent received it</p>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Badge variant="outline" className="hidden font-mono font-normal sm:inline-flex">
+                      markdown
+                    </Badge>
+                    <CopyButton label="Copy the prompt" />
+                  </div>
                 </div>
-                <div
-                  className="max-h-[520px] overflow-auto px-5 py-5 font-mono text-[12.5px] leading-relaxed sm:px-8 [&_pre]:whitespace-pre-wrap"
-                  tabIndex={0}
-                  role="region"
-                  aria-label="The prompt primp produced"
-                  dangerouslySetInnerHTML={{ __html: promptHtml }}
-                />
+                <div className="relative">
+                  <div
+                    data-copy-source
+                    className="max-h-[540px] overflow-auto px-5 pt-5 pb-16 font-mono text-[12.5px] leading-relaxed sm:px-8 [&_pre]:whitespace-pre-wrap"
+                    tabIndex={0}
+                    role="region"
+                    aria-label="The prompt primp produced"
+                    dangerouslySetInnerHTML={{ __html: promptHtml }}
+                  />
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 rounded-b-2xl bg-gradient-to-t from-card to-transparent" aria-hidden="true" />
+                </div>
               </div>
             ),
           },

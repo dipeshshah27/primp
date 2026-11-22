@@ -12,7 +12,7 @@ import type { Shot } from '@/lib/shots'
  * by the delay worker, so the page jumps when it arrives. See `.shift-replay-only` in globals.css.
  */
 export function Hero({ shots, summary }: { shots: { light: Shot; dark: Shot }; summary: string }) {
-  const alt = `The primp dock open on the demo site: two recorded changes, each with its source line; the first one notes what else moved on the page: "${summary}".`
+  const alt = `The primp dock open on the demo site with its recorded changes, each with its source line; the first one notes what else moved on the page: "${summary}".`
   return (
     <section aria-labelledby="hero-title" className="relative isolate overflow-hidden">
       <div className="bg-grid absolute inset-0 -z-10 h-[820px]" aria-hidden="true" />
@@ -51,7 +51,7 @@ export function Hero({ shots, summary }: { shots: { light: Shot; dark: Shot }; s
           <img src={`${shots.dark.src}?delay=700`} alt={alt} loading="lazy" className="shift-replay-only hero-replay-shot w-full" />
         </BrowserFrame>
         <p className="mt-4 text-center text-sm text-muted-foreground">
-          The dock on the demo site of <code className="font-mono text-foreground/80">npx primp demo</code>: two changes recorded, each with its source line and what else moved.
+          The dock on the demo site of <code className="font-mono text-foreground/80">npx primp demo</code>: the changes recorded on the page, each with its source line and what else moved.
         </p>
       </div>
     </section>

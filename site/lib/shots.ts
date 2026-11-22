@@ -47,6 +47,8 @@ export function shotPair(name: string): { light: Shot; dark: Shot } {
 
 export interface Facts {
   capturedAt: string
+  /** Which dock the screenshots show: `toolbar` (launcher, toolbar and popovers); absent for the earlier docked panel. */
+  dock?: string
   shift: { cause: string; value: number; culprit: string; confidence: number; evidence: string[]; source: string | null; level: string | null }
   edit: { id?: string; label: string; summary: string; source: string; bystanders: string[]; change?: { property: string; before: string; after: string } }
   verify: { summary: string; results: { id: string; status: string; hint: string }[] }

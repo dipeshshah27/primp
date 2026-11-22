@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { BrowserFrame } from '@/components/browser-frame'
-import { shot } from '@/lib/shots'
+import { facts, shot } from '@/lib/shots'
 import { cn } from '@/lib/utils'
 
 /**
@@ -22,7 +22,12 @@ export function Shot({ name, alt, caption, url = 'localhost:5174', priority = fa
   return (
     <figure className={cn('not-prose my-8', className)}>
       <BrowserFrame url={url}>{images}</BrowserFrame>
-      {caption !== undefined && <figcaption className="mt-3 text-center text-sm text-muted-foreground">{caption}</figcaption>}
+      {caption !== undefined && (
+        <figcaption className="mt-3 text-center text-sm text-muted-foreground">
+          {caption}
+          {facts().dock === undefined && ' (Captured from an earlier version of the dock.)'}
+        </figcaption>
+      )}
     </figure>
   )
 }

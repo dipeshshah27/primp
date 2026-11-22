@@ -109,7 +109,7 @@ async function both(page: Page, name: string, clip?: () => Promise<Box>): Promis
   await page.emulateMedia({ colorScheme: 'light' })
 }
 
-const facts: Record<string, unknown> = { capturedAt: new Date().toISOString().slice(0, 10) }
+const facts: Record<string, unknown> = { capturedAt: new Date().toISOString().slice(0, 10), dock: 'toolbar' }
 
 try {
   mkdirSync(SESSIONS, { recursive: true })
