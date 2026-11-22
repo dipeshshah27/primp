@@ -1,10 +1,13 @@
 /**
- * Pick mode: choosing an element of the page with the pointer or the keyboard.
+ * Selection: choosing an element of the page with the pointer or the keyboard. On whenever the
+ * dock is open.
  *
- * While pick mode is on, capture-phase listeners on the window see every pointer and mouse
- * event before the app does and stop it there, so a click selects the element instead of
- * pressing the app's button, following its link or moving focus. When pick mode is off no
- * listener is installed and the app gets every event.
+ * While it is on, capture-phase listeners on the window see every pointer and mouse event
+ * before the app does and stop it there, so a click selects the element instead of pressing the
+ * app's button, following its link or submitting its form. A press with Alt (Option) held goes
+ * through to the app untouched and selects nothing. Events on primp's own nodes (the handles,
+ * the pins) are never selections. When the dock is closed no listener is installed and the app
+ * gets every event.
  *
  * Keys in pick mode: Escape leaves, Enter picks the hovered element, ArrowUp goes to the
  * parent, ArrowDown to the first child, ArrowLeft / ArrowRight to the previous / next sibling.
@@ -62,6 +65,9 @@ export const SWALLOWED = [
   'dragstart',
 ] as const
 
+/** The events of a press: with Alt held they belong to the app. */
+const PRESS = new Set(['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'auxclick', 'dblclick', 'contextmenu', 'touchstart', 'touchend', 'dragstart'])
+
 /** Elements nobody means when they point at the page. */
 function pickable(element: Element | null): element is Element {
   if (element === null || isOwn(element)) return false
@@ -113,6 +119,7 @@ export function createPicker(callbacks: PickerCallbacks, doc: Document = documen
     const target = targetOf(event, doc)
     // Events inside the dock are the dock's.
     if (target !== null && isOwn(target)) return
+    if (PRESS.has(event.type) && (event as MouseEvent).altKey === true) return
     event.stopImmediatePropagation()
     if (event.cancelable && event.type !== 'pointermove' && event.type !== 'mousemove') event.preventDefault()
     const element = pickable(target) ? target : null

@@ -11,6 +11,11 @@ import type { ElementStyles } from '../probe/styles.ts'
 
 export type TabName = 'edits' | 'shifts' | 'verify'
 
+/** What the popover shows: the inspector of the selection, or a panel opened from the toolbar. */
+export type PanelName = 'inspector' | 'changes' | 'shifts' | 'verify' | 'settings'
+
+export type ThemeSetting = 'auto' | 'dark' | 'light'
+
 export interface SourceState {
   state: 'resolving' | 'done' | 'failed'
   loc: SourceLoc | null
@@ -78,7 +83,25 @@ export interface Store {
   selection: Signal<Selection | null>
   /** Source of the selected element. */
   source: Signal<SourceState | null>
-  pickMode: Signal<boolean>
+  /**
+   * The dock is open: the toolbar is shown and selection is on (the page's clicks select instead
+   * of reaching the app; Alt lets one through). Closed, primp is a launcher button and the page
+   * gets every event. Written through `controller.setOpen`.
+   */
+  open: Signal<boolean>
+  /** Same as `open`; kept under its old name for the test handle and older checks. */
+  pickMode: ReadonlySignal<boolean>
+  /** The popover's content; null: no popover. */
+  panel: Signal<PanelName | null>
+  /** The numbered pins on changed elements are hidden. */
+  pinsHidden: Signal<boolean>
+  /** The page's animations and transitions are paused by primp. */
+  paused: Signal<boolean>
+  theme: Signal<ThemeSetting>
+  /** A short confirmation shown next to the toolbar for a moment ("Prompt copied"); tone `bad` for a refusal. */
+  toast: Signal<{ text: string; tone: 'ok' | 'bad'; at: number } | null>
+  /** Why the last resize (a handle drag or the size fields) recorded nothing or only part; cleared by the next edit. */
+  resizeNote: Signal<string | null>
   hovered: Signal<Element | null>
   /** Extra outlines (shift victims, a side effect being pointed at). */
   outlines: Signal<Outline[]>
@@ -104,6 +127,7 @@ export interface Store {
 export function createStore(page: string): Store {
   const history = signal<ItemHistory>(emptyHistory())
   const items = computed(() => history.value.present)
+  const open = signal(false)
   return {
     info: signal(null),
     connected: signal(false),
@@ -118,7 +142,14 @@ export function createStore(page: string): Store {
     summaries: signal(new Map()),
     selection: signal(null),
     source: signal(null),
-    pickMode: signal(false),
+    open,
+    pickMode: computed(() => open.value),
+    panel: signal(null),
+    pinsHidden: signal(false),
+    paused: signal(false),
+    theme: signal('auto'),
+    resizeNote: signal(null),
+    toast: signal(null),
     hovered: signal(null),
     outlines: signal([]),
     scope: signal('instance'),

@@ -4,13 +4,14 @@
  * It is always present; it adds nothing a page script could not already do by clicking.
  */
 
-import type { ChangeItem, ElementState, Ref, SideEffect } from '@primp/protocol/change'
+import type { ChangeItem, ElementState, NoteChange, Ref, SideEffect } from '@primp/protocol/change'
 import type { MeasureRequest, Measurement } from './probe/measure.ts'
 import { forcedNow } from './probe/states.ts'
 import { suggestProperties, supportedProperties } from './probe/properties.ts'
 import { summarizeRecorded } from './probe/effects.ts'
 import { summaryKey, type Controller, type EffectsCost, type SizeRequest, type StyleEdit, type StyleEditOptions } from './state/controller.ts'
-import type { ShiftState, TabName } from './state/store.ts'
+import type { PanelName, ShiftState, TabName } from './state/store.ts'
+import type { PinStatus } from './state/pins.ts'
 import type { DragState, HandleName, ViewRect } from './ui/handles.ts'
 import type { DockHandle } from './ui/mount.ts'
 
@@ -27,9 +28,17 @@ export interface TestState {
   connected: boolean
   ready: boolean
   mounted: boolean
+  /** The dock is open (selection on). Same as `pickMode`; `collapsed` is its opposite. */
+  open: boolean
   pickMode: boolean
+  /** What the popover shows; null: no popover. */
+  panel: PanelName | null
   tab: TabName
   collapsed: boolean
+  paused: boolean
+  pinsHidden: boolean
+  /** The last resize refusal or partial note, shown next to the handles and the size fields. */
+  resizeNote: string | null
   canUndo: boolean
   canRedo: boolean
   /** Ids of drafts whose element is not in the page. */
@@ -53,7 +62,7 @@ export interface TestState {
 export interface PrimpTestHandle {
   /** Resolves when the dock is mounted and the first `session:state` has arrived. */
   ready(): Promise<void>
-  /** Selects the first element matching `cssSelector`, as a click in pick mode would. */
+  /** Selects the first element matching `cssSelector`, as a click on it would: the dock opens if it was closed, and the inspector shows the element. */
   select(cssSelector: string): Promise<Ref>
   selection(): Ref | null
   /** Sets the State control (`hover`, `focus`, `focus-visible`, `active`); null: back to rest. */
@@ -92,7 +101,21 @@ export interface PrimpTestHandle {
   // Beyond the minimum, for checks that need them:
   /** The one-line side-effect summary of an item, as the tray shows it. */
   summary(itemId: string): string
+  /** Opens (true) or closes the dock; the old name of `open`. */
   pick(on: boolean): void
+  open(on: boolean): void
+  /** Opens a panel of the toolbar (or the inspector), or closes the popover with null. */
+  panel(name: PanelName | null): void
+  /** Writes the note of the selection (`on: 'element'`, the default) or of the page; an empty text deletes it. */
+  addNote(text: string, options?: { on?: NoteChange['on'] }): Promise<TestEditResult>
+  /** Copy without Send: the prompt the drafts would get. */
+  copyPrompt(): Promise<{ prompt: string; copied: boolean }>
+  /** Pauses (true) or resumes the page's animations. */
+  pause(on: boolean): void
+  /** The numbered pins drawn now, with their viewport rects. */
+  pins(): { number: number; status: PinStatus; uid: string; x: number; y: number; width: number; height: number }[]
+  /** Viewport rects of the toolbar frame and of the popover frame (null when no popover is shown). */
+  geometry(): ReturnType<DockHandle['geometry']>
   deleteItem(itemId: string): Promise<ChangeItem[]>
   setNote(itemId: string, note: string): Promise<ChangeItem | null>
   /** Every property the autocomplete knows. */
@@ -129,7 +152,9 @@ export function installTestHandle(c: Controller, dock: DockHandle): PrimpTestHan
       await c.idle()
       const element = document.querySelector(cssSelector)
       if (element === null) throw new Error(`no element matches ${cssSelector}`)
+      if (!store.open.value) c.setOpen(true)
       c.select(element)
+      store.panel.value = 'inspector'
       const selection = store.selection.value
       if (selection === null) throw new Error(`could not select ${cssSelector}`)
       return selection.ref
@@ -178,7 +203,21 @@ export function installTestHandle(c: Controller, dock: DockHandle): PrimpTestHan
       if (item === null) return ''
       return store.summaries.value.get(summaryKey(item)) ?? summarizeRecorded(item.sideEffects)
     },
-    pick: (on) => c.setPickMode(on),
+    pick: (on) => c.setOpen(on),
+    open: (on) => c.setOpen(on),
+    panel(name) {
+      if (name !== null && !store.open.value) c.setOpen(true)
+      if (name === null) c.escape()
+      else store.panel.value = name
+    },
+    addNote: (text, options) => result(c.addNote(text, options?.on ?? 'element')),
+    copyPrompt: () => c.copyPrompt(),
+    pause: (on) => c.setPaused(on),
+    pins() {
+      dock.highlighter.flush()
+      return dock.highlighter.pins()
+    },
+    geometry: () => dock.geometry(),
     async deleteItem(itemId) {
       await c.idle()
       c.deleteItem(itemId)
@@ -193,8 +232,10 @@ export function installTestHandle(c: Controller, dock: DockHandle): PrimpTestHan
     suggest: (typed) => suggestProperties(typed, [], 50),
     openTab(tab) {
       store.tab.value = tab
+      if (!store.open.value) c.setOpen(true)
+      store.panel.value = tab === 'edits' ? (store.selection.value === null ? 'changes' : 'inspector') : tab
     },
-    collapse: (collapsed) => dock.setCollapsed(collapsed),
+    collapse: (collapsed) => c.setOpen(!collapsed),
     state() {
       const source = store.source.value
       const sent = store.sent.value
@@ -203,9 +244,14 @@ export function installTestHandle(c: Controller, dock: DockHandle): PrimpTestHan
         connected: store.connected.value,
         ready: store.ready.value,
         mounted: dock.mounted(),
-        pickMode: store.pickMode.value,
-        tab: store.tab.value,
-        collapsed: dock.frame.classList.contains('collapsed'),
+        open: store.open.value,
+        pickMode: store.open.value,
+        panel: store.panel.value,
+        tab: store.panel.value === 'shifts' || store.panel.value === 'verify' ? store.panel.value : 'edits',
+        collapsed: !store.open.value,
+        paused: store.paused.value,
+        pinsHidden: store.pinsHidden.value,
+        resizeNote: store.resizeNote.value,
         canUndo: store.canUndo.value,
         canRedo: store.canRedo.value,
         detached: [...store.detached.value],

@@ -1,13 +1,14 @@
 /**
- * The Shifts tab: the layout shifts of this page load as the server attributed them.
- * Read-only in this milestone. A report that could not measure says so; it never reads as
- * "no shifts".
+ * The Shifts panel: the layout shifts of this page load as the server attributed them, with the
+ * main culprit outlined on the page while the panel is open. Read-only. A report that could not
+ * measure says so; it never reads as "no shifts".
  */
 
 import type { NodeDescriptor, ShiftIssue } from '@primp/protocol/shift'
-import { useState } from 'preact/hooks'
+import { useEffect, useState } from 'preact/hooks'
 import type { Controller } from '../state/controller.ts'
 import type { Outline, ShiftState } from '../state/store.ts'
+import { IconClose, IconRefresh } from './icons.tsx'
 import { SourceBadge } from './parts.tsx'
 
 const CAUSE: Record<ShiftIssue['cause'], string> = {
@@ -75,10 +76,17 @@ export function outlinesOf(issue: ShiftIssue): Outline[] {
   return out
 }
 
+/** The culprit of the largest counted issue: outlined while the panel is open. */
+function mainCulprit(state: ShiftState | null): Outline[] {
+  if (state === null || state.report.status !== 'ok') return []
+  const top = state.report.issues.filter((issue) => issue.scored && issue.culprit !== undefined).sort((a, b) => b.value - a.value)[0]
+  return top === undefined ? [] : outlinesOf(top).filter((outline) => outline.kind === 'culprit')
+}
+
 function IssueRow({ c, issue, state }: { c: Controller; issue: ShiftIssue; state: ShiftState }) {
   const [pinned, setPinned] = useState(false)
   const show = (on: boolean): void => {
-    c.store.outlines.value = on ? outlinesOf(issue) : []
+    c.store.outlines.value = on ? outlinesOf(issue) : mainCulprit(state)
   }
   const culprit = issue.culprit
   const source = state.culpritSources[issue.id] ?? null
@@ -122,13 +130,13 @@ function IssueRow({ c, issue, state }: { c: Controller; issue: ShiftIssue; state
       <div class="row">
         <button
           type="button"
-          class={`btn${pinned ? ' on' : ''}`}
+          class={`btn sm${pinned ? ' on' : ''}`}
           aria-pressed={pinned}
           onClick={() => {
             setPinned(!pinned)
             show(!pinned)
           }}
-          style="height:22px;margin-left:auto"
+          style="margin-left:auto"
         >
           {pinned ? 'Shown on page' : 'Show on page'}
         </button>
@@ -140,7 +148,7 @@ function IssueRow({ c, issue, state }: { c: Controller; issue: ShiftIssue; state
 function Group({ c, title, issues, state }: { c: Controller; title: string; issues: ShiftIssue[]; state: ShiftState }) {
   if (issues.length === 0) return null
   return (
-    <details>
+    <details class="sub">
       <summary>
         {title} ({issues.length})
       </summary>
@@ -216,5 +224,36 @@ export function ShiftsTab({ c }: { c: Controller }) {
         </ul>
       ) : null}
     </>
+  )
+}
+
+export function ShiftsPanel({ c, onClose }: { c: Controller; onClose(): void }) {
+  const state = c.store.shifts.value
+  const pending = c.store.shiftsPending.value
+  useEffect(() => {
+    c.store.outlines.value = mainCulprit(state)
+  }, [state])
+  useEffect(() => () => void (c.store.outlines.value = []), [])
+  return (
+    <div class="pop" role="dialog" aria-label="Layout shifts">
+      <header class="pop-head">
+        <div class="title-row">
+          <h2 class="grow">Layout shifts</h2>
+          <button type="button" class="iconbtn" aria-label="Close the layout shifts" title="Close (Esc)" onClick={onClose}>
+            <IconClose />
+          </button>
+        </div>
+      </header>
+      <div class="pop-body" id="panel">
+        <ShiftsTab c={c} />
+      </div>
+      <footer class="pop-foot foot">
+        <span class="hint grow">Shifts of this page load.</span>
+        <button type="button" class="btn sm" disabled={pending} onClick={() => void c.requestShifts().catch(() => undefined)}>
+          <IconRefresh size={14} />
+          Measure again
+        </button>
+      </footer>
+    </div>
   )
 }

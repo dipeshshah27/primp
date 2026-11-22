@@ -27,7 +27,7 @@
 import { batch, effect } from '@preact/signals'
 import { deriveExpectations } from '@primp/engine/expect'
 import { editKey, emptyHistory, historyReducer, upsertEdit } from '@primp/engine/items'
-import type { ChangeItem, Condition, ElementState, SideEffect, SiblingAnchor, SourceLoc, StructuralChange, StyleChange } from '@primp/protocol/change'
+import type { ChangeItem, Condition, ElementState, NoteChange, SideEffect, SiblingAnchor, SourceLoc, StructuralChange, StyleChange } from '@primp/protocol/change'
 import type { ServerMessage, SessionInfo } from '@primp/protocol/messages'
 import { collectEvidence } from '@primp/source/browser/index'
 import type { PrimpBus } from '../bus.ts'
@@ -38,6 +38,7 @@ import { createPreview, type Preview, type PreviewSpec } from '../probe/preview.
 import { computedLonghands, computedValue, isCustomProperty, isSupportedProperty, isValidValue } from '../probe/properties.ts'
 import { elementChildren, positionOf, reorderRefusal } from '../probe/order.ts'
 import { buildRef, elementOfUid, labelOf, locate, locatorOf, setUidPrefix, uidOf } from '../probe/ref.ts'
+import { pauseMotion, resumeMotion, setSelectCursor } from '../probe/page-mode.ts'
 import { createPicker, neighbour, type Picker } from '../probe/select.ts'
 import { boxModelOf, cssSizeFor, resizeRefusal } from '../probe/size.ts'
 import { forcedNow, forceState } from '../probe/states.ts'
@@ -82,7 +83,31 @@ export interface Controller {
   select(element: Element | null): void
   /** Moves the selection with an arrow key (parent, first child, siblings). */
   navigate(key: string): void
+  /**
+   * Opens or closes the dock. Open: selection is on (clicks on the page select, Alt lets one
+   * through), the cursor is a crosshair. Closed: the selection, the popover and a pause of the
+   * page's animations end, and the page gets every event again. The recorded changes stay.
+   */
+  setOpen(open: boolean): void
+  /** The old name of `setOpen`. */
   setPickMode(on: boolean): void
+  /** Escape: closes the popover (and lets go of the selection) first, then the dock. */
+  escape(): void
+  /** Pauses (true) or resumes (false) the page's animations and transitions. */
+  setPaused(paused: boolean): void
+  /**
+   * Writes the note for the selected element (`on: 'element'`) or for the whole page. One note
+   * per element (or page): writing again replaces its text, an empty text deletes it. Undoable.
+   */
+  addNote(text: string, on?: NoteChange['on']): Promise<EditResult>
+  /** The draft note of the selected element (`element`) or of this page (`page`), if any. */
+  noteOf(on: NoteChange['on']): NoteChange | null
+  /** The element a recorded item is about, found again if the page replaced it; null when it is not in the page. */
+  elementOf(item: ChangeItem): Element | null
+  /** The source position of an element, if it was already resolved (no request is made). */
+  knownSource(element: Element): SourceLoc | null | undefined
+  /** Renders the prompt the drafts would be sent with and puts it on the clipboard, without sending. */
+  copyPrompt(): Promise<{ prompt: string; copied: boolean }>
   /**
    * Chooses the interaction state the selected element is shown in and new edits are made for;
    * null: at rest. The element looks hovered (focused, pressed) without the pointer or the focus
@@ -178,7 +203,7 @@ function saveDrafts(project: string, drafts: readonly ChangeItem[]): void {
 
 /** Key of the engine's one-line summary of an edit: it belongs to one version of the item. */
 export function summaryKey(item: ChangeItem): string {
-  return `${item.id}|${item.kind === 'style' ? item.after.authored : item.op}`
+  return `${item.id}|${item.kind === 'style' ? item.after.authored : item.kind === 'note' ? item.text : item.op}`
 }
 
 export function specOf(item: ChangeItem): PreviewSpec {
@@ -187,7 +212,7 @@ export function specOf(item: ChangeItem): PreviewSpec {
     uid: item.target.uid,
     locator: item.target.locator,
     scope: item.kind === 'style' ? item.scope : 'instance',
-    declarations: item.kind === 'style' ? [{ property: item.property, value: item.after.authored }] : item.op === 'reorder' ? [] : [{ property: 'display', value: 'none' }],
+    declarations: item.kind === 'style' ? [{ property: item.property, value: item.after.authored }] : item.kind === 'note' || item.op === 'reorder' ? [] : [{ property: 'display', value: 'none' }],
     seq: item.seq,
   }
   // A reorder moves the node (probe/preview.ts); without `move` it is a draft that says nothing to show.
@@ -262,7 +287,8 @@ export function createController(options: ControllerOptions): Controller {
   }
 
   const syncPreview = (item: ChangeItem): void => {
-    if (item.status !== 'draft' || item.page !== page) {
+    // A note changes nothing on the page: it has no preview.
+    if (item.status !== 'draft' || item.page !== page || item.kind === 'note') {
       forget(item.id)
       return
     }
@@ -347,6 +373,12 @@ export function createController(options: ControllerOptions): Controller {
   const fail = (error: string): EditResult => {
     store.error.value = error
     return { ok: false, error }
+  }
+
+  /** Every edit starts with a clean slate: the last refusal is not shown any more. */
+  const clearErrors = (): void => {
+    store.error.value = null
+    store.resizeNote.value = null
   }
 
   // -------------------------------------------------------------------------
@@ -454,8 +486,7 @@ export function createController(options: ControllerOptions): Controller {
 
   /**
    * Brings the page in line with the State control: the selected element is held in the chosen
-   * state, and nothing is held while there is no selection, no state, or pick mode is on (the
-   * picker shows the page as it is). Safe to call at any time; it writes only when something
+   * state, and nothing is held while there is no selection or no state. Safe to call at any time; it writes only when something
    * differs, and looks at the stylesheets again when nothing does (one may have been replaced).
    */
   const holdState = (): void => {
@@ -463,7 +494,7 @@ export function createController(options: ControllerOptions): Controller {
     const state = store.state.value
     const element = store.selection.value?.element
     const held = forcedNow()
-    if (state === null || element === undefined || !element.isConnected || store.pickMode.value) {
+    if (state === null || element === undefined || !element.isConnected) {
       held?.release()
       return
     }
@@ -529,31 +560,81 @@ export function createController(options: ControllerOptions): Controller {
   }
 
   // -------------------------------------------------------------------------
-  // Pick mode
+  // Open, selection, Escape, pause
   // -------------------------------------------------------------------------
 
-  const setPickMode = (on: boolean): void => {
+  const setPaused = (on: boolean): void => {
+    if (on === store.paused.peek()) return
+    if (on) pauseMotion()
+    else resumeMotion()
+    store.paused.value = on
+  }
+
+  const setOpen = (on: boolean): void => {
     if (on) picker.start()
     else picker.stop()
+    setSelectCursor(on)
     batch(() => {
-      store.pickMode.value = on
-      if (!on) store.hovered.value = null
+      store.open.value = on
+      if (!on) {
+        store.hovered.value = null
+        store.panel.value = null
+        store.outlines.value = []
+      }
     })
-    // Picking shows the page as it is; the state comes back on whatever is selected when it ends.
-    holdState()
+    if (!on) {
+      // Closed, primp leaves the page as the app has it: nothing selected, held or paused.
+      select(null)
+      setPaused(false)
+    }
+  }
+
+  const escape = (): void => {
+    const panel = store.panel.peek()
+    if (panel !== null) {
+      batch(() => {
+        store.panel.value = null
+        store.outlines.value = []
+      })
+      if (panel === 'inspector') select(null)
+      return
+    }
+    if (store.selection.peek() !== null) {
+      select(null)
+      return
+    }
+    setOpen(false)
   }
 
   const picker = createPicker({
     onHover: (element) => (store.hovered.value = element),
-    onPick(element, how) {
+    onPick(element) {
       select(element)
-      // A click ends pick mode, as it does in a browser's inspector; the keyboard keeps exploring.
-      if (how === 'pointer') setPickMode(false)
+      store.panel.value = 'inspector'
     },
-    onCancel: () => setPickMode(false),
+    onCancel: () => escape(),
     current: () => store.selection.value?.element ?? null,
     onHistory: (direction) => step(direction),
   })
+
+  /** Where an item's element was last found; a locator lookup is not cheap enough for every frame. */
+  const located = new Map<string, { element: Element | null; at: number }>()
+  const elementOf = (item: ChangeItem): Element | null => {
+    const known = elementOfUid(item.target.uid)
+    if (known !== null && known.isConnected) return known
+    const marked = preview.elementByUid(item.target.uid)
+    if (marked !== null) return marked
+    const cached = located.get(item.target.uid)
+    if (cached !== undefined && (cached.element?.isConnected === true || performance.now() - cached.at < 1000)) return cached.element?.isConnected === true ? cached.element : null
+    let element: Element | null = null
+    try {
+      element = locate(item.target.locator).element
+    } catch {
+      element = null
+    }
+    located.set(item.target.uid, { element, at: performance.now() })
+    return element
+  }
 
   const navigate = (key: string): void => {
     const from = store.selection.value?.element ?? store.hovered.value
@@ -623,7 +704,7 @@ export function createController(options: ControllerOptions): Controller {
    * the box (an item a flex or grid container sizes) is not recorded but reported.
    */
   const styleGesture = async (make: (element: Element) => StyleEdit[] | string, edit: StyleEditOptions, sized?: Partial<Record<'width' | 'height', number>>): Promise<EditResult> => {
-    store.error.value = null
+    clearErrors()
     const selection = target()
     if (selection === null) return fail('Select an element first.')
     const element = selection.element
@@ -691,7 +772,10 @@ export function createController(options: ControllerOptions): Controller {
         if (typeof tried === 'string') return fail(tried)
         drafts = tried.kept
         if (drafts.length === 0) return { ok: true, item: null, items: [] }
-        if (tried.note !== undefined) store.error.value = tried.note
+        if (tried.note !== undefined) {
+          store.error.value = tried.note
+          store.resizeNote.value = tried.note
+        }
       }
 
       // Measure "before" on the page without this gesture's own earlier previews. For a state whose own
@@ -870,17 +954,24 @@ export function createController(options: ControllerOptions): Controller {
   }
 
   const resize = (size: SizeRequest, options: StyleEditOptions = {}): Promise<EditResult> =>
-    enqueue(() => {
+    enqueue(async () => {
       // A drag's live preview goes in the same task as the measurement starts: no frame shows the old size in between.
       if (preview.has(LIVE_SIZE)) forget(LIVE_SIZE)
+      clearErrors()
       const selection = target()
-      if (selection === null) return Promise.resolve(fail('Select an element first.'))
+      if (selection === null) return fail('Select an element first.')
       const refusal = resizeRefusal(selection.element)
-      if (refusal !== null) return Promise.resolve(fail(refusal))
+      if (refusal !== null) {
+        store.resizeNote.value = refusal
+        return fail(refusal)
+      }
       const sized: Partial<Record<'width' | 'height', number>> = {}
       if (size.width !== undefined) sized.width = size.width
       if (size.height !== undefined) sized.height = size.height
-      return styleGesture((element) => sizeEdits(element, size), options, sized)
+      const result = await styleGesture((element) => sizeEdits(element, size), options, sized)
+      // Said next to the handle and the size fields, where the resize was tried; not anywhere else.
+      if (!result.ok) store.resizeNote.value = result.error
+      return result
     })
 
   // -------------------------------------------------------------------------
@@ -909,7 +1000,7 @@ export function createController(options: ControllerOptions): Controller {
    */
   const reorderWith = (pick: (index: number, count: number) => number | string): Promise<EditResult> =>
     enqueue(async () => {
-      store.error.value = null
+      clearErrors()
       const selection = target()
       if (selection === null) return fail('Select an element first.')
       const element = selection.element
@@ -989,7 +1080,7 @@ export function createController(options: ControllerOptions): Controller {
 
   const structural = (op: 'hide' | 'remove'): Promise<EditResult> =>
     enqueue(async () => {
-      store.error.value = null
+      clearErrors()
       const selection = target()
       if (selection === null) return fail('Select an element first.')
       const element = selection.element
@@ -1060,10 +1151,100 @@ export function createController(options: ControllerOptions): Controller {
     })
 
   // -------------------------------------------------------------------------
+  // Notes
+  // -------------------------------------------------------------------------
+
+  const noteOf = (on: NoteChange['on']): NoteChange | null => {
+    const uid = on === 'page' ? null : store.selection.value === null ? undefined : uidOf(store.selection.value.element)
+    if (uid === undefined) return null
+    return (
+      store.items.value.find(
+        (item): item is NoteChange => item.kind === 'note' && item.status === 'draft' && item.page === page && item.on === on && (on === 'page' || item.target.uid === uid),
+      ) ?? null
+    )
+  }
+
+  const addNote = (text: string, on: NoteChange['on'] = 'element'): Promise<EditResult> =>
+    enqueue(async () => {
+      clearErrors()
+      const written = text.trim()
+      let element: Element
+      if (on === 'page') element = document.body
+      else {
+        const selection = target()
+        if (selection === null) return fail('Select an element first, or write a note for the whole page.')
+        element = selection.element
+      }
+      const existing = noteOf(on)
+      if (written === '') {
+        if (existing !== null) deleteItem(existing.id)
+        return { ok: true, item: null }
+      }
+      if (existing !== null && existing.text === written) return { ok: true, item: existing }
+      const uid = uidOf(element)
+      const item: NoteChange = {
+        id: existing?.id ?? newId('c'),
+        seq: existing?.seq ?? nextSeq(),
+        createdAt: existing?.createdAt ?? Date.now(),
+        page,
+        status: 'draft',
+        target: withKnownSource({ ...buildRef(element, sources.get(element) ?? null), uid }, element),
+        sideEffects: [],
+        expect: [],
+        kind: 'note',
+        text: written,
+        on,
+      }
+      item.expect = deriveExpectations(item)
+      const next = existing === null ? [...present(), item] : present().map((other) => (other.id === existing.id ? item : other))
+      commit(next)
+      return { ok: true, item }
+    })
+
+  // -------------------------------------------------------------------------
   // Send
   // -------------------------------------------------------------------------
 
   const pendingSends = new Map<string, (message: Extract<ServerMessage, { type: 'session:sent' }>) => void>()
+  const pendingPrompts = new Map<string, (message: Extract<ServerMessage, { type: 'session:prompt-text' }>) => void>()
+
+  const toast = (text: string, tone: 'ok' | 'bad' = 'ok'): void => {
+    store.toast.value = { text, tone, at: performance.now() }
+  }
+
+  const copyPrompt = (): Promise<{ prompt: string; copied: boolean }> =>
+    enqueue(async () => {
+      const drafts = store.allDrafts.value
+      if (drafts.length === 0) {
+        toast('Nothing to copy yet: make a change first.', 'bad')
+        return { prompt: '', copied: false }
+      }
+      if (!bus.connected()) {
+        toast('Not connected to primp.', 'bad')
+        return { prompt: '', copied: false }
+      }
+      await sourcesSettled(SEND_WAITS_FOR_SOURCES_MS)
+      const reqId = newId('p')
+      const answer = await new Promise<Extract<ServerMessage, { type: 'session:prompt-text' }> | null>((resolve) => {
+        const timer = window.setTimeout(() => {
+          pendingPrompts.delete(reqId)
+          resolve(null)
+        }, SEND_TIMEOUT_MS)
+        pendingPrompts.set(reqId, (message) => {
+          window.clearTimeout(timer)
+          pendingPrompts.delete(reqId)
+          resolve(message)
+        })
+        bus.send({ type: 'session:prompt', reqId, ids: drafts.map((item) => item.id) })
+      })
+      if (answer === null || answer.prompt === '') {
+        toast('primp did not render the prompt.', 'bad')
+        return { prompt: '', copied: false }
+      }
+      const copied = await copy(answer.prompt)
+      toast(copied ? `Prompt for ${answer.count} ${answer.count === 1 ? 'change' : 'changes'} copied` : 'The browser did not allow copying.', copied ? 'ok' : 'bad')
+      return { prompt: answer.prompt, copied }
+    })
 
   const send = (): Promise<string> =>
     enqueue(async () => {
@@ -1107,7 +1288,11 @@ export function createController(options: ControllerOptions): Controller {
         // Sent items cannot be un-sent: the undo history ends here.
         store.history.value = emptyHistory(items)
         const copied = await copy(answer.batch.prompt)
-        store.sent.value = { prompt: answer.batch.prompt, count: sent.size, copied }
+        batch(() => {
+          store.sent.value = { prompt: answer.batch.prompt, count: sent.size, copied }
+          // What was sent, and the prompt when the clipboard refused it, are in the Changes panel.
+          if (store.open.value) store.panel.value = 'changes'
+        })
         refresh()
         return answer.batch.prompt
       } catch (error) {
@@ -1296,6 +1481,9 @@ export function createController(options: ControllerOptions): Controller {
       case 'session:sent':
         pendingSends.get(event.reqId)?.(event)
         break
+      case 'session:prompt-text':
+        pendingPrompts.get(event.reqId)?.(event)
+        break
       case 'session:shift-report':
         onShiftReport(event)
         break
@@ -1346,7 +1534,15 @@ export function createController(options: ControllerOptions): Controller {
     picker,
     select,
     navigate,
-    setPickMode,
+    setOpen,
+    setPickMode: setOpen,
+    escape,
+    setPaused,
+    addNote,
+    noteOf,
+    copyPrompt,
+    elementOf,
+    knownSource: (element) => sources.get(element),
     setState,
     setStyle,
     setStyles,
@@ -1386,6 +1582,8 @@ export function createController(options: ControllerOptions): Controller {
       pinned = false
       holdState()
       picker.stop()
+      setSelectCursor(false)
+      if (store.paused.value) resumeMotion()
       preview.dispose()
     },
   }

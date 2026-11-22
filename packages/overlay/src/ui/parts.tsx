@@ -59,6 +59,13 @@ function MoveLine({ item }: { item: Extract<ChangeItem, { kind: 'structure' }> }
 
 /** `padding: 20px -> 28px`, `background-color on :hover: old -> new`, or what a structural change does. */
 export function ChangeLine({ item }: { item: ChangeItem }) {
+  if (item.kind === 'note') {
+    return (
+      <div class="change note-line">
+        <span class="p">{item.on === 'page' ? 'Note on the page' : 'Note'}</span>: {item.text}
+      </div>
+    )
+  }
   if (item.kind === 'structure') {
     if (item.op === 'reorder') return <MoveLine item={item} />
     return <div class="change">{item.op === 'remove' ? 'Remove this element from the source' : 'Hide this element (keep it in the DOM)'}</div>

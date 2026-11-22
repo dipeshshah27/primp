@@ -140,8 +140,10 @@ export async function startFakeLane(fixture: FixtureHandle, bundles: Bundles): P
 }
 
 export interface DockPage extends PageHandle {
-  /** The dock's own document. */
+  /** The popover's own document: the inspector of the selection, or the panel opened from the toolbar. */
   dock: Frame
+  /** The toolbar's own document: the launcher while the dock is closed, the toolbar while it is open. */
+  bar: Frame
 }
 
 export interface OpenOptions extends NewPageOptions {
@@ -159,15 +161,17 @@ export async function openDock(browser: Browser, lane: Lane, path: string, optio
   await handle.context.addInitScript({ content: 'globalThis.__name = globalThis.__name || function (f) { return f }' })
   await handle.page.goto((options.origin ?? lane.primp.url) + path, { waitUntil: 'load' })
   const dock = await dockFrame(handle.page)
+  const bar = await dockFrame(handle.page, 'bar')
   await handle.page.evaluate(() => window.__primp_test!.ready())
-  return { ...handle, dock }
+  return { ...handle, dock, bar }
 }
 
-export async function dockFrame(page: Page): Promise<Frame> {
+/** The document of one of the dock's two frames: `pop` (inspector and panels, the default) or `bar` (launcher and toolbar). */
+export async function dockFrame(page: Page, which: 'pop' | 'bar' = 'pop'): Promise<Frame> {
   await page.waitForFunction(() => window.__primp_test !== undefined, undefined, { timeout: 15_000 })
-  const element = await page.waitForSelector('primp-root iframe', { state: 'attached', timeout: 10_000 })
+  const element = await page.waitForSelector(`primp-root iframe[data-primp-dock="${which}"]`, { state: 'attached', timeout: 10_000 })
   const frame = await element.contentFrame()
-  if (frame === null) throw new Error('the dock frame has no document')
+  if (frame === null) throw new Error(`the dock's ${which} frame has no document`)
   return frame
 }
 

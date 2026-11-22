@@ -6,6 +6,8 @@
 
 import type { ChangeItem, CheckResult, ItemStatus, VerificationStatus } from '@primp/protocol/change'
 import type { Controller } from '../state/controller.ts'
+import { itemPinStatus, pinGroups } from '../state/pins.ts'
+import { IconClose, IconRefresh } from './icons.tsx'
 import { ChangeLine, ScopeChips, SourceBadge } from './parts.tsx'
 
 const STATUS: Record<Exclude<ItemStatus, 'draft'>, { text: string; tone: string }> = {
@@ -26,6 +28,7 @@ const RESULT: Record<VerificationStatus, { text: string; tone: string }> = {
   not_measurable: { text: 'not measurable', tone: 'warn' },
   tab_hidden: { text: 'tab hidden', tone: 'warn' },
   no_browser: { text: 'no browser', tone: 'warn' },
+  not_checkable: { text: 'note: check by eye', tone: '' },
 }
 
 function what(check: CheckResult): string {
@@ -64,12 +67,17 @@ function Check({ check }: { check: CheckResult }) {
   )
 }
 
-function VerifyItem({ c, item }: { c: Controller; item: ChangeItem }) {
+function VerifyItem({ c, item, number }: { c: Controller; item: ChangeItem; number: number | undefined }) {
   const status = STATUS[item.status as Exclude<ItemStatus, 'draft'>]
   const result = item.verification
   return (
     <li class="item" data-item={item.id}>
       <div class="item-head">
+        {number === undefined ? null : (
+          <span class="num" data-status={itemPinStatus(item)}>
+            {number}
+          </span>
+        )}
         <span class="label" title={item.target.selector}>
           {item.target.label}
         </span>
@@ -105,7 +113,7 @@ function VerifyItem({ c, item }: { c: Controller; item: ChangeItem }) {
       )}
       {item.status === 'dismissed' ? null : (
         <div class="row">
-          <button type="button" class="btn quiet" style="margin-left:auto;height:22px" onClick={() => c.reverify([item.id])}>
+          <button type="button" class="btn sm quiet" style="margin-left:auto" onClick={() => c.reverify([item.id])}>
             Check again
           </button>
         </div>
@@ -119,11 +127,40 @@ export function VerifyTab({ c }: { c: Controller }) {
   if (items.length === 0) {
     return <p class="empty">Nothing sent yet. After you send changes, each one is listed here; once your agent has edited the source, primp re-measures the page and shows the result per change.</p>
   }
+  const numbers = new Map(pinGroups(c.store.items.value, location.pathname + location.search).map((group) => [group.uid, group.number]))
   return (
     <ul class="stack" aria-label="Sent changes">
       {[...items].reverse().map((item) => (
-        <VerifyItem key={item.id} c={c} item={item} />
+        <VerifyItem key={item.id} c={c} item={item} number={item.page === location.pathname + location.search ? numbers.get(item.target.uid) : undefined} />
       ))}
     </ul>
+  )
+}
+
+export function VerifyPanel({ c, onClose }: { c: Controller; onClose(): void }) {
+  const sent = c.store.items.value.filter((item) => item.status !== 'draft' && item.status !== 'dismissed')
+  return (
+    <div class="pop" role="dialog" aria-label="Verification">
+      <header class="pop-head">
+        <div class="title-row">
+          <h2 class="grow">
+            Verification <span class="count">{sent.length}</span>
+          </h2>
+          <button type="button" class="iconbtn" aria-label="Close the verification" title="Close (Esc)" onClick={onClose}>
+            <IconClose />
+          </button>
+        </div>
+      </header>
+      <div class="pop-body" id="panel">
+        <VerifyTab c={c} />
+      </div>
+      <footer class="pop-foot foot">
+        <span class="hint grow">Results appear after your agent edits the source.</span>
+        <button type="button" class="btn sm" disabled={sent.length === 0} onClick={() => c.reverify(sent.map((item) => item.id))}>
+          <IconRefresh size={14} />
+          Check all again
+        </button>
+      </footer>
+    </div>
   )
 }

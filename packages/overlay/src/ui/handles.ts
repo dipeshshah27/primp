@@ -21,7 +21,7 @@
  * (probe/order.ts `dropSlot`: rows, columns and grids alike); the drop calls `reorder`. Escape
  * cancels.
  *
- * Hidden in pick mode, while the controller is busy, without a selection, and each for an
+ * Hidden while the controller is busy, without a selection, and each for an
  * element it cannot act on: the resize handles for an inline element, the grip for an element
  * that has no siblings (or is hidden by a recorded change).
  */
@@ -134,7 +134,7 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
     lastBox = box
     const selection = store.selection.peek()
     const dragging = drag !== null && !drag.cancelled
-    const visible = box !== null && selection !== null && !store.pickMode.peek() && (dragging || !store.busy.peek())
+    const visible = box !== null && selection !== null && (dragging || !store.busy.peek())
     const resizable = visible && (drag?.state.kind === 'resize' || c.resizeRefusal() === null)
     const movable = visible && (drag?.state.kind === 'reorder' || c.reorderRefusal() === null)
     if (!resizable || box === null) {
