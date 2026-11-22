@@ -205,6 +205,8 @@ export const VerificationStatusSchema = z.enum([
   'tab_hidden',
   /** No browser tab with the dock is connected. */
   'no_browser',
+  /** The item is a note: nothing about it can be measured, so a person has to check it by eye. Never a pass. */
+  'not_checkable',
 ])
 export type VerificationStatus = z.infer<typeof VerificationStatusSchema>
 
@@ -369,7 +371,22 @@ export const StructuralChangeSchema = z.object({
 })
 export type StructuralChange = z.infer<typeof StructuralChangeSchema>
 
-export const ChangeItemSchema = z.discriminatedUnion('kind', [StyleChangeSchema, StructuralChangeSchema])
+/**
+ * Free text from the user for what CSS cannot say (a copy change, "this should be a link", "use
+ * the brand blue here"). Attached to an element (`on: 'element'`, the element is `target`) or to
+ * the whole page (`on: 'page'`, `target` is then the page's <body>). It has no expectation:
+ * verification reports it as `not_checkable`, never as a pass.
+ */
+export const NoteChangeSchema = z.object({
+  ...ItemBase,
+  kind: z.literal('note'),
+  /** What the user wrote, passed to the agent verbatim. Never empty. */
+  text: z.string().min(1),
+  on: z.enum(['element', 'page']),
+})
+export type NoteChange = z.infer<typeof NoteChangeSchema>
+
+export const ChangeItemSchema = z.discriminatedUnion('kind', [StyleChangeSchema, StructuralChangeSchema, NoteChangeSchema])
 export type ChangeItem = z.infer<typeof ChangeItemSchema>
 
 /** One rendered hand-off: the items of a batch as an agent or a clipboard prompt receives them. */
