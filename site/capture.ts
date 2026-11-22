@@ -228,7 +228,7 @@ try {
   await open()
   await dock('select', PRIMARY_BUTTON)
   await dock('setState', 'hover')
-  const hover = await dock('setStyle', 'background-color', '#3b2fd0', { media: null, scope: 'all-instances', state: 'hover' })
+  const hover = await dock('setStyle', 'background-color', '#404040', { media: null, scope: 'all-instances', state: 'hover' })
   if (!hover.ok) throw new Error(`hover: ${hover.error}`)
   await page.emulateMedia({ colorScheme: 'light' })
   await shoot(page, 'hover-light')

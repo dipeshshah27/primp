@@ -1,21 +1,21 @@
 :root {
   color-scheme: light dark;
   --bg: #ffffff;
-  --bg-soft: #f6f6fa;
+  --bg-soft: #f7f7f7;
   --surface: #ffffff;
-  --ink: #0b0c14;
-  --ink-2: #33374a;
-  --muted: #646a80;
-  --faint: #8d92a5;
-  --line: #e6e7ee;
-  --line-strong: #d6d8e2;
-  --accent: #5b4cf0;
-  --accent-hover: #4a3bdc;
-  --accent-soft: #efedfe;
+  --ink: #0a0a0a;
+  --ink-2: #383838;
+  --muted: #6b6b6b;
+  --faint: #999999;
+  --line: #e8e8e8;
+  --line-strong: #d6d6d6;
+  --accent: #0a0a0a;
+  --accent-hover: #262626;
+  --accent-soft: #f2f2f2;
   --accent-ink: #ffffff;
-  --glow: rgba(91, 76, 240, 0.16);
-  --shadow-sm: 0 1px 2px rgba(15, 17, 35, 0.06);
-  --shadow-md: 0 1px 2px rgba(15, 17, 35, 0.04), 0 8px 24px -12px rgba(15, 17, 35, 0.16);
+  --glow: rgba(0, 0, 0, 0.045);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px -12px rgba(0, 0, 0, 0.16);
   --radius: 10px;
   --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, Roboto, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -23,19 +23,19 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #07080d;
-    --bg-soft: #0d0f17;
-    --surface: #0f111a;
-    --ink: #f2f3f8;
-    --ink-2: #c9ccd8;
-    --muted: #9298ac;
-    --faint: #6b7186;
-    --line: #1c1f2c;
-    --line-strong: #2a2e3e;
-    --accent: #6d5efc;
-    --accent-hover: #7f72ff;
-    --accent-soft: #1b1838;
-    --glow: rgba(109, 94, 252, 0.22);
+    --bg: #0a0a0a;
+    --bg-soft: #111111;
+    --surface: #141414;
+    --ink: #f5f5f5;
+    --ink-2: #cfcfcf;
+    --muted: #a1a1a1;
+    --faint: #737373;
+    --line: #1f1f1f;
+    --line-strong: #2e2e2e;
+    --accent: #f5f5f5;
+    --accent-hover: #ffffff;
+    --accent-soft: #1c1c1c; --accent-ink: #0a0a0a;
+    --glow: rgba(255, 255, 255, 0.06);
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -12px rgba(0, 0, 0, 0.6);
   }
@@ -53,7 +53,7 @@ body {
   margin: 0;
   background:
     radial-gradient(900px 520px at 50% -160px, var(--glow), transparent 70%),
-    radial-gradient(600px 400px at 85% 0, rgba(56, 152, 255, 0.08), transparent 70%),
+    radial-gradient(600px 400px at 85% 0, rgba(0, 0, 0, 0), transparent 70%),
     var(--bg);
   background-repeat: no-repeat;
   color: var(--ink);
@@ -250,14 +250,14 @@ a {
 .btn-primary {
   border-color: transparent;
   background: var(--accent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 2px rgba(35, 25, 140, 0.3), 0 8px 20px -8px rgba(91, 76, 240, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 2px rgba(0, 0, 0, 0.2), 0 8px 20px -8px rgba(0, 0, 0, 0.35);
   color: var(--accent-ink);
 }
 
 .btn-primary:hover {
   border-color: transparent;
   background: var(--accent-hover);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 2px rgba(35, 25, 140, 0.3), 0 12px 28px -8px rgba(91, 76, 240, 0.8);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 2px rgba(0, 0, 0, 0.2), 0 12px 28px -8px rgba(0, 0, 0, 0.4);
 }
 
 .btn:focus-visible,
@@ -275,7 +275,7 @@ a {
   max-width: 1120px;
   margin: 64px auto 0;
   border-radius: 14px;
-  box-shadow: 0 0 0 1px rgba(15, 17, 35, 0.08), 0 30px 80px -24px rgba(60, 45, 200, 0.35), 0 50px 100px -40px rgba(15, 17, 35, 0.35);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 30px 80px -24px rgba(0, 0, 0, 0.3), 0 50px 100px -40px rgba(0, 0, 0, 0.35);
 }
 
 /* Customers */
@@ -447,30 +447,30 @@ a {
   width: 18px;
   height: 18px;
   border-radius: 6px;
-  background: var(--accent-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5 9.5l2.5 2.5L13 6.5' fill='none' stroke='%235b4cf0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 18px 18px no-repeat;
+  background: var(--accent-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5 9.5l2.5 2.5L13 6.5' fill='none' stroke='%23737373' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 18px 18px no-repeat;
 }
 
 .terminal {
   overflow: hidden;
-  border: 1px solid #23263a;
+  border: 1px solid #272727;
   border-radius: 14px;
-  background: #0b0c14;
-  box-shadow: 0 30px 60px -30px rgba(15, 17, 35, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
-  color: #e6e8f2;
+  background: #0c0c0c;
+  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+  color: #e8e8e8;
 }
 
 .terminal-bar {
   display: flex;
   gap: 7px;
   padding: 14px 16px;
-  border-bottom: 1px solid #1b1e2c;
+  border-bottom: 1px solid #1e1e1e;
 }
 
 .terminal-bar span {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #2c3042;
+  background: #303030;
 }
 
 .terminal-body {
@@ -481,7 +481,7 @@ a {
 }
 
 .t-dim {
-  color: #7d849b;
+  color: #848484;
 }
 
 .t-ok {
@@ -489,7 +489,7 @@ a {
 }
 
 .t-accent {
-  color: #a99fff;
+  color: #e5e5e5;
 }
 
 /* Testimonial */
@@ -531,7 +531,7 @@ a {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #8b7dff, #3fa2ff);
+  background: linear-gradient(135deg, #525252, #171717);
   color: #ffffff;
   font-size: 14px;
   font-weight: 700;
@@ -591,7 +591,7 @@ a {
   background:
     radial-gradient(400px 200px at 50% 0, color-mix(in srgb, var(--accent) 12%, transparent), transparent 75%),
     var(--surface);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), 0 24px 48px -24px rgba(91, 76, 240, 0.45);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), 0 24px 48px -24px rgba(0, 0, 0, 0.25);
 }
 
 .plan-name {
@@ -682,7 +682,7 @@ a {
   width: 16px;
   height: 16px;
   margin-top: 3px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%235b4cf0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23737373' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
 }
 
 /* Closing call to action */
@@ -696,11 +696,11 @@ a {
   padding: 72px 24px;
   border-radius: 24px;
   background:
-    radial-gradient(600px 260px at 50% 0, rgba(124, 109, 255, 0.45), transparent 70%),
-    radial-gradient(500px 240px at 50% 120%, rgba(63, 162, 255, 0.25), transparent 70%),
-    #0b0c18;
+    radial-gradient(600px 260px at 50% 0, rgba(255, 255, 255, 0.10), transparent 70%),
+    radial-gradient(500px 240px at 50% 120%, rgba(255, 255, 255, 0.04), transparent 70%),
+    #0d0d0d;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-  color: #f2f3f8;
+  color: #f3f3f3; --accent: #f5f5f5; --accent-hover: #ffffff; --accent-ink: #0a0a0a;
   text-align: center;
 }
 
@@ -714,7 +714,7 @@ a {
 .cta-lede {
   max-width: 30em;
   margin: 14px 0 32px;
-  color: #a7adc2;
+  color: #adadad;
   font-size: 17.5px;
 }
 
@@ -793,7 +793,7 @@ a {
     width: calc(100% - 32px);
     margin-top: 48px;
     border-radius: 10px;
-    box-shadow: 0 0 0 1px rgba(15, 17, 35, 0.08), 0 16px 32px -16px rgba(60, 45, 200, 0.4);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 16px 32px -16px rgba(0, 0, 0, 0.3);
   }
 
   .features,

@@ -4,66 +4,67 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Dark first: near-black, zinc greys, hairline borders and one accent (violet). Status colours
- * (pass, drift, fail) are kept for primp's verdicts only.
+ * Dark first: near-black, neutral greys, hairline borders and no brand hue: the
+ * primary is the foreground itself (white on black, black on white). Colour appears only in
+ * primp's verdicts (pass, drift, fail).
  */
 :root {
   --radius: 0.625rem;
   --background: oklch(0.993 0 0);
-  --foreground: oklch(0.16 0.004 286);
+  --foreground: oklch(0.16 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.16 0.004 286);
+  --card-foreground: oklch(0.16 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.16 0.004 286);
-  --primary: oklch(0.21 0.006 286);
+  --popover-foreground: oklch(0.16 0 0);
+  --primary: oklch(0.21 0 0);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286);
-  --secondary-foreground: oklch(0.21 0.006 286);
-  --muted: oklch(0.965 0.001 286);
-  --muted-foreground: oklch(0.5 0.014 286);
-  --accent: oklch(0.967 0.001 286);
-  --accent-foreground: oklch(0.21 0.006 286);
-  --border: oklch(0.91 0.004 286);
-  --input: oklch(0.9 0.004 286);
-  --ring: oklch(0.6 0.12 290);
-  --accent-brand: oklch(0.55 0.2 290);
+  --secondary: oklch(0.967 0 0);
+  --secondary-foreground: oklch(0.21 0 0);
+  --muted: oklch(0.965 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+  --accent: oklch(0.967 0 0);
+  --accent-foreground: oklch(0.21 0 0);
+  --border: oklch(0.91 0 0);
+  --input: oklch(0.9 0 0);
+  --ring: oklch(0.55 0 0);
+  --accent-brand: oklch(0.17 0 0);
   --accent-brand-foreground: oklch(0.985 0 0);
-  --accent-brand-text: oklch(0.5 0.2 290);
+  --accent-brand-text: oklch(0.16 0 0);
   --pass: oklch(0.55 0.14 155);
   --drift: oklch(0.6 0.14 70);
   --fail: oklch(0.56 0.2 25);
-  --grid-line: oklch(0.16 0.004 286 / 0.055);
-  --glow: oklch(0.62 0.2 290 / 0.16);
-  --code-bg: oklch(0.975 0.001 286);
+  --grid-line: oklch(0.16 0 0 / 0.055);
+  --glow: oklch(0.16 0 0 / 0.05);
+  --code-bg: oklch(0.975 0 0);
 }
 
 .dark {
-  --background: oklch(0.13 0.003 286);
+  --background: oklch(0.13 0 0);
   --foreground: oklch(0.97 0 0);
-  --card: oklch(0.16 0.004 286);
+  --card: oklch(0.16 0 0);
   --card-foreground: oklch(0.97 0 0);
-  --popover: oklch(0.17 0.004 286);
+  --popover: oklch(0.17 0 0);
   --popover-foreground: oklch(0.97 0 0);
   --primary: oklch(0.96 0 0);
-  --primary-foreground: oklch(0.17 0.004 286);
-  --secondary: oklch(0.22 0.005 286);
+  --primary-foreground: oklch(0.17 0 0);
+  --secondary: oklch(0.22 0 0);
   --secondary-foreground: oklch(0.97 0 0);
-  --muted: oklch(0.2 0.005 286);
-  --muted-foreground: oklch(0.69 0.012 286);
-  --accent: oklch(0.22 0.005 286);
+  --muted: oklch(0.2 0 0);
+  --muted-foreground: oklch(0.69 0 0);
+  --accent: oklch(0.22 0 0);
   --accent-foreground: oklch(0.97 0 0);
   --border: oklch(1 0 0 / 9%);
   --input: oklch(1 0 0 / 13%);
-  --ring: oklch(0.7 0.15 290);
-  --accent-brand: oklch(0.72 0.16 290);
-  --accent-brand-foreground: oklch(0.15 0.02 290);
-  --accent-brand-text: oklch(0.78 0.13 290);
+  --ring: oklch(0.6 0 0);
+  --accent-brand: oklch(0.97 0 0);
+  --accent-brand-foreground: oklch(0.14 0 0);
+  --accent-brand-text: oklch(0.97 0 0);
   --pass: oklch(0.76 0.15 155);
   --drift: oklch(0.8 0.14 75);
   --fail: oklch(0.7 0.18 25);
   --grid-line: oklch(1 0 0 / 0.05);
-  --glow: oklch(0.65 0.2 290 / 0.22);
-  --code-bg: oklch(0.155 0.004 286);
+  --glow: oklch(1 0 0 / 0.07);
+  --code-bg: oklch(0.155 0 0);
 }
 
 @theme inline {
@@ -123,7 +124,7 @@
     font-feature-settings: 'ss01', 'cv11';
   }
   ::selection {
-    background: oklch(0.65 0.2 290 / 0.3);
+    background: oklch(0.6 0 0 / 0.3);
   }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-ring;

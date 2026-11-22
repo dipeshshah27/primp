@@ -212,7 +212,7 @@ try {
   const featuresBefore = await featureNames()
   const hoverBefore = await hoveredBackground()
   await dock('select', '.btn-primary')
-  const hover = await dock('setStyle', 'background-color', '#2a1f9e', { media: null, scope: 'all-instances', state: 'hover' })
+  const hover = await dock('setStyle', 'background-color', '#525252', { media: null, scope: 'all-instances', state: 'hover' })
   await dock('select', '.feature-grid > li.feature:nth-child(3)')
   const moved = await dock('reorder', 0)
   const thirdPrompt = await dock('send')
@@ -234,10 +234,10 @@ try {
     const featuresAfter = await featureNames()
     const hoverAfter = await hoveredBackground()
     const resting = await page.evaluate(() => getComputedStyle(document.querySelector('.btn-primary') as Element).backgroundColor)
-    report.check('measured again here, independently: the hover background is rgb(42, 31, 158) under a real mouse hover', hoverAfter === 'rgb(42, 31, 158)', `hover ${hoverBefore} -> ${hoverAfter}; at rest ${resting}`)
+    report.check('measured again here, independently: the hover background is rgb(82, 82, 82) under a real mouse hover', hoverAfter === 'rgb(82, 82, 82)', `hover ${hoverBefore} -> ${hoverAfter}; at rest ${resting}`)
     const featuresExpected = [featuresBefore[2], featuresBefore[0], featuresBefore[1], ...featuresBefore.slice(3)]
     report.check('measured again here, independently: the third feature card is now the first', featuresBefore.length === 6 && featuresAfter.join() === featuresExpected.join(), `${featuresBefore.join(', ')} -> ${featuresAfter.join(', ')}`)
-    report.info(`the primary button's resting background is ${resting} (rgb(91, 76, 240) means the agent left the resting style alone)`)
+    report.info(`the primary button's resting background is ${resting} (rgb(10, 10, 10) means the agent left the resting style alone)`)
   }
 } catch (error) {
   report.check('spike ran to completion', false, error instanceof Error ? (error.stack ?? error.message) : String(error))

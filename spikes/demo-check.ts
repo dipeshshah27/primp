@@ -152,7 +152,7 @@ try {
       const moved = await dock('reorder', 0)
       expect(moved.ok && moved.item?.kind === 'structure' && moved.item.op === 'reorder', `the move was not recorded: ${moved.error ?? JSON.stringify(moved.item?.kind)}`)
       await dock('select', '.btn-primary')
-      const hover = await dock('setStyle', 'background-color', '#2a1f9e', { media: null, scope: 'all-instances', state: 'hover' })
+      const hover = await dock('setStyle', 'background-color', '#525252', { media: null, scope: 'all-instances', state: 'hover' })
       expect(hover.ok && hover.item?.kind === 'style' && hover.item.condition.state === 'hover', `the :hover edit was not recorded: ${hover.error ?? JSON.stringify(hover.item?.kind)}`)
       const prompt = await dock('send')
       expect(prompt.includes('move this element') && prompt.includes('only in the `:hover` state'), 'the prompt does not carry both changes')
@@ -173,7 +173,7 @@ try {
       const css = join(SITE, 'css/site.css')
       const sheet = readFileSync(css, 'utf8')
       // After the page's own `.btn-primary:hover` rule, so this one wins.
-      const withHover = sheet.replace('.hero-art {', '.btn-primary:hover {\n  background: #2a1f9e;\n}\n\n.hero-art {')
+      const withHover = sheet.replace('.hero-art {', '.btn-primary:hover {\n  background: #525252;\n}\n\n.hero-art {')
       expect(withHover !== sheet, 'the :hover patch did not apply')
       writeFileSync(css, withHover)
       const { result } = await call<VerifyChangesResult>('verify_changes', { ids, waitMs: 2000 })
@@ -183,9 +183,9 @@ try {
       const expected = [FEATURES[2], FEATURES[0], FEATURES[1], ...FEATURES.slice(3)]
       expect(after.join() === expected.join(), `the page shows ${after.join(', ')}`)
       await page.hover('.btn-primary')
-      await waitFor(async () => (await page.evaluate(() => getComputedStyle(document.querySelector('.btn-primary') as Element).backgroundColor)) === 'rgb(42, 31, 158)', { what: 'the hover background under a real mouse hover', timeoutMs: 3000 })
+      await waitFor(async () => (await page.evaluate(() => getComputedStyle(document.querySelector('.btn-primary') as Element).backgroundColor)) === 'rgb(82, 82, 82)', { what: 'the hover background under a real mouse hover', timeoutMs: 3000 })
       await page.mouse.move(1, 1)
-      return `${result.summary}\n        ${statuses.join('\n        ')}\n        in the page: ${after.join(', ')}; real hover on the primary button rgb(42, 31, 158)`
+      return `${result.summary}\n        ${statuses.join('\n        ')}\n        in the page: ${after.join(', ')}; real hover on the primary button rgb(82, 82, 82)`
     })
 
     report.section('Stop')
