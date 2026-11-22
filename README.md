@@ -10,7 +10,7 @@ primp is a proxy you run in front of your dev server. It adds a dock to your app
 
 primp never writes to your source files. Nothing is installed in your project.
 
-![The Edits tab: two recorded changes, with the elements that moved because of the first one](docs/img/edits.png)
+![The dock open on a page: numbered pins on the changed elements, the Changes panel with what each change moved, and the toolbar](docs/img/edits.png)
 
 > Status: pre-release. Not on npm yet. Built and tested on macOS with Chromium; see [What is tested](#what-is-tested).
 
@@ -70,7 +70,7 @@ Several tools let you edit a live page and hand the changes to an agent. primp i
 
 **Layout shifts.** primp records the page load from its first script, attributes each shift to the element that caused it (an image without reserved space, a web font swapping in, content inserted above other content), and resolves that element to a line in your source.
 
-![The Shifts tab: one shift, its culprit outlined on the page, and the evidence](docs/img/shifts.png)
+![The Shifts panel: one shift, its culprit outlined on the page, and the evidence](docs/img/shifts.png)
 
 **Verification that does not flatter.** A change only passes when the page was measured and the value is there.
 

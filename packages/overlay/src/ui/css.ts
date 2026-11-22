@@ -251,6 +251,8 @@ ul, ol { list-style: none; }
 
 .crumbs { display: flex; align-items: center; flex-wrap: nowrap; gap: 0; min-width: 0; overflow: hidden; color: var(--faint); font-size: 11px; }
 .crumbs > * { flex: none; }
+/* The nearest ancestors stay in view; the far end is cut, faded. */
+.crumbs { justify-content: flex-end; -webkit-mask-image: linear-gradient(to right, transparent, #000 20px); mask-image: linear-gradient(to right, transparent, #000 20px); }
 .crumbs .chev { opacity: 0.6; }
 .crumb { padding: 1px 4px; border-radius: 5px; color: var(--faint); font: 450 11px/1.4 var(--mono); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .crumb:hover { background: var(--raised-2); color: var(--text); }
