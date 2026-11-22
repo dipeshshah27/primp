@@ -172,7 +172,9 @@ export const FRAME_CSS = `
 :root[data-theme="light"] { ${LIGHT} color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
 * { box-sizing: border-box; }
-html, body { margin: 0; background: transparent; }
+html, body { margin: 0; background: transparent; overflow: hidden; }
+/* Fixed: the frame's document has nothing to scroll, so focusing or revealing a control never shifts the popover inside its frame. */
+#root { position: fixed; left: 0; top: 0; }
 body {
   overflow: hidden; color: var(--text);
   font: 13px/1.45 var(--sans); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
@@ -220,7 +222,7 @@ ul, ol { list-style: none; }
 .tb.send:not(:disabled) { color: var(--accent-text); }
 .tb.send.ready { background: var(--accent); color: var(--on-accent); }
 .tb.send.ready:hover { background: var(--accent-hover); color: var(--on-accent); }
-.tb .badge { right: -2px; top: -1px; }
+.tb .badge { right: -3px; top: -3px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 8px; font-size: 9.5px; line-height: 15px; box-shadow: 0 0 0 2px var(--surface); }
 .tb .badge.warn { background: var(--warn); color: #1c1917; }
 .tb .badge.bad { background: var(--bad); color: #fff; }
 .tb .dot { position: absolute; right: 6px; top: 6px; width: 7px; height: 7px; border-radius: 4px; box-shadow: 0 0 0 2px var(--surface); }
@@ -419,7 +421,8 @@ details > summary + * { margin-top: 6px; }
 .change.note-line { font-family: var(--sans); font-size: 12.5px; white-space: pre-wrap; }
 .change.note-line .p { font-family: var(--mono); font-size: 11.5px; }
 .shared { color: var(--muted); font-size: 11.5px; overflow-wrap: anywhere; }
-.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.chips .source { height: 20px; }
 .chip {
   display: inline-flex; align-items: center; gap: 5px; max-width: 100%; min-height: 20px; padding: 1px 8px; border-radius: 10px;
   background: var(--raised-2); color: var(--muted); font-size: 11.5px; text-align: left;

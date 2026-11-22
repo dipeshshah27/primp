@@ -2388,9 +2388,10 @@ async function screenshots(browser: Browser, vite: Lane, cls: Lane): Promise<voi
           await t.evaluate(() => window.__primp_test!.panel(null))
           await t.evaluate(() => scrollTo(0, 380))
           await t.mouse.move(5, 790)
+          await sleep(200)
           const pins = await t.evaluate(() => window.__primp_test!.pins())
           const pin = pins.find((one) => one.status === 'fail') ?? pins[0]!
-          await t.mouse.move(pin.x + 11, pin.y + 11)
+          await t.mouse.move(pin.x + pin.width / 2, pin.y + pin.height / 2, { steps: 4 })
           await shot(t, 'pins-dark.png')
           await t.evaluate(() => window.__primp_test!.panel('verify'))
           await t.mouse.move(5, 790)

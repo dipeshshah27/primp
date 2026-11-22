@@ -216,7 +216,7 @@ export function ChangesPanel({ c, onClose }: { c: Controller; onClose(): void })
                     }
                   }}
                 >
-                  {group.target.label.split(' "')[0]}
+                  {group.target.label}
                 </button>
                 <SourceBadge loc={group.target.source} />
               </div>

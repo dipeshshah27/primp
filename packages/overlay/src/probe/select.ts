@@ -117,8 +117,11 @@ export function createPicker(callbacks: PickerCallbacks, doc: Document = documen
 
   const onPointer = (event: Event): void => {
     const target = targetOf(event, doc)
-    // Events inside the dock are the dock's.
-    if (target !== null && isOwn(target)) return
+    // Events inside the dock are the dock's; over one of its pins or handles nothing of the page is hovered.
+    if (target !== null && isOwn(target)) {
+      if (event.type === 'pointerover') hover(null)
+      return
+    }
     if (PRESS.has(event.type) && (event as MouseEvent).altKey === true) return
     event.stopImmediatePropagation()
     if (event.cancelable && event.type !== 'pointermove' && event.type !== 'mousemove') event.preventDefault()

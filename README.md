@@ -4,7 +4,7 @@ Edit your running app by hand, let your coding agent write the code, and have th
 
 primp is a proxy you run in front of your dev server. It adds a dock to your app with three jobs:
 
-- **Edits.** Pick an element, change any CSS property (at rest or for `:hover`, `:focus`, `:focus-visible` or `:active`), resize it by dragging its edge, move it among its siblings, hide or remove it, or leave a note in your own words for what CSS cannot say (new copy, "make this a link"). primp records what you changed, where the element lives in your source, and what else on the page moved because of it.
+- **Edits.** Open the dock (its button in the corner, or Cmd/Ctrl+Shift+E), click any element, change any CSS property (at rest or for `:hover`, `:focus`, `:focus-visible` or `:active`), resize it by dragging its edge, move it among its siblings, hide or remove it, or leave a note in your own words for what CSS cannot say (new copy, "make this a link"). primp records what you changed, where the element lives in your source, and what else on the page moved because of it.
 - **Shifts.** See the layout shifts of the page load: which element caused each one, why, and on which source line.
 - **Verify.** After your agent (Claude Code, Cursor, Codex, any MCP client, or a pasted prompt) edits the source, primp re-measures the page and reports pass, drift or fail for every change, so the agent can correct itself.
 

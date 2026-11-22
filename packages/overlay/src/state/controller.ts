@@ -1252,6 +1252,7 @@ export function createController(options: ControllerOptions): Controller {
       if (store.allDrafts.value.length === 0) return ''
       if (!bus.connected()) {
         store.error.value = 'Not connected to primp. The changes are kept; send again once it is back.'
+        toast(store.error.value, 'bad')
         throw new Error(store.error.value)
       }
       store.sending.value = true
@@ -1297,6 +1298,8 @@ export function createController(options: ControllerOptions): Controller {
         return answer.batch.prompt
       } catch (error) {
         store.error.value = error instanceof Error ? error.message : String(error)
+        // Said next to the toolbar's Send, where it was asked for.
+        toast(store.error.value, 'bad')
         throw error
       } finally {
         store.sending.value = false

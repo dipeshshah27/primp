@@ -14,6 +14,7 @@
  */
 
 import { isOwn } from './ref.ts'
+import { ignoreSheet } from './styles.ts'
 
 const markSelf = (reason: string): void => {
   try {
@@ -41,6 +42,8 @@ export function setSelectCursor(on: boolean, doc: Document = document): void {
     try {
       cursorSheet = new CSSStyleSheet()
       cursorSheet.replaceSync('html, html *:not([data-primp-root]) { cursor: crosshair !important; }')
+      // primp's own: never listed as a rule of the page, never read as the element's style.
+      ignoreSheet(cursorSheet)
     } catch {
       return
     }
@@ -65,6 +68,7 @@ export function pauseMotion(doc: Document = document): number {
     try {
       pauseSheet = new CSSStyleSheet()
       pauseSheet.replaceSync('html *:not([data-primp-root]), html *:not([data-primp-root])::before, html *:not([data-primp-root])::after { animation-play-state: paused !important; transition: none !important; }')
+      ignoreSheet(pauseSheet)
     } catch {
       pauseSheet = undefined
     }

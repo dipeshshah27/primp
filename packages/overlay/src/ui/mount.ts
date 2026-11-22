@@ -203,40 +203,52 @@ export function mountDock(c: Controller): DockHandle {
     const barTop = barBox.y
     const barBottom = barBox.y + barBox.h
     const barAtBottom = barBox.y + barBox.h / 2 > view.h / 2
-    let maxHeight: number
-    if (sheet) maxHeight = Math.round((barAtBottom ? barTop - 8 : view.h) * 0.85)
-    else if (anchoredToSelection) maxHeight = Math.min(720, view.h - 16)
-    else maxHeight = barAtBottom ? barTop - GAP - 8 : view.h - barBottom - GAP - 8
+    const box = selectedBox ?? { x: view.w / 2, y: view.h / 3, width: 0, height: 0 }
+    // Across: the inspector beside the selection (right, else left, else over its right edge); a panel at the toolbar's outer edge.
+    let x: number
+    if (sheet) x = 0
+    else if (!anchoredToSelection) x = state.h === 'left' ? barBox.x : barBox.x + barBox.w - width
+    else {
+      const right = box.x + box.width + GAP
+      const left = box.x - GAP - width
+      x = right + width <= view.w - 8 ? right : left >= 8 ? left : Math.max(8, Math.min(view.w - width - 8, box.x + box.width - width))
+    }
+    x = Math.max(0, Math.min(view.w - width, x))
+    // Down: the band the popover may use. Never over the toolbar.
+    let top = 8
+    let bottom = view.h - 8
+    const overBar = x < barBox.x + barBox.w && x + width > barBox.x
+    if (sheet || !anchoredToSelection || overBar) {
+      if (barAtBottom) bottom = Math.min(bottom, barTop - (sheet ? 8 : GAP))
+      else top = Math.max(top, barBottom + (sheet ? 8 : GAP))
+    }
+    if (sheet && !barAtBottom) bottom = view.h
+    let maxHeight = bottom - top
+    if (sheet) maxHeight = Math.round(maxHeight * 0.85)
+    else if (anchoredToSelection) maxHeight = Math.min(720, maxHeight)
     maxHeight = Math.max(160, maxHeight)
     doc.documentElement.style.setProperty('--w', `${width}px`)
     doc.documentElement.style.setProperty('--max-h', `${maxHeight}px`)
     doc.documentElement.classList.toggle('sheet', sheet)
+    // Read now, under the max-height just set (the observer reports it a frame later).
+    const content = doc.getElementById('root')?.firstElementChild
+    // Layout size, not the box on screen: the opening animation scales it for a moment.
+    const measured = content !== null && content !== undefined && 'offsetHeight' in content ? (content as HTMLElement).offsetHeight : 0
+    if (measured > 0) popHeight = measured
     const height = Math.min(popHeight || maxHeight, maxHeight)
-    let x: number
     let y: number
-    if (sheet) {
-      x = 0
-      y = barAtBottom ? barTop - 8 - height : view.h - height
-    } else if (!anchoredToSelection) {
-      // Above (or below) the toolbar, aligned with its outer edge.
-      x = state.h === 'left' ? barBox.x : barBox.x + barBox.w - width
-      y = barAtBottom ? barTop - GAP - height : barBottom + GAP
-    } else {
-      const box = selectedBox ?? { x: view.w / 2, y: view.h / 3, width: 0, height: 0 }
-      const right = box.x + box.width + GAP
-      const left = box.x - GAP - width
-      if (right + width <= view.w - 8) x = right
-      else if (left >= 8) x = left
-      else x = Math.max(8, Math.min(view.w - width - 8, box.x + box.width - width))
-      const beside = x === right || x === left
+    if (sheet) y = barAtBottom ? bottom - height : view.h - height
+    else if (!anchoredToSelection) y = barAtBottom ? bottom - height : top
+    else {
+      const beside = x + width <= box.x || x >= box.x + box.width
       if (beside) y = box.y
       else {
-        // No room at the sides: below the element, else above it, else over it at the bottom.
+        // No room at the sides: below the element, else above it, else at the bottom of the band.
         const below = box.y + box.height + GAP
         const above = box.y - GAP - height
-        y = below + height <= view.h - 8 ? below : above >= 8 ? above : view.h - height - 8
+        y = below + height <= bottom ? below : above >= top ? above : bottom - height
       }
-      y = Math.max(8, Math.min(view.h - height - 8, y))
+      y = Math.max(top, Math.min(bottom - height, y))
     }
     x = Math.max(0, Math.min(view.w - width, x))
     pop.classList.toggle('sheet', sheet)
@@ -492,7 +504,8 @@ export function mountDock(c: Controller): DockHandle {
       const root = doc.getElementById('root')
       const content = root?.firstElementChild as HTMLElement | null | undefined
       if (content === null || content === undefined) onSize(0, 0)
-      else onSize(Math.ceil(content.getBoundingClientRect().width), Math.ceil(content.getBoundingClientRect().height))
+      // Layout size, not the box on screen: the opening animation scales it for a moment.
+      else onSize(content.offsetWidth, content.offsetHeight)
     })
     const root = doc.getElementById('root')
     if (root !== null) observer.observe(root)

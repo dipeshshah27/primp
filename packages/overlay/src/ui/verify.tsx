@@ -78,16 +78,16 @@ function VerifyItem({ c, item, number }: { c: Controller; item: ChangeItem; numb
             {number}
           </span>
         )}
-        <span class="label" title={item.target.selector}>
-          {item.target.label}
+        <span class="label" title={`${item.target.label}\n${item.target.selector}`}>
+          {item.target.label.split(' "')[0]}
         </span>
-        <SourceBadge loc={item.target.source} />
         <span class={`chip ${status.tone}`} data-status={item.status}>
           {status.text}
         </span>
       </div>
       <ChangeLine item={item} />
       <div class="chips">
+        <SourceBadge loc={item.target.source} />
         <ScopeChips item={item} />
         {item.page === location.pathname + location.search ? null : <span class="chip">on {item.page}</span>}
       </div>
