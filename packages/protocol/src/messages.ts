@@ -52,6 +52,8 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('session:delete'), id: z.string() }),
   /** The user pressed Send: queue these drafts as one batch and return the prompt. */
   z.object({ type: z.literal('session:send'), reqId: z.string(), ids: z.array(z.string()) }),
+  /** The user pressed Copy: render the prompt these drafts would get, without queueing them. */
+  z.object({ type: z.literal('session:prompt'), reqId: z.string(), ids: z.array(z.string()) }),
   /** Everything the hook recorded about layout shifts for this document so far. */
   z.object({ type: z.literal('session:shifts'), doc: z.string(), recording: ShiftRecordingSchema }),
   /** Answer to `session:measure`. */
@@ -85,6 +87,8 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('session:state'), info: SessionInfoSchema, items: z.array(ChangeItemSchema) }),
   z.object({ type: z.literal('session:resolved'), reqId: z.string(), source: SourceLocSchema.nullable() }),
   z.object({ type: z.literal('session:sent'), reqId: z.string(), batch: BatchSchema }),
+  /** Answer to `session:prompt`: the prompt the drafts would be sent with (empty when none of them is a draft). */
+  z.object({ type: z.literal('session:prompt-text'), reqId: z.string(), prompt: z.string(), count: z.number().int().nonnegative() }),
   /** Attributed layout shifts for the document, culprits resolved to source where possible. */
   z.object({
     type: z.literal('session:shift-report'),

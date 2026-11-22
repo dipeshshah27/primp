@@ -403,6 +403,14 @@ export function createSession(options: SessionOptions): Session {
     broadcastState()
   }
 
+  /** Copy without Send: the prompt the drafts would be sent with. Nothing is queued and no state changes. */
+  const onPrompt = (connection: Connection, reqId: string, ids: string[]): void => {
+    const wanted = new Set(ids)
+    const drafts = sorted().filter((item) => wanted.has(item.id) && item.status === 'draft')
+    const prompt = drafts.length === 0 ? '' : render('preview', drafts, 'clipboard')
+    send(connection, { type: 'session:prompt-text', reqId, prompt, count: drafts.length })
+  }
+
   const onShifts = async (connection: Connection, doc: string, recording: ShiftRecording): Promise<void> => {
     const turn = (shiftSeq.get(doc) ?? 0) + 1
     shiftSeq.set(doc, turn)
@@ -470,6 +478,7 @@ export function createSession(options: SessionOptions): Session {
       log('debug', `${message.type} before session:hello was ignored`)
       if (message.type === 'session:resolve') send(connection, { type: 'session:resolved', reqId: message.reqId, source: null })
       if (message.type === 'session:send') send(connection, { type: 'session:sent', reqId: message.reqId, batch: EMPTY_BATCH })
+      if (message.type === 'session:prompt') send(connection, { type: 'session:prompt-text', reqId: message.reqId, prompt: '', count: 0 })
       return
     }
     switch (message.type) {
@@ -483,6 +492,8 @@ export function createSession(options: SessionOptions): Session {
         return onDelete(connection, message.id)
       case 'session:send':
         return onSend(connection, message.reqId, message.ids)
+      case 'session:prompt':
+        return onPrompt(connection, message.reqId, message.ids)
       case 'session:shifts':
         return void onShifts(connection, message.doc, message.recording).catch((error: unknown) => log('error', 'session:shifts failed', error))
       case 'session:measured':
@@ -523,6 +534,7 @@ export function createSession(options: SessionOptions): Session {
       if (typeof reqId === 'string') {
         if (type === 'session:resolve') send(connection, { type: 'session:resolved', reqId, source: null })
         if (type === 'session:send') send(connection, { type: 'session:sent', reqId, batch: EMPTY_BATCH })
+        if (type === 'session:prompt') send(connection, { type: 'session:prompt-text', reqId, prompt: '', count: 0 })
       }
       // An item that was refused: show the sender what is stored.
       if (type === 'session:upsert' && connection.doc !== undefined) send(connection, stateMessage())
