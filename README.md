@@ -10,7 +10,7 @@ primp is a proxy you run in front of your dev server. It adds a dock to your app
 
 primp never writes to your source files. Nothing is installed in your project.
 
-![The dock open on a page: numbered pins on the changed elements, the Changes panel with what each change moved, and the toolbar](docs/img/edits.png)
+![The dock on the demo site: numbered pins on three changed elements, the Changes panel with each change, its source line and what it moved, and the toolbar](docs/img/edits.png)
 
 > Status: 0.1, the first release. Built and tested on macOS with Chromium; see [What is tested](#what-is-tested).
 
