@@ -19,4 +19,4 @@ when it loads.
    while you edit); drag the edge of a feature card to resize it, or move a card to another place
    in the grid. Each one goes to your agent and is verified the same way.
 
-No agent connected over MCP? Run `npx primp setup`, or paste the prompt that Send copies.
+No agent connected over MCP? Run `npx @primp/cli setup`, or paste the prompt that Send copies.

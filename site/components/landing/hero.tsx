@@ -40,7 +40,7 @@ export function Hero({ shots, summary }: { shots: { light: Shot; dark: Shot }; s
           </Button>
         </div>
         <div className="mt-5 flex animate-rise justify-center [animation-delay:220ms]">
-          <CommandPill command="npx primp" className="w-full max-w-xs" />
+          <CommandPill command="npx @primp/cli" className="w-full max-w-xs" />
         </div>
       </div>
       <div className="mx-auto max-w-[1200px] animate-rise px-4 pb-8 [animation-delay:280ms] sm:px-6">
@@ -51,7 +51,7 @@ export function Hero({ shots, summary }: { shots: { light: Shot; dark: Shot }; s
           <img src={`${shots.dark.src}?delay=700`} alt={alt} loading="lazy" className="shift-replay-only hero-replay-shot w-full" />
         </BrowserFrame>
         <p className="mt-4 text-center text-sm text-muted-foreground">
-          The dock on the demo site of <code className="font-mono text-foreground/80">npx primp demo</code>: the changes recorded on the page, each with its source line and what else moved.
+          The dock on the demo site of <code className="font-mono text-foreground/80">npx @primp/cli demo</code>: the changes recorded on the page, each with its source line and what else moved.
         </p>
       </div>
     </section>

@@ -1,7 +1,7 @@
 import { CopyButton } from '@/components/copy-button'
 import { cn } from '@/lib/utils'
 
-/** A shell command with a copy button: `$ npx primp`. */
+/** A shell command with a copy button: `$ npx @primp/cli`. */
 export function CommandPill({ command, className }: { command: string; className?: string }) {
   return (
     <div

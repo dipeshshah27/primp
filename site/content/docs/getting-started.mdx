@@ -17,7 +17,7 @@ primp has been run on macOS only. On Windows, pass `--target`, because finding t
 
 ## Try the demo
 
-<Terminal command="npx primp demo" />
+<Terminal command="npx @primp/cli demo" />
 
 This copies a small one-page site with one deliberate layout shift into `./primp-demo`, serves it, starts primp in front of it and opens it in your browser with the dock. The terminal tells you what to say to your agent. Pass `--dir <directory>` to put the site elsewhere, and `--no-open` to skip opening the browser.
 
@@ -27,25 +27,25 @@ The site's one deliberate problem: a picture near the top has no reserved space,
 
 Start your dev server as usual, then, in the project directory:
 
-<Terminal command="npx primp" />
+<Terminal command="npx @primp/cli" />
 
 primp finds the dev server by looking at the processes of this project, starts a proxy on the next port and opens your app through it. Use the page it opens; the dock is only there.
 
 | Option | What it does |
 | --- | --- |
 | `--target <url or port>` | The dev server to sit in front of, when primp cannot find it or finds the wrong one. |
-| `--exec "<command>"` | Start the dev server too, and stop it on exit: `npx primp --exec "npm run dev"`. |
+| `--exec "<command>"` | Start the dev server too, and stop it on exit: `npx @primp/cli --exec "npm run dev"`. |
 | `--port <n>` | Port for the proxy. Default: the dev server's port plus one, or the next free one. |
 | `--project <dir>` | The project directory, when it is not the working directory. |
 | `--no-open` | Do not open the browser. |
 
 primp keeps running in that terminal; stop it with <kbd>Ctrl</kbd> <kbd>C</kbd>. With `--exec`, that stops the dev server as well.
 
-If something does not work, `npx primp doctor` checks the environment: Node, the project, the framework, the dev server, a running session and the dock's bundles.
+If something does not work, `npx @primp/cli doctor` checks the environment: Node, the project, the framework, the dev server, a running session and the dock's bundles.
 
 ## Connect your agent
 
-<Terminal command="npx primp setup" />
+<Terminal command="npx @primp/cli setup" />
 
 This registers primp's MCP server with Claude Code and Codex, after asking, and prints the configuration for Cursor. See [Connecting your agent](/docs/agents/) for what it runs and for the clipboard flow without MCP.
 

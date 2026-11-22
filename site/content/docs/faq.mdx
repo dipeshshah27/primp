@@ -34,6 +34,6 @@ primp's real dock and head script run on every page of this site, in your browse
 
 - **Real:** the dock, its measurements and side effects, the layout-shift recorder and attribution, and the prompt Send produces, all primp's own code.
 - **Stand-in:** the source lookup. A production React build carries no source positions, so the stand-in uses primp's text-search fallback over this site's own source files, bundled into the page. The results are ranked guesses, as primp reports them on any project without framework evidence.
-- **Not here:** an agent, and so verification. With `npx primp`, after your agent edits the source, primp measures the page again and reports pass, drift or fail.
+- **Not here:** an agent, and so verification. With `npx @primp/cli`, after your agent edits the source, primp measures the page again and reports pass, drift or fail.
 
 This site has no layout shift of its own. [Replay the home page with one](/docs/layout-shifts/#try-it-on-this-page) to see primp attribute it.

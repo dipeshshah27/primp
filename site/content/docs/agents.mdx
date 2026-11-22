@@ -2,20 +2,20 @@ Your agent talks to primp through a small MCP server, `primp mcp`, that its host
 
 ## primp setup
 
-<Terminal command="npx primp setup" />
+<Terminal command="npx @primp/cli setup" />
 
 For each client it knows, `setup` prints the client's own registration command and asks before running it. It runs a command only when that client is installed, and it never opens or writes a configuration file itself. Pass `--yes` to skip the questions.
 
 ### Claude Code
 
 ```sh
-claude mcp add primp -- npx -y primp mcp
+claude mcp add primp -- npx -y @primp/cli mcp
 ```
 
 ### Codex
 
 ```sh
-codex mcp add primp -- npx -y primp mcp
+codex mcp add primp -- npx -y @primp/cli mcp
 ```
 
 ### Cursor
@@ -36,7 +36,7 @@ Put this in `.cursor/mcp.json` in the project. Cursor starts servers outside the
 
 ### Any other MCP client
 
-Register a stdio server with the command `npx -y primp mcp`, started in the project directory or given `--project <dir>`.
+Register a stdio server with the command `npx -y @primp/cli mcp`, started in the project directory or given `--project <dir>`.
 
 ## What to say
 

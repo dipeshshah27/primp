@@ -1,5 +1,5 @@
 {
-  "name": "primp",
+  "name": "@primp/cli",
   "version": "0.1.0",
   "description": "Visual edits, layout shifts and verification for AI coding agents",
   "license": "MIT",

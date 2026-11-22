@@ -45,12 +45,12 @@ try {
 
   report.section('Install into an empty project')
   const bin = join(APP, 'node_modules/.bin/primp')
-  await report.attempt('npm install <tarball> works offline and adds nothing but primp', async () => {
+  await report.attempt('npm install <tarball> works offline and adds nothing but @primp/cli', async () => {
     writeFileSync(join(APP, 'package.json'), JSON.stringify({ name: 'pack-check-app', private: true, version: '0.0.0' }))
     execFileSync('npm', ['install', tarball, '--offline', '--no-audit', '--no-fund', '--ignore-scripts'], { cwd: APP, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
     expect(existsSync(bin), 'node_modules/.bin/primp is missing')
     const installed = readdirSync(join(APP, 'node_modules')).filter((name) => !name.startsWith('.'))
-    expect(installed.length === 1 && installed[0] === 'primp', `node_modules holds: ${installed.join(', ')}`)
+    expect(installed.length === 1 && installed[0] === '@primp' && readdirSync(join(APP, 'node_modules/@primp')).join() === 'cli', `node_modules holds: ${installed.join(', ')}`)
     const help = execFileSync(bin, ['--help'], { cwd: APP, encoding: 'utf8' })
     expect(help.includes('mcp') && help.includes('doctor') && help.includes('--target'), 'the help text is not the CLI\'s')
     return `installed: ${installed.join(', ')}; primp --help lists mcp, setup, doctor`
@@ -72,7 +72,7 @@ try {
     await waitFor(() => /open\s+(http:\/\/localhost:\d+)/.exec(output)?.[1], { what: 'the line with the proxy URL', timeoutMs: 15_000 })
     proxyUrl = /open\s+(http:\/\/localhost:\d+)/.exec(output)?.[1] ?? ''
     await waitFor(() => output.includes('Ctrl+C'), { timeoutMs: 5000, what: 'the end of the start-up text' })
-    expect(output.includes('npx -y primp mcp'), `the registration text does not use the published command:\n${output}`)
+    expect(output.includes('npx -y @primp/cli mcp'), `the registration text does not use the published command:\n${output}`)
     expect(!output.includes('tsx'), 'the installed CLI mentions tsx')
     const doctor = execFileSync(bin, ['doctor', '--project', fixture.dir], { cwd: fixture.dir, encoding: 'utf8', env: { ...process.env, [SESSION_DIR_ENV]: SESSIONS, NO_COLOR: '1' } })
     expect(/hook\.js .*\(prebuilt\)/.test(doctor) && /overlay\.js .*\(prebuilt\)/.test(doctor), `doctor does not report prebuilt bundles:\n${doctor}`)

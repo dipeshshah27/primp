@@ -8,22 +8,22 @@ const TABS = [
   {
     value: 'project',
     label: 'Run on your project',
-    command: 'npx primp',
+    command: 'npx @primp/cli',
     steps: ['finds the dev server of this project', 'starts a proxy on the next port', 'opens your app through it, with the dock'],
     text: 'In your project, with your dev server running. primp finds the server, starts a proxy on the next port and opens your app through it. Use --target when it cannot find it, or --exec "npm run dev" to start it too.',
   },
   {
     value: 'demo',
     label: 'Demo',
-    command: 'npx primp demo',
+    command: 'npx @primp/cli demo',
     steps: ['copies a small site into ./primp-demo', 'serves it, with primp in front', 'opens it with the dock'],
     text: 'Copies a small site with one deliberate layout shift into ./primp-demo, serves it and opens it with the dock. The terminal tells you what to say to your agent.',
   },
   {
     value: 'agent',
     label: 'Connect your agent',
-    command: 'npx primp setup',
-    steps: ['claude mcp add primp -- npx -y primp mcp   (asks first)', 'codex mcp add primp -- npx -y primp mcp    (asks first)', 'prints .cursor/mcp.json for Cursor'],
+    command: 'npx @primp/cli setup',
+    steps: ['claude mcp add primp -- npx -y @primp/cli mcp   (asks first)', 'codex mcp add primp -- npx -y @primp/cli mcp    (asks first)', 'prints .cursor/mcp.json for Cursor'],
     text: "Asks before running Claude Code's or Codex's own command to register primp's MCP server, and prints the configuration for Cursor. It never edits a configuration file itself.",
   },
 ]

@@ -707,13 +707,13 @@ function printRegistration(): void {
 How users register the shim (published package; not executed by this spike)
 
   Claude Code   https://code.claude.com/docs/en/mcp
-    claude mcp add primp -- npx -y primp mcp
-    claude mcp add --scope project primp -- npx -y primp mcp      (shared through .mcp.json)
+    claude mcp add primp -- npx -y @primp/cli mcp
+    claude mcp add --scope project primp -- npx -y @primp/cli mcp      (shared through .mcp.json)
     .mcp.json equivalent:
       { "mcpServers": { "primp": { "command": "npx", "args": ["-y", "primp", "mcp"] } } }
 
   Codex CLI     https://developers.openai.com/codex/mcp  (redirects to https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
-    codex mcp add primp -- npx -y primp mcp
+    codex mcp add primp -- npx -y @primp/cli mcp
     ~/.codex/config.toml equivalent:
       [mcp_servers.primp]
       command = "npx"
@@ -730,7 +730,7 @@ How users register the shim (published package; not executed by this spike)
         }
       }
 
-  From this checkout, replace "npx -y primp mcp" with:
+  From this checkout, replace "npx -y @primp/cli mcp" with:
     ${fromSource}
 `)
 }
@@ -769,9 +769,9 @@ async function main(): Promise<number> {
 
     const codex = spawnSync('codex', ['--version'], { encoding: 'utf8' })
     if (codex.error) {
-      record('5', 'Codex CLI calls get_session through the shim', 'SKIP', 'codex is not installed on this machine (not on PATH); users register with: codex mcp add primp -- npx -y primp mcp')
+      record('5', 'Codex CLI calls get_session through the shim', 'SKIP', 'codex is not installed on this machine (not on PATH); users register with: codex mcp add primp -- npx -y @primp/cli mcp')
     } else {
-      record('5', 'Codex CLI calls get_session through the shim', 'SKIP', `codex ${codex.stdout.trim()} is installed but this spike has no Codex check yet; register with: codex mcp add primp -- npx -y primp mcp`)
+      record('5', 'Codex CLI calls get_session through the shim', 'SKIP', `codex ${codex.stdout.trim()} is installed but this spike has no Codex check yet; register with: codex mcp add primp -- npx -y @primp/cli mcp`)
     }
 
     await checkSessionRemovedOnExit(fake)
