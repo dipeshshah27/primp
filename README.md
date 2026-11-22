@@ -4,7 +4,7 @@ Edit your running app by hand, let your coding agent write the code, and have th
 
 primp is a proxy you run in front of your dev server. It adds a dock to your app with three jobs:
 
-- **Edits.** Pick an element, change any CSS property (at rest or for `:hover`, `:focus`, `:focus-visible` or `:active`), resize it by dragging its edge, move it among its siblings, hide or remove it. primp records what you changed, where the element lives in your source, and what else on the page moved because of it.
+- **Edits.** Pick an element, change any CSS property (at rest or for `:hover`, `:focus`, `:focus-visible` or `:active`), resize it by dragging its edge, move it among its siblings, hide or remove it, or leave a note in your own words for what CSS cannot say (new copy, "make this a link"). primp records what you changed, where the element lives in your source, and what else on the page moved because of it.
 - **Shifts.** See the layout shifts of the page load: which element caused each one, why, and on which source line.
 - **Verify.** After your agent (Claude Code, Cursor, Codex, any MCP client, or a pasted prompt) edits the source, primp re-measures the page and reports pass, drift or fail for every change, so the agent can correct itself.
 
@@ -85,8 +85,9 @@ Several tools let you edit a live page and hand the changes to an agent. primp i
 | The element cannot be found again | `unresolved` |
 | The viewport is outside the change's media query, or the state cannot be emulated | `not_measurable` |
 | The tab is in the background, or closed | `tab_hidden`, `no_browser` |
+| The change is a note (free text such as a copy change), which nothing on the page can measure | `not_checkable`: you check it by eye |
 
-The last three are never counted as success.
+The last four are never counted as success.
 
 ## What is tested
 

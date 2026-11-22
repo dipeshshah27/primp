@@ -23,6 +23,12 @@ import type { JournalEntry, JournalPosition, SettleDetector, SettleResult } from
  *
  * A result is never `pass` unless the page was measured: no browser, a hidden
  * tab, a build error, or an unanswered measurement each have their own status.
+ *
+ * A note (free text from the user) has nothing to measure: it is not sent to the
+ * browser, and its result is `not_checkable`, left to the person to check by eye.
+ * The settle wait still runs for it (a page without hot reload is reloaded, so
+ * what the person looks at is the edited page, and a build error is named), and
+ * the other changes of the same call are measured and judged as usual.
  */
 
 export interface VerifyParams {
@@ -36,7 +42,7 @@ export interface VerifyOutcome {
   results: VerificationResult[]
   /** Counts of `results` by verification status. */
   counts: Partial<Record<VerificationStatus, number>>
-  /** Prompt listing what did not pass, for the agent's next pass; empty when everything passed. */
+  /** Prompt listing what did not pass, for the agent's next pass; empty when nothing is left to fix (everything passed, or is a note). */
   fixup: string
   /** One sentence for a person or an agent reading only this. */
   summary: string
@@ -75,6 +81,10 @@ export function itemStatusAfter(status: VerificationStatus): ItemStatus | undefi
     case 'not_measurable':
     case 'tab_hidden':
     case 'no_browser':
+      return undefined
+    // A note is never verified (that would read as done) and never failed (there is nothing to fix):
+    // it stays where it was, and the dock shows the person that it is theirs to check by eye.
+    case 'not_checkable':
       return undefined
   }
 }
@@ -293,12 +303,14 @@ export function createVerifier(options: VerifierOptions): Verifier {
     }
     const settleInfo = toSettleInfo(settle)
 
+    // A note has nothing to measure: the browser is not asked about it.
+    const toMeasure = items.filter((item) => item.kind !== 'note')
     // A broken build renders an error overlay or a stale page: nothing measured there says anything about the edit.
-    let measured = settle.status === 'build_error' ? undefined : await session.measure(items, measureTimeoutMs)
+    let measured = settle.status === 'build_error' || toMeasure.length === 0 ? undefined : await session.measure(toMeasure, measureTimeoutMs)
     // A page that was just reloaded may not have its dock up yet: ask once more.
     if (reloaded && measured !== undefined && measured.status !== 'measured') {
       await sleep(1000)
-      measured = await session.measure(items, measureTimeoutMs)
+      measured = await session.measure(toMeasure, measureTimeoutMs)
     }
     const at = now()
     const results: VerificationResult[] = []
@@ -306,7 +318,9 @@ export function createVerifier(options: VerifierOptions): Verifier {
       const attempt = (item.verification?.attempt ?? 0) + 1
       const extras: JudgeExtras = { settle: settleInfo, visible: true, browser: true, attempt, now: at }
       let checks: CheckResult[] = []
-      if (measured === undefined) {
+      if (item.kind === 'note') {
+        // Not measured, and nothing about the measurement matters: judgeItem reports it as not_checkable.
+      } else if (measured === undefined) {
         // build_error: judgeItem reports it from `settle`.
       } else if (measured.status === 'no_browser' || measured.status === 'disconnected') {
         extras.browser = false
@@ -351,15 +365,20 @@ export function createVerifier(options: VerifierOptions): Verifier {
 
     const counts: Partial<Record<VerificationStatus, number>> = {}
     for (const result of results) counts[result.status] = (counts[result.status] ?? 0) + 1
-    const passed = counts.pass ?? 0
+    const settled = (counts.pass ?? 0) + (counts.not_checkable ?? 0)
     const after = items.map((item) => session.item(item.id)).filter((item): item is ChangeItem => item !== undefined)
-    const fixup = passed === results.length ? '' : renderFixup(after, { channel: 'mcp' })
+    const fixup = settled === results.length ? '' : renderFixup(after, { channel: 'mcp' })
     const parts = Object.entries(counts).map(([status, count]) => `${count} ${status.replaceAll('_', ' ')}`)
+    const notes = results.filter((result) => result.status === 'not_checkable').map((result) => result.itemId)
+    const byEye =
+      notes.length === 0
+        ? ''
+        : ` ${notes.join(', ')} ${notes.length === 1 ? 'is a note' : 'are notes'}: nothing to measure, so neither a pass nor a fail; the user checks ${notes.length === 1 ? 'it' : 'them'} by eye.`
     return {
       results,
       counts,
       fixup,
-      summary: `Verified ${results.length} change${results.length === 1 ? '' : 's'}: ${parts.join(', ')}.`,
+      summary: `Verified ${results.length} change${results.length === 1 ? '' : 's'}: ${parts.join(', ')}.${byEye}`,
     }
   }
 

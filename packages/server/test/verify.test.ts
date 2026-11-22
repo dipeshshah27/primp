@@ -3,7 +3,7 @@ import type { ChangeItem, CheckResult, Expectation } from '@primp/protocol/chang
 import type { MeasureOutcome, MeasuredItem, Session, SessionBatch } from '../src/session.ts'
 import type { JournalEntry, SettleResult } from '../src/settle.ts'
 import { createVerifier, itemStatusAfter, startAutoVerify, stateBlockedReason, toMeasured } from '../src/verify.ts'
-import { structureItem, styleItem } from './session-helpers.ts'
+import { noteItem, structureItem, styleItem } from './session-helpers.ts'
 
 /** The parts of a Session that verification uses, over a plain list of items. */
 function fakeSession(initial: ChangeItem[], measure: (items: readonly ChangeItem[]) => MeasureOutcome | Promise<MeasureOutcome>) {
@@ -156,6 +156,8 @@ describe('itemStatusAfter', () => {
     expect(itemStatusAfter('drift')).toBe('verified')
     for (const status of ['fail', 'unresolved', 'no_update_observed', 'build_error'] as const) expect(itemStatusAfter(status)).toBe('failed')
     for (const status of ['not_measurable', 'tab_hidden', 'no_browser'] as const) expect(itemStatusAfter(status)).toBeUndefined()
+    // A note is neither verified (that reads as done) nor failed (there is nothing to fix).
+    expect(itemStatusAfter('not_checkable')).toBeUndefined()
   })
 })
 
@@ -830,6 +832,87 @@ describe('createVerifier', () => {
     const outcomes = await Promise.all([verifier.verify(), verifier.verify({ ids: ['c1'] }), verifier.verify()])
     expect(peak).toBe(1)
     expect(outcomes[1]?.results[0]?.attempt).toBe(2)
+  })
+})
+
+describe('createVerifier: notes', () => {
+  const claimedStyle = (id: string): ChangeItem => styleItem(id, 'src/components/Header.tsx', { status: 'claimed', batchId: 'b1' })
+  const claimedNote = (id: string, over: Partial<ChangeItem> = {}): ChangeItem => noteItem(id, 'src/components/Header.tsx', { status: 'claimed', batchId: 'b1', ...over } as never)
+  const passing = (wanted: readonly ChangeItem[]): MeasureOutcome => measuredWith(wanted.map((it) => answer(it, [rawComputed(it.expect[0] as Expectation, '24px', 'pass')])))
+
+  it('a batch of a style change and notes: the change is measured and passes, the notes are not measured and are not_checkable', async () => {
+    const { session, items, measured } = fakeSession([claimedStyle('c1'), claimedNote('n1'), claimedNote('n2', { on: 'page' } as never)], passing)
+    const { detector, calls } = fakeDetector(settled())
+    const outcome = await createVerifier({ session, detector, sleep: noSleep }).verify()
+    expect(measured).toEqual([['c1']])
+    expect(calls).toHaveLength(1)
+    expect(outcome.results.map((result) => [result.itemId, result.status])).toEqual([
+      ['c1', 'pass'],
+      ['n1', 'not_checkable'],
+      ['n2', 'not_checkable'],
+    ])
+    expect(outcome.results[1]?.checks).toEqual([])
+    expect(outcome.results[1]?.hint).toContain('check it by eye')
+    expect(outcome.counts).toEqual({ pass: 1, not_checkable: 2 })
+    // Honest: the summary does not read as "all passed", and nothing is left to fix.
+    expect(outcome.summary).toBe('Verified 3 changes: 1 pass, 2 not checkable. n1, n2 are notes: nothing to measure, so neither a pass nor a fail; the user checks them by eye.')
+    expect(outcome.fixup).toBe('')
+    expect(items.get('c1')?.status).toBe('verified')
+    // A note stays claimed: never verified, never failed; the result says why.
+    expect(items.get('n1')?.status).toBe('claimed')
+    expect(items.get('n1')?.verification).toMatchObject({ status: 'not_checkable', attempt: 1 })
+    expect(items.get('n2')?.status).toBe('claimed')
+  })
+
+  it('a failing change next to a note: the fix-up has the change, and names the note without restating it', async () => {
+    const { session, items } = fakeSession([claimedStyle('c1'), claimedNote('n1')], (wanted) =>
+      measuredWith(wanted.map((it) => answer(it, [rawComputed(it.expect[0] as Expectation, '16px')]))),
+    )
+    const { detector } = fakeDetector(settled())
+    const outcome = await createVerifier({ session, detector, sleep: noSleep }).verify()
+    expect(outcome.counts).toEqual({ fail: 1, not_checkable: 1 })
+    expect(outcome.fixup).toContain('`c1` fail')
+    expect(outcome.fixup).toContain('the note `n1`')
+    expect(outcome.fixup).not.toContain('Make the sign-in button a link')
+    expect(outcome.fixup).toContain('again with this id: `c1`.')
+    expect(items.get('c1')?.status).toBe('failed')
+    expect(items.get('n1')?.status).toBe('claimed')
+  })
+
+  it('only notes: the browser is not asked, the settle wait still runs, and the result never passes', async () => {
+    const { session, items, measured } = fakeSession([claimedNote('n1')], () => {
+      throw new Error('a note must not be measured')
+    })
+    const { detector, calls } = fakeDetector(settled())
+    const outcome = await createVerifier({ session, detector, sleep: noSleep }).verify({ ids: ['n1'] })
+    expect(measured).toEqual([])
+    expect(calls).toHaveLength(1)
+    expect(outcome.results.map((result) => result.status)).toEqual(['not_checkable'])
+    expect(outcome.results[0]?.settle).toMatchObject({ status: 'settled' })
+    expect(items.get('n1')?.status).toBe('claimed')
+  })
+
+  it('a note is not_checkable without a browser and with a build error, which its hint names', async () => {
+    const noBrowser = fakeSession([claimedStyle('c1'), claimedNote('n1')], () => ({ status: 'no_browser' }))
+    const outcome = await createVerifier({ session: noBrowser.session, detector: fakeDetector(settled({ browser: false })).detector, sleep: noSleep }).verify()
+    expect(outcome.results.map((result) => [result.itemId, result.status])).toEqual([
+      ['c1', 'no_browser'],
+      ['n1', 'not_checkable'],
+    ])
+
+    const broken = fakeSession([claimedNote('n1')], () => ({ status: 'no_browser' }))
+    const error = { message: 'Unexpected token', file: 'src/components/Header.tsx', line: 3, column: 1 }
+    const failed = await createVerifier({ session: broken.session, detector: fakeDetector(settled({ status: 'build_error', error })).detector, sleep: noSleep }).verify()
+    expect(failed.results[0]).toMatchObject({ status: 'not_checkable' })
+    expect(failed.results[0]?.hint).toContain('also reports a build error')
+    expect(failed.results[0]?.hint).toContain('Unexpected token')
+  })
+
+  it('a claimed note is verified again by default, and stays not_checkable', async () => {
+    const { session } = fakeSession([claimedNote('n1')], passing)
+    const verifier = createVerifier({ session, detector: fakeDetector(settled()).detector, sleep: noSleep })
+    expect((await verifier.verify()).results.map((result) => [result.status, result.attempt])).toEqual([['not_checkable', 1]])
+    expect((await verifier.verify()).results.map((result) => [result.status, result.attempt])).toEqual([['not_checkable', 2]])
   })
 })
 

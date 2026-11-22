@@ -8,7 +8,7 @@ import { PendingChangesSchema } from '../../protocol/src/session.ts'
 import type { ShiftRecording } from '../../protocol/src/shift.ts'
 import type { Evidence, SourceResult } from '../../source/src/types.ts'
 import { createSession, type Session, type SessionOptions } from '../src/session.ts'
-import { FakeSocket, hello, statuses, structureItem, styleItem } from './session-helpers.ts'
+import { FakeSocket, hello, noteItem, statuses, structureItem, styleItem } from './session-helpers.ts'
 
 /**
  * The session with a fake socket per document and a fake resolver. Nothing
@@ -434,6 +434,33 @@ describe('getPendingChanges', () => {
     socket.receive({ type: 'session:send', reqId: 's2', ids: ['two'] })
     expect(session.getPendingChanges({ batchId: 'batch-2' }).files.flatMap((group) => group.items.map((item) => item.id))).toEqual(['two'])
     expect(statuses(session.items())).toMatchObject({ one: 'queued', two: 'claimed' })
+  })
+})
+
+describe('notes', () => {
+  it('stores, sends and hands over a note with the other changes; the prompt carries its text', () => {
+    const { connect, session } = rig()
+    const socket = connect('doc-a')
+    socket.receive({ type: 'session:upsert', item: styleItem('one', 'src/components/Header.tsx') })
+    socket.receive({ type: 'session:upsert', item: noteItem('n1', 'src/components/Header.tsx', { text: 'Call it "Log in", not "Sign in"' }) })
+    socket.receive({ type: 'session:upsert', item: noteItem('n2', 'index.html', { on: 'page', text: 'Add a favicon' }) })
+    socket.receive({ type: 'session:send', reqId: 's1', ids: ['one', 'n1', 'n2'] })
+    expect(socket.last('session:sent')?.batch.prompt).toContain('> Call it "Log in", not "Sign in"')
+    const pending = session.getPendingChanges()
+    expect(PendingChangesSchema.safeParse(pending).success).toBe(true)
+    expect(pending.count).toBe(3)
+    expect(pending.prompt).toContain('# primp batch `batch-1`: 1 change, 2 notes')
+    expect(pending.prompt).toContain('Note from the user about the whole page (`/`):\n  > Add a favicon')
+    expect(pending.prompt).toContain('these ids: `one`, `n1`, `n2`')
+    expect(statuses(session.items())).toEqual({ one: 'claimed', n1: 'claimed', n2: 'claimed' })
+  })
+
+  it('refuses a note without text', () => {
+    const { connect, session } = rig()
+    const socket = connect('doc-a')
+    socket.receive({ type: 'session:upsert', item: noteItem('n1', null, { text: '' }) })
+    socket.receive({ type: 'session:upsert', item: noteItem('n2', null, { text: '  \n ' }) })
+    expect(session.items()).toEqual([])
   })
 })
 

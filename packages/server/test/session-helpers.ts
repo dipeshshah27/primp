@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
 import { createServer } from 'node:net'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { ChangeItem, Locator, Ref, StructuralChange, StyleChange } from '../../protocol/src/change.ts'
+import type { ChangeItem, Locator, NoteChange, Ref, StructuralChange, StyleChange } from '../../protocol/src/change.ts'
 import type { ClientMessage, ServerMessage } from '../../protocol/src/messages.ts'
 import type { SessionSocket } from '../src/session.ts'
 
@@ -121,6 +121,25 @@ export function structureItem(id: string, file: string | null = 'src/components/
     expect: [{ type: 'absent' }],
     kind: 'structure',
     op: 'remove',
+    ...overrides,
+  }
+}
+
+/** A note from the user; `on: 'page'` makes its target the page's <body>. */
+export function noteItem(id: string, file: string | null = 'src/components/Header.tsx', overrides: Partial<NoteChange> = {}): NoteChange {
+  const on = overrides.on ?? 'element'
+  return {
+    id,
+    seq: 0,
+    createdAt: 1_750_000_000_002,
+    page: '/',
+    status: 'draft',
+    target: on === 'page' ? { ...ref(`body-${id}`, file, 3), selector: 'body', tag: 'body', classes: [], label: 'body' } : ref(`el-${id}`, file),
+    sideEffects: [],
+    expect: [],
+    kind: 'note',
+    text: 'Make the sign-in button a link to /login',
+    on,
     ...overrides,
   }
 }
