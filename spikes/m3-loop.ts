@@ -15,7 +15,7 @@
  * SvelteKit with Svelte 5; plain HTML with no hot reload.
  *
  *   pnpm spike:m3-loop            all parts
- *   pnpm spike:m3-loop vite       one part: vite | next | svelte | static (the run then counts as incomplete)
+ *   pnpm spike:m3-loop vite       one part: vite | next | svelte | static | notes (the run then counts as incomplete)
  */
 
 import type { ChangeItem } from '../packages/protocol/src/change.ts'
@@ -721,7 +721,91 @@ async function staticSite(): Promise<void> {
   })
 }
 
-const PARTS: Record<string, () => Promise<void>> = { vite, next, svelte, static: staticSite }
+/**
+ * Notes: free text from the user, on an element or about the whole page. Sent in one batch with a
+ * style change, a note reaches the agent with its text and where it is, and comes back from
+ * verification as `not_checkable` (never `pass`), also when the agent did what it says; the
+ * style change next to it is measured and judged as usual. Its own part, on the Vite fixture.
+ */
+async function notes(): Promise<void> {
+  const loop = await startLoop('vite-react-19', { shimCwd: 'src' })
+  const { fixture, page, verify, describe, itemStatus, dock } = loop
+
+  report.section('Notes (Vite + React 19). A note is handed over in the user\'s words and is never reported as a pass')
+  const ready = await report.attempt('the dock loads through primp', async () => {
+    await loop.open('/')
+    return `dock ready at ${loop.primp.url}`
+  })
+  if (!ready) return
+
+  const CTA_NOTE = 'Say "Start your free trial" instead of "Start free"'
+  const PAGE_NOTE = 'The browser tab title should be "Lumen | Ship the layout you meant"'
+  let batch: { cta: ChangeItem; page: ChangeItem; radius: ChangeItem } | undefined
+  await report.attempt('an element note, a page note and a style change, sent together: the agent prompt quotes both notes with where they are, and says they come back not_checkable', async () => {
+    await dock('select', '[data-label="hero-cta-primary"]')
+    const cta = await dock('addNote', CTA_NOTE)
+    expect(cta.ok && cta.item?.kind === 'note' && cta.item.on === 'element', `the element note was not recorded: ${cta.error ?? JSON.stringify(cta.item)?.slice(0, 160)}`)
+    const ctaItem = cta.item as ChangeItem
+    expect(ctaItem.target.source?.file === 'src/components/Hero.tsx', `the note's element resolves to ${ctaItem.target.source?.file}:${ctaItem.target.source?.line}`)
+    expect(ctaItem.expect.length === 0, `a note has expectations: ${JSON.stringify(ctaItem.expect)}`)
+    const pageNote = await dock('addNote', PAGE_NOTE, { on: 'page' })
+    expect(pageNote.ok && pageNote.item?.kind === 'note' && pageNote.item.on === 'page' && pageNote.item.target.tag === 'body', `the page note was not recorded: ${pageNote.error ?? JSON.stringify(pageNote.item)?.slice(0, 160)}`)
+    await dock('select', '[data-label="card"]')
+    const radius = await dock('setStyle', 'border-radius', '16px', { media: null, scope: 'all-instances', state: null })
+    expect(radius.ok && radius.item?.kind === 'style', `the style change was not recorded: ${radius.error ?? 'no item'}`)
+    const sent = await dock('send')
+    expect(sent.includes(CTA_NOTE) && sent.includes(PAGE_NOTE), `the clipboard prompt does not carry both notes:\n${sent}`)
+
+    const { items, prompt } = await loop.claim(3)
+    const byId = new Map(items.map((item) => [item.id, item]))
+    const ids = [ctaItem.id, (pageNote.item as ChangeItem).id, (radius.item as ChangeItem).id]
+    expect(ids.every((id) => byId.has(id)), `claimed ${[...byId.keys()].join(', ')}, recorded ${ids.join(', ')}`)
+    const ctaSection = sectionOf(prompt, ctaItem.id)
+    const ctaLines = ctaSection.split('\n').slice(0, 4).join('\n')
+    expect(ctaLines.includes(`> ${CTA_NOTE}`), `the element note text is not quoted in the prompt:\n${ctaLines}`)
+    expect(ctaLines.includes('Note from the user on') && ctaLines.includes('src/components/Hero.tsx'), `the prompt does not say which element and file the note is about:\n${ctaLines}`)
+    expect(ctaSection.includes('`not_checkable`') && ctaSection.includes('by eye'), `the prompt does not say how the note is verified:\n${ctaSection.slice(0, 900)}`)
+    const pageSection = sectionOf(prompt, (pageNote.item as ChangeItem).id)
+    expect(pageSection.includes('Note from the user about the whole page') && pageSection.includes(`> ${PAGE_NOTE}`), `the page note is not in the prompt as one:\n${pageSection.slice(0, 600)}`)
+    expect(prompt.includes('## The whole page'), 'the page note has no section of its own')
+    batch = { cta: byId.get(ctaItem.id) as ChangeItem, page: byId.get((pageNote.item as ChangeItem).id) as ChangeItem, radius: byId.get((radius.item as ChangeItem).id) as ChangeItem }
+    return `claimed ${ids.join(', ')}; element note on ${ctaItem.target.label} (${ctaItem.target.source?.file}:${ctaItem.target.source?.line}), page note on <${(pageNote.item as ChangeItem).target.tag}>\n        ${ctaLines.split('\n').join('\n        ')}`
+  })
+
+  await report.attempt('the agent sets the radius in Card.module.css and does what the element note says: the style change passes, both notes are not_checkable, the batch is reported as such', async () => {
+    expect(batch !== undefined, 'no batch from the previous check')
+    const { cta, page: pageItem, radius } = batch as { cta: ChangeItem; page: ChangeItem; radius: ChangeItem }
+    editFile(fixture, 'src/components/Card.module.css', replaceOnce('  border-radius: 12px;', '  border-radius: 16px;'))
+    editFile(fixture, 'src/components/Hero.tsx', replaceOnce('            Start free\n', '            Start your free trial\n'))
+    const { outcome, text } = await verify([radius.id, cta.id, pageItem.id])
+    const results = new Map(outcome.results.map((result) => [result.itemId, result]))
+    const r = results.get(radius.id)
+    const c = results.get(cta.id)
+    const p = results.get(pageItem.id)
+    expect(r?.status === 'pass', `style change: ${r === undefined ? 'no result' : describe(r)}`)
+    expect(c?.status === 'not_checkable' && p?.status === 'not_checkable', `notes: ${[c, p].map((result) => (result === undefined ? 'no result' : describe(result))).join(' | ')}`)
+    expect(c?.checks.length === 0 && c.hint.includes('check it by eye'), `the element note result: ${c === undefined ? '-' : describe(c)}`)
+    expect(outcome.counts.pass === 1 && outcome.counts.not_checkable === 2 && Object.keys(outcome.counts).length === 2, `counts ${JSON.stringify(outcome.counts)}`)
+    expect(outcome.summary.includes('not checkable') && outcome.summary.includes('by eye') && !/all .*pass/i.test(outcome.summary), `summary: ${outcome.summary}`)
+    expect(outcome.fixup === '', `a fix-up prompt was returned with nothing to fix:\n${outcome.fixup}`)
+    expect(text.includes(cta.id), 'the tool text does not name the note')
+    expect(itemStatus(radius.id) === 'verified', `style item status ${itemStatus(radius.id)}`)
+    expect(itemStatus(cta.id) === 'claimed' && itemStatus(pageItem.id) === 'claimed', `note item status ${itemStatus(cta.id)}, ${itemStatus(pageItem.id)}: a note is never verified or failed`)
+    const shown = await loop.shownStatus(cta.id)
+    expect(shown === 'not_checkable', `the dock shows the element note as ${shown}`)
+    const copy = await page.evaluate(() => document.querySelector('[data-label="hero-cta-primary"]')?.textContent?.trim() ?? '')
+    expect(copy === 'Start your free trial', `the page shows the button as "${copy}"`)
+    return `${outcome.summary}\n        style: ${r === undefined ? '-' : describe(r)}\n        note: ${c === undefined ? '-' : describe(c)}`
+  })
+
+  const unexpected = loop.record
+    .consoleErrors()
+    .map((entry) => entry.text)
+    .filter((line) => !/Failed to (load|fetch)|\[vite\]|hmr/i.test(line))
+  report.check('no console errors in the page during the notes part', unexpected.length === 0, unexpected.slice(0, 5).join('\n') || 'none')
+}
+
+const PARTS: Record<string, () => Promise<void>> = { vite, next, svelte, static: staticSite, notes }
 
 try {
   for (const [name, run] of Object.entries(PARTS)) {
