@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Expectation } from '@primp/protocol/change'
 import { ExpectationSchema } from '@primp/protocol/change'
 import { NO_MOVE_TOLERANCE_PX, deriveExpectations } from '../src/expect.ts'
-import { bystander, condition, locator, move, rect, ref, sibling, sideEffect, structure, style } from './change-fixtures.ts'
+import { bystander, condition, locator, move, note, rect, ref, sibling, sideEffect, structure, style } from './change-fixtures.ts'
 
 describe('deriveExpectations: style changes', () => {
   it('one computed expectation for the property when there are no longhands', () => {
@@ -60,6 +60,16 @@ describe('deriveExpectations: a change made for an interaction state', () => {
       { type: 'computed', property: 'padding-left', value: '24px', condition: both },
       { type: 'computed', property: 'padding-top', value: '16px', condition: both },
     ])
+  })
+})
+
+describe('deriveExpectations: notes', () => {
+  it('nothing to measure, on an element or on the page, even with an unwanted side effect recorded', () => {
+    const { expect: _none, ...element } = note()
+    void _none
+    expect(deriveExpectations(element)).toEqual([])
+    expect(deriveExpectations({ ...element, on: 'page' })).toEqual([])
+    expect(deriveExpectations({ ...element, sideEffects: [sideEffect({ verdict: 'unwanted' })] })).toEqual([])
   })
 })
 

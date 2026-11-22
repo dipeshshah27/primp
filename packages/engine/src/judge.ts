@@ -80,6 +80,13 @@
  *                               arrays of labels (see `orderLabels`).
  *
  * ITEMS (`judgeItem`), first match wins:
+ *   0. not_checkable       the item is a note (`kind: 'note'`), whatever else is true. A note is
+ *                          free text with no expectation, so there is nothing to measure, and no
+ *                          browser, tab, build or measurement can make it pass or fail: a person
+ *                          checks it by eye. It comes first because every status below says
+ *                          something about a measurement, and a note has none; checks passed in
+ *                          for it are kept in the result but decide nothing. A build error is
+ *                          still named in the hint, because the person cannot check a broken page.
  *   1. no_browser          no tab with the dock is connected.
  *   2. tab_hidden          the tab was not visible.
  *   3. build_error         settle status `build_error`.
@@ -92,8 +99,9 @@
  *   8. not_measurable      any check could not be measured, or there are no checks at all, or
  *                          nothing but bystanders that could not be found.
  *   9. pass                at least one check, and every check passes.
- * So `pass` is never reported for a change of which nothing was measured, and `not_measurable`
- * means exactly: nothing was found wrong, and at least one check is still open.
+ * So `pass` is never reported for a change of which nothing was measured, `not_measurable`
+ * means exactly: nothing was found wrong, and at least one check is still open, and
+ * `not_checkable` means: nothing could ever be measured, a person has to look.
  */
 
 import type { ChangeItem, CheckResult, Expectation, Rect, VerificationResult, VerificationStatus } from '@primp/protocol/change'
@@ -639,6 +647,10 @@ export function isStateBlocked(check: CheckResult): boolean {
   return check.status === 'not_measurable' && e.type === 'computed' && e.condition.state !== undefined && check.note?.startsWith(STATE_NOT_EMULATED) === true
 }
 
+/** The hint of a note: why it has no pass or fail, and what to do instead. */
+export const NOTE_NOT_CHECKABLE =
+  'A note from the user: check it by eye. It is free text, so primp has nothing to measure and cannot tell whether it is done; this is neither a pass nor a fail. Tell the user what you changed for it, so they can check it on the page.'
+
 /** What to say when the target of an item could not be found again. */
 export function unresolvedText(item: ChangeItem): string {
   return `The element ${code(item.target.label, 80)} could not be found again after the edit: was it renamed or restructured? Its tag, text, id and position identify it; if you changed those on purpose, ask the user to check this change by eye.`
@@ -683,6 +695,10 @@ export function hintFor(status: VerificationStatus, item: ChangeItem, checks: re
     settle?.status === 'timeout' && status !== 'pass' ? ' The page had not finished updating when it was measured; verify again if you believe the change is in place.' : ''
 
   switch (status) {
+    case 'not_checkable': {
+      const broken = settle?.status === 'build_error' ? ` The dev server also reports a build error, so the page cannot show the change until it is fixed${buildErrorText(settle) === '' ? '' : `: ${buildErrorText(settle)}`}.` : ''
+      return `${NOTE_NOT_CHECKABLE}${broken}`
+    }
     case 'no_browser':
       return 'No browser tab with the primp dock is connected, so nothing was measured. Ask the user to open the app through primp, then verify again.'
     case 'tab_hidden':
@@ -743,7 +759,8 @@ export function judgeItem(item: ChangeItem, checks: readonly CheckResult[], extr
   const settle = extras.settle
   const fromChecks = rollUpChecks(checks)
   let status: VerificationStatus
-  if (!extras.browser) status = 'no_browser'
+  if (item.kind === 'note') status = 'not_checkable'
+  else if (!extras.browser) status = 'no_browser'
   else if (!extras.visible) status = 'tab_hidden'
   else if (settle?.status === 'build_error') status = 'build_error'
   else if (settle?.status === 'no_update_observed' && fromChecks !== 'pass') status = 'no_update_observed'

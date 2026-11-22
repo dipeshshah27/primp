@@ -1,4 +1,4 @@
-import type { Bystander, Condition, Locator, Rect, Ref, SiblingAnchor, SideEffect, SourceLoc, StructuralChange, StyleChange } from '@primp/protocol/change'
+import type { Bystander, Condition, Locator, NoteChange, Rect, Ref, SiblingAnchor, SideEffect, SourceLoc, StructuralChange, StyleChange } from '@primp/protocol/change'
 import { deriveExpectations } from '../src/expect.ts'
 
 /** Builders for change items used by several test files. Every default is fixed, so output is deterministic. */
@@ -134,4 +134,41 @@ export function structure(over: StructureInput = {}): StructuralChange {
     ...rest,
   }
   return { ...item, expect: expect ?? deriveExpectations(item) }
+}
+
+/** The page's `<body>`, as a page note's target. */
+export function body(over: Partial<Ref> = {}): Ref {
+  return ref({
+    uid: 'u_body',
+    selector: 'body',
+    tag: 'body',
+    classes: [],
+    text: 'Pricing Pro plan $29 per month Choose Pro',
+    label: 'body',
+    rect: rect(0, 0, 1280, 2400),
+    source: source({ file: 'index.html', line: 9, col: 3, component: undefined, framework: 'vite', via: 'html' }),
+    locator: locator({ tag: 'body', indexPath: [], ancestors: [] }),
+    ...over,
+  })
+}
+
+type NoteInput = Partial<Omit<NoteChange, 'kind' | 'expect'>>
+
+/** A note; by default one on the card element. `on: 'page'` without a target takes `body()`. */
+export function note(over: NoteInput = {}): NoteChange {
+  const on = over.on ?? 'element'
+  return {
+    id: 'it_n',
+    seq: 11,
+    createdAt: 1_795_000_000_000,
+    page: '/pricing',
+    status: 'queued',
+    target: on === 'page' ? body() : ref(),
+    sideEffects: [],
+    kind: 'note',
+    text: 'Make this card a link to the plan page',
+    on,
+    ...over,
+    expect: [],
+  }
 }

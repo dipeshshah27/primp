@@ -416,7 +416,7 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
       await waitFor(async () => (await computed(t, first, 'padding')) === '34px' && style((await items(t))[0]).after.authored === '34px')
       await t.evaluate(() => window.__primp_overlay!.controller.idle())
       const all = await items(t)
-      expect(all.length === 1 && style(all[0]).before.computed === '20px' && style(all[0]).after.authored === '34px', `items: ${JSON.stringify(all.map((item) => (item.kind === 'style' ? [item.before.computed, item.after.authored] : item.op)))}`)
+      expect(all.length === 1 && style(all[0]).before.computed === '20px' && style(all[0]).after.authored === '34px', `items: ${JSON.stringify(all.map((item) => (item.kind === 'style' ? [item.before.computed, item.after.authored] : item.kind === 'structure' ? item.op : item.kind)))}`)
       const tray = await page.dock.evaluate(() => document.querySelector('.tray .item .change')?.textContent ?? '')
       expect(tray.includes('padding') && tray.includes('20px') && tray.includes('34px'), `tray line: "${tray}"`)
       await t.evaluate(() => window.__primp_test!.undo())

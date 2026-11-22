@@ -380,8 +380,8 @@ export type StructuralChange = z.infer<typeof StructuralChangeSchema>
 export const NoteChangeSchema = z.object({
   ...ItemBase,
   kind: z.literal('note'),
-  /** What the user wrote, passed to the agent verbatim. Never empty. */
-  text: z.string().min(1),
+  /** What the user wrote, passed to the agent verbatim. Never empty, never only whitespace. */
+  text: z.string().regex(/\S/, 'a note needs text'),
   on: z.enum(['element', 'page']),
 })
 export type NoteChange = z.infer<typeof NoteChangeSchema>

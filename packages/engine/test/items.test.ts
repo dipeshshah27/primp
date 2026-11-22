@@ -12,12 +12,13 @@ import {
   historyReducer,
   isNoop,
   knownFile,
+  mergeNote,
   mergeReorder,
   mergeStyleEdit,
   upsertEdit,
 } from '../src/items.ts'
 import type { ItemHistory } from '../src/items.ts'
-import { bystander, condition, move, ref, sibling, sideEffect, source, structure, style } from './change-fixtures.ts'
+import { body, bystander, condition, move, note, ref, sibling, sideEffect, source, structure, style } from './change-fixtures.ts'
 
 describe('editKey', () => {
   const base = style()
@@ -449,5 +450,75 @@ describe('countsByStatus', () => {
     expect(counts).toEqual({ draft: 1, queued: 2, claimed: 0, verified: 0, failed: 1, dismissed: 0 })
     expect(Object.keys(counts)).toEqual(['draft', 'queued', 'claimed', 'verified', 'failed', 'dismissed'])
     expect(countsByStatus([])).toEqual({ draft: 0, queued: 0, claimed: 0, verified: 0, failed: 0, dismissed: 0 })
+  })
+})
+
+describe('notes', () => {
+  const draft = note({ id: 'it_n1', seq: 4, status: 'draft' })
+
+  it('editKey: one note per element and one per page, whatever the text', () => {
+    expect(editKey(note({ id: 'other', text: 'something else' }))).toBe(editKey(draft))
+    const keys = new Set([
+      editKey(draft),
+      editKey(note({ target: ref({ uid: 'u2' }) })),
+      editKey(note({ on: 'page' })),
+      editKey(note({ on: 'page', page: '/about' })),
+      // Same element, other kinds of edit.
+      editKey(style({ target: draft.target })),
+      editKey(structure({ target: draft.target })),
+    ])
+    expect(keys.size).toBe(6)
+    // A page note is keyed by the page: another visit gives <body> another uid, and it is still the same note.
+    expect(editKey(note({ on: 'page', target: body({ uid: 'u_body_2' }) }))).toBe(editKey(note({ on: 'page' })))
+    // An element note on <body> is not the page note.
+    expect(editKey(note({ on: 'element', target: body() }))).not.toBe(editKey(note({ on: 'page' })))
+  })
+
+  it('isNoop: only an empty or blank text', () => {
+    expect(isNoop(draft)).toBe(false)
+    expect(isNoop(note({ text: '' }))).toBe(true)
+    expect(isNoop(note({ text: '  \n\t ' }))).toBe(true)
+    expect(isNoop(note({ text: ' x ' }))).toBe(false)
+  })
+
+  it('upsertEdit: editing the text updates the same note, clearing it deletes the draft', () => {
+    const one = upsertEdit([], draft)
+    expect(one).toEqual([draft])
+    const edited = upsertEdit(one, note({ id: 'it_n2', seq: 9, createdAt: 1_795_000_000_500, status: 'draft', text: 'Make it a link to /plans/pro' }))
+    expect(edited).toEqual([{ ...draft, text: 'Make it a link to /plans/pro' }])
+    expect(upsertEdit(edited, note({ id: 'it_n3', status: 'draft', text: '   ' }))).toEqual([])
+    // A blank note is never added, and a page note sits next to the element note.
+    expect(upsertEdit([], note({ status: 'draft', text: '' }))).toEqual([])
+    expect(upsertEdit(one, note({ id: 'it_p', status: 'draft', on: 'page' })).map((item) => item.id)).toEqual(['it_n1', 'it_p'])
+    // A note that was sent is not edited by a new one.
+    const sent = { ...draft, status: 'queued' as const }
+    expect(upsertEdit([sent], note({ id: 'it_n4', status: 'draft' }))).toHaveLength(2)
+  })
+
+  it('mergeNote keeps the identity, takes the rest, drops a stale verification and has no expectations', () => {
+    const verified = { ...draft, verification: { itemId: 'it_n1', attempt: 1, at: 1, status: 'not_checkable' as const, checks: [], hint: 'x' } }
+    const merged = mergeNote(verified, note({ id: 'later', seq: 99, text: 'new text', page: '/pricing?yearly' }))
+    expect(merged).toMatchObject({ id: 'it_n1', seq: 4, text: 'new text', page: '/pricing?yearly', expect: [] })
+    expect(merged.verification).toBeUndefined()
+    expect(ChangeItemSchema.safeParse(merged).success).toBe(true)
+  })
+
+  it('the schema refuses a note without text', () => {
+    expect(ChangeItemSchema.safeParse(draft).success).toBe(true)
+    expect(ChangeItemSchema.safeParse(note({ text: '' })).success).toBe(false)
+    expect(ChangeItemSchema.safeParse(note({ text: ' \n ' })).success).toBe(false)
+  })
+
+  it('knownFile and groupByFile: an element note goes with its element; a page note with the file of <body>, or with the unknown ones', () => {
+    expect(knownFile(draft)).toBe('src/components/Card.tsx')
+    expect(knownFile(note({ on: 'page' }))).toBe('index.html')
+    const nowhere = note({ id: 'it_p0', on: 'page', target: body({ source: null }) })
+    expect(knownFile(nowhere)).toBeNull()
+    const groups = groupByFile([nowhere, note({ id: 'it_p', seq: 2, on: 'page' }), draft, style({ id: 'it_s', seq: 1 })])
+    expect(groups.map((group) => [group.file, group.items.map((item) => item.id)])).toEqual([
+      ['index.html', ['it_p']],
+      ['src/components/Card.tsx', ['it_s', 'it_n1']],
+      [null, ['it_p0']],
+    ])
   })
 })

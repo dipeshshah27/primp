@@ -33,12 +33,15 @@ export const NO_MOVE_TOLERANCE_PX = 1
  *      of step 1), because those are what an edit of the shared rule would drag along. When
  *      the edit changes no computed value (step 1 fell back to `property`), every recorded
  *      value is checked.
+ * A note has none: it is free text, nothing about it can be measured, and verification reports
+ * it as `not_checkable` (never `pass`). Its side effects, if any were recorded, are ignored.
  *
  * CONTRACT: pure; called by the dock whenever an item or a verdict changes, and the result is stored in `item.expect`.
  */
 export function deriveExpectations(item: ItemWithoutExpect): Expectation[]
 export function deriveExpectations(item: Omit<ChangeItem, 'expect'>): Expectation[]
 export function deriveExpectations(input: ItemWithoutExpect | Omit<ChangeItem, 'expect'>): Expectation[] {
+  if (input.kind === 'note') return []
   const item = input as Omit<StyleChange, 'expect'> | Omit<StructuralChange, 'expect'>
   const out: Expectation[] = []
 

@@ -6,8 +6,9 @@
  * Pure: no DOM, no Node. Nothing here mutates its arguments.
  */
 
-import type { ChangeItem, ItemStatus, SideEffect, StructuralChange, StyleChange } from '@primp/protocol/change'
+import type { ChangeItem, ItemStatus, NoteChange, SideEffect, StructuralChange, StyleChange } from '@primp/protocol/change'
 import { deriveExpectations } from './expect.ts'
+import { oneLine } from './text.ts'
 import { normalizeValue } from './units.ts'
 
 // ---------------------------------------------------------------------------
@@ -18,12 +19,20 @@ import { normalizeValue } from './units.ts'
  * Two items with the same key are the same edit made twice (the second replaces the first):
  * style changes on the same element, property, media condition, interaction state and scope
  * (so a `:hover` edit and a resting edit of one property are two items); structural changes on
- * the same element with the same operation (so moving an element twice is one reorder).
+ * the same element with the same operation (so moving an element twice is one reorder); notes
+ * on the same element, or about the same page (one note per element and one per page, so
+ * editing a note's text updates that note; an element note and a page note are two items).
+ * A page note is keyed by the page, not by its `<body>`, which another visit may give another uid.
  */
 export function editKey(item: ChangeItem): string {
-  return item.kind === 'style'
-    ? JSON.stringify(['style', item.target.uid, item.property.trim().toLowerCase(), normalizeValue(item.condition.media ?? ''), item.scope, item.condition.state ?? ''])
-    : JSON.stringify(['structure', item.target.uid, item.op])
+  switch (item.kind) {
+    case 'style':
+      return JSON.stringify(['style', item.target.uid, item.property.trim().toLowerCase(), normalizeValue(item.condition.media ?? ''), item.scope, item.condition.state ?? ''])
+    case 'structure':
+      return JSON.stringify(['structure', item.target.uid, item.op])
+    case 'note':
+      return item.on === 'page' ? JSON.stringify(['note', 'page', item.page]) : JSON.stringify(['note', 'element', item.target.uid])
+  }
 }
 
 /** Verdicts the user gave (`expected` / `unwanted`) carried over to the same side effect (same selector and type) of a newer measurement. */
@@ -111,6 +120,17 @@ export function mergeReorder(existing: StructuralChange, incoming: StructuralCha
   return { ...merged, expect: deriveExpectations(merged) }
 }
 
+/**
+ * Folds a newer version of a note into the draft that already exists: identity (`id`, `seq`,
+ * `createdAt`) from `existing`, everything else (above all the text) from `incoming`. A note has
+ * no expectations, so there is nothing to derive again.
+ */
+export function mergeNote(existing: NoteChange, incoming: NoteChange): NoteChange {
+  const { verification: _stale, ...rest } = incoming
+  void _stale
+  return { ...rest, id: existing.id, seq: existing.seq, createdAt: existing.createdAt, expect: [] }
+}
+
 const same = (a: string, b: string): boolean => normalizeValue(a) === normalizeValue(b)
 
 /**
@@ -120,8 +140,10 @@ const same = (a: string, b: string): boolean => normalizeValue(a) === normalizeV
  * case there is nothing to tell them apart by).
  * Reorder: the element is back at the index it started from. Removing and hiding are never
  * no-ops, and neither is a reorder that does not say where from and where to.
+ * Note: its text is empty or only whitespace (the user cleared it).
  */
 export function isNoop(item: ChangeItem): boolean {
+  if (item.kind === 'note') return oneLine(item.text) === ''
   if (item.kind !== 'style') return item.op === 'reorder' && item.move !== undefined && item.move.fromIndex === item.move.toIndex
   if (!same(item.before.computed, item.after.computed)) return false
   if (item.before.authored !== undefined && !same(item.before.authored, item.after.authored)) return false
@@ -130,10 +152,10 @@ export function isNoop(item: ChangeItem): boolean {
 
 /**
  * Adds an edit to a draft list: merged into the draft with the same key when there is one
- * (see `mergeStyleEdit` and `mergeReorder`; a repeated removal or hiding replaces the earlier
- * one and keeps its identity), appended otherwise. An edit that ends up changing nothing (a
- * value typed back, an element moved back to where it started) removes its draft.
- * Items that are no longer drafts are never merged into.
+ * (see `mergeStyleEdit`, `mergeReorder` and `mergeNote`; a repeated removal or hiding replaces
+ * the earlier one and keeps its identity), appended otherwise. An edit that ends up changing
+ * nothing (a value typed back, an element moved back to where it started, a note cleared)
+ * removes its draft. Items that are no longer drafts are never merged into.
  */
 export function upsertEdit(items: readonly ChangeItem[], incoming: ChangeItem): ChangeItem[] {
   const key = editKey(incoming)
@@ -145,7 +167,9 @@ export function upsertEdit(items: readonly ChangeItem[], incoming: ChangeItem): 
       ? mergeStyleEdit(existing, incoming)
       : existing.kind === 'structure' && incoming.kind === 'structure' && incoming.op === 'reorder'
         ? mergeReorder(existing, incoming)
-        : { ...incoming, id: existing.id, seq: existing.seq, createdAt: existing.createdAt }
+        : existing.kind === 'note' && incoming.kind === 'note'
+          ? mergeNote(existing, incoming)
+          : { ...incoming, id: existing.id, seq: existing.seq, createdAt: existing.createdAt }
   const out = [...items]
   if (isNoop(merged)) out.splice(index, 1)
   else out[index] = merged
@@ -224,7 +248,10 @@ export interface FileGroup {
   items: ChangeItem[]
 }
 
-/** The file an item is known to live in, or null. */
+/**
+ * The file an item is known to live in, or null. For a page note that is the file the page's
+ * `<body>` comes from, when it is known: where the page starts, not where the note must be done.
+ */
 export function knownFile(item: ChangeItem): string | null {
   const source = item.target.source
   if (source === null || source.level === 'candidates' || source.file === undefined || source.file === '') return null

@@ -151,7 +151,7 @@ export function createFakeSession(info: SessionInfo): FakeSession {
             }
             const lines = drafts.map((item, index) => {
               const where = item.target.source?.file === undefined ? 'source unknown' : `${item.target.source.file}:${item.target.source.line ?? '?'}`
-              const what = item.kind === 'style' ? `${item.property}: ${item.before.authored ?? item.before.computed} -> ${item.after.authored}` : item.op
+              const what = item.kind === 'style' ? `${item.property}: ${item.before.authored ?? item.before.computed} -> ${item.after.authored}` : item.kind === 'structure' ? item.op : `note: ${item.text}`
               return `${index + 1}. ${item.target.label} (${where}): ${what}`
             })
             const prompt = `# primp ${batchId}: ${drafts.length} change(s)\n${lines.join('\n')}`

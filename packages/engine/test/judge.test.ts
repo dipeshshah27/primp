@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { CheckResult, Expectation, VerificationStatus } from '@primp/protocol/change'
-import { CheckResultSchema, VerificationResultSchema } from '@primp/protocol/change'
+import type { ChangeItem, CheckResult, Expectation, VerificationStatus } from '@primp/protocol/change'
+import { CheckResultSchema, VerificationResultSchema, VerificationStatusSchema } from '@primp/protocol/change'
 import {
   BYSTANDER_NOT_CHECKED,
   ORDER_NEIGHBOURS_LOST,
@@ -27,7 +27,7 @@ import {
   stateBlockedText,
 } from '../src/judge.ts'
 import type { JudgeExtras, Measured, SettleInfo } from '../src/judge.ts'
-import { bystander, condition, locator, move, rect, sibling, sideEffect, structure, style } from './change-fixtures.ts'
+import { bystander, condition, locator, move, note, rect, sibling, sideEffect, structure, style } from './change-fixtures.ts'
 
 const computed = (property: string, value: string, media?: string): Extract<Expectation, { type: 'computed' }> => ({
   type: 'computed',
@@ -624,8 +624,12 @@ describe('judgeItem', () => {
   }
   const ok: JudgeExtras = { settle: settled, visible: true, browser: true, attempt: 1, now: 1_795_000_100_000 }
 
-  // [name, checks, extras, status, text the hint must contain]
-  const table: [string, CheckResult[], JudgeExtras, VerificationStatus, string[]][] = [
+  // Notes: nothing to measure, so the same status whatever the measurement says.
+  const elementNote = note({ id: 'it_7' })
+  const pageNote = note({ id: 'it_7', on: 'page' })
+
+  // [name, checks, extras, status, text the hint must contain, item (default: the style change above)]
+  const table: [string, CheckResult[], JudgeExtras, VerificationStatus, string[], ChangeItem?][] = [
     ['pass', [pass], ok, 'pass', ['The check passes.']],
     ['pass, two checks', [pass, stayed], ok, 'pass', ['All 2 checks pass.']],
     ['drift', [drift], ok, 'drift', ['`padding-left` landed as `16px` instead of `17px` (off by -1px).', 'nearest design token', 'set `17px` exactly']],
@@ -697,10 +701,18 @@ describe('judgeItem', () => {
     ['the moved element was not found again', [movedLost], ok, 'unresolved', ['The element `div.card "Pro plan"` could not be found again after the edit']],
     ['only its neighbours were not found again', [neighboursLost], ok, 'unresolved', ['The new position of the element could not be checked: none of the 2 siblings it was placed next to could be found again.', 'ask the user to check the order by eye']],
     ['no update observed with a wrong order', [misplaced], { ...ok, settle: nothing }, 'no_update_observed', ['No source file changed', 'The element is not where it was moved to']],
+    // notes
+    ['a note: not_checkable, check it by eye', [], ok, 'not_checkable', ['A note from the user: check it by eye.', 'neither a pass nor a fail', 'Tell the user what you changed'], elementNote],
+    ['a page note: the same', [], ok, 'not_checkable', ['check it by eye'], pageNote],
+    ['a note is never a pass, even with checks that pass', [pass, stayed], ok, 'not_checkable', ['check it by eye'], elementNote],
+    ['a note is not failed by a failing check', [fail, unresolved], ok, 'not_checkable', ['check it by eye'], elementNote],
+    ['a note without a browser is still not_checkable', [], { ...ok, browser: false, visible: false }, 'not_checkable', ['check it by eye'], elementNote],
+    ['a note in a hidden tab, with nothing changed', [], { ...ok, visible: false, settle: nothing }, 'not_checkable', ['check it by eye'], elementNote],
+    ['a note with a build error: not_checkable, and the hint names the error', [], { ...ok, settle: broken }, 'not_checkable', ['check it by eye', 'also reports a build error', '`src/components/Card.tsx:18:22`'], pageNote],
   ]
 
-  it.each(table)('%s', (_name, checks, extras, status, hintParts) => {
-    const result = judgeItem(item, checks, extras)
+  it.each(table)('%s', (_name, checks, extras, status, hintParts, subject) => {
+    const result = judgeItem(subject ?? item, checks, extras)
     expect(result.status).toBe(status)
     for (const part of hintParts) expect(result.hint).toContain(part)
     expect(result.hint).not.toContain('\n')
@@ -713,7 +725,25 @@ describe('judgeItem', () => {
 
   it('every status of the contract is covered by the table', () => {
     const seen = new Set(table.map((row) => row[3]))
-    expect([...seen].sort()).toEqual(['build_error', 'drift', 'fail', 'no_browser', 'no_update_observed', 'not_measurable', 'pass', 'tab_hidden', 'unresolved'])
+    expect([...seen].sort()).toEqual(['build_error', 'drift', 'fail', 'no_browser', 'no_update_observed', 'not_checkable', 'not_measurable', 'pass', 'tab_hidden', 'unresolved'])
+    expect([...seen].sort()).toEqual([...VerificationStatusSchema.options].sort())
+  })
+
+  it('a note is not_checkable for every combination of what was measured', () => {
+    const settles: (SettleInfo | undefined)[] = [undefined, settled, nothing, broken, { ...settled, status: 'timeout', signal: 'timeout' }]
+    const checkSets: CheckResult[][] = [[], [pass], [pass, stayed], [fail], [unresolved], [notMeasurable], [drift]]
+    for (const subject of [elementNote, pageNote]) {
+      for (const settle of settles) {
+        for (const checks of checkSets) {
+          for (const browser of [true, false]) {
+            for (const visible of [true, false]) {
+              const result = judgeItem(subject, checks, { browser, visible, attempt: 1, now: 1, ...(settle === undefined ? {} : { settle }) })
+              expect(result.status).toBe('not_checkable')
+            }
+          }
+        }
+      }
+    }
   })
 
   it('copies the settle summary (four fields) and the locator confidence', () => {
