@@ -1,10 +1,10 @@
 A layout shift is visible content jumping after it was first shown, scored as in Cumulative Layout Shift (CLS). primp tells you which element caused each one, why, and where it is in your source.
 
-<Shot name="shifts" alt="The Shifts tab of the dock: one issue, cause unsized media, the culprit image with its source line and the evidence; on the page the picture is outlined as the culprit." caption="The seeded shift of the demo site, outlined on the page as the culprit." />
+<Shot name="shifts" alt="The Layout shifts panel of the dock: one issue, cause unsized media, the culprit image with its source line and the evidence; on the page the picture is outlined as the culprit." caption="The seeded shift of the demo site. Show on page outlines the culprit." />
 
 ## Try it on this page
 
-This site has no layout shift: open the dock's **Shifts** tab and it says so. To see one, replay the home page with its hero screenshot served without reserved space and held back for a moment. primp records the load from its first script and names the image, the cause and a source line.
+This site has no layout shift: open the dock's **Layout shifts** panel and it says so. To see one, replay the home page with its hero screenshot served without reserved space and held back for a moment. primp records the load from its first script and names the image, the cause and a source line.
 
 <ReplayShiftButton variant="accent" />
 
@@ -16,7 +16,7 @@ Every response through primp is sent uncached, so each load is a first visit: th
 
 ## Culprit, cause, evidence
 
-The elements that move are the victims; primp looks for the element whose change accounts for their movement. Each issue in the **Shifts** tab has:
+The elements that move are the victims; primp looks for the element whose change accounts for their movement. Each issue in the **Layout shifts** panel has:
 
 - **The culprit**, with its source position when primp can find it.
 - **The cause**: *unsized media* (an image, video or frame without reserved space), *font swap* (a web font arriving and changing the size of text), *injected content* (something inserted above existing content), or *unknown*. Restyling done by the dev server itself, such as a hot update of a stylesheet, is listed but not scored.

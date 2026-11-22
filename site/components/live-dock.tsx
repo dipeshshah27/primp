@@ -18,52 +18,42 @@ import { cn } from '@/lib/utils'
 /** Must match tools/standin/host.ts. */
 const SENT_EVENT = 'primp-site:sent'
 
-interface DockHandle {
-  ready?: () => Promise<void>
-  open?: (on: boolean) => void
-  panel?: (name: string | null) => void
-  collapse?: (collapsed: boolean) => void
-  openTab?: (tab: string) => void
-  state?: () => { collapsed?: boolean; open?: boolean; panel?: string | null }
+type PanelName = 'changes' | 'shifts' | 'verify' | 'settings'
+
+/** The dock's public API (packages/overlay/src/boot.ts), published once the dock has mounted. */
+interface PrimpDockApi {
+  open(): void
+  close(): void
+  toggle(): boolean
+  panel(name: PanelName | null): void
+  isOpen(): boolean
 }
 
-function handle(): DockHandle | undefined {
-  return (window as unknown as { __primp_test?: DockHandle }).__primp_test
+function dockApi(): PrimpDockApi | undefined {
+  return (window as unknown as { __primp_dock?: PrimpDockApi }).__primp_dock
 }
 
-async function waitForDock(timeoutMs = 6000): Promise<DockHandle | undefined> {
+/** The dock loads after DOMContentLoaded; a click that comes earlier waits for it. */
+async function waitForDock(timeoutMs = 6000): Promise<PrimpDockApi | undefined> {
   const started = performance.now()
   while (performance.now() - started < timeoutMs) {
-    const dock = handle()
+    const dock = dockApi()
     if (dock !== undefined) return dock
     await new Promise((resolve) => setTimeout(resolve, 50))
   }
   return undefined
 }
 
-/**
- * Opens the dock, on a panel if given (`shifts`, `changes`, `verify`). The dock has no page-facing
- * API to open it, so this goes through the handle it always publishes for tests
- * (`window.__primp_test`): `open(true)` and `panel(name)`. A dock without them gets its keyboard
- * shortcut, ⌘⇧E / Ctrl⇧E.
- */
-export async function openDock(panel?: string): Promise<boolean> {
+/** Opens the dock, on one of its panels if given. */
+export async function openDock(panel?: PanelName): Promise<boolean> {
   const dock = await waitForDock()
   if (dock === undefined) return false
-  if (typeof dock.open === 'function') dock.open(true)
-  else if (typeof dock.collapse === 'function') dock.collapse(false)
-  else {
-    const mac = /Mac|iPhone|iPad/.test(navigator.platform)
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'E', code: 'KeyE', shiftKey: true, metaKey: mac, ctrlKey: !mac, bubbles: true }))
-  }
-  if (panel !== undefined) {
-    if (typeof dock.panel === 'function') dock.panel(panel)
-    else dock.openTab?.(panel === 'changes' ? 'edits' : panel)
-  }
+  if (panel === undefined) dock.open()
+  else dock.panel(panel)
   return true
 }
 
-export function OpenDockButton({ children, className, tab, variant = 'accent', size = 'lg' }: { children: React.ReactNode; className?: string; tab?: string; variant?: 'accent' | 'outline' | 'default'; size?: 'lg' | 'default' | 'sm' }) {
+export function OpenDockButton({ children, className, tab, variant = 'accent', size = 'lg' }: { children: React.ReactNode; className?: string; tab?: PanelName; variant?: 'accent' | 'outline' | 'default'; size?: 'lg' | 'default' | 'sm' }) {
   return (
     <Button variant={variant} size={size} className={className} onClick={() => void openDock(tab)}>
       {children}
@@ -126,24 +116,12 @@ export function LiveDock() {
       const detail = (event as CustomEvent<{ prompt: string; count: number }>).detail
       setSent(detail)
       setOpen(true)
-      // After a Send the dock opens its Changes panel, which talks about MCP and the clipboard,
-      // and its outlines sit above everything. Here the sheet says what happened: the dock steps
-      // aside while it is open and comes back when it closes.
-      void (async () => {
-        const dock = handle()
-        for (let i = 0; i < 40 && dock?.state?.().panel !== 'changes'; i++) await new Promise((resolve) => setTimeout(resolve, 50))
-        dock?.panel?.(null)
-        dock?.open?.(false)
-      })()
+      // The sheet is where the prompt is read: the dock (its toolbar, outlines and pins sit above
+      // everything) steps aside while the sheet is open, and comes back on its Changes panel, with
+      // the stand-in's word on what Send did here, when the sheet closes.
+      dockApi()?.close()
     }
     window.addEventListener(SENT_EVENT, onSent)
-    // Stopgap for a dock that opens by default (before its redesign, which starts closed and has
-    // an open() of its own): close it once, so every page starts with the dock out of the way.
-    void waitForDock().then(async (dock) => {
-      if (dock === undefined || typeof dock.open === 'function' || typeof dock.collapse !== 'function') return
-      await dock.ready?.()
-      if (dock.state?.().collapsed === false) dock.collapse(true)
-    })
     if (document.documentElement.hasAttribute('data-primp-shift')) {
       const host = (window as unknown as { __primp_site_host?: { shift: { held: boolean } } }).__primp_site_host
       setReplay({ held: host?.shift.held ?? false })
@@ -157,7 +135,7 @@ export function LiveDock() {
         open={open}
         onOpenChange={(next) => {
           setOpen(next)
-          if (!next) handle()?.open?.(true)
+          if (!next) dockApi()?.panel('changes')
         }}
       >
         <SheetContent primpRoot className="gap-0 sm:max-w-2xl">
@@ -224,7 +202,7 @@ function ReplayNotice({ held, onClose }: { held: boolean; onClose: () => void })
           </p>
           <div className="flex flex-wrap gap-2 pt-1">
             <Button size="sm" variant="accent" onClick={() => void openDock('shifts')}>
-              Open Shifts
+              Open Layout shifts
             </Button>
             <Button size="sm" variant="outline" asChild>
               {/* A full load, so primp records a fresh one. */}

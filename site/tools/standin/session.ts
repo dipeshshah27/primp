@@ -12,7 +12,8 @@
  *   session:upsert   -> stored in memory as a draft, then session:state
  *   session:delete   -> removed, then session:state
  *   session:send     -> drafts become queued; session:sent with the prompt rendered by the REAL
- *                       renderPrompt of packages/engine; the website shows it (components/live-dock.tsx)
+ *                       renderPrompt of packages/engine, and a `note` the dock shows instead of its
+ *                       words about MCP; the website shows the prompt (components/live-dock.tsx)
  *   session:prompt   -> session:prompt-text: the same prompt for Copy, nothing queued
  *   session:shifts   -> session:shift-report from the REAL attributeShifts of packages/engine,
  *                       culprits looked up with the same text search
@@ -36,6 +37,10 @@ import SOURCES from 'site-sources'
 import { REPORT_EVENT, SENT_EVENT, type SiteEvents, type StandinHost, type StandinSocket } from './host.ts'
 
 declare const __PRIMP_VERSION__: string
+
+/** What the dock says after Send on this site, instead of its words about MCP and the clipboard. */
+const SENT_NOTE =
+  'This page runs primp in your browser with no agent, so nothing is queued. The prompt is shown in the sheet; with npx primp your agent receives it and primp verifies the result.'
 
 /**
  * The parts of ProjectFiles the text search uses (`list`, `read`), over the bundled sources.
@@ -201,7 +206,7 @@ function start(host: StandinHost): void {
           prompt = `# primp batch ${batchId}: ${drafts.length} change(s)\n\nThe prompt could not be rendered (${error instanceof Error ? error.message : String(error)}).\n\n${JSON.stringify(drafts, null, 2)}`
         }
         events.lastPrompt = prompt
-        socket.deliver({ type: 'session:sent', reqId: message.reqId, batch: { batchId, items: drafts, prompt } })
+        socket.deliver({ type: 'session:sent', reqId: message.reqId, batch: { batchId, items: drafts, prompt }, note: SENT_NOTE })
         broadcast()
         window.dispatchEvent(new CustomEvent(SENT_EVENT, { detail: { prompt, count: drafts.length } }))
         return

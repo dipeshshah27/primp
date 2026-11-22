@@ -1,71 +1,78 @@
 {
-  "capturedAt": "2026-11-21",
+  "capturedAt": "2026-11-22",
+  "dock": "toolbar",
   "shift": {
     "cause": "unsized-media",
-    "value": 0.111,
+    "value": 0.115,
     "culprit": "#hero-art",
     "confidence": 0.95,
     "evidence": [
-      "img#hero-art went from 992x0 to 992x347.2 at 718 ms",
+      "img#hero-art went from 1120x0 to 1120x700 at 745.8 ms",
       "its space was not reserved: no width/height attribute, no aspect-ratio",
-      "its load event fired at 720.7 ms (intrinsic size 1200x420)",
-      "section#beans moved down 347.2px: the same distance, and img#hero-art is right before it",
+      "its load event fired at 760.6 ms (intrinsic size 1200x750)",
+      "section#customers was pushed down 700px, below the visible area: the same distance, and img#hero-art is right before it",
       "100% of the moved area is explained directly"
     ],
-    "source": "index.html:29",
+    "source": "index.html:41",
     "level": "exact"
   },
   "edit": {
-    "label": "a.btn \"Start a subscription\"",
-    "summary": "25 elements moved down 8px; .btn became 8px taller",
-    "source": "index.html:24",
+    "id": "c_93a93f_28hj6",
+    "label": "a.btn \"Start free trial\"",
+    "summary": "131 elements moved down 4px; .btn became 4px taller",
+    "source": "index.html:35",
+    "change": {
+      "property": "padding",
+      "before": "12px 20px",
+      "after": "14px 26px"
+    },
     "origin": {
       "via": "rule",
       "selector": ".btn",
-      "sheet": "http://localhost:65104/css/site.css",
+      "sheet": "http://localhost:61194/css/site.css",
       "alsoStyles": 1
     },
     "bystanders": [
-      "a.btn \"See this week's beans\""
+      "a.btn \"Read the docs\""
     ],
     "sideEffects": [
       {
-        "label": "section#beans \"This week's beans Las Nubes \"",
-        "selector": "#beans",
+        "label": "section#pricing \"Pricing Simple pricing that \"",
+        "selector": "#pricing",
         "locator": {
           "tag": "section",
           "indexPath": [
             1,
-            2
+            6
           ],
           "ancestors": [
             "body",
             "main"
           ],
-          "id": "beans",
-          "accName": "This week's beans Las Nubes Washed, Guatemala. Red apple, cocoa, a long sweet fi",
-          "prevAnchor": "img#hero-art",
-          "nextAnchor": "section#subscribe"
+          "id": "pricing",
+          "accName": "Pricing Simple pricing that scales with you. Every plan includes all 32 regions,",
+          "prevAnchor": "section",
+          "nextAnchor": "section#signup"
         },
         "type": "moved",
         "before": {
-          "x": 144,
-          "y": 726.5,
-          "w": 992,
-          "h": 307.5
+          "x": 80,
+          "y": 3179.5,
+          "w": 1120,
+          "h": 720.5
         },
         "after": {
-          "x": 144,
-          "y": 734.5,
-          "w": 992,
-          "h": 307.5
+          "x": 80,
+          "y": 3183.5,
+          "w": 1120,
+          "h": 720.5
         },
-        "subtreeCount": 17,
+        "subtreeCount": 35,
         "verdict": "unreviewed"
       },
       {
-        "label": "section#subscribe \"Subscribe One bag every week\"",
-        "selector": "#subscribe",
+        "label": "section#features \"Product Everything on-call n\"",
+        "selector": "#features",
         "locator": {
           "tag": "section",
           "indexPath": [
@@ -76,29 +83,97 @@
             "body",
             "main"
           ],
-          "id": "subscribe",
-          "accName": "Subscribe One bag every week or every fortnight. Skip or stop whenever you like.",
-          "prevAnchor": "section#beans"
+          "id": "features",
+          "accName": "Product Everything on-call needs. Nothing it doesn't. One place for checks, aler",
+          "prevAnchor": "section#customers",
+          "nextAnchor": "section#docs"
         },
         "type": "moved",
         "before": {
-          "x": 144,
-          "y": 1034,
-          "w": 992,
-          "h": 202
+          "x": 80,
+          "y": 1482.5,
+          "w": 1120,
+          "h": 802.5
         },
         "after": {
-          "x": 144,
-          "y": 1042,
-          "w": 992,
-          "h": 202
+          "x": 80,
+          "y": 1486.5,
+          "w": 1120,
+          "h": 802.5
         },
-        "subtreeCount": 3,
+        "subtreeCount": 28,
         "verdict": "unreviewed"
       },
       {
-        "label": "footer#visit \"Pier 4, Tidewater. Open Tues\"",
-        "selector": "#visit",
+        "label": "section#docs \"Developers Your first monito\"",
+        "selector": "#docs",
+        "locator": {
+          "tag": "section",
+          "indexPath": [
+            1,
+            4
+          ],
+          "ancestors": [
+            "body",
+            "main"
+          ],
+          "id": "docs",
+          "accName": "Developers Your first monitor in one command. Point Corvane at a URL, or keep mo",
+          "prevAnchor": "section#features",
+          "nextAnchor": "section"
+        },
+        "type": "moved",
+        "before": {
+          "x": 80,
+          "y": 2285,
+          "w": 1120,
+          "h": 415
+        },
+        "after": {
+          "x": 80,
+          "y": 2289,
+          "w": 1120,
+          "h": 415
+        },
+        "subtreeCount": 22,
+        "verdict": "unreviewed"
+      },
+      {
+        "label": "section.testimonial \"“We used to hear about outag\"",
+        "selector": "section:nth-of-type(5)",
+        "locator": {
+          "tag": "section",
+          "indexPath": [
+            1,
+            5
+          ],
+          "ancestors": [
+            "body",
+            "main"
+          ],
+          "accName": "“We used to hear about outages from customers. Since Corvane, we hear about them",
+          "prevAnchor": "section#docs",
+          "nextAnchor": "section#pricing"
+        },
+        "type": "moved",
+        "before": {
+          "x": 80,
+          "y": 2700.5,
+          "w": 1120,
+          "h": 479
+        },
+        "after": {
+          "x": 80,
+          "y": 2704.5,
+          "w": 1120,
+          "h": 479
+        },
+        "subtreeCount": 16,
+        "verdict": "unreviewed"
+      },
+      {
+        "label": "footer.site-footer \"Corvane Uptime monitoring an\"",
+        "selector": "body > footer",
         "locator": {
           "tag": "footer",
           "indexPath": [
@@ -107,115 +182,80 @@
           "ancestors": [
             "body"
           ],
-          "id": "visit",
           "role": "contentinfo",
-          "accName": "Pier 4, Tidewater. Open Tuesday to Saturday, 8 to 4.",
+          "accName": "Corvane Uptime monitoring and on-call for teams that ship. Product Pricing Docs ",
           "prevAnchor": "main"
         },
         "type": "moved",
         "before": {
-          "x": 120,
-          "y": 1236,
-          "w": 1040,
-          "h": 106.5
+          "x": 80,
+          "y": 4431,
+          "w": 1120,
+          "h": 200
         },
         "after": {
-          "x": 120,
-          "y": 1244,
-          "w": 1040,
-          "h": 106.5
+          "x": 80,
+          "y": 4435,
+          "w": 1120,
+          "h": 200
         },
-        "subtreeCount": 1,
+        "subtreeCount": 10,
         "verdict": "unreviewed"
       },
       {
-        "label": "a.btn \"See this week's beans\"",
-        "selector": "p:nth-of-type(2) > a:nth-of-type(2)",
+        "label": "section#customers \"Trusted by on-call teams at \"",
+        "selector": "#customers",
         "locator": {
-          "tag": "a",
+          "tag": "section",
           "indexPath": [
             1,
-            0,
-            2,
-            1
-          ],
-          "ancestors": [
-            "body",
-            "main",
-            "section",
-            "p"
-          ],
-          "role": "link",
-          "accName": "See this week's beans",
-          "href": "#beans",
-          "text": "See this week's beans",
-          "prevAnchor": "a \"Start a subscription\""
-        },
-        "type": "resized",
-        "before": {
-          "x": 350.5,
-          "y": 303,
-          "w": 214.5,
-          "h": 48.5
-        },
-        "after": {
-          "x": 366.5,
-          "y": 303,
-          "w": 214.5,
-          "h": 56.5
-        },
-        "subtreeCount": 0,
-        "verdict": "unreviewed"
-      },
-      {
-        "label": "img#hero-art",
-        "selector": "#hero-art",
-        "locator": {
-          "tag": "img",
-          "indexPath": [
-            1,
-            1
+            2
           ],
           "ancestors": [
             "body",
             "main"
           ],
-          "id": "hero-art",
-          "role": "img",
-          "accName": "The roastery shed at the end of the pier",
-          "prevAnchor": "section",
-          "nextAnchor": "section#beans"
+          "id": "customers",
+          "role": "region",
+          "accName": "Customers",
+          "prevAnchor": "img#hero-art",
+          "nextAnchor": "section#features"
         },
         "type": "moved",
         "before": {
-          "x": 144,
-          "y": 379.5,
-          "w": 992,
-          "h": 347
+          "x": 80,
+          "y": 1306.5,
+          "w": 1120,
+          "h": 176
         },
         "after": {
-          "x": 144,
-          "y": 387.5,
-          "w": 992,
-          "h": 347
+          "x": 80,
+          "y": 1310.5,
+          "w": 1120,
+          "h": 176
         },
-        "subtreeCount": 0,
+        "subtreeCount": 8,
         "verdict": "unreviewed"
       }
     ]
   },
   "verify": {
-    "summary": "Verified 2 changes: 1 fail, 1 pass.",
+    "summary": "Verified 3 changes: 1 fail, 1 pass, 1 not checkable. c_93a93f_6n6mw is a note: nothing to measure, so neither a pass nor a fail; the user checks it by eye.",
     "results": [
       {
-        "id": "c_e9a80b_2gwy7",
+        "id": "c_93a93f_28hj6",
         "status": "fail",
-        "hint": "`a.btn \"See this week's beans\"` was not part of this change, but its `padding-bottom` went from `10px` to `14px`. The rule you edited is shared: restore it and make the change with a more specific rule or a class on the changed element(s). Also not passing: `a.btn \"See this week's beans\"` was not part of this change, but its `padding-left` went from `18px` to `26px`; `a.btn \"See this week's beans\"` was not part of this change, but its `padding-right` went from `18px` to `26px`; `a.btn \"See this week's beans\"` was not part of this change, but its `padding-top` went from `10px` to `14px`."
+        "hint": "`a.btn \"Read the docs\"` was not part of this change, but its `padding-bottom` went from `12px` to `14px`. The rule you edited is shared: restore it and make the change with a more specific rule or a class on the changed element(s). Also not passing: `a.btn \"Read the docs\"` was not part of this change, but its `padding-left` went from `20px` to `26px`; `a.btn \"Read the docs\"` was not part of this change, but its `padding-right` went from `20px` to `26px`; `a.btn \"Read the docs\"` was not part of this change, but its `padding-top` went from `12px` to `14px`."
       },
       {
-        "id": "c_e9a80b_4rcfh",
+        "id": "c_93a93f_4cjm1",
         "status": "pass",
         "hint": "The check passes."
+      },
+      {
+        "id": "c_93a93f_6n6mw",
+        "status": "not_checkable",
+        "hint": "A note from the user: check it by eye. It is free text, so primp has nothing to measure and cannot tell whether it is done; this is neither a pass nor a fail. Tell the user what you changed for it, so they can check it on the page."
       }
     ]
   }

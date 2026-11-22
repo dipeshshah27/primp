@@ -122,11 +122,11 @@ export function Bento({ facts, shiftShots }: { facts: Facts; shiftShots: { light
 
         <Card className="p-0 sm:p-0 lg:col-span-3">
           <div className="relative min-h-[320px] flex-1 overflow-hidden bg-muted/30">
-            <img src={shiftShots.light.src} width={shiftShots.light.width} height={shiftShots.light.height} alt="The Shifts tab of the dock on the demo site: the culprit image outlined on the page, its cause, source line and evidence." loading="lazy" className="absolute inset-0 size-full object-cover object-[100%_0%] dark:hidden" />
-            <img src={shiftShots.dark.src} width={shiftShots.dark.width} height={shiftShots.dark.height} alt="The Shifts tab of the dock on the demo site: the culprit image outlined on the page, its cause, source line and evidence." loading="lazy" className="absolute inset-0 hidden size-full object-cover object-[100%_0%] dark:block" />
+            <img src={shiftShots.light.src} width={shiftShots.light.width} height={shiftShots.light.height} alt="The Layout shifts panel of the dock on the demo site: the culprit image outlined on the page, its cause, source line and evidence." loading="lazy" className="absolute inset-0 size-full object-cover object-[100%_62%] dark:hidden" />
+            <img src={shiftShots.dark.src} width={shiftShots.dark.width} height={shiftShots.dark.height} alt="The Layout shifts panel of the dock on the demo site: the culprit image outlined on the page, its cause, source line and evidence." loading="lazy" className="absolute inset-0 hidden size-full object-cover object-[100%_62%] dark:block" />
           </div>
           <div className="border-t px-6 py-4">
-            <p className="text-sm font-medium">The Shifts tab</p>
+            <p className="text-sm font-medium">The Layout shifts panel</p>
             <p className="mt-0.5 text-sm text-muted-foreground">
               The culprit outlined on the page, with the evidence. <Link href="/docs/layout-shifts/" className="text-foreground underline underline-offset-4">How attribution works</Link>
             </p>

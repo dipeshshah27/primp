@@ -4,7 +4,7 @@ import { Callout } from '@/components/callout'
 import { CommandPill } from '@/components/command-pill'
 import { CopyButton } from '@/components/copy-button'
 import { OpenDockButton, ReplayShiftButton } from '@/components/live-dock'
-import { BystanderExample } from '@/components/mdx/bystander-example'
+import { BystanderExample, CapturedSummary } from '@/components/mdx/bystander-example'
 import { Shot } from '@/components/mdx/shot'
 import { Status } from '@/components/status'
 import { StatusTable, TableShell, TestedMatrix } from '@/components/tables'
@@ -73,6 +73,7 @@ const components: MDXComponents = {
   ),
   Shot,
   BystanderExample,
+  CapturedSummary,
   Status,
   StatusTable,
   TestedMatrix,

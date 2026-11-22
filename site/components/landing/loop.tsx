@@ -139,7 +139,7 @@ export function Loop({ facts, change, promptHtml, editShots, verifyShots }: { fa
                     ))}
                   </ul>
                 </div>
-                <DockCrop shots={verifyShots} alt={`The Verify tab: ${facts.verify.summary}`} />
+                <DockCrop shots={verifyShots} alt={`The Verification panel: ${facts.verify.summary}`} />
               </div>
             ),
           },

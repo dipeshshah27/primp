@@ -107,7 +107,7 @@ export function CommandMenu({ className }: { className?: string }) {
             </CommandItem>
             <CommandItem value="open the shifts tab layout shift" onSelect={() => run(() => void openDock('shifts'))}>
               <ActivityIcon />
-              Open the dock&apos;s Shifts tab
+              Open the dock&apos;s Layout shifts panel
             </CommandItem>
             <CommandItem value="toggle theme dark light" onSelect={() => run(() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark'))}>
               <MoonIcon />

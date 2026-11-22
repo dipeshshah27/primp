@@ -31,3 +31,8 @@ export function BystanderExample() {
     </blockquote>
   )
 }
+
+/** The side-effect summary of the captured edit, as the dock wrote it. */
+export function CapturedSummary() {
+  return <em>&ldquo;{facts().edit.summary}&rdquo;</em>
+}

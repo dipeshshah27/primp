@@ -13,9 +13,10 @@
  *   4. CLS: every page, loaded and scrolled through, at 1280 and 390 px, with the hook loaded,
  *      records a layout-shift score of 0 (PerformanceObserver), and the dock's own report of the
  *      landing page has no scored shift.
- *   5. The live dock: mounts closed; "Try it on this page" opens it; selecting landing-page
+ *   5. The live dock: mounts closed; "Try it on this page" opens it (window.__primp_dock); selecting landing-page
  *      elements resolves them to their .tsx file and line (ranked guesses, never "exact"); an
- *      edit is recorded; Send shows the prompt in the site's sheet; "Replay with a layout shift"
+ *      edit is recorded; Send shows the prompt in the site's sheet, and the dock's Changes panel
+ *      then carries the stand-in's note (no agent here, nothing queued) instead of MCP wording; "Replay with a layout shift"
  *      reloads with ?shift=1 and the dock names the unsized hero screenshot, cause unsized-media,
  *      with its line in components/landing/hero.tsx.
  *
@@ -313,10 +314,12 @@ try {
   const opened = await report.attempt('the dock mounts closed; "Try it on this page" opens it', async () => {
     const before = await dock('state')
     expect(before.mounted && before.connected && before.ready, `dock state: ${JSON.stringify({ mounted: before.mounted, connected: before.connected, ready: before.ready })}`)
-    expect(before.open === false, 'the dock is open before anyone opened it')
+    const api = await live.page.evaluate(() => typeof (window as unknown as { __primp_dock?: { isOpen(): boolean } }).__primp_dock?.isOpen === 'function')
+    expect(api, 'the dock published no window.__primp_dock')
+    expect(before.open === false && !(await live.page.evaluate(() => (window as unknown as { __primp_dock: { isOpen(): boolean } }).__primp_dock.isOpen())), 'the dock is open before anyone opened it')
     await live.page.getByRole('button', { name: 'Try it on this page' }).first().click()
-    await waitFor(async () => (await dock('state')).open, { what: 'the dock to open', timeoutMs: 5000 })
-    return 'closed after load, open after the click'
+    await waitFor(() => live.page.evaluate(() => (window as unknown as { __primp_dock: { isOpen(): boolean } }).__primp_dock.isOpen()), { what: 'the dock to open', timeoutMs: 5000 })
+    return 'closed after load (window.__primp_dock.isOpen() false), open after the click'
   })
 
   if (opened) {
@@ -351,7 +354,7 @@ try {
       return `item ${edit.item?.id}: letter-spacing -> -1px at ${edit.item?.target.source?.file}:${edit.item?.target.source?.line}; "${await dock('summary', edit.item?.id ?? '')}"`
     })
 
-    await report.attempt("Send shows the site's prompt sheet with the prompt primp's engine rendered", async () => {
+    await report.attempt("Send shows the site's prompt sheet with the prompt primp's engine rendered; the dock then says nothing was queued", async () => {
       const prompt = await dock('send')
       expect(prompt.includes('letter-spacing') && prompt.includes('components/landing/hero.tsx'), `prompt:\n${prompt.slice(0, 600)}`)
       const sheet = live.page.locator('[data-slot="sheet-content"]')
@@ -361,8 +364,13 @@ try {
       expect((await sheet.textContent())?.includes('verification needs') === true, 'the sheet does not say that verification needs npx primp and an agent')
       await sleep(700)
       await live.page.screenshot({ path: join(SHOTS, 'prompt-sheet.png') })
+      expect(!(await live.page.evaluate(() => (window as unknown as { __primp_dock: { isOpen(): boolean } }).__primp_dock.isOpen())), 'the dock stayed open over the sheet')
       await sheet.getByRole('button', { name: 'Close' }).click()
       await sheet.waitFor({ state: 'detached', timeout: 5000 })
+      // Back on the dock's Changes panel, with the stand-in's words instead of "queued for your agent over MCP".
+      await waitFor(async () => /nothing is queued/.test(await dockText(live.page)), { what: "the stand-in's note in the Changes panel", timeoutMs: 5000 })
+      const panel = await dockText(live.page)
+      expect(!/over MCP/.test(panel), `the Changes panel still talks about MCP:\n${panel.slice(0, 400)}`)
       return `${prompt.length} characters: ${prompt.split('\n')[0]}`
     })
 

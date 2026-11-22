@@ -41,13 +41,13 @@ The **State** control shows the element as it looks in `:hover`, `:focus`, `:foc
 
 The state is emulated from the page's own stylesheets, and verification reads the value in that state, not at rest. A hover made by script, or a rule in a stylesheet from another origin, cannot be emulated; such a change is reported as fail or not measurable, never as a pass.
 
-<Shot name="hover" alt="The dock showing a button in its :hover state; the page shows the hover look with a :hover label on the button." caption="A button shown in :hover. New edits apply to that state only." />
+<Shot name="hover" alt="The inspector next to the Start free trial button, showing it in :hover; the dock says new edits apply to :hover only." caption="A button shown in :hover. New edits apply to that state only." />
 
 ## Resize
 
 A selected element has handles on its right edge, its bottom edge and the corner. Drag one; the size is shown as you go. <kbd>Shift</kbd> on the corner keeps the aspect ratio and <kbd>Esc</kbd> cancels the drag. A resize is recorded as an ordinary `width` and `height` change (one or both) and checked like any other. There are no handles on the left and top edges.
 
-<Shot name="resize" alt="A card being resized by its right-hand handle; a label shows the new size." caption="Dragging the right-hand handle of a card. The label shows the border-box size." />
+<Shot name="resize" alt="A feature card selected, with handles on its right edge, bottom edge and corner; the inspector beside it shows its size." caption="A selected card with its resize handles. The inspector shows the size as you drag." />
 
 ## Reorder
 
@@ -69,7 +69,7 @@ Every changed element gets a numbered pin on the page, in the order you first ch
 
 ## Side effects
 
-primp measures the page before and after every edit. Each recorded change carries a one-line summary of what else moved, for example *"25 elements moved down 8px; .btn became 8px taller"*. Open it to see the elements one by one.
+primp measures the page before and after every edit. Each recorded change carries a one-line summary of what else moved, for example <CapturedSummary />. Open it to see the elements one by one.
 
 Mark one as **unwanted** and it becomes a constraint: the agent is told that element must not move, and verification checks it.
 
