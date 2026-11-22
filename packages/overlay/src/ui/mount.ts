@@ -339,14 +339,30 @@ export function mountDock(c: Controller): DockHandle {
   })
 
   // --- theme ----------------------------------------------------------------------------
+  // 'auto' follows the page's own theme when the page declares one (a single `color-scheme`
+  // on <html>, or a `dark`/`light` class or data-theme there, as theme switchers set), so a
+  // dark site gets a dark dock whatever the system setting; otherwise the system setting.
+  const pageScheme = (): 'dark' | 'light' | null => {
+    const html = document.documentElement
+    const declared = getComputedStyle(html).colorScheme.trim().split(/\s+/)
+    if (declared.length === 1 && (declared[0] === 'dark' || declared[0] === 'light')) return declared[0]
+    for (const value of ['dark', 'light'] as const) {
+      if (html.classList.contains(value) || html.getAttribute('data-theme') === value) return value
+    }
+    return null
+  }
   const applyTheme = (): void => {
-    const value = theme.value
+    const value = theme.value === 'auto' ? pageScheme() : theme.value
     for (const root of [host, bar.contentDocument?.documentElement, pop.contentDocument?.documentElement]) {
       if (root === undefined || root === null) continue
-      if (value === 'auto') root.removeAttribute('data-theme')
+      if (value === null) root.removeAttribute('data-theme')
       else root.setAttribute('data-theme', value)
     }
   }
+  // Reading only: the page's own theme switch changes these attributes on <html>.
+  new MutationObserver(() => {
+    if (theme.value === 'auto') applyTheme()
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style', 'data-theme'] })
 
   // --- the UI both frames render with ---------------------------------------------------
   const toggle = (panel: PanelName): void => {

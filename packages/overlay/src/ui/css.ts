@@ -4,8 +4,10 @@
  * and `FRAME_CSS` into each frame's own document (the toolbar's and the popover's). Both are
  * applied as constructable stylesheets, which work under any Content-Security-Policy.
  *
- * Look: dark by default, light when the page's `prefers-color-scheme` is light (or the setting
- * says so: `data-theme` on the host and on each frame's root). 13 px system UI type, mono for
+ * Look: dark by default, light when the page's own theme is light (mount.ts `pageScheme`: a
+ * single `color-scheme` on <html>, or a dark/light class or data-theme there), else when
+ * `prefers-color-scheme` is light; the setting overrides both (`data-theme` on the host and on
+ * each frame's root). 13 px system UI type, mono for
  * code, a 4 px grid, 8 to 12 px radii, hairline borders, a soft layered shadow and a blurred
  * translucent surface. Motion is 150 ms and off under `prefers-reduced-motion`.
  */
