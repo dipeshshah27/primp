@@ -14,7 +14,7 @@
  *   edit-{light,dark}       the inspector next to the selected button
  *   shifts-{light,dark}     the Layout shifts panel with the seeded shift shown on the page
  *   verify-{light,dark}     the Verification panel after the "agent" edited the source
- *   step-edit-*, step-verify-*   the dock alone (popover and toolbar), cropped from tray and verify
+ *   step-edit-*, step-verify-*   the dock alone (popover and toolbar), cropped from edit and verify
  *   hover-light             a :hover edit previewed with the state held
  *   resize-light            a resize handle drag in progress
  *   facts.json              the strings the site quotes (summaries, hints, the shift, the change)
@@ -186,6 +186,7 @@ try {
     sideEffects: paddingItem.sideEffects.slice(0, 6),
   }
   await both(page, 'edit')
+  await both(page, 'step-edit', () => dockClip(dock))
 
   await dock('select', HEADLINE)
   const spacing = await dock('setStyle', 'letter-spacing', '-3px', { media: null, scope: 'instance' })
@@ -197,7 +198,6 @@ try {
   await dock('panel', 'changes')
   await sleep(500)
   await both(page, 'tray')
-  await both(page, 'step-edit', () => dockClip(dock))
   const prompt = await dock('send')
   writeFileSync(join(OUT, 'prompt.txt'), prompt)
 

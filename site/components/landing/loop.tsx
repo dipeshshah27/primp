@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 
 function DockCrop({ shots, alt }: { shots: { light: Shot; dark: Shot }; alt: string }) {
   return (
-    <div className="mx-auto w-full max-w-[300px] shrink-0 overflow-hidden rounded-xl border bg-muted/30 shadow-[0_20px_50px_-24px_oklch(0_0_0/0.6)] lg:mx-0">
+    <div className="mx-auto w-full max-w-[320px] shrink-0 overflow-hidden rounded-xl border bg-muted/30 shadow-[0_20px_50px_-24px_oklch(0_0_0/0.6)] lg:mx-0">
       <img src={shots.light.src} width={shots.light.width} height={shots.light.height} alt={alt} loading="lazy" className="block h-auto w-full dark:hidden" />
       <img src={shots.dark.src} width={shots.dark.width} height={shots.dark.height} alt={alt} loading="lazy" className="hidden h-auto w-full dark:block" />
     </div>
@@ -79,7 +79,7 @@ export function Loop({ facts, change, promptHtml, editShots, verifyShots }: { fa
                     Mark a side effect as unwanted and it becomes a constraint the agent must keep. The bystander is why this change will fail in step 3 if the agent edits the shared rule in place.
                   </p>
                 </div>
-                <DockCrop shots={editShots} alt={`The dock listing recorded changes, the first with the note "${facts.edit.summary}".`} />
+                <DockCrop shots={editShots} alt={`The dock's inspector next to ${facts.edit.label}${change === undefined ? '' : `, with ${change.property} at ${change.after}`}.`} />
               </div>
             ),
           },
