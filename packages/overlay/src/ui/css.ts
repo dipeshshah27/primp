@@ -300,6 +300,7 @@ select:focus, .input:focus { border-color: var(--accent); background: var(--rais
 .gtitle { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; }
 .gtitle .aside { margin-left: auto; color: var(--faint); font-weight: 450; letter-spacing: 0; }
 .fw { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.fw > .seg { align-self: flex-start; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
 .f {

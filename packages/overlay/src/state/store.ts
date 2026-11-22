@@ -60,6 +60,8 @@ export interface SentState {
   count: number
   /** False: the clipboard refused; the dock shows the prompt for manual copying. */
   copied: boolean
+  /** The session's own words for what happened to the batch (`session:sent.note`), replacing the dock's. */
+  note?: string
 }
 
 export interface Store {

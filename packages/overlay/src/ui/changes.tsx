@@ -140,7 +140,7 @@ function SentNotice({ c }: { c: Controller }) {
     return (
       <div class="notice" role="status">
         <div class="row">
-          <span>Copied. Paste into your agent, or it will pick the batch up over MCP.</span>
+          <span>{sent.note ?? 'Copied. Paste into your agent, or it will pick the batch up over MCP.'}</span>
           {dismiss}
         </div>
       </div>
@@ -149,7 +149,7 @@ function SentNotice({ c }: { c: Controller }) {
   return (
     <div class="notice plain" role="status">
       <span>
-        {sent.count} {sent.count === 1 ? 'change is' : 'changes are'} queued for your agent over MCP. The browser did not allow copying; copy the prompt from here to paste it instead.
+        {sent.note ?? `${sent.count} ${sent.count === 1 ? 'change is' : 'changes are'} queued for your agent over MCP.`} The browser did not allow copying; copy the prompt from here to paste it instead.
       </span>
       <textarea class="prompt" readOnly aria-label="Prompt for your agent" value={sent.prompt} onFocus={(event) => (event.currentTarget as HTMLTextAreaElement).select()} />
       <div class="row">

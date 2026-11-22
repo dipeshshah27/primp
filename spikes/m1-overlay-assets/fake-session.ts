@@ -47,6 +47,8 @@ export interface FakeSession {
   /** Forgets everything and drops every socket, like a server that restarted. */
   restart(): void
   count(type: ClientMessage['type']): number
+  /** What `session:sent` says after Send in place of the dock's own text (`note`); undefined: nothing, as primp's server. */
+  sentNote: string | undefined
 }
 
 export function sourceFor(tag: string): SourceLoc {
@@ -85,6 +87,7 @@ export function createFakeSession(info: SessionInfo): FakeSession {
     received: [],
     invalid: [],
     settleMessages: 0,
+    sentNote: undefined,
     hellos: [],
     reports: new Map(),
     connections: () => [...sockets.values()].filter((connection) => connection.doc !== undefined).length,
@@ -155,7 +158,8 @@ export function createFakeSession(info: SessionInfo): FakeSession {
               return `${index + 1}. ${item.target.label} (${where}): ${what}`
             })
             const prompt = `# primp ${batchId}: ${drafts.length} change(s)\n${lines.join('\n')}`
-            send(socket, { type: 'session:sent', reqId: message.reqId, batch: { batchId, items: drafts, prompt: drafts.length === 0 ? '' : prompt } })
+            const batch = { batchId, items: drafts, prompt: drafts.length === 0 ? '' : prompt }
+            send(socket, session.sentNote === undefined ? { type: 'session:sent', reqId: message.reqId, batch } : { type: 'session:sent', reqId: message.reqId, batch, note: session.sentNote })
             broadcast()
             break
           }

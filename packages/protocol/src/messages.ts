@@ -86,7 +86,17 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
   /** Sent after `session:hello` and again whenever an item changes (an agent claimed it, verification finished). */
   z.object({ type: z.literal('session:state'), info: SessionInfoSchema, items: z.array(ChangeItemSchema) }),
   z.object({ type: z.literal('session:resolved'), reqId: z.string(), source: SourceLocSchema.nullable() }),
-  z.object({ type: z.literal('session:sent'), reqId: z.string(), batch: BatchSchema }),
+  z.object({
+    type: z.literal('session:sent'),
+    reqId: z.string(),
+    batch: BatchSchema,
+    /**
+     * Replaces what the dock says after Send ("Copied. Paste into your agent, or it will pick the
+     * batch up over MCP.", or the manual-copy text when the clipboard refused). For a session that
+     * is not primp's server, such as a stand-in on a website with no agent. primp's server never sets it.
+     */
+    note: z.string().optional(),
+  }),
   /** Answer to `session:prompt`: the prompt the drafts would be sent with (empty when none of them is a draft). */
   z.object({ type: z.literal('session:prompt-text'), reqId: z.string(), prompt: z.string(), count: z.number().int().nonnegative() }),
   /** Attributed layout shifts for the document, culprits resolved to source where possible. */

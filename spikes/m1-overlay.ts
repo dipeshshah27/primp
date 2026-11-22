@@ -534,6 +534,30 @@ async function viteDockUx(browser: Browser, lane: Lane): Promise<void> {
       return `P: the animation paused at ${Math.round(pausedAt)} ms and stayed there, a pause rule added; P again: running (${Math.round(runningAt)} ms), rule gone`
     })
 
+    await report.attempt('window.__primp_dock: open, close, toggle and panel do what the launcher and the toolbar do', async () => {
+      await t.evaluate(() => window.__primp_test!.open(false))
+      const steps = await t.evaluate(() => {
+        const api = window.__primp_dock!
+        const seen: string[] = []
+        const now = (): string => `${window.__primp_test!.state().open ? 'open' : 'closed'}/${window.__primp_test!.state().panel ?? '-'}`
+        api.open()
+        seen.push(now())
+        api.panel('changes')
+        seen.push(now())
+        api.panel(null)
+        seen.push(now())
+        seen.push(String(api.toggle()), now())
+        api.panel('verify')
+        seen.push(now())
+        api.close()
+        seen.push(now(), String(api.isOpen()))
+        return seen
+      })
+      expect(JSON.stringify(steps) === JSON.stringify(['open/-', 'open/changes', 'open/-', 'false', 'closed/-', 'open/verify', 'closed/-', 'false']), `steps: ${steps.join(' ')}`)
+      await t.evaluate(() => window.__primp_test!.open(true))
+      return `open, panel('changes'), panel(null), toggle() -> false, panel('verify') opens the dock with it, close(): ${steps.join(' ')}`
+    })
+
     await report.attempt('the toolbar, popovers, pins, chip and tooltips added no layout-shift entry that is not tagged as primp\'s own', async () => {
       for (const label of ['Changes', 'Layout shifts', 'Verification', 'Settings']) {
         await page.bar.locator(`button[aria-label="${label}"]`).click()
@@ -2299,6 +2323,23 @@ async function shiftsTab(browser: Browser, lane: Lane, bundles: Bundles): Promis
         return `tab_hidden -> "Not measured: the tab was in the background..." with the reason, tab badge "${badge}"; not_measurable -> "Layout shifts cannot be measured here..."; neither says "no layout shifts"`
       } finally {
         await hidden.close()
+        await fake.proxy.close()
+      }
+    })
+
+    await report.attempt('a session that says what happened to the batch (session:sent note) replaces the dock\'s own words after Send [fake session server]', async () => {
+      const fake = await startFakeLane(lane.fixture, bundles)
+      const other = await openDock(browser, lane, SHIFT_PAGE, { origin: fake.proxy.url, context: { permissions: ['clipboard-read', 'clipboard-write'] } })
+      try {
+        fake.session.sentNote = 'Nothing is sent from this page: copy the prompt into your agent.'
+        await other.page.evaluate(() => window.__primp_test!.select('#title'))
+        await other.page.evaluate(() => window.__primp_test!.setStyle('letter-spacing', '1px'))
+        await other.page.evaluate(() => window.__primp_test!.send())
+        const notice = await waitFor(() => other.dock.evaluate(() => document.querySelector('.notice')?.textContent ?? undefined), { timeoutMs: 5000, what: 'the notice after Send' })
+        expect(notice.includes('Nothing is sent from this page') && !notice.includes('over MCP'), `the dock says "${notice}"`)
+        return `after Send the dock says "${notice.replace('Dismiss', '').trim()}" (the session's note), not the MCP text`
+      } finally {
+        await other.close()
         await fake.proxy.close()
       }
     })

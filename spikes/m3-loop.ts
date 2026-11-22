@@ -530,6 +530,8 @@ async function next(): Promise<void> {
     const result = one((await verify([item.id], 8000)).outcome)
     expect(result.status === 'pass', `status ${describe(result)}`)
     const before = await page.textContent('[data-label="counter-value"]')
+    // Selecting the element opened the dock, whose clicks select; closed, the click is the app's again.
+    await page.evaluate(() => window.__primp_test!.open(false))
     await page.click('[data-label="counter-inc"]')
     const after = await page.textContent('[data-label="counter-value"]')
     expect(Number(after) === Number(before) + 1, `counter went from ${before} to ${after}`)

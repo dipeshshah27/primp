@@ -1290,7 +1290,7 @@ export function createController(options: ControllerOptions): Controller {
         store.history.value = emptyHistory(items)
         const copied = await copy(answer.batch.prompt)
         batch(() => {
-          store.sent.value = { prompt: answer.batch.prompt, count: sent.size, copied }
+          store.sent.value = answer.note === undefined ? { prompt: answer.batch.prompt, count: sent.size, copied } : { prompt: answer.batch.prompt, count: sent.size, copied, note: answer.note }
           // What was sent, and the prompt when the clipboard refused it, are in the Changes panel.
           if (store.open.value) store.panel.value = 'changes'
         })
