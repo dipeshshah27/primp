@@ -18,6 +18,9 @@ export class DemoError extends Error {}
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 
+/** The `<title>` openings that mark a directory as a primp demo: the current site, and the one earlier versions copied out. */
+const DEMO_TITLES = ['<title>Corvane', '<title>Tidewater Coffee</title>']
+
 /** The template: `demo/` next to the bundled cli.js, or `demo-site/` in a checkout. */
 export function demoTemplateDir(): string {
   for (const candidate of [join(HERE, 'demo'), join(HERE, '../demo-site')]) {
@@ -34,7 +37,7 @@ export function prepareDemo(dir: string, template: string = demoTemplateDir()): 
     const entries = readdirSync(target).filter((name) => name !== '.DS_Store')
     if (entries.length > 0) {
       const index = join(target, 'index.html')
-      const isDemo = existsSync(index) && readFileSync(index, 'utf8').includes('<title>Tidewater Coffee</title>')
+      const isDemo = existsSync(index) && DEMO_TITLES.some((title) => readFileSync(index, 'utf8').includes(title))
       if (isDemo) return { dir: target, created: false }
       throw new DemoError(`${target} is not empty. Pass another directory: primp demo --dir <directory>.`)
     }
@@ -119,16 +122,16 @@ export function startDemoServer(root: string, port = 0): Promise<DemoServer> {
 export function demoGuide(dir: string, cwd: string = process.cwd()): string {
   const shown = dir.startsWith(cwd + sep) ? `./${dir.slice(cwd.length + 1)}` : dir
   return [
-    'This is the primp demo: a one-page site with one seeded layout shift.',
+    'This is the primp demo: a landing page for Corvane, a made-up uptime monitor, with one seeded layout shift.',
     '',
-    `  1. In the page, open the dock's Shifts tab: the picture under the headline has no reserved`,
-    '     space, so everything below it jumps when it loads. primp names the element and its line.',
+    `  1. In the page, open the dock's Shifts tab: the product screenshot under the headline has no`,
+    '     reserved space, so everything below it jumps when it loads. primp names the element and its line.',
     `  2. In your coding agent, in ${shown}, say:`,
     '       "Fix the layout shift primp found, then verify it."',
     '     It reads the shift (get_layout_shifts), edits index.html, and has primp reload the page',
     '     three times to confirm the jump is gone (verify_layout_shift).',
-    '  3. Try an edit: in the Edits tab pick the "Start a subscription" button, change its padding',
-    '     or colour, press Send, and tell your agent: "Implement the primp changes and verify them."',
+    '  3. Try an edit: in the Edits tab pick the "Start free trial" button, change its padding or',
+    '     colour, press Send, and tell your agent: "Implement the primp changes and verify them."',
     '',
     'No agent registered yet? Run `npx primp setup` in another terminal, or paste the prompt that Send copies.',
   ].join('\n')

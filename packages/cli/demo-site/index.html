@@ -3,61 +3,193 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tidewater Coffee</title>
+    <title>Corvane — Uptime monitoring</title>
+    <meta name="description" content="Corvane watches your endpoints, cron jobs and certificates from 32 regions and pages the right person in seconds.">
+    <meta name="color-scheme" content="light dark">
     <link rel="stylesheet" href="/css/site.css">
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="/">Tidewater Coffee</a>
+      <a class="brand" href="/">
+        <svg class="brand-mark" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="#5b4cf0"/><path d="M8.5 18.5a6.5 6.5 0 0 1 10.8-6.6" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M14 14.5l5-5" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="14" cy="14.5" r="2" fill="#fff"/></svg>
+        <span>Corvane</span>
+      </a>
       <nav class="site-nav" aria-label="Main">
-        <a href="#beans">Beans</a>
-        <a href="#subscribe">Subscribe</a>
-        <a href="#visit">Visit</a>
+        <a href="#features">Product</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#customers">Customers</a>
+        <a href="#docs">Docs</a>
       </nav>
+      <div class="header-actions">
+        <a class="nav-link" href="#signin">Sign in</a>
+        <a class="nav-cta" href="#pricing">Get started</a>
+      </div>
     </header>
 
     <main>
       <section class="hero">
-        <h1 class="hero-title">Roasted on Tuesday, at your door by Friday</h1>
-        <p class="hero-lede">Small batches from four farms, roasted to order in a harbour-side shed.</p>
-        <p class="hero-actions">
-          <a class="btn btn-primary" href="#subscribe">Start a subscription</a>
-          <a class="btn" href="#beans">See this week's beans</a>
-        </p>
+        <a class="hero-badge" href="#features"><span class="hero-badge-tag">New</span> Synthetic checks from 32 regions <span aria-hidden="true">&rarr;</span></a>
+        <h1 class="hero-title">Know it's down before your users do.</h1>
+        <p class="hero-lede">Corvane watches your APIs, cron jobs and certificates around the clock, and pages the right person in seconds, with the trace that explains why.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#pricing">Start free trial</a>
+          <a class="btn" href="#docs">Read the docs</a>
+        </div>
+        <p class="hero-note">Free for 10 monitors. No credit card required.</p>
       </section>
 
-      <img id="hero-art" class="hero-art" src="/img/harbour.svg?delay=700" alt="The roastery shed at the end of the pier">
+      <img id="hero-art" class="hero-art" src="/img/dashboard.svg?delay=700" alt="The Corvane dashboard: uptime, response time, an open incident and a list of monitors">
 
-      <section id="beans" class="beans">
-        <h2>This week's beans</h2>
-        <ul class="bean-grid">
-          <li class="bean">
-            <h3>Las Nubes</h3>
-            <p>Washed, Guatemala. Red apple, cocoa, a long sweet finish.</p>
-            <p class="price">$16 <span>per 250 g</span></p>
+      <section id="customers" class="logos" aria-label="Customers">
+        <p class="logos-title">Trusted by on-call teams at fast-moving companies</p>
+        <ul class="logo-row">
+          <li>Quarrystack</li>
+          <li>Fernhollow</li>
+          <li>Lumenfold</li>
+          <li>Brightwick</li>
+          <li>Oaksend</li>
+          <li>Pellmark</li>
+        </ul>
+      </section>
+
+      <section id="features" class="features">
+        <p class="eyebrow">Product</p>
+        <h2 class="section-title">Everything on-call needs. Nothing it doesn't.</h2>
+        <p class="section-lede">One place for checks, alerts and the status page your customers read, built for the engineer who gets paged at 3 a.m.</p>
+        <ul class="feature-grid">
+          <li class="feature">
+            <svg class="feature-icon" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10"/><circle cx="20" cy="20" r="8" fill="none" stroke-width="1.8"/><path d="M12 20h16M20 12c3 3.5 3 12.5 0 16M20 12c-3 3.5-3 12.5 0 16" fill="none" stroke-width="1.8"/></svg>
+            <h3>Checks from 32 regions</h3>
+            <p>HTTP, TCP, DNS and browser checks every 30 seconds, confirmed from three regions before anyone is woken up.</p>
           </li>
-          <li class="bean">
-            <h3>Kiamabara</h3>
-            <p>Washed, Kenya. Blackcurrant and grapefruit; bright and clean.</p>
-            <p class="price">$19 <span>per 250 g</span></p>
+          <li class="feature">
+            <svg class="feature-icon" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10"/><path d="M14 24v-5a6 6 0 0 1 12 0v5l2 2H12z" fill="none" stroke-width="1.8" stroke-linejoin="round"/><path d="M18 29h4" fill="none" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <h3>Alerts that route themselves</h3>
+            <p>Schedules, escalations and overrides. Pages go to whoever is on call, by phone, SMS, Slack or push.</p>
           </li>
-          <li class="bean">
-            <h3>Fazenda Alta</h3>
-            <p>Natural, Brazil. Hazelnut and milk chocolate; easy every day.</p>
-            <p class="price">$14 <span>per 250 g</span></p>
+          <li class="feature">
+            <svg class="feature-icon" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10"/><path d="M12 25l5-6 4 3 7-9" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <h3>Traces with every alert</h3>
+            <p>Each failed check carries its request, response and the slowest span, so the first minute goes to fixing, not finding.</p>
+          </li>
+          <li class="feature">
+            <svg class="feature-icon" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10"/><rect x="12" y="13" width="16" height="14" rx="2.5" fill="none" stroke-width="1.8"/><path d="M15.5 18h9M15.5 22h5" fill="none" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <h3>Status pages</h3>
+            <p>A public page on your own domain that updates itself when an incident opens, and subscribers who hear about it first.</p>
+          </li>
+          <li class="feature">
+            <svg class="feature-icon" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10"/><circle cx="20" cy="20" r="8" fill="none" stroke-width="1.8"/><path d="M20 15.5V20l3 2" fill="none" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <h3>Cron and heartbeats</h3>
+            <p>One curl at the end of a job. Hear about the backup that never ran, not just the endpoint that fell over.</p>
+          </li>
+          <li class="feature">
+            <svg class="feature-icon" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10"/><path d="M20 11l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10v-5z" fill="none" stroke-width="1.8" stroke-linejoin="round"/><path d="M17 20l2.2 2.2L23.5 18" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <h3>Certificates and domains</h3>
+            <p>Expiry warnings 30, 14 and 3 days out for every TLS certificate and domain you own, found for you.</p>
           </li>
         </ul>
       </section>
 
-      <section id="subscribe" class="subscribe">
-        <h2>Subscribe</h2>
-        <p>One bag every week or every fortnight. Skip or stop whenever you like.</p>
-        <a class="btn btn-primary" href="#subscribe">Choose a plan</a>
+      <section id="docs" class="setup">
+        <div class="setup-copy">
+          <p class="eyebrow">Developers</p>
+          <h2 class="section-title">Your first monitor in one command.</h2>
+          <p class="section-lede">Point Corvane at a URL, or keep monitors next to your code and ship them with every deploy.</p>
+          <ul class="setup-points">
+            <li>Monitors as code, reviewed in pull requests</li>
+            <li>Terraform provider and REST API</li>
+            <li>OpenTelemetry traces in, alerts out</li>
+          </ul>
+        </div>
+        <div class="terminal" role="img" aria-label="A terminal creating a monitor with the Corvane CLI">
+          <div class="terminal-bar"><span></span><span></span><span></span></div>
+          <pre class="terminal-body"><code><span class="t-dim">$</span> corvane watch https://api.example.com/health --every 30s
+<span class="t-ok">&#10003;</span> Monitor created  <span class="t-dim">api-example-health</span>
+<span class="t-ok">&#10003;</span> Checking from 32 regions
+<span class="t-ok">&#10003;</span> Alerts route to <span class="t-accent">#oncall</span> and the primary schedule
+
+<span class="t-dim">  us-east-1   200   84 ms
+  eu-west-1   200  112 ms
+  ap-south-1  200  171 ms</span></code></pre>
+        </div>
+      </section>
+
+      <section class="testimonial">
+        <blockquote>
+          <p class="quote">&ldquo;We used to hear about outages from customers. Since Corvane, we hear about them about four minutes before anyone notices, and the page already has the trace attached.&rdquo;</p>
+          <footer class="quote-by">
+            <span class="avatar" aria-hidden="true">MO</span>
+            <span><strong>Maya Okafor</strong> Staff SRE, Quarrystack</span>
+          </footer>
+        </blockquote>
+        <dl class="stats">
+          <div><dt>Median time to alert</dt><dd>38 s</dd></div>
+          <div><dt>Checks run each day</dt><dd>1.2 B</dd></div>
+          <div><dt>False pages, last quarter</dt><dd>0.02%</dd></div>
+        </dl>
+      </section>
+
+      <section id="pricing" class="pricing">
+        <p class="eyebrow">Pricing</p>
+        <h2 class="section-title">Simple pricing that scales with you.</h2>
+        <p class="section-lede">Every plan includes all 32 regions, unlimited team members and a status page.</p>
+        <ul class="plan-grid">
+          <li class="plan">
+            <h3 class="plan-name">Hobby</h3>
+            <p class="plan-price"><span class="amount">$0</span> per month</p>
+            <p class="plan-blurb">For side projects and personal sites.</p>
+            <a class="plan-cta" href="#signup">Start for free</a>
+            <ul class="plan-list">
+              <li>10 monitors, 3-minute checks</li>
+              <li>Email and Slack alerts</li>
+              <li>One status page</li>
+            </ul>
+          </li>
+          <li class="plan plan-featured">
+            <h3 class="plan-name">Team <span class="plan-tag">Most popular</span></h3>
+            <p class="plan-price"><span class="amount">$29</span> per month</p>
+            <p class="plan-blurb">For teams that share an on-call rota.</p>
+            <a class="plan-cta" href="#signup">Start 14-day trial</a>
+            <ul class="plan-list">
+              <li>100 monitors, 30-second checks</li>
+              <li>Phone, SMS and escalations</li>
+              <li>Traces with every alert</li>
+            </ul>
+          </li>
+          <li class="plan">
+            <h3 class="plan-name">Scale</h3>
+            <p class="plan-price"><span class="amount">$99</span> per month</p>
+            <p class="plan-blurb">For platforms with many services.</p>
+            <a class="plan-cta" href="#signup">Talk to us</a>
+            <ul class="plan-list">
+              <li>Unlimited monitors</li>
+              <li>SSO, audit log and SLA</li>
+              <li>Private regions</li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
+      <section id="signup" class="cta">
+        <h2 class="cta-title">Sleep through the night.</h2>
+        <p class="cta-lede">Set up your first monitor in under a minute. Corvane keeps watch from there.</p>
+        <a class="btn btn-primary" href="#signup">Start monitoring free</a>
       </section>
     </main>
 
-    <footer id="visit" class="site-footer">
-      <p>Pier 4, Tidewater. Open Tuesday to Saturday, 8 to 4.</p>
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <a class="brand" href="/">Corvane</a>
+        <p>Uptime monitoring and on-call for teams that ship.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="#features">Product</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#docs">Docs</a>
+        <a href="#customers">Customers</a>
+        <a href="#signin">Status</a>
+      </nav>
+      <p class="footer-note">&copy; 2026 Corvane. A made-up product for the primp demo.</p>
     </footer>
   </body>
 </html>

@@ -193,11 +193,11 @@ try {
     })
     report.check('measured again here, independently: the page has the requested values', measured.padding === '14px 26px 14px 26px' && measured.spacing === '-1px', `button padding ${measured.padding}; headline letter-spacing ${measured.spacing}`)
     const others = await page.evaluate(() => getComputedStyle(document.querySelector('.btn:not(.btn-primary)') as Element).paddingTop)
-    report.info(`the secondary button's padding-top is ${others} (10px means the agent kept the change to the primary button)`)
+    report.info(`the secondary button's padding-top is ${others} (12px means the agent kept the change to the primary button)`)
   }
 
   report.section('3. A :hover change and a reorder: "Implement the primp changes and verify them."')
-  const beanNames = (): Promise<string[]> => page.evaluate(() => [...document.querySelectorAll('.bean-grid > li h3')].map((element) => element.textContent?.trim() ?? ''))
+  const featureNames = (): Promise<string[]> => page.evaluate(() => [...document.querySelectorAll('.feature-grid > li h3')].map((element) => element.textContent?.trim() ?? ''))
   /** The primary button's background under a real mouse hover, once it has settled; the pointer is moved off afterwards. */
   const hoveredBackground = async (): Promise<string> => {
     await page.hover('.btn-primary')
@@ -209,18 +209,18 @@ try {
   await page.goto(`${primp.url}/`)
   await page.waitForFunction(() => (window as unknown as { __primp_test?: unknown }).__primp_test !== undefined, undefined, { timeout: 15_000 })
   await dock('ready')
-  const beansBefore = await beanNames()
+  const featuresBefore = await featureNames()
   const hoverBefore = await hoveredBackground()
   await dock('select', '.btn-primary')
-  const hover = await dock('setStyle', 'background-color', '#0a3f44', { media: null, scope: 'all-instances', state: 'hover' })
-  await dock('select', '.bean-grid > li.bean:nth-child(3)')
+  const hover = await dock('setStyle', 'background-color', '#2a1f9e', { media: null, scope: 'all-instances', state: 'hover' })
+  await dock('select', '.feature-grid > li.feature:nth-child(3)')
   const moved = await dock('reorder', 0)
   const thirdPrompt = await dock('send')
   const thirdIds = [hover.item?.id, moved.item?.id].filter((id): id is string => id !== undefined)
   report.check(
     'a :hover change and a reorder were made in the dock and sent',
     hover.ok && hover.item?.kind === 'style' && hover.item.condition.state === 'hover' && moved.ok && moved.item?.kind === 'structure' && moved.item.op === 'reorder' && thirdIds.length === 2 && thirdPrompt.length > 0,
-    `items ${thirdIds.join(', ')}; beans ${beansBefore.join(', ')}; hover background before ${hoverBefore}; prompt ${thirdPrompt.length} chars${hover.error === undefined ? '' : `; hover: ${hover.error}`}${moved.error === undefined ? '' : `; move: ${moved.error}`}`,
+    `items ${thirdIds.join(', ')}; features ${featuresBefore.join(', ')}; hover background before ${hoverBefore}; prompt ${thirdPrompt.length} chars${hover.error === undefined ? '' : `; hover: ${hover.error}`}${moved.error === undefined ? '' : `; move: ${moved.error}`}`,
   )
   const third = await agent('Implement the primp changes and verify them.', configPath)
   report.check('the agent ran to the end', third.ok, third.problem ?? describeRun(third))
@@ -231,12 +231,13 @@ try {
     // Measured here with a fresh load and a real mouse hover, not with primp's emulation.
     await page.goto(`${primp.url}/`)
     await sleep(800)
-    const beansAfter = await beanNames()
+    const featuresAfter = await featureNames()
     const hoverAfter = await hoveredBackground()
     const resting = await page.evaluate(() => getComputedStyle(document.querySelector('.btn-primary') as Element).backgroundColor)
-    report.check('measured again here, independently: the hover background is rgb(10, 63, 68) under a real mouse hover', hoverAfter === 'rgb(10, 63, 68)', `hover ${hoverBefore} -> ${hoverAfter}; at rest ${resting}`)
-    report.check('measured again here, independently: the third bean is now the first', beansAfter.join() === 'Fazenda Alta,Las Nubes,Kiamabara', `${beansBefore.join(', ')} -> ${beansAfter.join(', ')}`)
-    report.info(`the primary button's resting background is ${resting} (rgb(15, 92, 99) means the agent left the resting style alone)`)
+    report.check('measured again here, independently: the hover background is rgb(42, 31, 158) under a real mouse hover', hoverAfter === 'rgb(42, 31, 158)', `hover ${hoverBefore} -> ${hoverAfter}; at rest ${resting}`)
+    const featuresExpected = [featuresBefore[2], featuresBefore[0], featuresBefore[1], ...featuresBefore.slice(3)]
+    report.check('measured again here, independently: the third feature card is now the first', featuresBefore.length === 6 && featuresAfter.join() === featuresExpected.join(), `${featuresBefore.join(', ')} -> ${featuresAfter.join(', ')}`)
+    report.info(`the primary button's resting background is ${resting} (rgb(91, 76, 240) means the agent left the resting style alone)`)
   }
 } catch (error) {
   report.check('spike ran to completion', false, error instanceof Error ? (error.stack ?? error.message) : String(error))

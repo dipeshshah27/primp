@@ -32,6 +32,8 @@ const SESSIONS = join(WORK, 'sessions')
 const CLI = join(REPO_ROOT, 'packages/cli/src/index.ts')
 const TSX = pathToFileURL(createRequire(import.meta.url).resolve('tsx')).href
 const ENV = { PRIMP_SESSION_DIR: SESSIONS, NO_COLOR: '1' }
+/** The feature cards of the demo page, in source order. */
+const FEATURES = ['Checks from 32 regions', 'Alerts that route themselves', 'Traces with every alert', 'Status pages', 'Cron and heartbeats', 'Certificates and domains']
 
 try {
   mkdirSync(SESSIONS, { recursive: true })
@@ -52,7 +54,7 @@ try {
     })
     url = /open\s+(http:\/\/localhost:\d+)/.exec(output)?.[1] ?? ''
     expect(url !== '', `no proxy URL in:\n${output}`)
-    expect(existsSync(join(SITE, 'index.html')) && existsSync(join(SITE, 'css/site.css')) && existsSync(join(SITE, 'img/harbour.svg')), 'the demo site was not copied')
+    expect(existsSync(join(SITE, 'index.html')) && existsSync(join(SITE, 'css/site.css')) && existsSync(join(SITE, 'img/dashboard.svg')), 'the demo site was not copied')
     return `site in ${SITE.replace(REPO_ROOT, '.')}; primp at ${url}; guide printed (${output.split('\n').length} lines)`
   })
 
@@ -76,7 +78,7 @@ try {
 
     report.section('The seeded layout shift')
     let shiftId: string | undefined
-    await report.attempt('the dock reports the jump; get_layout_shifts names the picture, its cause and its line in index.html', async () => {
+    await report.attempt('the dock reports the jump; get_layout_shifts names the product screenshot, its cause and its line in index.html', async () => {
       await page.goto(`${url}/`)
       await page.waitForFunction(() => (window as unknown as { __primp_test?: unknown }).__primp_test !== undefined, undefined, { timeout: 15_000 })
       await dock('ready')
@@ -98,7 +100,7 @@ try {
       expect(shiftId !== undefined, 'no shift id from the previous check')
       const file = join(SITE, 'index.html')
       const before = readFileSync(file, 'utf8')
-      const after = before.replace('<img id="hero-art" class="hero-art"', '<img id="hero-art" class="hero-art" width="1200" height="420" style="height:auto"')
+      const after = before.replace('<img id="hero-art" class="hero-art"', '<img id="hero-art" class="hero-art" width="1200" height="750" style="height:auto"')
       expect(after !== before, 'the patch did not apply')
       writeFileSync(file, after)
       const { result } = await call<ShiftVerificationResult>('verify_layout_shift', { id: shiftId })
@@ -118,9 +120,9 @@ try {
       const bystanders = recorded.kind === 'style' ? (recorded.bystanders ?? []) : []
       const origin = recorded.kind === 'style' ? recorded.origin : undefined
       expect(origin?.via === 'rule' && origin.selector === '.btn' && origin.alsoStyles === 1, `origin: ${JSON.stringify(origin)}`)
-      expect(bystanders.length === 1 && bystanders[0]!.label.includes("See this week's beans"), `bystanders: ${JSON.stringify(bystanders.map((entry) => entry.label))}`)
+      expect(bystanders.length === 1 && bystanders[0]!.label.includes('Read the docs'), `bystanders: ${JSON.stringify(bystanders.map((entry) => entry.label))}`)
       const secondary = bystanders[0]!
-      expect(secondary.values['padding-top'] === '10px' && secondary.values['padding-left'] === '18px', `the secondary button's recorded padding: ${JSON.stringify(secondary.values)}`)
+      expect(secondary.values['padding-top'] === '12px' && secondary.values['padding-left'] === '20px', `the secondary button's recorded padding: ${JSON.stringify(secondary.values)}`)
       const prompt = await dock('send')
       expect(prompt.includes('padding'), 'Send returned no prompt')
       expect(prompt.includes(secondary.label) && prompt.includes('Do not edit the rule in place'), 'the prompt does not name the secondary button as an element to leave alone')
@@ -141,47 +143,49 @@ try {
     })
 
     report.section('A reorder and a :hover change from the dock, in one batch')
-    await report.attempt('the third bean card moved to the front and a :hover background on the primary button, sent together; the agent edits index.html and css/site.css; both pass after primp reloads the page', async () => {
-      const beanNames = (): Promise<string[]> => page.evaluate(() => [...document.querySelectorAll('.bean-grid > li h3')].map((element) => element.textContent?.trim() ?? ''))
+    await report.attempt('the third feature card moved to the front and a :hover background on the primary button, sent together; the agent edits index.html and css/site.css; both pass after primp reloads the page', async () => {
+      const featureNames = (): Promise<string[]> => page.evaluate(() => [...document.querySelectorAll('.feature-grid > li h3')].map((element) => element.textContent?.trim() ?? ''))
       await dock('ready')
-      const before = await beanNames()
-      expect(before.join() === 'Las Nubes,Kiamabara,Fazenda Alta', `the beans read ${before.join(', ')}`)
-      await dock('select', '.bean-grid > li.bean:nth-child(3)')
+      const before = await featureNames()
+      expect(before.join() === FEATURES.join(), `the features read ${before.join(', ')}`)
+      await dock('select', '.feature-grid > li.feature:nth-child(3)')
       const moved = await dock('reorder', 0)
       expect(moved.ok && moved.item?.kind === 'structure' && moved.item.op === 'reorder', `the move was not recorded: ${moved.error ?? JSON.stringify(moved.item?.kind)}`)
       await dock('select', '.btn-primary')
-      const hover = await dock('setStyle', 'background-color', '#0a3f44', { media: null, scope: 'all-instances', state: 'hover' })
+      const hover = await dock('setStyle', 'background-color', '#2a1f9e', { media: null, scope: 'all-instances', state: 'hover' })
       expect(hover.ok && hover.item?.kind === 'style' && hover.item.condition.state === 'hover', `the :hover edit was not recorded: ${hover.error ?? JSON.stringify(hover.item?.kind)}`)
       const prompt = await dock('send')
       expect(prompt.includes('move this element') && prompt.includes('only in the `:hover` state'), 'the prompt does not carry both changes')
-      const afterSend = await beanNames()
+      const afterSend = await featureNames()
       expect(afterSend.join() === before.join(), `after Send the page shows ${afterSend.join(', ')}: the reorder preview was not put back`)
       const pending = (await call<PendingChanges>('get_pending_changes')).result
       const claimed = pending.files.flatMap((group) => group.items)
       const ids = [(moved.item as ChangeItem).id, (hover.item as ChangeItem).id]
       expect(claimed.length === 2 && ids.every((id) => claimed.some((item) => item.id === id && item.status === 'claimed')), `claimed: ${claimed.map((item) => `${item.id} ${item.status}`).join(', ')}`)
-      // The "agent": the third <li class="bean"> block goes before the first; a :hover rule for the primary button.
+      // The "agent": the third <li class="feature"> block goes before the first; a :hover rule for the primary button.
       const html = join(SITE, 'index.html')
       const source = readFileSync(html, 'utf8')
-      const blocks = [...source.matchAll(/ {10}<li class="bean">\n[\s\S]*?<\/li>\n/g)].map((match) => match[0])
-      expect(blocks.length === 3 && blocks[2]!.includes('Fazenda Alta'), `found ${blocks.length} bean blocks in index.html`)
+      const blocks = [...source.matchAll(/ {10}<li class="feature">\n[\s\S]*?<\/li>\n/g)].map((match) => match[0])
+      expect(blocks.length === 6 && blocks[2]!.includes(FEATURES[2]!), `found ${blocks.length} feature blocks in index.html`)
       const reordered = source.replace(`${blocks[0]}${blocks[1]}${blocks[2]}`, `${blocks[2]}${blocks[0]}${blocks[1]}`)
       expect(reordered !== source, 'the reorder patch did not apply')
       writeFileSync(html, reordered)
       const css = join(SITE, 'css/site.css')
       const sheet = readFileSync(css, 'utf8')
-      const withHover = sheet.replace('.hero-art {', '.btn-primary:hover {\n  background: #0a3f44;\n}\n\n.hero-art {')
+      // After the page's own `.btn-primary:hover` rule, so this one wins.
+      const withHover = sheet.replace('.hero-art {', '.btn-primary:hover {\n  background: #2a1f9e;\n}\n\n.hero-art {')
       expect(withHover !== sheet, 'the :hover patch did not apply')
       writeFileSync(css, withHover)
       const { result } = await call<VerifyChangesResult>('verify_changes', { ids, waitMs: 2000 })
       const statuses = result.results.map((verdict) => `${verdict.itemId === ids[0] ? 'reorder' : ':hover'} ${verdict.status}: ${verdict.hint}`)
       expect(result.results.length === 2 && result.results.every((verdict) => verdict.status === 'pass'), statuses.join(' | '))
-      const after = await beanNames()
-      expect(after.join() === 'Fazenda Alta,Las Nubes,Kiamabara', `the page shows ${after.join(', ')}`)
+      const after = await featureNames()
+      const expected = [FEATURES[2], FEATURES[0], FEATURES[1], ...FEATURES.slice(3)]
+      expect(after.join() === expected.join(), `the page shows ${after.join(', ')}`)
       await page.hover('.btn-primary')
-      await waitFor(async () => (await page.evaluate(() => getComputedStyle(document.querySelector('.btn-primary') as Element).backgroundColor)) === 'rgb(10, 63, 68)', { what: 'the hover background under a real mouse hover', timeoutMs: 3000 })
+      await waitFor(async () => (await page.evaluate(() => getComputedStyle(document.querySelector('.btn-primary') as Element).backgroundColor)) === 'rgb(42, 31, 158)', { what: 'the hover background under a real mouse hover', timeoutMs: 3000 })
       await page.mouse.move(1, 1)
-      return `${result.summary}\n        ${statuses.join('\n        ')}\n        in the page: ${after.join(', ')}; real hover on the primary button rgb(10, 63, 68)`
+      return `${result.summary}\n        ${statuses.join('\n        ')}\n        in the page: ${after.join(', ')}; real hover on the primary button rgb(42, 31, 158)`
     })
 
     report.section('Stop')
