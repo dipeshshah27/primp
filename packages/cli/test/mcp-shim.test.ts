@@ -51,6 +51,7 @@ async function startBackend(): Promise<void> {
     handlers: {
       get_session: () => session.getSession(),
       get_pending_changes: (params) => session.getPendingChanges(params),
+      wait_for_changes: (params) => session.waitForChanges(params.timeoutMs ?? 50_000),
       dismiss_change: (params) => session.dismissChange(params),
     },
   })
@@ -77,11 +78,11 @@ const text = (result: CallToolResult): string => result.content.map((block) => (
 const call = async (client: Client, name: string, args: Record<string, unknown> = {}): Promise<CallToolResult> => (await client.callTool({ name, arguments: args })) as CallToolResult
 
 describe('primp mcp', () => {
-  it('lists six tools with schemas, and instructions that describe the loop', async () => {
+  it('lists seven tools with schemas, and instructions that describe the loop and watching', async () => {
     await startBackend()
     const client = await connect()
     const { tools } = await client.listTools()
-    expect(tools.map((tool) => tool.name)).toEqual(['get_session', 'get_pending_changes', 'verify_changes', 'get_layout_shifts', 'verify_layout_shift', 'dismiss_change'])
+    expect(tools.map((tool) => tool.name)).toEqual(['get_session', 'get_pending_changes', 'wait_for_changes', 'verify_changes', 'get_layout_shifts', 'verify_layout_shift', 'dismiss_change'])
     const byName = Object.fromEntries(tools.map((tool) => [tool.name, tool]))
     expect(Object.keys(byName.get_pending_changes?.inputSchema.properties ?? {})).toEqual(['batchId'])
     expect(byName.get_pending_changes?.inputSchema.required ?? []).toEqual([])
@@ -96,7 +97,7 @@ describe('primp mcp', () => {
     expect(byName.get_pending_changes?.annotations?.readOnlyHint).toBe(false)
 
     const instructions = client.getInstructions() ?? ''
-    for (const word of ['get_session', 'get_pending_changes', 'dismiss_change', 'verify_changes', 'could not look']) expect(instructions).toContain(word)
+    for (const word of ['get_session', 'get_pending_changes', 'wait_for_changes', 'dismiss_change', 'verify_changes', 'could not look']) expect(instructions).toContain(word)
     expect(client.getServerVersion()).toMatchObject({ name: 'primp', version: '1.2.3' })
   })
 
@@ -139,6 +140,26 @@ describe('primp mcp', () => {
     const again = PendingChangesSchema.parse((await call(client, 'get_pending_changes', { batchId: 'batch-1' })).structuredContent)
     expect([again.count, again.claimedAt]).toEqual([3, pending.claimedAt])
     expect(text(await call(client, 'get_pending_changes', { batchId: 'batch-9' }))).toMatch(/^Batch batch-9 has no queued or claimed changes/)
+  })
+
+  it('wait_for_changes returns when the developer presses Send, with the changes claimed; with nothing sent it says to call again', async () => {
+    await startBackend()
+    const client = await connect()
+    const quiet = await call(client, 'wait_for_changes', { timeoutMs: 200 })
+    expect(quiet.isError).toBeFalsy()
+    expect(text(quiet)).toMatch(/^Nothing was sent in the last 0\.2 s\. Call wait_for_changes again/)
+
+    page.receive({ type: 'session:upsert', item: styleItem('pad', 'src/Header.tsx') })
+    const waiting = call(client, 'wait_for_changes', { timeoutMs: 10_000 })
+    // The dock learns that an agent waits, then the developer presses Send.
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    expect(page.last('session:state')?.info.agentWaiting).toBe(true)
+    page.receive({ type: 'session:send', reqId: 's1', ids: ['pad'] })
+    const result = await waiting
+    const pending = PendingChangesSchema.parse(result.structuredContent)
+    expect(pending.count).toBe(1)
+    expect(text(result)).toContain('1 change(s) from batch batch-1 are now claimed by you.')
+    expect(page.last('session:state')?.items.map((item) => item.status)).toEqual(['claimed'])
   })
 
   it('dismiss_change closes a change with the reason; a refusal is a tool error with the explanation', async () => {

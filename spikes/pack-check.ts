@@ -99,13 +99,13 @@ try {
       return `hook.js ${hook.body.length} B, overlay.js ${overlay.body.length} B; dock mounted; 0 console errors`
     })
 
-    await report.attempt('the installed `primp mcp` answers an MCP client with six tools and a live session', async () => {
+    await report.attempt('the installed `primp mcp` answers an MCP client with seven tools and a live session', async () => {
       const transport = new StdioClientTransport({ command: bin, args: ['mcp'], cwd: fixture.dir, env: { ...getDefaultEnvironment(), [SESSION_DIR_ENV]: SESSIONS }, stderr: 'pipe' })
       const client = new Client({ name: 'primp-pack-check', version: '0.0.0' })
       onCleanup(() => client.close().catch(() => undefined))
       await client.connect(transport)
       const names = (await client.listTools()).tools.map((tool) => tool.name)
-      expect(names.length === 6, `tools: ${names.join(', ')}`)
+      expect(names.length === 7 && names.includes('wait_for_changes'), `tools: ${names.join(', ')}`)
       const result = (await client.callTool({ name: 'get_session', arguments: {} })) as CallToolResult
       const summary = result.structuredContent as { target: string; framework: string; browserConnected: boolean }
       expect(result.isError !== true && summary.browserConnected && summary.framework === 'static', JSON.stringify(result.structuredContent ?? result.content))

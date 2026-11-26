@@ -249,6 +249,7 @@ export async function startPrimp(options: StartPrimpOptions): Promise<PrimpHandl
       handlers: {
         get_session: () => session.getSession(),
         get_pending_changes: (params) => session.getPendingChanges(params),
+        wait_for_changes: (params) => session.waitForChanges(params.timeoutMs ?? 50_000),
         dismiss_change: (params) => session.dismissChange(params),
         verify_changes: (params) => verifier.verify(params),
         get_layout_shifts: (params) => shiftTools.getLayoutShifts(params),

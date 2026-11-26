@@ -28,6 +28,8 @@ export const SessionInfoSchema = z.object({
   /** Last path segment of the project directory, for the dock's title. */
   projectName: z.string(),
   version: z.string(),
+  /** An agent is waiting for the next Send (MCP `wait_for_changes`): what is sent now goes straight to it. */
+  agentWaiting: z.boolean().optional(),
 })
 export type SessionInfo = z.infer<typeof SessionInfoSchema>
 

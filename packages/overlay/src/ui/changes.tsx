@@ -140,6 +140,18 @@ function SentNotice({ c }: { c: Controller }) {
       Dismiss
     </button>
   )
+  if (sent.toAgent === true && sent.note === undefined) {
+    return (
+      <div class="notice" role="status">
+        <div class="row">
+          <span>
+            Your agent was waiting and has {sent.count === 1 ? 'the change' : `the ${sent.count} changes`} now. The results show in Verification once it has edited the source.
+          </span>
+          {dismiss}
+        </div>
+      </div>
+    )
+  }
   if (sent.copied) {
     return (
       <div class="notice" role="status">

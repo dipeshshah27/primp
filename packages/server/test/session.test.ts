@@ -312,6 +312,50 @@ describe('upsert and delete', () => {
   })
 })
 
+describe('waitForChanges (an agent watching)', () => {
+  it('hands queued changes over at once, as getPendingChanges does', async () => {
+    const { connect, session } = rig()
+    const socket = connect('doc-a')
+    socket.receive({ type: 'session:upsert', item: styleItem('one') })
+    socket.receive({ type: 'session:send', reqId: 's1', ids: ['one'] })
+    const pending = await session.waitForChanges(10_000)
+    expect(pending.count).toBe(1)
+    expect(statuses(session.items())).toEqual({ one: 'claimed' })
+  })
+
+  it('waits for Send, tells the dock an agent is waiting meanwhile, and claims what is sent', async () => {
+    const { connect, session } = rig()
+    const socket = connect('doc-a')
+    socket.receive({ type: 'session:upsert', item: styleItem('one') })
+    const waiting = session.waitForChanges(10_000)
+    await flush()
+    expect(socket.last('session:state')?.info.agentWaiting).toBe(true)
+    socket.receive({ type: 'session:send', reqId: 's1', ids: ['one'] })
+    const pending = await waiting
+    expect(pending.count).toBe(1)
+    expect(statuses(session.items())).toEqual({ one: 'claimed' })
+    expect(socket.last('session:state')?.info.agentWaiting).toBeUndefined()
+  })
+
+  it('gives up after the timeout with nothing handed over, and the dock stops saying an agent waits', async () => {
+    vi.useFakeTimers()
+    const { connect, session } = rig()
+    const socket = connect('doc-a')
+    const waiting = session.waitForChanges(5000)
+    await vi.advanceTimersByTimeAsync(5000)
+    const pending = await waiting
+    expect(pending.count).toBe(0)
+    expect(socket.last('session:state')?.info.agentWaiting).toBeUndefined()
+  })
+
+  it('returns when the session closes', async () => {
+    const { session } = rig()
+    const waiting = session.waitForChanges(60_000)
+    session.close()
+    expect((await waiting).count).toBe(0)
+  })
+})
+
 describe('send', () => {
   it('queues the named drafts as one batch and answers with the clipboard prompt', () => {
     const { connect, session } = rig()

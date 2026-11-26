@@ -56,6 +56,7 @@ const INSTRUCTIONS = [
   'primp runs next to a web project during development. It serves the app through a local proxy and gives the developer a dock in the page for trying visual changes (CSS values, also for a state such as :hover or :focus, resizing by dragging, hiding or removing elements, and moving an element among its siblings), for writing notes about an element or the whole page when CSS cannot say what they want, and for inspecting layout shifts. It measures the rendered page; it never writes to source files, so the source edits are yours to make.',
   'Reach for this server when the developer mentions primp, says they sent or queued changes from the browser, or wants a visual change or a layout-shift fix carried over into the code.',
   'The loop: (1) call get_session to see whether primp is running for this project, whether a browser tab is attached, and whether anything is queued; (2) call get_pending_changes to take the queued changes, which come grouped by source file together with written instructions; (3) make those edits in the source files named there, keeping to the recorded values, the media, state or viewport condition, and every "must not move" constraint; (4) call verify_changes: primp waits for the dev server to hot-reload your edits, measures the page in the developer\'s tab and answers pass, drift or fail per change with expected and actual values; (5) fix what failed and verify again, at most twice, then report what still fails; (6) if a change cannot or should not be made, close it with dismiss_change and say why.',
+  'Watching: when the developer asks you to watch primp, pair with it, or wait for what they send from the browser, call wait_for_changes. It returns as soon as they press Send in the dock, with the changes already claimed; implement and verify them as in steps (3) to (5), tell the developer in a sentence or two what you did and what passed, then call wait_for_changes again. When it returns nothing, call it again unless the developer has asked you to stop. Keep each summary short: the developer is working in the browser and reads results in the dock.',
   'Layout shifts are separate from the queued changes: get_layout_shifts lists what jumped while the page loaded and why, and verify_layout_shift reloads the page to confirm a fix.',
   'A result of no browser, tab hidden or not measurable means primp could not look, not that the change is right: say so to the developer (the tab with the app has to be open and in front) instead of treating it as a pass.',
   'A note is the developer\'s own instruction in free text (new copy, "make this a link"). Carry it out like any other change; primp cannot measure it, so verify_changes answers not_checkable for it: neither a pass nor something to fix. Tell the developer what you did for each note so they can check it by eye.',
@@ -74,6 +75,13 @@ const GET_PENDING_CHANGES_DESCRIPTION = [
   'The result groups the changes by source file (files) and repeats them as written instructions (prompt).',
   'Calling this marks the returned changes as claimed: the dock shows them as in progress and a later call does not return them again. Call it when you are ready to make the edits, not to look around; get_session shows the counts without claiming anything.',
   'Pass batchId to get one batch a second time, for example after its first answer was lost.',
+].join(' ')
+
+const WAIT_FOR_CHANGES_DESCRIPTION = [
+  'Waits for the developer to press Send in the primp dock, then hands you those changes exactly as get_pending_changes does (claimed, grouped by source file, with the prompt).',
+  'Returns at once when changes are already queued. Otherwise it waits up to timeoutMs (default 50000) and returns with count 0 when nothing was sent; call it again to keep watching.',
+  'While it waits, the dock shows the developer that an agent is waiting, so they do not need to switch to you after Send.',
+  'Use it when the developer asks you to watch primp or to wait for their changes; for a one-off request, get_pending_changes is enough.',
 ].join(' ')
 
 const VERIFY_CHANGES_DESCRIPTION = [
@@ -159,6 +167,36 @@ export function createShimServer(options: ShimOptions = {}): McpServer {
         const session = locateSession(cwd, options)
         const pending = await callControl(session, 'get_pending_changes', batchId === undefined ? {} : { batchId }, timeoutMs)
         return { content: [{ type: 'text', text: describePending(pending, batchId) }], structuredContent: pending }
+      } catch (error) {
+        return toolFailure(error)
+      }
+    },
+  )
+
+  server.registerTool(
+    'wait_for_changes',
+    {
+      title: 'Wait for the next primp Send',
+      description: WAIT_FOR_CHANGES_DESCRIPTION,
+      inputSchema: z.object({
+        timeoutMs: z
+          .number()
+          .int()
+          .min(0)
+          .max(55_000)
+          .optional()
+          .describe('How long to wait for the developer to press Send, in milliseconds. Default 50000.'),
+      }),
+      outputSchema: PendingChangesSchema,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    },
+    async ({ timeoutMs }): Promise<CallToolResult> => {
+      try {
+        const session = locateSession(cwd, options)
+        const wait = timeoutMs ?? 50_000
+        const pending = await callControl(session, 'wait_for_changes', { timeoutMs: wait }, wait + 10_000)
+        const text = pending.count === 0 ? `Nothing was sent in the last ${(wait / 1000).toFixed(wait < 10_000 ? 1 : 0)} s. Call wait_for_changes again to keep watching, unless the developer asked you to stop.` : describePending(pending, undefined)
+        return { content: [{ type: 'text', text }], structuredContent: pending }
       } catch (error) {
         return toolFailure(error)
       }

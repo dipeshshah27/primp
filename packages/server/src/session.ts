@@ -145,6 +145,12 @@ export interface Session {
    * was queued as claimed.
    */
   getPendingChanges(params?: { batchId?: string }): PendingChanges
+  /**
+   * `getPendingChanges`, after waiting for the developer to press Send when nothing is queued.
+   * While it waits the dock is told an agent is waiting. Resolves with nothing handed over after
+   * `timeoutMs`, or when the session closes.
+   */
+  waitForChanges(timeoutMs: number): Promise<PendingChanges>
   dismissChange(params: { id: string; reason: string }): DismissChangeResult
 
   // --- state ---
@@ -257,7 +263,9 @@ export function createSession(options: SessionOptions): Session {
     }
   }
 
-  const stateMessage = (): ServerMessage => ({ type: 'session:state', info: options.info, items: sorted() })
+  /** Agents waiting in `waitForChanges`; each is woken by a Send. */
+  const waiters = new Set<() => void>()
+  const stateMessage = (): ServerMessage => ({ type: 'session:state', info: waiters.size > 0 ? { ...options.info, agentWaiting: true } : options.info, items: sorted() })
 
   const broadcastState = (): void => {
     const message = stateMessage()
@@ -401,6 +409,8 @@ export function createSession(options: SessionOptions): Session {
     record('send', batch.itemIds, { batchId, doc: connection.doc })
     send(connection, { type: 'session:sent', reqId, batch: { batchId, items: drafts, prompt: render(batchId, drafts, 'clipboard') } })
     broadcastState()
+    // Waiting agents take the batch now; each wakes, and the first to claim gets it.
+    for (const wake of [...waiters]) wake()
   }
 
   /** Copy without Send: the prompt the drafts would be sent with. Nothing is queued and no state changes. */
@@ -636,6 +646,25 @@ export function createSession(options: SessionOptions): Session {
     }
   }
 
+  const waitForChanges = async (timeoutMs: number): Promise<PendingChanges> => {
+    const queued = (): boolean => [...items.values()].some((item) => item.status === 'queued')
+    if (!queued() && !closed && timeoutMs > 0) {
+      await new Promise<void>((resolve) => {
+        const timer = setTimeout(done, timeoutMs)
+        function done(): void {
+          clearTimeout(timer)
+          waiters.delete(done)
+          resolve()
+          // The dock stops saying an agent waits once the last one is gone.
+          if (waiters.size === 0) broadcastState()
+        }
+        waiters.add(done)
+        if (waiters.size === 1) broadcastState()
+      })
+    }
+    return getPendingChanges()
+  }
+
   const DISMISSABLE: ReadonlySet<ItemStatus> = new Set<ItemStatus>(['queued', 'claimed', 'failed'])
 
   const dismissChange = (params: { id: string; reason: string }): DismissChangeResult => {
@@ -685,6 +714,7 @@ export function createSession(options: SessionOptions): Session {
     info: () => options.info,
     getSession,
     getPendingChanges,
+    waitForChanges,
     dismissChange,
     items: sorted,
     item: (id) => items.get(id),
@@ -718,6 +748,7 @@ export function createSession(options: SessionOptions): Session {
       closed = true
       for (const pending of [...measures.values()]) pending.settle({ status: 'disconnected', doc: pending.connection.doc ?? '' })
       reverifyListeners.clear()
+      for (const wake of [...waiters]) wake()
     },
   }
 }

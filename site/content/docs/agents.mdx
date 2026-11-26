@@ -44,10 +44,11 @@ Register a stdio server with the command `npx -y @primpdev/cli mcp`, started in 
 
 The agent gets instructions with the tools; a plain sentence is enough:
 
-- *"Implement the primp changes and verify them."* after you pressed Send.
+- *"Watch primp and implement what I send."* once, then stay in the browser: every Send goes straight to the agent, and the results appear in the dock's Verification panel.
+- *"Implement the primp changes and verify them."* after you pressed Send, for one batch.
 - *"Fix the layout shift primp found, then verify it."*
 
-The agent takes the changes with `get_pending_changes`, edits the files named there, and calls `verify_changes`. If something fails, it gets the reason and a fix-up, and is told to try at most twice more before reporting what still fails. See [The six MCP tools](/docs/mcp-tools/).
+The agent takes the changes with `get_pending_changes` (or, while watching, `wait_for_changes`), edits the files named there, and calls `verify_changes`. If something fails, it gets the reason and a fix-up, and is told to try at most twice more before reporting what still fails. See [The MCP tools](/docs/mcp-tools/).
 
 ## Without MCP: the clipboard
 

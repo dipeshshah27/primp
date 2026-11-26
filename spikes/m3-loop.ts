@@ -106,6 +106,23 @@ async function vite(): Promise<void> {
     return describe(result)
   })
 
+  report.section('Vite W. Watching: the agent waits, the developer presses Send, nobody switches windows')
+  await report.attempt('wait_for_changes: the dock shows the agent waiting, Send wakes it with the change claimed, its patch passes', async () => {
+    const waiting = loop.tool('wait_for_changes', { timeoutMs: 30_000 })
+    // The dock learns an agent is waiting: the Send button gets its dot.
+    await waitFor(() => page.locator('primp-root').evaluate((host) => host.shadowRoot?.querySelector<HTMLIFrameElement>('iframe[data-primp-dock="bar"]')?.contentDocument?.querySelector('.tb.send .waiting') !== null), { what: 'the waiting dot on Send', timeoutMs: 5000 })
+    await loop.dock('open', true)
+    const { item } = await loop.editAndSend('.pricing__title', { property: 'font-weight', value: '700', scope: 'all-instances' })
+    const woke = await waiting
+    const pending = woke.structuredContent as { count: number; files: { items: { id: string; status: string }[] }[] }
+    expect(woke.isError !== true && pending.count === 1 && pending.files[0]?.items[0]?.id === item.id && itemStatus(item.id) === 'claimed', `wait_for_changes answered: ${JSON.stringify(woke.structuredContent).slice(0, 300)}`)
+    // Section C left the title at 28px.
+    editFile(fixture, 'src/styles/site.css', replaceOnce('.pricing__title {\n  font-size: 28px;\n  font-weight: 600;', '.pricing__title {\n  font-size: 28px;\n  font-weight: 700;'))
+    const result = one((await verify([item.id])).outcome)
+    expect(result.status === 'pass' && itemStatus(item.id) === 'verified', `status ${describe(result)}`)
+    return `woken by Send with ${pending.count} change claimed; ${describe(result)}`
+  })
+
   report.section('Vite D. A broken build is reported as build_error, and the loop recovers')
   await report.attempt('the agent leaves a syntax error in Hero.tsx: build_error with the message; after the repair the same change passes', async () => {
     const item = await loop.editAndClaim('[data-label="hero-subtitle"]', { property: 'letter-spacing', value: '1px', scope: 'instance' })

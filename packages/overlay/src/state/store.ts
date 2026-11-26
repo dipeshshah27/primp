@@ -62,6 +62,8 @@ export interface SentState {
   copied: boolean
   /** The session's own words for what happened to the batch (`session:sent.note`), replacing the dock's. */
   note?: string
+  /** An agent was waiting for this Send (MCP `wait_for_changes`): it has the changes, nothing needs pasting. */
+  toAgent?: boolean
 }
 
 export interface Store {

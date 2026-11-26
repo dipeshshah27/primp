@@ -12,6 +12,12 @@ Takes the changes you sent, for implementing in source. Each one names the eleme
 
 Returns them grouped by source file, and again as written instructions. Taking them marks them as claimed, so the dock shows them as in progress and a second call does not return them again. `batchId` fetches one batch a second time.
 
+## wait_for_changes
+
+Waits for you to press Send in the dock, then hands over those changes exactly as `get_pending_changes` does. It returns at once when something is already queued, and returns empty after `timeoutMs` (default 50 seconds) when nothing was sent; the agent then calls it again.
+
+This is what lets you stay in the browser: tell your agent once to watch primp, and every Send goes straight to it. While it waits, the dock's Send button has a green dot, and after Send the dock says the agent has the changes instead of asking you to paste them.
+
 ## verify_changes
 
 Checks the source edits against the running page. primp waits until the dev server has applied them and the page is quiet, measures each change in your tab with its own previews switched off, and compares the result with what you recorded.

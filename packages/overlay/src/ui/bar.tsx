@@ -109,6 +109,8 @@ function Toolbar({ c, ui }: { c: Controller; ui: DockUi }) {
   const paused = store.paused.value
   const hidden = store.pinsHidden.value
   const sending = store.sending.value
+  // An agent called wait_for_changes: a Send goes straight to it.
+  const waiting = info?.agentWaiting === true
   const project = info === null ? 'primp' : `primp · ${info.projectName} · ${hostOf(info.target)}`
   const grip = useTip(ui, connected ? `${project}. Drag to move` : 'Reconnecting to primp…')
   return (
@@ -147,13 +149,15 @@ function Toolbar({ c, ui }: { c: Controller; ui: DockUi }) {
       </Tb>
       <Tb
         ui={ui}
-        label={count === 0 ? 'Send to your agent' : `Send ${count} ${count === 1 ? 'change' : 'changes'} to your agent`}
+        label={`${count === 0 ? 'Send to your agent' : `Send ${count} ${count === 1 ? 'change' : 'changes'} to your agent`}${waiting ? ' (it is waiting for them)' : ''}`}
         keys="S"
         class={`tb send${count > 0 ? ' ready' : ''}`}
         disabled={count === 0 || sending}
         onClick={() => void c.send().catch(() => undefined)}
       >
         <IconSend />
+        {waiting ? <span class="waiting" aria-hidden="true" /> : null}
+        {waiting ? <span class="sr">, your agent is waiting</span> : null}
       </Tb>
       <span class="sep" aria-hidden="true" />
       <Tb ui={ui} label="Settings" aria-expanded={panel === 'settings'} onClick={() => ui.toggle('settings')}>

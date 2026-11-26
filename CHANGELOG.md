@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Your agent can watch for what you send.** A new MCP tool, `wait_for_changes`, returns as soon as you press Send. Tell the agent once to "watch primp", and every Send goes straight to it: no switching windows, no pasting. While it waits, the Send button shows a green dot, and after Send the dock says the agent has the changes.
 - **Reordering by drag is easier to aim and shows the result while you drag.** The grip moves the list item around the selection (the card around a clicked paragraph). The element is shown where it would land, its siblings slide into place, and a label at the pointer says where it goes. Dropping over a sibling takes its place. The dock fades out of the way, and the page scrolls at the window's edge. Alt+↑ / Alt+↓ moves the element one place. Hidden siblings (`<script>`, `display: none`) are no longer drop targets. When nothing can be moved, a greyed grip says why.
 
 ## 0.1.0

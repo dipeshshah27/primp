@@ -237,6 +237,10 @@ ul, ol { list-style: none; }
 .tb.send:not(:disabled) { color: var(--accent-text); }
 .tb.send.ready { background: var(--accent); color: var(--on-accent); }
 .tb.send.ready:hover { background: var(--accent-hover); color: var(--on-accent); }
+/* An agent is waiting for the next Send: a green dot that breathes. */
+.tb .waiting { position: absolute; right: 3px; top: 3px; width: 7px; height: 7px; border-radius: 4px; background: var(--ok); box-shadow: 0 0 0 2px var(--surface); animation: waiting 1.6s ease-in-out infinite; }
+@keyframes waiting { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .tb .waiting { animation: none; } }
 .tb .badge { right: -3px; top: -3px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 8px; font-size: 9.5px; line-height: 15px; box-shadow: 0 0 0 2px var(--surface); }
 .tb .badge.warn { background: var(--warn); color: #1c1917; }
 .tb .badge.bad { background: var(--bad); color: #fff; }

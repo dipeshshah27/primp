@@ -49,12 +49,13 @@ npx @primpdev/cli setup
 
 This asks before running your client's own command (`claude mcp add ...`, `codex mcp add ...`) and prints the JSON for Cursor. It never edits a configuration file itself. Without MCP, the **Send** button copies the same instructions to your clipboard.
 
-The agent gets six tools:
+The agent gets seven tools:
 
 | Tool | For |
 |---|---|
 | `get_session` | Is primp running, is a tab attached, is anything queued |
 | `get_pending_changes` | Take the changes you sent, grouped by source file, with instructions |
+| `wait_for_changes` | Wait for your next Send and take those changes: say "watch primp" once, then just press Send |
 | `verify_changes` | Wait for the page to update, measure, and get pass / drift / fail per change |
 | `get_layout_shifts` | The shifts of the last page load: culprit, cause, evidence, source line |
 | `verify_layout_shift` | Reload the page three times without cache and report whether the shift came back |

@@ -38,7 +38,7 @@ const TSX = pathToFileURL(createRequire(import.meta.url).resolve('tsx')).href
 const TIMEOUT_MS = 300_000
 /** Variables of the session this script may be running inside; a child `claude` must not inherit them. */
 const PARENT_ENV = ['CLAUDECODE', 'CLAUDE_CODE_ENTRYPOINT', 'CLAUDE_CODE_EXECPATH', 'CLAUDE_CODE_SESSION_ID', 'CLAUDE_CODE_MESSAGING_SOCKET', 'CLAUDE_CODE_MESSAGING_TOKEN', 'CLAUDE_CODE_CHILD_SESSION', 'CLAUDE_CODE_CHILD_NOTES_DIR', 'CLAUDE_CODE_SESSION_ATTENDED', 'CLAUDE_PID', 'CLAUDE_EFFORT']
-const PRIMP_TOOLS = ['get_session', 'get_pending_changes', 'verify_changes', 'get_layout_shifts', 'verify_layout_shift', 'dismiss_change'].map((name) => `mcp__primp__${name}`)
+const PRIMP_TOOLS = ['get_session', 'get_pending_changes', 'wait_for_changes', 'verify_changes', 'get_layout_shifts', 'verify_layout_shift', 'dismiss_change'].map((name) => `mcp__primp__${name}`)
 
 interface AgentRun {
   ok: boolean

@@ -74,6 +74,17 @@ export const controlMethods = {
     }),
     result: PendingChangesSchema,
   },
+  /**
+   * Like get_pending_changes, but when nothing is queued it waits until the developer presses Send
+   * (or `timeoutMs` passes; then nothing is returned) and then hands those changes over.
+   */
+  wait_for_changes: {
+    params: z.object({
+      /** How long to wait for a Send. Default 50000. */
+      timeoutMs: z.number().int().min(0).max(55_000).optional(),
+    }),
+    result: PendingChangesSchema,
+  },
   /** Waits for the page to settle, measures the changes in the browser and judges them. Can take `waitMs` plus a few seconds. */
   verify_changes: {
     params: z.object({
