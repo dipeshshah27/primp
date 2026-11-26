@@ -174,7 +174,7 @@ function SentNotice({ c }: { c: Controller }) {
 
 export function ChangesPanel({ c, onClose }: { c: Controller; onClose(): void }) {
   const { store } = c
-  const page = location.pathname + location.search
+  const page = c.store.route.value
   const drafts = store.drafts.value
   const all = store.allDrafts.value
   const elsewhere = all.length - drafts.length

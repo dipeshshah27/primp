@@ -960,9 +960,11 @@ async function viteVerdictAndSend(browser: Browser, lane: Lane): Promise<void> {
       }))
       const statuses = await page.dock.evaluate(() => [...document.querySelectorAll('[data-item] [data-status]')].map((chip) => chip.getAttribute('data-status')))
       expect(statuses.includes('failed') && statuses.includes('verified'), `statuses: ${statuses.join(', ')}`)
-      expect(text.includes('got 24px') && text.includes('padding-top is 24px, expected 28px.') && text.includes('settled by hmr'), `Verify tab text: ${text.slice(0, 300)}`)
+      // The settle signal is on the result chip's tooltip; the agent's hint is folded under "What your agent was told".
+      const settled = await page.dock.evaluate(() => [...document.querySelectorAll('#panel [data-item] .chip[title]')].map((chip) => chip.getAttribute('title') ?? '').find((title) => title.includes('settled')) ?? '')
+      expect(text.includes('got 24px') && text.includes('The page does not show what you asked for yet.') && text.includes('What your agent was told') && text.includes('padding-top is 24px, expected 28px.') && settled.includes('hmr'), `Verify tab text: ${text.slice(0, 400)}; settle tooltip "${settled}"`)
       await t.evaluate(() => window.__primp_test!.openTab('edits'))
-      return 'a failed item shows "fail", the check (expected 28px, got 24px, off by 4), the hint and the settle signal; the other shows "verified"'
+      return `a failed item shows "fail", what it means for the person, the check (expected 28px, got 24px, off by 4), the agent's hint folded away and the settle signal "${settled}" on the chip; the other shows "verified"`
     })
 
     await report.attempt('send() through the test handle returns the prompt; without clipboard access the prompt is shown for manual copying', async () => {
@@ -2256,6 +2258,38 @@ async function nextEdits(browser: Browser, lane: Lane): Promise<void> {
       const problems = hygiene(page, lane)
       expect(problems.length === 0, problems.join('; '))
       return `policy "${policy.slice(0, 70)}...": 3 instances edited through one constructable stylesheet (16px -> 24px, css-modules), source ${source.file}:${source.line} (${source.level}) = labels.json, hide moved the grid up ${hidden.moved}px with ${hidden.effects} effects, undo, send, all three tabs opened; ${hygieneText(page, lane)}`
+    })
+
+    await report.attempt('a client-side navigation (next/link, then Back): new edits are recorded for the new page, each page shows only its own previews, the Changes panel follows', async () => {
+      await t.evaluate((selector) => window.__primp_test!.select(selector), card)
+      const home = style((await t.evaluate(() => window.__primp_test!.setStyle('padding', '30px'))).item)
+      // A marker that survives only a client-side navigation.
+      await t.evaluate(() => ((window as unknown as { __spa: number }).__spa = 1))
+      await t.evaluate(() => window.__primp_test!.open(false))
+      await t.click('header nav a[href="/actions"]')
+      await waitFor(async () => (await t.evaluate(() => location.pathname)) === '/actions' && (await t.locator('[data-label="actions-title"]').count()) === 1, { timeoutMs: 20_000, what: 'the client-side navigation to /actions' })
+      const spa = await t.evaluate(() => (window as unknown as { __spa?: number }).__spa === 1)
+      await sleep(1200)
+      const homeRuleOnActions = (await testState(t)).previewCss.includes('30px')
+      await t.evaluate(() => window.__primp_test!.select('[data-label="actions-title"]'))
+      const actions = style((await t.evaluate(() => window.__primp_test!.setStyle('letter-spacing', '2px'))).item)
+      await page.bar.locator('button[aria-label="Changes"]').click()
+      await sleep(200)
+      const panel = await page.dock.evaluate(() => document.body.textContent ?? '')
+      // Back: a popstate; the home page's preview comes back, the actions page's goes.
+      await t.evaluate(() => window.__primp_test!.open(false))
+      await t.goBack()
+      await waitFor(async () => (await t.evaluate(() => location.pathname)) === '/' && (await t.locator(card).count()) > 0, { timeoutMs: 20_000, what: 'Back to /' })
+      await waitFor(async () => (await computed(t, card, 'padding')) === '30px', { timeoutMs: 5000, what: "the home page's preview to come back" }).catch(() => undefined)
+      const back = { padding: await computed(t, card, 'padding'), css: (await testState(t)).previewCss }
+      expect(spa, 'the navigation reloaded the document; this check needs a client-side one')
+      expect(home.page === '/' && actions.page === '/actions', `pages recorded: ${home.page}, ${actions.page}`)
+      expect(!homeRuleOnActions, "the home page's preview stayed applied on /actions")
+      expect(panel.includes('1 more on other pages') || panel.includes('more on other pages'), `Changes panel on /actions: ${panel.slice(0, 300)}`)
+      expect(back.padding === '30px' && !back.css.includes('2px'), `after Back: padding ${back.padding}, preview css ${back.css.slice(0, 200)}`)
+      await t.evaluate(() => window.__primp_test!.undo())
+      await t.evaluate(() => window.__primp_test!.undo())
+      return `home card padding recorded for /, letter-spacing on /actions recorded for /actions; on /actions the home preview was off and the Changes panel listed the other page's draft; Back to /: padding ${back.padding} again, the /actions preview off`
     })
   } finally {
     await page.close()

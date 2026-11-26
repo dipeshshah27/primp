@@ -103,7 +103,7 @@ function VerifyItem({ c, item, number }: { c: Controller; item: ChangeItem; numb
       <div class="chips">
         <SourceBadge loc={item.target.source} />
         <ScopeChips item={item} />
-        {item.page === location.pathname + location.search ? null : <span class="chip">on {item.page}</span>}
+        {item.page === c.store.route.value ? null : <span class="chip">on {item.page}</span>}
       </div>
       {item.status === 'dismissed' && item.dismissReason !== undefined ? <div class="muted">Dismissed: {item.dismissReason}</div> : null}
       {result === undefined ? null : (
@@ -146,11 +146,11 @@ export function VerifyTab({ c }: { c: Controller }) {
   if (items.length === 0) {
     return <p class="empty">Nothing sent yet. After you send changes, each one is listed here; once your agent has edited the source, primp re-measures the page and shows the result per change.</p>
   }
-  const numbers = new Map(pinGroups(c.store.items.value, location.pathname + location.search).map((group) => [group.uid, group.number]))
+  const numbers = new Map(pinGroups(c.store.items.value, c.store.route.value).map((group) => [group.uid, group.number]))
   return (
     <ul class="stack" aria-label="Sent changes">
       {[...items].reverse().map((item) => (
-        <VerifyItem key={item.id} c={c} item={item} number={item.page === location.pathname + location.search ? numbers.get(item.target.uid) : undefined} />
+        <VerifyItem key={item.id} c={c} item={item} number={item.page === c.store.route.value ? numbers.get(item.target.uid) : undefined} />
       ))}
     </ul>
   )

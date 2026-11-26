@@ -233,8 +233,9 @@ export function specOf(item: ChangeItem): PreviewSpec {
 export function createController(options: ControllerOptions): Controller {
   const { bus } = options
   let copy = options.copy ?? (async () => false)
-  const page = location.pathname + location.search
-  const store = createStore(page)
+  const store = createStore(location.pathname + location.search)
+  /** The page the tab shows now: new items are recorded for it, and only its drafts are previewed. */
+  const here = (): string => store.route.peek()
   setUidPrefix(`${bus.doc.slice(0, 6)}-`)
 
   const tombstones = new Set<string>()
@@ -267,6 +268,7 @@ export function createController(options: ControllerOptions): Controller {
       store.detached.value = next
     },
     onPageChange() {
+      followRoute()
       if (store.state.value === null) return
       if (leftRoute()) return
       // A framework may have replaced the selected node, and a dev server a stylesheet: hold the state on what is there now.
@@ -275,6 +277,22 @@ export function createController(options: ControllerOptions): Controller {
       else holdState()
     },
   })
+
+  /**
+   * A client-side navigation to another path: new items are recorded for the new page, its drafts
+   * get their previews (found as the framework renders it), and the drafts of the page left lose
+   * theirs. They stay recorded and are sent with the others.
+   */
+  const followRoute = (): void => {
+    const now = location.pathname + location.search
+    if (now === store.route.peek()) return
+    store.route.value = now
+    void enqueue(async () => {
+      for (const item of present()) if (item.status === 'draft') syncPreview(item)
+      const selection = store.selection.peek()
+      if (selection !== null && !selection.element.isConnected) refresh()
+    })
+  }
 
   const forget = (id: string): void => {
     preview.remove(id)
@@ -296,7 +314,7 @@ export function createController(options: ControllerOptions): Controller {
 
   const syncPreview = (item: ChangeItem): void => {
     // A note changes nothing on the page: it has no preview.
-    if (item.status !== 'draft' || item.page !== page || item.kind === 'note') {
+    if (item.status !== 'draft' || item.page !== here() || item.kind === 'note') {
       forget(item.id)
       return
     }
@@ -511,7 +529,7 @@ export function createController(options: ControllerOptions): Controller {
   }
 
   /** The route the State control was set on; a client-side navigation away from it puts the control back to rest. */
-  let stateRoute = page
+  let stateRoute = here()
   const route = (): string => location.pathname + location.search
   const leftRoute = (): boolean => {
     if (store.state.value === null || route() === stateRoute) return false
@@ -755,7 +773,7 @@ export function createController(options: ControllerOptions): Controller {
           id: '',
           seq: nextSeq() + index,
           createdAt: Date.now(),
-          page,
+          page: here(),
           status: 'draft',
           target: { ...selection.ref, uid },
           sideEffects: [],
@@ -1072,7 +1090,7 @@ export function createController(options: ControllerOptions): Controller {
         id,
         seq,
         createdAt: Date.now(),
-        page,
+        page: here(),
         status: 'draft',
         target: withKnownSource({ ...buildRef(element, sources.get(element) ?? null), uid }, element),
         sideEffects: effects.sideEffects,
@@ -1132,7 +1150,7 @@ export function createController(options: ControllerOptions): Controller {
         id: newId('c'),
         seq: nextSeq(),
         createdAt: Date.now(),
-        page,
+        page: here(),
         status: 'draft',
         target: { ...buildRef(element, sources.get(element) ?? null), uid },
         sideEffects: [],
@@ -1208,7 +1226,7 @@ export function createController(options: ControllerOptions): Controller {
     if (uid === undefined) return null
     return (
       store.items.value.find(
-        (item): item is NoteChange => item.kind === 'note' && item.status === 'draft' && item.page === page && item.on === on && (on === 'page' || item.target.uid === uid),
+        (item): item is NoteChange => item.kind === 'note' && item.status === 'draft' && item.page === here() && item.on === on && (on === 'page' || item.target.uid === uid),
       ) ?? null
     )
   }
@@ -1235,7 +1253,7 @@ export function createController(options: ControllerOptions): Controller {
         id: existing?.id ?? newId('c'),
         seq: existing?.seq ?? nextSeq(),
         createdAt: existing?.createdAt ?? Date.now(),
-        page,
+        page: here(),
         status: 'draft',
         target: withKnownSource({ ...buildRef(element, sources.get(element) ?? null), uid }, element),
         sideEffects: [],
@@ -1394,7 +1412,7 @@ export function createController(options: ControllerOptions): Controller {
     // Drafts from before a reload get their previews back once the page has built itself.
     // ... and so do the drafts this tab kept over a reload.
     const keptIds = new Set(kept.map((item) => item.id))
-    const mine = result.items.filter((item) => item.page === page && item.status === 'draft' && (keptIds.has(item.id) || result.adopted.includes(item)))
+    const mine = result.items.filter((item) => item.page === here() && item.status === 'draft' && (keptIds.has(item.id) || result.adopted.includes(item)))
     if (mine.length > 0) {
       whenLoaded(() => {
         void enqueue(async () => {
@@ -1570,8 +1588,13 @@ export function createController(options: ControllerOptions): Controller {
     store.state.value = null
     holdState()
   })
-  // A client-side navigation (back and forward here; pushState is noticed by the DOM change that follows it).
-  addEventListener('popstate', () => void leftRoute())
+  // A client-side navigation: back and forward here; pushState is noticed by the DOM change that
+  // follows it (onPageChange), and, for a navigation that changes nothing in the DOM, by a slow poll.
+  addEventListener('popstate', () => {
+    followRoute()
+    leftRoute()
+  })
+  window.setInterval(followRoute, 1000)
 
   let resizeTimer: number | undefined
   addEventListener('resize', () => {

@@ -72,6 +72,8 @@ export interface Store {
   history: Signal<ItemHistory>
   /** Every item the dock knows, ordered by `seq`. */
   items: ReadonlySignal<ChangeItem[]>
+  /** The page the tab shows now (path and query), followed through client-side navigation. */
+  route: Signal<string>
   /** Drafts made on this page. */
   drafts: ReadonlySignal<ChangeItem[]>
   /** Drafts of the whole session; what Send sends. */
@@ -130,13 +132,15 @@ export function createStore(page: string): Store {
   const history = signal<ItemHistory>(emptyHistory())
   const items = computed(() => history.value.present)
   const open = signal(false)
+  const route = signal(page)
   return {
+    route,
     info: signal(null),
     connected: signal(false),
     ready: signal(false),
     history,
     items,
-    drafts: computed(() => items.value.filter((item) => item.status === 'draft' && item.page === page)),
+    drafts: computed(() => items.value.filter((item) => item.status === 'draft' && item.page === route.value)),
     allDrafts: computed(() => items.value.filter((item) => item.status === 'draft')),
     canUndo: computed(() => canUndo(history.value)),
     canRedo: computed(() => canRedo(history.value)),

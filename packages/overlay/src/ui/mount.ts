@@ -122,7 +122,6 @@ export function mountDock(c: Controller): DockHandle {
   const state = load()
   const theme = signal<ThemeSetting>(state.theme)
   store.theme.value = state.theme
-  const page = location.pathname + location.search
 
   try {
     if (customElements.get(HOST_TAG) === undefined) customElements.define(HOST_TAG, class extends HTMLElement {})
@@ -623,7 +622,7 @@ export function mountDock(c: Controller): DockHandle {
   const pinSpecs = (): PinSpec[] => {
     if (!store.open.peek() || store.pinsHidden.peek()) return []
     const selected = store.selection.peek()?.ref.uid
-    return pinGroups(store.items.peek(), page).map((group) => {
+    return pinGroups(store.items.peek(), store.route.peek()).map((group) => {
       const first = group.items[0]!
       const lines = group.items.map((item) => (item.kind === 'style' ? `${item.property}${item.condition.state === undefined ? '' : ` :${item.condition.state}`} → ${item.after.authored}` : item.kind === 'note' ? `note: ${item.text}` : item.op))
       return {
