@@ -169,17 +169,21 @@ export async function waitForDevServer(options: WaitForDevServerOptions): Promis
   const deadline = Date.now() + (options.timeoutMs ?? 60_000)
   const started = Date.now()
   let looking = false
-  const local = (port: number): ProxyTarget => ({ protocol: 'http', host: 'localhost', port })
+  const local = (port: number, protocol: 'http' | 'https' = 'http'): ProxyTarget => ({ protocol, host: 'localhost', port })
   let detection: DevServerDetection | undefined
 
   for (;;) {
     if (options.target !== undefined) {
       // An https or remote target cannot be probed with the plain localhost probe; it is taken as given.
       if (options.target.protocol !== 'http' || options.target.host !== 'localhost') return { status: 'ready', target: options.target, via: 'target' }
-      if ((await probe(options.target.port)).answered) return { status: 'ready', target: options.target, via: 'target' }
+      const answer = await probe(options.target.port)
+      // A port given as a number speaks HTTPS: that is the only way to reach it.
+      if (answer.answered) return { status: 'ready', target: answer.protocol === 'https' ? local(options.target.port, 'https') : options.target, via: 'target' }
     } else {
       for (const port of options.child?.announcedPorts() ?? []) {
-        if (options.excludePorts?.includes(port) !== true && (await probe(port)).html) return { status: 'ready', target: local(port), via: 'output' }
+        if (options.excludePorts?.includes(port) === true) continue
+        const answer = await probe(port)
+        if (answer.html) return { status: 'ready', target: local(port, answer.protocol ?? 'http'), via: 'output' }
       }
       detection = await detect({
         projectRoot: options.projectRoot,
@@ -192,7 +196,7 @@ export async function waitForDevServer(options: WaitForDevServerOptions): Promis
         ...(options.child === undefined ? {} : { firstCompileTimeoutMs: 1500 }),
         ...(options.onWait === undefined ? {} : { onWait: options.onWait }),
       })
-      if (detection.chosen !== undefined) return { status: 'ready', target: local(detection.chosen.port), detection, via: detection.chosen.via }
+      if (detection.chosen !== undefined) return { status: 'ready', target: local(detection.chosen.port, detection.chosen.url.startsWith('https:') ? 'https' : 'http'), detection, via: detection.chosen.via }
     }
     if (options.child === undefined) {
       const lookUntil = started + (options.waitWithoutCommandMs ?? 0)

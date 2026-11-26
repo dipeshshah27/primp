@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process'
+import { request as httpsRequest } from 'node:https'
 import { existsSync, readFileSync, realpathSync } from 'node:fs'
 import { isIP } from 'node:net'
 import { isAbsolute, join, relative, resolve, sep } from 'node:path'
@@ -230,7 +231,7 @@ export const WELL_KNOWN_PORTS = [3000, 5173, 4321, 8080, 4200, 5000, 8000] as co
 
 export interface DevServerCandidate {
   port: number
-  /** `http://localhost:<port>` */
+  /** `http://localhost:<port>`, or `https://` for a dev server that speaks TLS. */
   url: string
   /** `process`: a process working in the project listens there. `port`: a well-known port answered. */
   via: 'process' | 'port'
@@ -256,6 +257,8 @@ export interface DevServerDetection {
 export interface ProbeResult {
   /** `/` was answered with an HTML document (or a redirect). */
   html: boolean
+  /** It answered over HTTPS (a dev server with a certificate of its own). Absent: plain HTTP. */
+  protocol?: 'https'
   /** Something answered HTTP at all. */
   answered: boolean
   /** Why not, or what answered. */
@@ -297,8 +300,41 @@ function runCommand(command: string, args: string[]): Promise<string> {
   })
 }
 
-/** GET `/` on `http://localhost:<port>` as a browser navigation would; HTML only counts when the status is not an error from a proxy that found nothing. */
+/** How a plain HTTP request to a port that speaks TLS fails: the reply is not HTTP. */
+const looksLikeTls = (detail: string): boolean => /UND_ERR_SOCKET|ECONNRESET|HPE_INVALID|socket hang up|other side closed/i.test(detail)
+
+/** GET `/` over HTTPS, accepting the dev server's own certificate (local only: never a remote host). */
+function probeHttps(port: number, timeoutMs: number, abandon?: AbortSignal): Promise<ProbeResult> {
+  return new Promise((resolvePromise) => {
+    const req = httpsRequest(
+      { host: 'localhost', port, path: '/', method: 'GET', rejectUnauthorized: false, headers: { accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8' }, timeout: timeoutMs, ...(abandon === undefined ? {} : { signal: abandon }) },
+      (res) => {
+        res.resume()
+        const status = res.statusCode ?? 0
+        const type = String(res.headers['content-type'] ?? '')
+        const html = (status >= 300 && status < 400) || /^\s*text\/html\b/i.test(type)
+        resolvePromise({ html, answered: true, protocol: 'https', detail: `HTTPS ${status} ${type === '' ? '(no content type)' : type}` })
+      },
+    )
+    req.on('timeout', () => req.destroy(new Error('TimeoutError')))
+    req.on('error', (error) => resolvePromise({ html: false, answered: false, detail: (error as NodeJS.ErrnoException).code ?? error.message }))
+    req.end()
+  })
+}
+
+/**
+ * GET `/` on `http://localhost:<port>` as a browser navigation would; HTML only counts when the
+ * status is not an error from a proxy that found nothing. A port that does not speak HTTP is asked
+ * again over HTTPS (Vite with basic-ssl, Next with --experimental-https).
+ */
 export async function probeHttp(port: number, timeoutMs = 1500, abandon?: AbortSignal): Promise<ProbeResult> {
+  const plain = await probePlain(port, timeoutMs, abandon)
+  if (plain.answered || !looksLikeTls(plain.detail) || abandon?.aborted === true) return plain
+  const secure = await probeHttps(port, timeoutMs, abandon)
+  return secure.answered ? secure : plain
+}
+
+async function probePlain(port: number, timeoutMs: number, abandon?: AbortSignal): Promise<ProbeResult> {
   try {
     const response = await fetch(`http://localhost:${port}/`, {
       headers: { accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8' },
@@ -402,7 +438,7 @@ export async function detectDevServer(options: DetectDevServerOptions): Promise<
   const answers = candidates.map((candidate) => ({ candidate, result: results.get(candidate)! }))
   const html: DevServerCandidate[] = []
   for (const { candidate, result } of answers) {
-    if (result.html) html.push(candidate)
+    if (result.html) html.push(result.protocol === 'https' ? { ...candidate, url: `https://localhost:${candidate.port}` } : candidate)
     else if (candidate.via === 'process') detection.ignored.push({ port: candidate.port, reason: result.detail === 'TimeoutError' || /aborted due to timeout/.test(result.detail) ? 'no answer in time' : result.detail })
   }
   const [chosen, ...others] = orderCandidates(html, options.framework)

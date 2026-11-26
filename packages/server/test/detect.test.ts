@@ -405,6 +405,13 @@ describe('detectDevServer', () => {
     expect(detection.ignored).toContainEqual({ port: 5173, reason: 'no answer in time' })
   })
 
+  it('a dev server that answers over HTTPS is chosen with an https URL', async () => {
+    const tls: ProbeResult = { html: true, answered: true, protocol: 'https', detail: 'HTTPS 200 text/html' }
+    const { probe } = probeWith({ 5173: tls })
+    const detection = await detectDevServer({ projectRoot: '/Users/sam/code/shop', framework: 'vite', run: lsof().run, probe, platform: 'darwin' })
+    expect(detection.chosen).toMatchObject({ port: 5173, url: 'https://localhost:5173' })
+  })
+
   it('finds nothing when nothing answers', async () => {
     const detection = await detectDevServer({ projectRoot: '/nowhere', run: lsof('', '').run, probe: probeWith({}).probe, platform: 'linux' })
     expect(detection).toEqual({ others: [], ignored: [], method: 'none' })

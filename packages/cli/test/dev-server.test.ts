@@ -162,6 +162,14 @@ describe('waitForDevServer', () => {
     expect(Date.now() - started).toBeLessThan(1000)
   })
 
+  it('a dev server found over HTTPS becomes an https target (detected, announced, or given as a port)', async () => {
+    const tls: ProbeResult = { html: true, answered: true, protocol: 'https', detail: 'HTTPS 200 text/html' }
+    const detected = await waitForDevServer({ projectRoot: '/p', detect: async () => ({ chosen: { port: 5173, url: 'https://localhost:5173', via: 'process', pid: 9 }, others: [], ignored: [], method: 'process' }), probe: async () => tls })
+    expect(detected).toMatchObject({ status: 'ready', target: { protocol: 'https', port: 5173 } })
+    const given = await waitForDevServer({ projectRoot: '/p', target: { protocol: 'http', host: 'localhost', port: 5173 }, probe: async () => tls })
+    expect(given).toMatchObject({ status: 'ready', target: { protocol: 'https', port: 5173 } })
+  })
+
   it('with a target, waits for exactly that port; any HTTP answer counts', async () => {
     const asked: number[] = []
     let calls = 0
