@@ -439,7 +439,7 @@ export function createSession(options: SessionOptions): Session {
     const toAgent = waiters.size > 0
     send(connection, { type: 'session:sent', reqId, batch: { batchId, items: drafts, prompt: render(batchId, drafts, 'clipboard') }, ...(toAgent ? { toAgent } : {}) })
     broadcastState()
-    announce({ type: 'sent', count: drafts.length, batchId, toAgent: waiters.size > 0 })
+    announce({ type: 'sent', count: drafts.length, batchId, toAgent })
     // Waiting agents take the batch now; each wakes, and the first to claim gets it.
     for (const wake of [...waiters]) wake()
   }

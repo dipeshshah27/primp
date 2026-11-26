@@ -189,6 +189,14 @@ try {
     })
 
     report.section('Stop')
+    await report.attempt('the terminal said what happened: a tab attached, changes sent, taken by the agent, checked', async () => {
+      const lines = output.split('\n').filter((line) => line.startsWith('primp: ') || line.startsWith('  - '))
+      for (const wanted of [/^primp: a tab with the dock is open/, /^primp: \d+ changes? sent from the dock/, /^primp: your agent took \d+ changes?/, /^primp: checked \d+ changes?: /]) {
+        expect(lines.some((line) => wanted.test(line)), `no line like ${wanted} in:\n${lines.join('\n')}`)
+      }
+      return lines.filter((line) => /sent|took|checked|tab/.test(line)).slice(0, 6).join(' | ')
+    })
+
     await report.attempt('Ctrl+C stops primp and the demo server; the site with the fixes stays', async () => {
       await client.close()
       child.kill('SIGINT')
