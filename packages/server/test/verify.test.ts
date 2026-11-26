@@ -293,6 +293,21 @@ describe('createVerifier', () => {
     expect(items.get('c1')?.verification).toBeUndefined()
   })
 
+  it('a change taken back and sent again unchanged while it was being checked (the same object, a new batch) is not judged by the old check', async () => {
+    const item = { ...claimed('c1'), status: 'queued' as const, batchId: 'batch-a' }
+    const { session, items } = fakeSession([item], (wanted) => {
+      const stored = items.get('c1')!
+      // The session changes its item in place: Take back, then Send again.
+      stored.status = 'queued'
+      stored.batchId = 'batch-b'
+      return measuredWith(wanted.map((it) => answer(it, [rawComputed(it.expect[0] as Expectation, '24px', 'pass')])))
+    })
+    const { detector } = fakeDetector(settled())
+    const outcome = await createVerifier({ session, detector, sleep: noSleep }).verify({ ids: ['c1'] })
+    expect(outcome.results).toEqual([])
+    expect(items.get('c1')?.verification).toBeUndefined()
+  })
+
   it('fails a change that is unchanged, names expected and actual, and returns a fix-up prompt', async () => {
     const item = claimed('c1')
     const { session, items } = fakeSession([item], (wanted) => measuredWith(wanted.map((it) => answer(it, [rawComputed(it.expect[0] as Expectation, '16px')]))))

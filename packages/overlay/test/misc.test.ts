@@ -245,5 +245,7 @@ describe('the colour picker keeps a colour see-through', () => {
   it('gives the picked colour the old alpha, and leaves an opaque one alone', () => {
     expect(keepAlpha('#ff0000', 'rgba(0, 0, 255, 0.5)')).toBe('#ff000080')
     expect(keepAlpha('#ff0000', '#0000ff')).toBe('#ff0000')
+    // No background at all (transparent): the picked colour is meant to be seen.
+    expect(keepAlpha('#ff0000', 'rgba(0, 0, 0, 0)')).toBe('#ff0000')
   })
 })

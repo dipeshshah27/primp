@@ -27,6 +27,7 @@ const clamp = (n: number): number => (Number.isFinite(n) ? Math.max(0, Math.min(
 /** `picked` (`#rrggbb`) with the alpha of `current`: `#rrggbbaa` when that is below 1, else `picked` as it is. */
 export function keepAlpha(picked: string, current: string): string {
   const alpha = alphaOf(current)
-  if (alpha >= 1 || !/^#[0-9a-f]{6}$/i.test(picked)) return picked
+  // Fully transparent (no background at all): a picked colour is meant to be seen.
+  if (alpha >= 1 || alpha <= 0 || !/^#[0-9a-f]{6}$/i.test(picked)) return picked
   return `${picked}${Math.round(alpha * 255).toString(16).padStart(2, '0')}`
 }

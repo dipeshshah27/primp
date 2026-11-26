@@ -329,9 +329,12 @@ function probeHttps(port: number, timeoutMs: number, abandon?: AbortSignal): Pro
  */
 export async function probeHttp(port: number, timeoutMs = 1500, abandon?: AbortSignal): Promise<ProbeResult> {
   const plain = await probePlain(port, timeoutMs, abandon)
-  if (plain.answered || !looksLikeTls(plain.detail) || abandon?.aborted === true) return plain
+  // Not HTTP at all, or a 400 for speaking plain HTTP to a TLS port (Go, Caddy and nginx based servers answer so).
+  const tlsHint = (!plain.answered && looksLikeTls(plain.detail)) || (plain.answered && !plain.html && /^HTTP 400\b/.test(plain.detail))
+  if (!tlsHint || abandon?.aborted === true) return plain
   const secure = await probeHttps(port, timeoutMs, abandon)
-  return secure.answered ? secure : plain
+  // Over HTTPS it is what it says, a timeout included (a first compile): its answer, not the plain one's.
+  return secure.answered || !plain.answered ? secure : plain
 }
 
 async function probePlain(port: number, timeoutMs: number, abandon?: AbortSignal): Promise<ProbeResult> {

@@ -1370,7 +1370,9 @@ export function createController(options: ControllerOptions): Controller {
       if (preview.has(id)) forget(id)
       askedShown.delete(id)
     }
+    // Only what is new: a state message every few moments must not rewrite the rules already shown.
     for (const [id, item] of wanted) {
+      if (askedShown.has(id)) continue
       preview.restore({ ...specOf(item), itemId: id })
       askedShown.add(id)
     }
@@ -1799,6 +1801,11 @@ export function createController(options: ControllerOptions): Controller {
         break
       case 'bus:close':
         store.connected.value = false
+        // A take-back that may not have reached primp is not waited for: it is said, and can be asked again.
+        if (withdrawing.size > 0) {
+          withdrawing.clear()
+          toast('The connection to primp dropped: press Take back again once it is back.', 'bad')
+        }
         break
       case 'session:state':
         onState(event)

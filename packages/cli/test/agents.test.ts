@@ -27,6 +27,25 @@ describe('findRegistrations: which agents have primp, from their configuration f
     expect(findRegistrations(project, home)).toEqual([])
   })
 
+  it('Claude Code started at the root of the repository the project is in counts (a monorepo)', () => {
+    mkdirSync(join(root, 'code', '.git'), { recursive: true })
+    writeFileSync(join(home, '.claude.json'), JSON.stringify({ projects: { [join(root, 'code')]: { mcpServers: { primp: {} } } } }))
+    expect(findRegistrations(project, home)).toEqual([{ client: 'Claude Code', scope: 'this project' }])
+    rmSync(join(root, 'code', '.git'), { recursive: true })
+  })
+
+  it('a .mcp.json server declined in the project\'s own Claude Code settings does not count', () => {
+    writeFileSync(join(project, '.mcp.json'), JSON.stringify({ mcpServers: { primp: {} } }))
+    writeFileSync(join(home, '.claude.json'), JSON.stringify({}))
+    mkdirSync(join(project, '.claude'), { recursive: true })
+    writeFileSync(join(project, '.claude', 'settings.local.json'), JSON.stringify({ disabledMcpjsonServers: ['primp'] }))
+    expect(findRegistrations(project, home)).toEqual([])
+    writeFileSync(join(project, '.claude', 'settings.local.json'), JSON.stringify({ enableAllProjectMcpServers: true }))
+    expect(findRegistrations(project, home)[0]).toEqual({ client: 'Claude Code', scope: 'this project (.mcp.json)' })
+    rmSync(join(project, '.claude'), { recursive: true })
+    rmSync(join(project, '.mcp.json'))
+  })
+
   it('.mcp.json in the project: counted, unless declined in Claude Code; said to need approval until approved', () => {
     writeFileSync(join(project, '.mcp.json'), JSON.stringify({ mcpServers: { primp: {} } }))
     writeFileSync(join(home, '.claude.json'), JSON.stringify({}))

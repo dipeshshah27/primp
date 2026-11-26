@@ -201,6 +201,8 @@ export function mountDock(c: Controller): DockHandle {
     barBox.x = Math.max(4, Math.min(view.w - barBox.w - 4, barBox.x))
     place(bar, barBox.x, barBox.y)
     placePop()
+    // The first-time hint stays by the toolbar as it grows, moves or the window resizes.
+    placeCoach()
   }
 
   // --- the popover's frame ---------------------------------------------------------
@@ -334,6 +336,7 @@ export function mountDock(c: Controller): DockHandle {
   })
 
   let wasCoached = coached()
+  let coachShown = false
   effect(() => {
     const open = store.open.value
     const selected = store.selection.value !== null
@@ -347,7 +350,12 @@ export function mountDock(c: Controller): DockHandle {
       }
     }
     // Not over a toast: that one says something now.
-    if (!open || selected || wasCoached || store.toast.peek() !== null) {
+    coachShown = open && !selected && !wasCoached && store.toast.peek() === null
+    placeCoach()
+  })
+
+  function placeCoach(): void {
+    if (!coachShown) {
       coachNode.style.display = 'none'
       return
     }
@@ -358,7 +366,7 @@ export function mountDock(c: Controller): DockHandle {
     const x = Math.max(4, Math.min(view.w - width - 4, barBox.x + barBox.w / 2 - width / 2))
     const y = barBox.y + barBox.h / 2 > view.h / 2 ? barBox.y - height - 10 : barBox.y + barBox.h + 10
     place(coachNode, x, y)
-  })
+  }
 
   /** The resize refusal, next to the handles of the selection, after a resize was tried. */
   const placeNote = (): void => {

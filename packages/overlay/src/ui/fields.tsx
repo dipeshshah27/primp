@@ -62,9 +62,15 @@ export function useValueEdit(c: Controller, property: string, value: string, opt
     if (!dirty.current) setText(shown(value))
   }, [value])
 
-  const reset = (): void => {
-    if (nudgeTimer.current !== undefined) window.clearTimeout(nudgeTimer.current)
+  /** A nudge still waiting gives way to what the person does next (typing, Enter, leaving the field). */
+  const cancelNudge = (): void => {
+    if (nudgeTimer.current === undefined) return
+    window.clearTimeout(nudgeTimer.current)
     nudgeTimer.current = undefined
+  }
+
+  const reset = (): void => {
+    cancelNudge()
     c.previewStyle(property, null)
     dirty.current = false
     setText(shown(value))
@@ -101,12 +107,14 @@ export function useValueEdit(c: Controller, property: string, value: string, opt
     input,
     apply,
     onInput(event) {
+      cancelNudge()
       dirty.current = true
       setText((event.currentTarget as HTMLInputElement).value)
     },
     onKeyDown(event) {
       if (event.key === 'Enter') {
         event.preventDefault()
+        cancelNudge()
         void apply(text)
       } else if (event.key === 'Escape') {
         // Restores the value. Only an Escape that changed something is used up; otherwise it closes the popover.
@@ -139,6 +147,7 @@ export function useValueEdit(c: Controller, property: string, value: string, opt
       }
     },
     onBlur() {
+      cancelNudge()
       if (dirty.current) void apply(text)
     },
   }

@@ -286,6 +286,8 @@ export function createVerifier(options: VerifierOptions): Verifier {
         ? session.items().filter((item) => item.status === 'claimed' || item.status === 'queued' || item.status === 'failed')
         : params.ids.map((id) => session.item(id)).filter((item): item is ChangeItem => item !== undefined)
     const items = wanted.filter((item) => VERIFIABLE.has(item.status))
+    // The session changes its items in place: what each was when this check began, to tell a change sent again meanwhile.
+    const batchAtStart = new Map(items.map((item) => [item.id, item.batchId]))
     if (items.length === 0) {
       const unknown = params.ids?.filter((id) => session.item(id) === undefined) ?? []
       return {
@@ -388,7 +390,7 @@ export function createVerifier(options: VerifierOptions): Verifier {
       // Taken back (a draft again) or dismissed while it was being checked: the result is about a change that is no longer out.
       // Or taken back and sent again meanwhile: a new request (another batch) that this check did not measure.
       const now = session.item(item.id)
-      if (now === undefined || !VERIFIABLE.has(now.status) || now.batchId !== item.batchId) continue
+      if (now === undefined || !VERIFIABLE.has(now.status) || now.batchId !== batchAtStart.get(item.id)) continue
       results.push(result)
       const status = itemStatusAfter(result.status)
       session.patchItem(item.id, status === undefined ? { verification: result } : { status, verification: result })
