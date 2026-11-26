@@ -37,6 +37,8 @@ export interface VerifyParams {
   ids?: readonly string[]
   /** How long to wait for the page to settle. Default 5000. */
   waitMs?: number
+  /** Started by a quiet period after source edits (startAutoVerify), not asked for. */
+  auto?: boolean
 }
 
 export interface VerifyOutcome {
@@ -391,11 +393,15 @@ export function createVerifier(options: VerifierOptions): Verifier {
     const lines = results
       .filter((result) => result.status !== 'pass' && result.status !== 'not_checkable')
       .map((result) => {
-        const label = session.item(result.itemId)?.target.label.split(' "')[0] ?? result.itemId
-        const check = result.checks.find((one) => one.status !== 'pass')
+        // With its text: two buttons of one class are told apart by it.
+        const full = session.item(result.itemId)?.target.label ?? result.itemId
+        const label = full.length > 48 ? `${full.slice(0, 47)}…` : full
+        // The check that decided the verdict: one of the same status first, then fail before drift before the rest.
+        const rank = (status: string): number => (status === result.status ? 0 : status === 'fail' ? 1 : status === 'drift' ? 2 : 3)
+        const check = [...result.checks].filter((one) => one.status !== 'pass').sort((a, b) => rank(a.status) - rank(b.status))[0]
         return `${label}: ${result.status.replaceAll('_', ' ')}${check === undefined ? '' : `, ${describeCheck(check).replaceAll('`', '')}`}`
       })
-    options.announce?.({ type: 'verified', counts: counts as Record<string, number>, lines })
+    options.announce?.({ type: 'verified', counts: counts as Record<string, number>, lines, auto: params.auto === true })
     const settled = (counts.pass ?? 0) + (counts.not_checkable ?? 0)
     const after = items.map((item) => session.item(item.id)).filter((item): item is ChangeItem => item !== undefined)
     const fixup = settled === results.length ? '' : renderFixup(after, { channel: 'mcp' })
@@ -477,7 +483,7 @@ export function startAutoVerify(options: AutoVerifyOptions): () => void {
     if (open.length === 0) return
     running = true
     try {
-      await verifier.verify({ ids: open.map((item) => item.id) })
+      await verifier.verify({ ids: open.map((item) => item.id), auto: true })
     } catch (error) {
       options.log?.('automatic verification failed', error)
     } finally {

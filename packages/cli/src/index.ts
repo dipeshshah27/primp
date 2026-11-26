@@ -84,6 +84,7 @@ const demo = defineCommand({
   args: {
     dir: { type: 'string', valueHint: 'directory', description: 'Where to put the demo site (default: ./primp-demo)' },
     open: { type: 'boolean', default: true, description: 'Open the browser on the demo', negativeDescription: 'Do not open the browser' },
+    quiet: { type: 'boolean', default: false, description: 'No activity lines after start-up (tabs attached, changes sent and taken, results)' },
   },
   async run({ args }) {
     subcommandRan = true
@@ -107,7 +108,7 @@ const demo = defineCommand({
       closers.push(() => server.close())
       process.stdout.write(`primp: demo site ${site.created ? 'created in' : 'found in'} ${site.dir}, served at ${server.url}\n`)
       // The guide goes before "Press Ctrl+C to stop.", so it is the last thing read, not scrolled past.
-      const running = await runPrimp({ project: site.dir, target: String(server.port), open: args.open, version: pkg.version, guide: demoGuide(site.dir) })
+      const running = await runPrimp({ project: site.dir, target: String(server.port), open: args.open, quiet: args.quiet, version: pkg.version, guide: demoGuide(site.dir) })
       closers.push(() => running.close())
     } catch (error) {
       if (!(error instanceof CliError) && !(error instanceof DemoError)) throw error
@@ -125,7 +126,7 @@ const main = defineCommand({
     exec: { type: 'string', valueHint: 'command', description: 'Start the dev server with this command and stop it again on exit, for example --exec "npm run dev"' },
     project: projectArg,
     open: { type: 'boolean', default: true, description: 'Open the browser on the proxy URL', negativeDescription: 'Do not open the browser' },
-    quiet: { type: 'boolean', default: false, description: 'Print nothing after start-up (no lines for tabs, sends and results)' },
+    quiet: { type: 'boolean', default: false, description: 'No activity lines after start-up (tabs attached, changes sent and taken, results)' },
   },
   subCommands: { demo, mcp, setup, doctor },
   async run({ args }) {

@@ -124,8 +124,11 @@ export async function runPrimp(options: RunOptions): Promise<RunHandle> {
 
   let primp: PrimpHandle | undefined
   let closing: Promise<void> | undefined
+  let quietNow = (): void => undefined
   const close = (): Promise<void> => {
     closing ??= (async () => {
+      // Stopping drops the tabs and the waiting agents: that is not news to say on the way out.
+      quietNow()
       await primp?.close()
       await devServer?.stop()
     })()
@@ -216,7 +219,13 @@ export async function runPrimp(options: RunOptions): Promise<RunHandle> {
       print('')
     }
     print('Press Ctrl+C to stop.')
-    if (options.quiet !== true) primp.session.onActivity(createActivityPrinter(print, { url: primp.url }))
+    if (options.quiet !== true) {
+      const printer = createActivityPrinter(print, { url: primp.url })
+      quietNow = primp.session.onActivity(printer)
+      // A tab whose dock reconnected while primp was starting is already there: say so.
+      const open = primp.session.documents()
+      if (open.length > 0) printer({ type: 'tabs', tabs: open.length, ...(open[0]?.url === undefined ? {} : { url: open[0].url }) })
+    }
 
     const interactive = options.interactive ?? process.stdout.isTTY === true
     if (options.open !== false && interactive) (options.openBrowser ?? openInBrowser)(primp.url)

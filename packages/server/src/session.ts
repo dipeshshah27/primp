@@ -105,11 +105,16 @@ export type Activity =
   | { type: 'tabs'; tabs: number; url?: string }
   | { type: 'sent'; count: number; batchId: string; toAgent: boolean }
   | { type: 'claimed'; count: number }
-  /** An agent started or stopped waiting for the next Send (MCP wait_for_changes). */
-  | { type: 'waiting'; waiting: boolean }
+  /**
+   * An agent started or stopped waiting for the next Send (MCP wait_for_changes). Stopped: `sent` (a
+   * Send woke it; it will be back after doing the work), `timeout` (it will call again), `gone` (it
+   * hung up), `closed` (primp stops).
+   */
+  | { type: 'waiting'; waiting: true }
+  | { type: 'waiting'; waiting: false; why: 'sent' | 'timeout' | 'gone' | 'closed' }
   | { type: 'dismissed'; id: string; label: string; reason: string }
-  /** A verification finished; `lines` name what did not pass. */
-  | { type: 'verified'; counts: Record<string, number>; lines: string[] }
+  /** A verification finished; `lines` name what did not pass. `auto`: started by a quiet period after source edits, not asked for. */
+  | { type: 'verified'; counts: Record<string, number>; lines: string[]; auto: boolean }
 
 export interface SessionEvent {
   /** Shares the counter that numbers items. */
@@ -291,7 +296,7 @@ export function createSession(options: SessionOptions): Session {
   }
 
   /** Agents waiting in `waitForChanges`; each is woken by a Send. */
-  const waiters = new Set<() => void>()
+  const waiters = new Set<(why: 'sent' | 'closed') => void>()
   const stateMessage = (): ServerMessage => ({ type: 'session:state', info: waiters.size > 0 ? { ...options.info, agentWaiting: true } : options.info, items: sorted() })
 
   const broadcastState = (): void => {
@@ -441,7 +446,7 @@ export function createSession(options: SessionOptions): Session {
     broadcastState()
     announce({ type: 'sent', count: drafts.length, batchId, toAgent })
     // Waiting agents take the batch now; each wakes, and the first to claim gets it.
-    for (const wake of [...waiters]) wake()
+    for (const wake of [...waiters]) wake('sent')
   }
 
   /** Copy without Send: the prompt the drafts would be sent with. Nothing is queued and no state changes. */
@@ -684,18 +689,19 @@ export function createSession(options: SessionOptions): Session {
     const started = now()
     if (!queued() && !closed && timeoutMs > 0 && gone?.aborted !== true) {
       await new Promise<void>((resolve) => {
-        const timer = setTimeout(done, timeoutMs)
+        const timer = setTimeout(() => done('timeout'), timeoutMs)
         // A caller that went away claims nothing: the changes stay queued for whoever asks next.
-        gone?.addEventListener('abort', done, { once: true })
-        function done(): void {
+        const hungUp = (): void => done('gone')
+        gone?.addEventListener('abort', hungUp, { once: true })
+        function done(why: 'sent' | 'timeout' | 'gone' | 'closed'): void {
           clearTimeout(timer)
-          gone?.removeEventListener('abort', done)
+          gone?.removeEventListener('abort', hungUp)
           waiters.delete(done)
           resolve()
           // The dock stops saying an agent waits once the last one is gone.
           if (waiters.size === 0) {
             broadcastState()
-            announce({ type: 'waiting', waiting: false })
+            announce({ type: 'waiting', waiting: false, why })
           }
         }
         waiters.add(done)
@@ -802,7 +808,8 @@ export function createSession(options: SessionOptions): Session {
       closed = true
       for (const pending of [...measures.values()]) pending.settle({ status: 'disconnected', doc: pending.connection.doc ?? '' })
       reverifyListeners.clear()
-      for (const wake of [...waiters]) wake()
+      for (const wake of [...waiters]) wake('closed')
+      activityListeners.clear()
     },
   }
 }

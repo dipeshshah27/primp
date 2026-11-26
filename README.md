@@ -40,6 +40,7 @@ primp finds the dev server, starts a proxy on the next port and opens your app t
 | `--exec "<command>"` | Start the dev server too, and stop it on exit: `npx @primpdev/cli --exec "npm run dev"` |
 | `--port <n>` | Port for the proxy |
 | `--no-open` | Do not open the browser |
+| `--quiet` | No activity lines after start-up (a tab attached, changes sent and taken, results) |
 
 ### Connect your agent
 

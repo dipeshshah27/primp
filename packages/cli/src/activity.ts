@@ -6,15 +6,21 @@ import type { Activity } from '../../server/src/session.ts'
  * results. Off with `--quiet`.
  *
  * Two things come and go on their own and would be noise said every time: a full page reload drops
- * the tab and connects a new one, and a watching agent stops waiting at each timeout and calls
- * again at once. Both are said only when they last (`settleMs`).
+ * the tab and connects a new one (a slow one, or primp's own reload during a verification, takes
+ * seconds), and a watching agent stops waiting when a Send wakes it (it comes back after the work)
+ * and at each timeout (it calls again after a model turn). A lost tab is said after `settleMs`, an
+ * agent that hung up after `settleMs`, one that timed out after `agentMs`; one woken by a Send is
+ * not said to stop at all. An automatic check (after source edits, not asked for) is said only
+ * when its outcome differs from the last one.
  */
 
 export interface ActivityPrinterOptions {
   /** The page to open, named when no tab is left. */
   url: string
-  /** How long a lost tab, or an agent that stopped waiting, has to stay so before it is said. Default 3000. */
+  /** How long a lost tab, or an agent that hung up, has to stay so before it is said. Default 10000. */
   settleMs?: number
+  /** How long an agent whose wait timed out has to stay away before it is said to have stopped. Default 90000. */
+  agentMs?: number
   setTimer?: (fn: () => void, ms: number) => unknown
   clearTimer?: (timer: unknown) => void
 }
@@ -22,7 +28,9 @@ export interface ActivityPrinterOptions {
 const plural = (count: number, one: string, many = `${one}s`): string => `${count} ${count === 1 ? one : many}`
 
 export function createActivityPrinter(print: (line: string) => void, options: ActivityPrinterOptions): (activity: Activity) => void {
-  const settleMs = options.settleMs ?? 3000
+  const settleMs = options.settleMs ?? 10_000
+  const agentMs = options.agentMs ?? 90_000
+  let lastAuto = ''
   const setTimer = options.setTimer ?? ((fn: () => void, ms: number) => setTimeout(fn, ms).unref())
   const clearTimer = options.clearTimer ?? ((timer: unknown) => clearTimeout(timer as NodeJS.Timeout))
   let attached = false
@@ -60,12 +68,17 @@ export function createActivityPrinter(print: (line: string) => void, options: Ac
           stopped = undefined
           if (!watching) print('primp: your agent is watching: what you send from the dock goes straight to it')
           watching = true
-        } else if (watching && stopped === undefined) {
-          stopped = setTimer(() => {
-            stopped = undefined
-            watching = false
-            print('primp: your agent stopped watching')
-          }, settleMs)
+        } else if (activity.why === 'closed') {
+          watching = false
+        } else if (watching && stopped === undefined && activity.why !== 'sent') {
+          stopped = setTimer(
+            () => {
+              stopped = undefined
+              watching = false
+              print('primp: your agent stopped watching')
+            },
+            activity.why === 'gone' ? settleMs : agentMs,
+          )
         }
         return
       case 'sent':
@@ -75,9 +88,15 @@ export function createActivityPrinter(print: (line: string) => void, options: Ac
         print(`primp: your agent took ${plural(activity.count, 'change')}`)
         return
       case 'dismissed':
-        print(`primp: your agent dismissed ${activity.label.split(' "')[0]}: ${activity.reason}`)
+        print(`primp: your agent dismissed ${activity.label.length > 48 ? `${activity.label.slice(0, 47)}…` : activity.label}: ${activity.reason}`)
         return
       case 'verified': {
+        // A check nobody asked for (the source went quiet) is said when it found something new.
+        if (activity.auto) {
+          const key = JSON.stringify([activity.counts, activity.lines])
+          if (key === lastAuto) return
+          lastAuto = key
+        }
         const total = Object.values(activity.counts).reduce((sum, count) => sum + count, 0)
         const parts = Object.entries(activity.counts).map(([status, count]) => `${count} ${status.replaceAll('_', ' ')}`)
         print(`primp: checked ${plural(total, 'change')}: ${parts.join(', ')}`)
