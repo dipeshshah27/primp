@@ -5,7 +5,7 @@
  */
 
 import type { ChangeItem, CheckResult, ItemStatus, VerificationStatus } from '@primp/protocol/change'
-import { useEffect } from 'preact/hooks'
+import { useEffect, useState } from 'preact/hooks'
 import type { Controller } from '../state/controller.ts'
 import { itemPinStatus, pinGroups } from '../state/pins.ts'
 import { IconClose, IconRefresh } from './icons.tsx'
@@ -91,6 +91,15 @@ function VerifyItem({ c, item, number }: { c: Controller; item: ChangeItem; numb
   const result = item.verification
   // An agent that took the change long ago and never asked for a check (or one that pasted the prompt): say what to do.
   const stalled = !checking && item.status === 'claimed' && item.claimedAt !== undefined && Date.now() - item.claimedAt > STALL_MS && result === undefined
+  // Shown when the time comes, also with nothing else changing: a render at that moment.
+  const [, tick] = useState(0)
+  useEffect(() => {
+    if (item.status !== 'claimed' || item.claimedAt === undefined || result !== undefined) return
+    const due = item.claimedAt + STALL_MS - Date.now()
+    if (due <= 0) return
+    const timer = window.setTimeout(() => tick((n) => n + 1), due + 50)
+    return () => window.clearTimeout(timer)
+  }, [item.status, item.claimedAt, result])
   return (
     <li class="item" data-item={item.id}>
       <div class="item-head">
@@ -102,7 +111,7 @@ function VerifyItem({ c, item, number }: { c: Controller; item: ChangeItem; numb
         <span class="label" title={`${item.target.label}\n${item.target.selector}`}>
           {item.target.label.split(' "')[0]}
         </span>
-        <span class={`chip ${status.tone}`} data-status={checking ? 'checking' : item.status}>
+        <span class={`chip ${status.tone}`} data-status={item.status} data-checking={checking ? '' : undefined}>
           {status.text}
         </span>
       </div>

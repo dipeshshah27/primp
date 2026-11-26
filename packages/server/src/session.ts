@@ -527,6 +527,8 @@ export function createSession(options: SessionOptions): Session {
       if (message.type === 'session:resolve') send(connection, { type: 'session:resolved', reqId: message.reqId, source: null })
       if (message.type === 'session:send') send(connection, { type: 'session:sent', reqId: message.reqId, batch: EMPTY_BATCH })
       if (message.type === 'session:prompt') send(connection, { type: 'session:prompt-text', reqId: message.reqId, prompt: '', count: 0 })
+      if (message.type === 'session:shift-prompt') send(connection, { type: 'session:prompt-text', reqId: message.reqId, prompt: '', count: 0 })
+      if (message.type === 'session:fixup') send(connection, { type: 'session:fixup-text', reqId: message.reqId, prompt: '', count: 0 })
       return
     }
     switch (message.type) {
@@ -573,7 +575,13 @@ export function createSession(options: SessionOptions): Session {
         // What did not pass, as instructions to paste: the same fix-up an agent gets over MCP, worded for the clipboard.
         const wanted = message.ids.map((id) => items.get(id)).filter((item): item is ChangeItem => item !== undefined && item.status !== 'draft')
         const open = wanted.filter((item) => item.verification !== undefined && item.verification.status !== 'pass' && item.kind !== 'note')
-        return send(connection, { type: 'session:fixup-text', reqId: message.reqId, prompt: open.length === 0 ? '' : renderFixup(wanted, { channel: 'clipboard' }), count: open.length })
+        let prompt = ''
+        try {
+          if (open.length > 0) prompt = renderFixup(wanted, { channel: 'clipboard' })
+        } catch (error) {
+          log('error', 'the fix-up could not be rendered', error)
+        }
+        return send(connection, { type: 'session:fixup-text', reqId: message.reqId, prompt, count: prompt === '' ? 0 : open.length })
       }
       case 'session:reverify':
         for (const listener of [...reverifyListeners]) {
@@ -611,7 +619,8 @@ export function createSession(options: SessionOptions): Session {
       if (typeof reqId === 'string') {
         if (type === 'session:resolve') send(connection, { type: 'session:resolved', reqId, source: null })
         if (type === 'session:send') send(connection, { type: 'session:sent', reqId, batch: EMPTY_BATCH })
-        if (type === 'session:prompt') send(connection, { type: 'session:prompt-text', reqId, prompt: '', count: 0 })
+        if (type === 'session:prompt' || type === 'session:shift-prompt') send(connection, { type: 'session:prompt-text', reqId, prompt: '', count: 0 })
+        if (type === 'session:fixup') send(connection, { type: 'session:fixup-text', reqId, prompt: '', count: 0 })
       }
       // An item that was refused: show the sender what is stored.
       if (type === 'session:upsert' && connection.doc !== undefined) send(connection, stateMessage())

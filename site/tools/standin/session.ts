@@ -384,7 +384,7 @@ function start(host: StandinHost): void {
               ? sorted().filter((item) => item.status === 'queued' || item.status === 'claimed' || item.status === 'failed')
               : ids.map((id) => items.get(id)).filter((item): item is ChangeItem => item !== undefined && VERIFIABLE_STATUSES.has(item.status))
           if (wanted.length === 0) return
-          socket.deliver({ type: 'session:verifying', ids: wanted.map((item) => item.id) })
+          for (const one of host.sockets) one.deliver({ type: 'session:verifying', ids: wanted.map((item) => item.id) })
           await check(wanted, { status: 'settled', signal: 'checked again', ms: 0, filesChanged: [] })
         })
         return

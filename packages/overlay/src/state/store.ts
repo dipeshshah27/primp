@@ -124,10 +124,10 @@ export interface Store {
   /** A recording was sent and its report has not arrived. */
   shiftsPending: Signal<boolean>
   sent: Signal<SentState | null>
-  /** Items a verification is running for (session:verifying), with when it started; gone once their result is in. */
-  checking: Signal<ReadonlyMap<string, number>>
+  /** Items a verification is running for (session:verifying): when it started and the attempt shown then; gone once a later attempt is in. */
+  checking: Signal<ReadonlyMap<string, { at: number; attempt: number }>>
   /** Results arrived that nobody has looked at yet: the worst of them, for the launcher's dot; null once the Verification panel was open. */
-  unseen: Signal<'pass' | 'drift' | 'fail' | null>
+  unseen: Signal<'pass' | 'unmeasured' | 'drift' | 'fail' | null>
   sending: Signal<boolean>
   /** The last refusal (an invalid value, a failed send), shown until the next action. */
   error: Signal<string | null>

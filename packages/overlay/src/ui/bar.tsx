@@ -67,7 +67,8 @@ function Launcher({ c, ui }: { c: Controller; ui: DockUi }) {
   const count = store.allDrafts.value.length
   const connected = store.connected.value
   const unseen = store.unseen.value
-  const tip = useTip(ui, unseen === null ? 'Open primp' : `Open primp: new results (${unseen === 'fail' ? 'something failed' : unseen === 'drift' ? 'one landed close' : 'passed'})`, `${ui.mod}⇧E`)
+  const said = { fail: 'something failed', drift: 'one landed close', unmeasured: 'some could not be measured', pass: 'passed' } as const
+  const tip = useTip(ui, unseen === null ? 'Open primp' : `Open primp: new results (${said[unseen]})`, `${ui.mod}⇧E`)
   return (
     <button
       type="button"
@@ -81,7 +82,7 @@ function Launcher({ c, ui }: { c: Controller; ui: DockUi }) {
       {...tip}
     >
       <IconPrimp size={20} />
-      {unseen === null ? null : <span class={`dot launcher-dot ${unseen}`} aria-hidden="true" />}
+      {unseen === null ? null : <span class={`dot launcher-dot ${unseen === 'unmeasured' ? 'pending' : unseen}`} aria-hidden="true" />}
       {count > 0 ? (
         <span class="badge" aria-hidden="true">
           {count}

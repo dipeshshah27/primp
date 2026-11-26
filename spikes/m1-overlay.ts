@@ -965,14 +965,15 @@ async function viteVerdictAndSend(browser: Browser, lane: Lane): Promise<void> {
       expect(text.includes('got 24px') && text.includes('The page does not show what you asked for yet.') && text.includes('What your agent was told') && text.includes('padding-top is 24px, expected 28px.') && settled.includes('hmr'), `Verify tab text: ${text.slice(0, 400)}; settle tooltip "${settled}"`)
       // A verification that starts is shown as running; a failed item can be handed back as a fix-up prompt.
       lane.primp.session.broadcastVerifying([b.id])
-      const running = await waitFor(() => page.dock.evaluate((id) => document.querySelector(`[data-item="${id}"] [data-status="checking"]`)?.textContent ?? undefined, b.id), { what: 'the checking chip', timeoutMs: 3000 })
+      const running = await waitFor(() => page.dock.evaluate((id) => document.querySelector(`[data-item="${id}"] [data-checking]`)?.textContent ?? undefined, b.id), { what: 'the checking chip', timeoutMs: 3000 })
       const fixupButton = await page.dock.evaluate(() => [...document.querySelectorAll('button')].some((button) => button.textContent?.trim() === 'Copy fix-up'))
       expect(running.includes('checking') && fixupButton, `checking chip "${running}", Copy fix-up button ${fixupButton}`)
       // Its result arriving ends the checking state.
-      lane.primp.session.patchItem(b.id, { verification: { ...(lane.primp.session.item(b.id)!.verification ?? { itemId: b.id, attempt: 1, status: 'pass', checks: [], hint: '' }), at: Date.now() + 1 } })
+      const previous = lane.primp.session.item(b.id)!.verification ?? { itemId: b.id, attempt: 0, at: 0, status: 'pass' as const, checks: [], hint: '' }
+      lane.primp.session.patchItem(b.id, { verification: { ...previous, attempt: previous.attempt + 1, at: Date.now() } })
       const after = await waitFor(() => page.dock.evaluate((id) => {
-        const chip = document.querySelector(`[data-item="${id}"] .item-head [data-status]`)?.getAttribute('data-status')
-        return chip === 'checking' ? undefined : chip
+        const chip = document.querySelector(`[data-item="${id}"] .item-head [data-status]`)
+        return chip === null || chip.hasAttribute('data-checking') ? undefined : chip.getAttribute('data-status')
       }, b.id), { what: 'the checking chip to go once the result is in', timeoutMs: 3000 })
       expect(after === 'verified', `after the result: ${after}`)
       await t.evaluate(() => window.__primp_test!.openTab('edits'))
@@ -1179,9 +1180,8 @@ async function viteMeasure(browser: Browser, lane: Lane): Promise<void> {
       const shown = await waitFor(() => page.dock.evaluate(() => {
         const row = document.querySelector('[data-item]')
         const status = row?.querySelector('[data-status]')?.getAttribute('data-status')
-        // "checking" is shown while a verification runs (the server said session:verifying); the result follows.
-        return status === 'queued' || status === 'checking' || status === undefined ? undefined : { status, text: row?.textContent ?? '' }
-      }), { timeoutMs: 10_000, what: 'the Verify tab to show the result' })
+        return status === 'queued' || status === undefined ? undefined : { status, text: row?.textContent ?? '' }
+      }), { timeoutMs: 5000, what: 'the Verify tab to show the result' })
       expect(verified.verification?.status === 'pass' && verified.status === 'verified', `the server judged: ${JSON.stringify(verified.verification).slice(0, 400)}`)
       expect(shown.status === 'verified' && shown.text.includes('pass') && shown.text.includes('padding-top'), `Verify tab: ${JSON.stringify(shown).slice(0, 300)}`)
       return `the dock sent session:reverify; the server settled, asked the dock to measure, judged the raw checks with the engine: ${verified.verification.status} (${verified.verification.checks.length} checks, settle ${verified.verification.settle?.status}/${verified.verification.settle?.signal}); the Verify tab shows "verified" with the per-check rows`

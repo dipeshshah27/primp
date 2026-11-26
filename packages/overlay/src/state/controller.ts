@@ -1463,41 +1463,66 @@ export function createController(options: ControllerOptions): Controller {
     else addEventListener('load', later, { once: true })
   }
 
-  /** The newest verification time the dock has shown; results newer than it are news. */
-  let seenResultsAt: number | undefined
+  /** The result of each item the dock has seen (its attempt): a result with another attempt is news. */
+  let seenAttempts: Map<string, number> | undefined
+  /** Fresh results gathered over a moment: one verification patches its items one state at a time. */
+  let freshIds = new Set<string>()
+  let freshTimer: number | undefined
 
-  /** New results: no longer being checked, and said where the person is when the Verification panel is not open. */
+  /** Statuses that say what is wrong with a change; the others say the page could not be looked at. */
+  const FAILED = new Set(['fail', 'unresolved', 'no_update_observed', 'build_error'])
+
+  /** Says the gathered results where the person is, when the Verification panel is not open. */
+  const tellResults = (): void => {
+    freshTimer = undefined
+    const ids = freshIds
+    freshIds = new Set()
+    if (store.open.peek() && store.panel.peek() === 'verify') return
+    const fresh = present().filter((item) => ids.has(item.id) && item.verification !== undefined)
+    if (fresh.length === 0) return
+    const of = (test: (status: string) => boolean): number => fresh.filter((item) => test(item.verification!.status)).length
+    const passed = of((status) => status === 'pass')
+    const drifted = of((status) => status === 'drift')
+    const failed = of((status) => FAILED.has(status))
+    const notes = of((status) => status === 'not_checkable')
+    const unmeasured = fresh.length - passed - drifted - failed - notes
+    // A change nobody could measure is never shown as passed.
+    const worst = failed > 0 ? 'fail' : drifted > 0 ? 'drift' : unmeasured > 0 ? 'unmeasured' : 'pass'
+    const rank = { pass: 0, unmeasured: 1, drift: 2, fail: 3 } as const
+    const before = store.unseen.peek()
+    store.unseen.value = before !== null && rank[before] > rank[worst] ? before : worst
+    const parts = [passed > 0 ? `${passed} passed` : '', drifted > 0 ? `${drifted} landed close` : '', failed > 0 ? `${failed} failed` : '', unmeasured > 0 ? `${unmeasured} not measured` : '', notes > 0 ? `${notes} to check by eye` : '']
+    toast(`Checked: ${parts.filter((part) => part !== '').join(', ')}. See Verification.`, failed > 0 || unmeasured > 0 ? 'bad' : 'ok')
+  }
+
+  /** New results: those items are no longer being checked, and the results are said once the run is done. */
   const noticeResults = (items: readonly ChangeItem[]): void => {
     if (store.checking.peek().size > 0) {
       const next = new Map(store.checking.peek())
       for (const item of items) {
-        const started = next.get(item.id)
-        if (started !== undefined && (item.verification?.at ?? 0) >= started - 1000) next.delete(item.id)
+        const known = next.get(item.id)
+        // Done when a result of a later attempt than the one shown when the check started is in.
+        if (known !== undefined && (item.verification?.attempt ?? 0) > known.attempt) next.delete(item.id)
       }
-      // A verification whose result never came (primp restarted) is not shown as running forever.
-      for (const [id, started] of next) if (Date.now() - started > 120_000) next.delete(id)
       if (next.size !== store.checking.peek().size) store.checking.value = next
     }
-    const newest = Math.max(0, ...items.map((item) => item.verification?.at ?? 0))
-    if (seenResultsAt === undefined) {
+    if (seenAttempts === undefined) {
       // What was there when this page loaded is not news.
-      seenResultsAt = newest
+      seenAttempts = new Map(items.filter((item) => item.verification !== undefined).map((item) => [item.id, item.verification!.attempt]))
       return
     }
-    const fresh = items.filter((item) => (item.verification?.at ?? 0) > (seenResultsAt ?? 0) && item.verification !== undefined)
-    if (fresh.length === 0) return
-    seenResultsAt = newest
-    if (store.open.peek() && store.panel.peek() === 'verify') return
-    const count = (status: string): number => fresh.filter((item) => item.verification?.status === status).length
-    const failed = fresh.filter((item) => item.status === 'failed').length
-    const worst = failed > 0 ? 'fail' : count('drift') > 0 ? 'drift' : 'pass'
-    const rank = { pass: 0, drift: 1, fail: 2 } as const
-    const before = store.unseen.peek()
-    store.unseen.value = before !== null && rank[before] > rank[worst] ? before : worst
-    const parts = [count('pass') > 0 ? `${count('pass')} passed` : '', count('drift') > 0 ? `${count('drift')} drifted` : '', failed > 0 ? `${failed} failed` : '']
-    const other = fresh.length - count('pass') - count('drift') - failed
-    if (other > 0) parts.push(`${other} not measured`)
-    toast(`Checked: ${parts.filter((part) => part !== '').join(', ')}. See Verification.`, failed > 0 ? 'bad' : 'ok')
+    for (const item of items) {
+      if (item.verification === undefined || seenAttempts.get(item.id) === item.verification.attempt) continue
+      seenAttempts.set(item.id, item.verification.attempt)
+      freshIds.add(item.id)
+    }
+    if (freshIds.size > 0 && freshTimer === undefined) freshTimer = window.setTimeout(tellResults, 400)
+  }
+
+  /** A check that never reported back (primp stopped, the verification failed) is not shown as running for ever. */
+  const sweepChecking = (): void => {
+    const next = new Map([...store.checking.peek()].filter(([, entry]) => Date.now() - entry.at < 120_000))
+    if (next.size !== store.checking.peek().size) store.checking.value = next
   }
 
   const onState = (message: Extract<ServerMessage, { type: 'session:state' }>): void => {
@@ -1683,8 +1708,9 @@ export function createController(options: ControllerOptions): Controller {
         break
       case 'session:verifying': {
         const next = new Map(store.checking.peek())
-        for (const id of event.ids) next.set(id, Date.now())
+        for (const id of event.ids) next.set(id, { at: Date.now(), attempt: present().find((item) => item.id === id)?.verification?.attempt ?? 0 })
         store.checking.value = next
+        window.setTimeout(sweepChecking, 120_500)
         break
       }
       case 'session:fixup-text':
