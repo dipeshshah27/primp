@@ -177,10 +177,13 @@ function start(host: StandinHost): void {
 
   /** Measures the items through the dock and judges them as primp's verifier does; stores the results and tells every dock. */
   const check = async (wanted: ChangeItem[], settle: { status: string; signal: string; ms: number; filesChanged: string[] }): Promise<Record<string, number>> => {
+    // What each change was when the check began: one taken back (or sent again) meanwhile is not judged.
+    const batchOf = new Map(wanted.map((item) => [item.id, item.batchId]))
     const toMeasure = wanted.filter((item) => item.kind !== 'note')
     const answer = toMeasure.length === 0 ? { visible: true, results: [] } : await measure(toMeasure)
     const counts: Record<string, number> = {}
     for (const item of wanted) {
+      if (!VERIFIABLE_STATUSES.has(item.status) || item.batchId !== batchOf.get(item.id)) continue
       const found = answer?.results.find((result) => result.itemId === item.id)
       const checks = item.kind === 'note' || found === undefined ? [] : judgeMeasured(item, found, (selector, property) => changedElsewhereIn([...items.values()], item, selector, property))
       const extras = {
@@ -358,7 +361,7 @@ function start(host: StandinHost): void {
       case 'session:shift-prompt': {
         const entry = shiftsByDoc.get(message.doc)
         const wanted = new Set(message.ids)
-        const issues = entry?.report.issues.filter((issue) => wanted.has(issue.id)) ?? []
+        const issues = entry?.report.issues.filter((issue) => wanted.has(issue.id) && issue.scored && issue.excluded === undefined) ?? []
         let prompt = ''
         try {
           if (entry !== undefined && issues.length > 0) prompt = renderPrompt([], { batchId: 'layout-shifts', channel: 'clipboard' }, { shifts: issues, culpritSources: entry.culpritSources })

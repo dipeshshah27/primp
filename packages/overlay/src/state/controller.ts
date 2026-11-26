@@ -305,6 +305,8 @@ export function createController(options: ControllerOptions): Controller {
     store.route.value = now
     void enqueue(async () => {
       for (const item of present()) if (item.status === 'draft') syncPreview(item)
+      // The asked-for look follows the page: this page's sent changes, not the last one's.
+      if (store.showingAsked.peek()) showAsked(true)
       const selection = store.selection.peek()
       if (selection !== null && !selection.element.isConnected) refresh()
     })
@@ -1329,27 +1331,48 @@ export function createController(options: ControllerOptions): Controller {
     }
     for (const id of ids) withdrawing.add(id)
     bus.send({ type: 'session:withdraw', ids: [...ids] })
-    // The server takes back only what no agent has: say so when it did not.
-    window.setTimeout(() => {
-      const refused = ids.filter((id) => withdrawing.has(id))
-      for (const id of refused) withdrawing.delete(id)
-      if (refused.length > 0) toast('Not taken back: an agent has it already, or it is being checked.', 'bad')
-    }, 3000)
+  }
+
+  /**
+   * The server's answer to a take-back is the next state: a draft (taken back), or any status past
+   * queued (refused: an agent has it). Until one of those, the request stands, however slow.
+   */
+  const settleWithdrawals = (items: readonly ChangeItem[]): void => {
+    if (withdrawing.size === 0) return
+    const refused: string[] = []
+    for (const id of [...withdrawing]) {
+      const item = items.find((one) => one.id === id)
+      if (item === undefined) withdrawing.delete(id)
+      else if (item.status !== 'queued' && item.status !== 'draft') {
+        withdrawing.delete(id)
+        refused.push(id)
+      }
+    }
+    if (refused.length > 0) toast('Not taken back: an agent has it already.', 'bad')
   }
 
   /** Preview ids of the asked-for look of sent changes: apart from the drafts' own. */
   const ASKED = 'primp-asked:'
 
+  /** The asked-for previews on the page now, by preview id: all of them go when switched off, listed or not. */
+  const askedShown = new Set<string>()
+
   const showAsked = (on: boolean): void => {
     store.showingAsked.value = on
-    for (const item of present()) {
-      const id = `${ASKED}${item.id}`
-      const shown = on && item.status !== 'draft' && item.status !== 'dismissed' && item.kind !== 'note' && item.page === here()
-      if (!shown) {
-        if (preview.has(id)) forget(id)
-        continue
+    const wanted = new Map<string, ChangeItem>()
+    if (on) {
+      for (const item of present()) {
+        if (item.status !== 'draft' && item.status !== 'dismissed' && item.kind !== 'note' && item.page === here()) wanted.set(`${ASKED}${item.id}`, item)
       }
+    }
+    for (const id of [...askedShown]) {
+      if (wanted.has(id)) continue
+      if (preview.has(id)) forget(id)
+      askedShown.delete(id)
+    }
+    for (const [id, item] of wanted) {
       preview.restore({ ...specOf(item), itemId: id })
+      askedShown.add(id)
     }
   }
 
@@ -1565,10 +1588,12 @@ export function createController(options: ControllerOptions): Controller {
   const noticeResults = (items: readonly ChangeItem[]): void => {
     if (store.checking.peek().size > 0) {
       const next = new Map(store.checking.peek())
-      for (const item of items) {
-        const known = next.get(item.id)
-        // Done when a result of a later attempt than the one shown when the check started is in.
-        if (known !== undefined && (item.verification?.attempt ?? 0) > known.attempt) next.delete(item.id)
+      const listed = new Map(items.map((item) => [item.id, item]))
+      for (const [id, known] of next) {
+        const item = listed.get(id)
+        // Done when a result of a later attempt than the one shown when the check started is in; over
+        // when the change is a draft again (taken back: its attempts start over) or no longer listed.
+        if (item === undefined || item.status === 'draft' || (item.verification?.attempt ?? 0) > known.attempt) next.delete(id)
       }
       if (next.size !== store.checking.peek().size) store.checking.value = next
     }
@@ -1578,8 +1603,12 @@ export function createController(options: ControllerOptions): Controller {
     if (claimed.some((item) => !seen.has(item.id)) || [...seen.keys()].some((id) => !claimed.some((item) => item.id === id))) {
       store.claimedSeen.value = new Map(claimed.map((item) => [item.id, seen.get(item.id) ?? Date.now()]))
     }
-    // A change that is a draft again starts its attempts over: its next result is news.
-    for (const item of items) if (item.status === 'draft') seenAttempts?.delete(item.id)
+    // A change that is a draft again, or that left this tab's list (taken back in another), starts its
+    // attempts over: its next result is news.
+    if (seenAttempts !== undefined) {
+      const sent = new Set(items.filter((item) => item.status !== 'draft').map((item) => item.id))
+      for (const id of [...seenAttempts.keys()]) if (!sent.has(id)) seenAttempts.delete(id)
+    }
     if (seenAttempts === undefined) {
       // What was there when this page loaded is not news.
       seenAttempts = new Map(items.filter((item) => item.verification !== undefined).map((item) => [item.id, item.verification!.attempt]))
@@ -1606,6 +1635,7 @@ export function createController(options: ControllerOptions): Controller {
     const kept = store.info.value === null ? loadDrafts(projectKey(message.info)).filter((item) => !present().some((other) => other.id === item.id)) : []
     const before = kept.length === 0 ? present() : [...present(), ...kept]
     const result = reconcile(before, message.items, { first, deleted: tombstones, withdrawn: withdrawing })
+    settleWithdrawals(message.items)
     batch(() => {
       store.info.value = message.info
       if (kept.length > 0 || diffLists(before, result.items).upserts.length > 0 || before.length !== result.items.length) {
@@ -1623,6 +1653,8 @@ export function createController(options: ControllerOptions): Controller {
       store.ready.value = true
     })
     noticeResults(result.items)
+    // The asked-for look keeps up with the list (a change taken back, or one the server no longer has).
+    if (store.showingAsked.peek()) void enqueue(async () => showAsked(true))
     for (const id of result.released) forget(id)
     if (result.returned.length > 0) {
       for (const item of result.returned) withdrawing.delete(item.id)

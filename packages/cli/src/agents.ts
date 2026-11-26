@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { dirname, join, resolve } from 'node:path'
+import { join, resolve } from 'node:path'
 import { MCP_SERVER_NAME } from './registration.ts'
 
 /**
@@ -29,27 +29,31 @@ const readJson = (path: string): unknown => {
   }
 }
 
+interface ProjectEntry {
+  mcpServers?: unknown
+  enabledMcpjsonServers?: string[]
+  disabledMcpjsonServers?: string[]
+}
+
 const hasServer = (config: unknown): boolean => {
   const servers = (config as { mcpServers?: unknown } | undefined)?.mcpServers
   return typeof servers === 'object' && servers !== null && Object.hasOwn(servers, MCP_SERVER_NAME)
 }
 
-/** The project directory and the ones above it: Claude Code keys a project's settings by the directory it was started in. */
-function upFrom(dir: string): string[] {
-  const out: string[] = []
-  for (let at = resolve(dir); ; at = dirname(at)) {
-    out.push(at)
-    if (dirname(at) === at) return out
-  }
-}
-
 export function findRegistrations(projectRoot: string, home: string = homedir()): AgentRegistration[] {
   const found: AgentRegistration[] = []
 
-  const claude = readJson(join(home, '.claude.json')) as { mcpServers?: unknown; projects?: Record<string, unknown> } | undefined
+  // Claude Code keys a project's own servers by the exact directory it was started in, not by a parent.
+  const claude = readJson(join(home, '.claude.json')) as { mcpServers?: unknown; projects?: Record<string, ProjectEntry> } | undefined
+  const project = claude?.projects?.[resolve(projectRoot)]
+  const declined = project?.disabledMcpjsonServers?.includes(MCP_SERVER_NAME) === true
   if (hasServer(claude)) found.push({ client: 'Claude Code', scope: 'every project' })
-  else if (upFrom(projectRoot).some((dir) => hasServer(claude?.projects?.[dir]))) found.push({ client: 'Claude Code', scope: 'this project' })
-  else if (hasServer(readJson(join(projectRoot, '.mcp.json')))) found.push({ client: 'Claude Code', scope: 'this project (.mcp.json)' })
+  else if (hasServer(project)) found.push({ client: 'Claude Code', scope: 'this project' })
+  else if (!declined && hasServer(readJson(join(projectRoot, '.mcp.json')))) {
+    // A server from .mcp.json runs once the person approved it in Claude Code.
+    const approved = project?.enabledMcpjsonServers?.includes(MCP_SERVER_NAME) === true
+    found.push({ client: 'Claude Code', scope: approved ? 'this project (.mcp.json)' : 'this project (.mcp.json; Claude Code asks to approve it)' })
+  }
 
   try {
     const toml = readFileSync(join(home, '.codex', 'config.toml'), 'utf8')

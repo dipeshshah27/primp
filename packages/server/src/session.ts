@@ -566,7 +566,8 @@ export function createSession(options: SessionOptions): Session {
         // The same instructions get_layout_shifts gives an agent over MCP, worded for the clipboard.
         const entry = shiftsByDoc.get(message.doc)
         const wanted = new Set(message.ids)
-        const issues = entry?.report.issues.filter((issue) => wanted.has(issue.id)) ?? []
+        // Only shifts that count: the prompt leaves out the others, and would be empty around them.
+        const issues = entry?.report.issues.filter((issue) => wanted.has(issue.id) && issue.scored && issue.excluded === undefined) ?? []
         let prompt = ''
         try {
           if (entry !== undefined && issues.length > 0) prompt = renderPrompt([], { batchId: 'layout-shifts', channel: 'clipboard' }, { shifts: issues, culpritSources: entry.culpritSources })

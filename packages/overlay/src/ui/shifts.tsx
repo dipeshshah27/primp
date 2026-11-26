@@ -128,7 +128,8 @@ function IssueRow({ c, issue, state }: { c: Controller; issue: ShiftIssue; state
         </div>
       ) : null}
       <div class="row">
-        {issue.cause === 'unknown' || issue.cause === 'dev-artifact' ? null : (
+        {/* Only a shift that counts, with a named cause: the prompt leaves out the others. */}
+        {!issue.scored || issue.excluded !== undefined || issue.cause === 'unknown' || issue.cause === 'dev-artifact' ? null : (
           <button type="button" class="btn sm" title="Copy instructions that fix this shift, to paste into your agent" onClick={() => void c.copyShiftPrompt([issue.id])}>
             Copy fix prompt
           </button>

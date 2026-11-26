@@ -30,6 +30,9 @@ export function demoTemplateDir(): string {
   throw new DemoError('The demo site is missing from this installation of primp.')
 }
 
+/** The demo's agent configuration: Claude Code's and Cursor's. */
+const AGENT_FILES = ['.mcp.json', join('.cursor', 'mcp.json')]
+
 /** Copies the demo site to `dir`. An existing demo (same index.html marker) is reused; any other non-empty directory is refused. */
 export function prepareDemo(dir: string, template: string = demoTemplateDir()): { dir: string; created: boolean } {
   const target = resolve(dir)
@@ -39,7 +42,16 @@ export function prepareDemo(dir: string, template: string = demoTemplateDir()): 
     if (entries.length > 0) {
       const index = join(target, 'index.html')
       const isDemo = existsSync(index) && DEMO_TITLES.some((title) => readFileSync(index, 'utf8').includes(title))
-      if (isDemo) return { dir: target, created: false }
+      if (isDemo) {
+        // A demo copied out by an earlier version has no agent configuration: it gets the files it lacks
+        // (never overwriting one the person changed), so the guide's word that an agent finds primp holds.
+        for (const file of AGENT_FILES) {
+          if (existsSync(join(target, file)) || !existsSync(join(template, file))) continue
+          mkdirSync(dirname(join(target, file)), { recursive: true })
+          cpSync(join(template, file), join(target, file))
+        }
+        return { dir: target, created: false }
+      }
       throw new DemoError(`${target} is not empty. Pass another directory: ${selfCommand()} demo --dir <directory>.`)
     }
   }

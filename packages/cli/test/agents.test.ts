@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { removeDir, tempDir } from '../../server/test/session-helpers.ts'
@@ -22,8 +22,24 @@ describe('findRegistrations: which agents have primp, from their configuration f
     expect(connectedLine([])).toBeUndefined()
   })
 
-  it('Claude Code for one project (a parent directory counts), Codex, Cursor in the project', () => {
-    writeFileSync(join(home, '.claude.json'), JSON.stringify({ mcpServers: { other: {} }, projects: { [join(root, 'code')]: { mcpServers: { primp: { command: 'npx' } } } } }))
+  it('Claude Code for a parent directory only does not count: it applies to the directory it was started in', () => {
+    writeFileSync(join(home, '.claude.json'), JSON.stringify({ projects: { [join(root, 'code')]: { mcpServers: { primp: {} } } } }))
+    expect(findRegistrations(project, home)).toEqual([])
+  })
+
+  it('.mcp.json in the project: counted, unless declined in Claude Code; said to need approval until approved', () => {
+    writeFileSync(join(project, '.mcp.json'), JSON.stringify({ mcpServers: { primp: {} } }))
+    writeFileSync(join(home, '.claude.json'), JSON.stringify({}))
+    expect(findRegistrations(project, home)[0]).toEqual({ client: 'Claude Code', scope: 'this project (.mcp.json; Claude Code asks to approve it)' })
+    writeFileSync(join(home, '.claude.json'), JSON.stringify({ projects: { [project]: { enabledMcpjsonServers: ['primp'] } } }))
+    expect(findRegistrations(project, home)[0]).toEqual({ client: 'Claude Code', scope: 'this project (.mcp.json)' })
+    writeFileSync(join(home, '.claude.json'), JSON.stringify({ projects: { [project]: { disabledMcpjsonServers: ['primp'] } } }))
+    expect(findRegistrations(project, home)).toEqual([])
+    rmSync(join(project, '.mcp.json'))
+  })
+
+  it('Claude Code for this project, Codex, Cursor in the project', () => {
+    writeFileSync(join(home, '.claude.json'), JSON.stringify({ mcpServers: { other: {} }, projects: { [project]: { mcpServers: { primp: { command: 'npx' } } } } }))
     writeFileSync(join(home, '.codex', 'config.toml'), 'model = "x"\n\n[mcp_servers.primp]\ncommand = "npx"\n')
     writeFileSync(join(project, '.cursor', 'mcp.json'), JSON.stringify({ mcpServers: { primp: {} } }))
     const found = findRegistrations(project, home)

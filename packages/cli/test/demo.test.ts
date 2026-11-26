@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { DemoError, demoGuide, demoTemplateDir, prepareDemo, startDemoServer, type DemoServer } from '../src/demo.ts'
@@ -36,6 +36,19 @@ describe('primp demo', () => {
     // An agent opened in the demo finds primp by itself: the published package, never an unrelated one.
     expect(JSON.parse(readFileSync(join(site.dir, '.mcp.json'), 'utf8')).mcpServers.primp.args).toEqual(['-y', '@primpdev/cli', 'mcp'])
     expect(JSON.parse(readFileSync(join(site.dir, '.cursor/mcp.json'), 'utf8')).mcpServers.primp.args).toEqual(['-y', '@primpdev/cli', 'mcp', '--project', '${workspaceFolder}'])
+  })
+
+  it('a demo copied out before it had agent configuration gets those files, and keeps an edited one', () => {
+    const dir = join(work, 'old-demo')
+    prepareDemo(dir)
+    rmSync(join(dir, '.mcp.json'))
+    rmSync(join(dir, '.cursor'), { recursive: true })
+    writeFileSync(join(dir, 'index.html'), readFileSync(join(dir, 'index.html'), 'utf8'))
+    expect(prepareDemo(dir).created).toBe(false)
+    expect(existsSync(join(dir, '.mcp.json')) && existsSync(join(dir, '.cursor', 'mcp.json'))).toBe(true)
+    writeFileSync(join(dir, '.mcp.json'), '{"mine":true}')
+    prepareDemo(dir)
+    expect(readFileSync(join(dir, '.mcp.json'), 'utf8')).toBe('{"mine":true}')
   })
 
   it('still recognises a demo copied out by an earlier version', () => {
