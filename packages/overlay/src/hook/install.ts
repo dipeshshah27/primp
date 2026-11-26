@@ -22,7 +22,10 @@ import { installShifts, markSelf, onShift, selfMarks, shifts, supported } from '
 import { installStacks } from './stacks.ts'
 import { cost, frame, now, round } from './state.ts'
 
-/** Must equal `SHIFT_RECORDING_VERSION`; the protocol is imported for types only (see bus.ts). */
+/**
+ * Must equal `SHIFT_RECORDING_VERSION`. The protocol is imported for its types only: importing the
+ * value would pull the schema library into this script.
+ */
 const VERSION: typeof SHIFT_RECORDING_VERSION = 1
 
 /** Replaced at build time; `true` compiles in the DOM-call stack capture (see stacks.ts). */
