@@ -57,7 +57,6 @@ export interface Handles {
   place(box: ViewRect | null): void
   /** Client rects of the handles that are shown now. */
   rects(): Partial<Record<HandleName, ViewRect>>
-  /** The drag in progress, if any. */
   drag(): DragState | null
   dispose(): void
 }
@@ -88,11 +87,6 @@ const CLICK_WAIT_MS = 400
 const rectOf = (element: Element): ViewRect => {
   const r = element.getBoundingClientRect()
   return { x: r.left, y: r.top, width: r.width, height: r.height }
-}
-
-const boxOf = (element: Element): Box => {
-  const r = element.getBoundingClientRect()
-  return { left: r.left, top: r.top, width: r.width, height: r.height }
 }
 
 const at = (node: HTMLElement, x: number, y: number): void => {

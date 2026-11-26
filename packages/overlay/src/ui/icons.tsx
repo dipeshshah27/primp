@@ -86,11 +86,6 @@ export const IconClose = (p: P) => (
     <path d="M6 6l12 12M18 6 6 18" />
   </Icon>
 )
-export const IconGrip = (p: P) => (
-  <Icon {...p}>
-    <path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01" stroke-width="3" />
-  </Icon>
-)
 export const IconChevron = (p: P) => (
   <Icon {...p}>
     <path d="m9 6 6 6-6 6" />
@@ -130,20 +125,9 @@ export const IconArrowRight = (p: P) => (
 )
 export const IconHide = IconEyeOff
 export const IconRemove = IconTrash
-export const IconNote = (p: P) => (
-  <Icon {...p}>
-    <path d="M5 4.5h14a1.5 1.5 0 0 1 1.5 1.5v9.5a1.5 1.5 0 0 1-1.5 1.5h-7l-4.5 3.5V17H5a1.5 1.5 0 0 1-1.5-1.5V6A1.5 1.5 0 0 1 5 4.5Z" />
-  </Icon>
-)
 export const IconRefresh = (p: P) => (
   <Icon {...p}>
     <path d="M20 11a8 8 0 0 0-14.3-4.9L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.9L20 16M20 20v-4h-4" />
-  </Icon>
-)
-export const IconTarget = (p: P) => (
-  <Icon {...p}>
-    <circle cx="12" cy="12" r="7.5" />
-    <path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4" />
   </Icon>
 )
 export const IconAlignLeft = (p: P) => (

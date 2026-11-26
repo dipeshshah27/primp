@@ -25,7 +25,7 @@ import { pathToFileURL } from 'node:url'
 import type { PrimpTestHandle } from '../packages/overlay/src/test-handle.ts'
 import { prepareDemo, startDemoServer } from '../packages/cli/src/demo.ts'
 import { startPrimp } from '../packages/server/src/app.ts'
-import { createReport, expect, launchBrowser, newPage, onCleanup, REPO_ROOT, runCleanups, sleep, TMP_ROOT, waitFor } from './lib/index.ts'
+import { createReport, launchBrowser, newPage, onCleanup, REPO_ROOT, runCleanups, sleep, TMP_ROOT, waitFor } from './lib/index.ts'
 
 const report = createReport('Real agent: headless Claude Code drives primp from the README sentences alone')
 const CLAUDE = join(homedir(), '.local', 'bin', 'claude')

@@ -99,13 +99,13 @@ const LOGICAL_SIZE: Record<string, string> = {
   'max-block-size': 'max-height',
 }
 
-/**
- * The physical property a logical one sets on an element with this flow (`padding-inline-start`
- * is `padding-left` in a left-to-right horizontal text); any other property is returned as it is.
- * In a vertical writing mode the sides are left logical.
- */
 const LOGICAL_CORNER = /^border-(start|end)-(start|end)-radius$/
 
+/**
+ * The physical property a logical one sets on an element with this flow (`padding-inline-start`
+ * is `padding-left` in left-to-right horizontal text); any other property is returned as it is.
+ * In a vertical writing mode the sides are left logical.
+ */
 export function physicalOf(property: string, flow: Flow = {}): string {
   const size = LOGICAL_SIZE[property]
   if (size !== undefined) return flow.vertical === true ? property : size
@@ -140,12 +140,6 @@ export function setsProperty(declared: string, property: string, flow: Flow = {}
   const wanted = physicalSet(property, flow)
   for (const name of physicalSet(declared, flow)) if (wanted.has(name)) return true
   return false
-}
-
-/** The properties to compare for `property`: its longhands, or itself. */
-export function comparableProperties(property: string): string[] {
-  const longhands = longhandsOf(property)
-  return longhands.length > 0 ? longhands : [property]
 }
 
 /**

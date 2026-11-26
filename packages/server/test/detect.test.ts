@@ -378,7 +378,7 @@ describe('detectDevServer', () => {
 
   it('while waiting, the first slow port to answer with a page ends the wait; the silent one is abandoned', async () => {
     const abandoned: number[] = []
-    const probe = (port: number, timeoutMs: number, abandon?: AbortSignal): Promise<ProbeResult> =>
+    const probe = (port: number, _timeoutMs: number, abandon?: AbortSignal): Promise<ProbeResult> =>
       new Promise((resolve) => {
         if (port === 5173) return void setTimeout(() => resolve(html), 300)
         if (port === 3000) {

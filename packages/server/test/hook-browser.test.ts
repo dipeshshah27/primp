@@ -117,7 +117,7 @@ describe('what the hook records about a layout shift, in Chromium', () => {
       const block = recording.shifts.flatMap((entry) => entry.sources).find((source) => source.node?.id === 'block')
       // What the Layout Instability API says: visible from y=500+ to the bottom edge before, nothing after.
       expect(block?.previousRect.height).toBeGreaterThan(0)
-      expect(block?.previousRect.y + (block?.previousRect.height ?? 0)).toBe(800)
+      expect((block?.previousRect.y ?? Number.NaN) + (block?.previousRect.height ?? 0)).toBe(800)
       expect(block?.currentRect).toEqual({ x: 0, y: 0, width: 0, height: 0 })
       // What the hook adds: where the block really is, 400px (plus the heading's growth) further down.
       expect(block?.rect?.height).toBe(500)

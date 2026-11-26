@@ -129,7 +129,7 @@ describe('attributeShifts on the corpus (positive pages)', () => {
   it('keeps two causes on one page apart', () => {
     const issues = scoredInOrder(load('multi__font-then-banner'))
     expect(issues).toHaveLength(2)
-    expect(issues[1]?.startTime - (issues[0]?.startTime ?? 0)).toBeGreaterThan(500)
+    expect(issues[1]!.startTime - issues[0]!.startTime).toBeGreaterThan(500)
     expect(issues.map((issue) => issue.entries.length)).toEqual([1, 1])
   })
 
@@ -292,7 +292,7 @@ describe('attributeShifts on patterns beyond the corpus', () => {
  * Pages of `fixtures/cls-heldout`, recorded through the product on 2026-11-21: once with the hook
  * as it was when the set was first run (`cls-heldout-old-hook__*`: no measured box on shift
  * sources, and a frame of the hook's DOM wrapper on top of the stack of `insertAdjacentHTML`), and
- * once with the hook as it is now. The first run got these six pages wrong or left them open; they
+ * once with the current hook. The first run got these six pages wrong or left them open; they
  * are regression fixtures since. Expectations are the pages' answer keys.
  */
 const HELDOUT: Record<string, Want> = {

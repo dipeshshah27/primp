@@ -378,7 +378,7 @@ describe('createVerifier', () => {
     const item = claimed('c1')
     const { session, items, measured } = fakeSession([item], () => ({ status: 'no_browser' }))
     const { detector } = fakeDetector(
-      settled({ status: 'build_error', error: { message: 'Unexpected token (12:4)', file: 'src/components/Header.tsx', line: 12 }, reason: 'the dev server reports an error' }),
+      settled({ status: 'build_error', error: { source: 'hmr', message: 'Unexpected token (12:4)', file: 'src/components/Header.tsx', line: 12 }, reason: 'the dev server reports an error' }),
     )
     const outcome = await createVerifier({ session, detector, sleep: noSleep }).verify()
     expect(measured).toHaveLength(0)
@@ -884,7 +884,7 @@ describe('createVerifier: notes', () => {
     expect(outcome.results[1]?.checks).toEqual([])
     expect(outcome.results[1]?.hint).toContain('check it by eye')
     expect(outcome.counts).toEqual({ pass: 1, not_checkable: 2 })
-    // Honest: the summary does not read as "all passed", and nothing is left to fix.
+    // The summary does not read as "all passed", and nothing is left to fix.
     expect(outcome.summary).toBe('Verified 3 changes: 1 pass, 2 not checkable. n1, n2 are notes: nothing to measure, so neither a pass nor a fail; the user checks them by eye.')
     expect(outcome.fixup).toBe('')
     expect(items.get('c1')?.status).toBe('verified')
@@ -931,7 +931,7 @@ describe('createVerifier: notes', () => {
     ])
 
     const broken = fakeSession([claimedNote('n1')], () => ({ status: 'no_browser' }))
-    const error = { message: 'Unexpected token', file: 'src/components/Header.tsx', line: 3, column: 1 }
+    const error = { source: 'hmr' as const, message: 'Unexpected token', file: 'src/components/Header.tsx', line: 3, column: 1 }
     const failed = await createVerifier({ session: broken.session, detector: fakeDetector(settled({ status: 'build_error', error })).detector, sleep: noSleep }).verify()
     expect(failed.results[0]).toMatchObject({ status: 'not_checkable' })
     expect(failed.results[0]?.hint).toContain('also reports a build error')

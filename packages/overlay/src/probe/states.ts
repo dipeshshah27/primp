@@ -22,7 +22,6 @@ import { FORCE_ATTR, ignoreSheet } from './styles.ts'
 import { replaceState, splitSelectorList } from './specificity.ts'
 
 export type ForcedState = 'hover' | 'focus' | 'focus-visible' | 'active'
-export const FORCED_STATES: readonly ForcedState[] = ['hover', 'focus', 'focus-visible', 'active']
 // Declared in styles.ts, which has to tell the marker selectors from the page's own.
 export { FORCE_ATTR }
 

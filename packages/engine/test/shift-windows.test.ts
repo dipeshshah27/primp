@@ -36,7 +36,7 @@ describe('sessionWindows', () => {
     const windows = sessionWindows(entries)
     // 0 .. 4500 fit (4500 < 5000); 5400 is 5.4 s after the start and opens the next window.
     expect(windows.map((window) => window.entries)).toEqual([[0, 1, 2, 3, 4, 5], [6, 7]])
-    expect(windows[0]?.end - (windows[0]?.start ?? 0)).toBeLessThan(SESSION_MAX_MS)
+    expect(windows[0]!.end - windows[0]!.start).toBeLessThan(SESSION_MAX_MS)
   })
 
   it('puts a shift exactly five seconds after the window start into a new window', () => {
