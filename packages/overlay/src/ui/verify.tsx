@@ -31,6 +31,20 @@ const RESULT: Record<VerificationStatus, { text: string; tone: string }> = {
   not_checkable: { text: 'note: check by eye', tone: '' },
 }
 
+/** What a result means for the person at the page, in one sentence. The hint itself is written for the agent. */
+const MEANING: Record<VerificationStatus, string> = {
+  pass: 'The page now shows what you asked for.',
+  drift: 'It landed close to what you asked for, such as the nearest design token.',
+  fail: 'The page does not show what you asked for yet.',
+  unresolved: 'primp could not find the element again after the edit.',
+  no_update_observed: 'No source file changed, so there was nothing new to check.',
+  build_error: 'The app does not build right now.',
+  not_measurable: 'primp could not measure this one here (the window size or the state).',
+  tab_hidden: 'This tab was in the background, so nothing was measured. Bring it to the front and check again.',
+  no_browser: 'No tab with the app was open, so nothing was measured.',
+  not_checkable: 'A note: nothing on the page can measure it. Check it by eye; your agent should say what it changed.',
+}
+
 function what(check: CheckResult): string {
   const expectation = check.expectation
   switch (expectation.type) {
@@ -95,13 +109,18 @@ function VerifyItem({ c, item, number }: { c: Controller; item: ChangeItem; numb
       {result === undefined ? null : (
         <>
           <div class="row wrap">
-            <span class={`chip ${RESULT[result.status].tone}`}>{RESULT[result.status].text}</span>
-            <span class="muted">
-              attempt {result.attempt}
-              {result.settle === undefined ? '' : `, page settled by ${result.settle.signal} in ${Math.round(result.settle.ms)} ms`}
+            <span class={`chip ${RESULT[result.status].tone}`} title={result.settle === undefined ? undefined : `Measured after the page settled (${result.settle.signal}, ${Math.round(result.settle.ms)} ms)`}>
+              {RESULT[result.status].text}
             </span>
+            {result.attempt > 1 ? <span class="muted">check {result.attempt}</span> : null}
           </div>
-          {result.hint === '' ? null : <div>{result.hint}</div>}
+          <div>{MEANING[result.status]}</div>
+          {result.hint === '' || result.status === 'pass' ? null : (
+            <details class="told">
+              <summary>What your agent was told</summary>
+              <div class="muted">{result.hint}</div>
+            </details>
+          )}
           {result.checks.length > 0 ? (
             <ul class="checks" aria-label="Checks">
               {result.checks.map((check, index) => (

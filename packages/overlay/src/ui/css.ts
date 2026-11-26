@@ -383,6 +383,9 @@ details.all > summary::-webkit-details-marker, details > summary::-webkit-detail
 details.all > summary .icon { transition: transform 150ms ease; width: 12px; height: 12px; }
 details.all[open] > summary .icon { transform: rotate(90deg); }
 details > summary { cursor: pointer; list-style: none; color: var(--muted); font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+details.told > summary::before { content: ""; width: 0; height: 0; border: 4px solid transparent; border-left-color: currentColor; margin-left: 2px; }
+details.told[open] > summary::before { transform: rotate(90deg) translateX(2px); }
+details.told > .muted { margin-top: 4px; font-size: 12px; line-height: 1.45; }
 details.sub > summary::before { content: ""; width: 0; height: 0; border: 4px solid transparent; border-left-color: currentColor; margin-left: 2px; }
 details.sub[open] > summary::before { transform: rotate(90deg) translate(2px, -2px); }
 details > summary + * { margin-top: 6px; }

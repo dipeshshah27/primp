@@ -158,7 +158,7 @@ pnpm spike:site                                   # build and check: pages, link
 pnpm site:capture                                 # new screenshots and facts from a real run on the demo site
 ```
 
-The repository URL on the site is a placeholder in `site/lib/config.ts`.
+The repository and site URLs are set in `site/lib/config.ts`.
 
 ## Licence
 

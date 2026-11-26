@@ -101,7 +101,7 @@ export function ScopeChips({ item }: { item: ChangeItem }) {
         </span>
       )}
       {media === undefined ? null : <span class="chip info">@media {media}</span>}
-      {all ? <span class="chip info">all {item.target.instanceCount} instances</span> : null}
+      {all ? <span class="chip info">{(item.target.instanceCount ?? 0) > 1 ? `all ${item.target.instanceCount} instances` : 'every instance'}</span> : null}
     </>
   )
 }
