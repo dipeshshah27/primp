@@ -32,7 +32,7 @@ import type { ServerMessage, SessionInfo } from '@primp/protocol/messages'
 import { collectEvidence } from '@primp/source/browser/index'
 import type { PrimpBus } from '../bus.ts'
 import { describeBystander, findBystanders, valuesOf } from '../probe/bystanders.ts'
-import { measureEffects, type EffectsResult } from '../probe/effects.ts'
+import { measureEffects, sameEffect, sameEffects, type EffectsResult } from '../probe/effects.ts'
 import { measure, type MeasureRequest, type Measurement } from '../probe/measure.ts'
 import { createPreview, type Preview, type PreviewSpec } from '../probe/preview.ts'
 import { computedLonghands, computedValue, isCustomProperty, isSupportedProperty, isValidValue } from '../probe/properties.ts'
@@ -1169,13 +1169,26 @@ export function createController(options: ControllerOptions): Controller {
     refresh()
   }
 
-  const setVerdict = (id: string, effectIndex: number, verdict: SideEffect['verdict']): void =>
-    update(id, (item) => {
-      if (item.sideEffects[effectIndex] === undefined || item.sideEffects[effectIndex].verdict === verdict) return item
-      const sideEffects = item.sideEffects.map((effect, index) => (index === effectIndex ? { ...effect, verdict } : effect))
+  const setVerdict = (id: string, effectIndex: number, verdict: SideEffect['verdict']): void => {
+    const source = present().find((item) => item.id === id)
+    const effect = source?.sideEffects[effectIndex]
+    if (source === undefined || effect === undefined) return
+    const judged = (item: ChangeItem): ChangeItem => {
+      // The same consequence recorded on another change of the same gesture (a corner resize sets width
+      // AND height) gets the same verdict: one element cannot be both wanted and unwanted.
+      if (item.status !== 'draft') return item
+      if (item.id !== id && (item.target.uid !== source.target.uid || !sameEffects(item.sideEffects, source.sideEffects))) return item
+      const index = item.id === id ? effectIndex : item.sideEffects.findIndex((other) => sameEffect(other, effect))
+      if (item.sideEffects[index] === undefined || item.sideEffects[index].verdict === verdict) return item
+      const sideEffects = item.sideEffects.map((one, at) => (at === index ? { ...one, verdict } : one))
       const changed = { ...item, sideEffects }
       return { ...changed, expect: deriveExpectations(changed) }
-    })
+    }
+    // One commit: one undo step.
+    const before = present()
+    const next = before.map(judged)
+    if (next.some((item, index) => item !== before[index])) commit(next)
+  }
 
   const setNote = (id: string, note: string): void =>
     update(id, (item) => {

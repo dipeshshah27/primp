@@ -6,7 +6,7 @@
 
 import type { ChangeItem, SideEffect } from '@primp/protocol/change'
 import { useState } from 'preact/hooks'
-import { describeEffect, summarizeRecorded } from '../probe/effects.ts'
+import { describeEffect, sameEffects, summarizeRecorded } from '../probe/effects.ts'
 import { summaryKey, type Controller } from '../state/controller.ts'
 import { pinGroups } from '../state/pins.ts'
 import { IconClose, IconCopy, IconRedo, IconSend, IconUndo } from './icons.tsx'
@@ -52,7 +52,7 @@ function Effects({ c, item }: { c: Controller; item: ChangeItem }) {
 }
 
 /** One recorded change. `withTarget`: also name the element (in lists of several elements). */
-export function TrayItem({ c, item, withTarget = false }: { c: Controller; item: ChangeItem; withTarget?: boolean }) {
+export function TrayItem({ c, item, withTarget = false, effectsAbove = false }: { c: Controller; item: ChangeItem; withTarget?: boolean; effectsAbove?: boolean }) {
   const [open, setOpen] = useState(false)
   const detached = c.store.detached.value.has(item.id)
   const summary = c.store.summaries.value.get(summaryKey(item)) ?? summarizeRecorded(item.sideEffects)
@@ -95,7 +95,11 @@ export function TrayItem({ c, item, withTarget = false }: { c: Controller; item:
               element not found on the page
             </span>
           ) : null}
-          {has ? (
+          {has && effectsAbove ? (
+            <span class="chip" title="This change is part of one gesture with the change above (a corner resize sets the width and the height): its side effects are the same, and so is what you marked unwanted.">
+              same side effects as above
+            </span>
+          ) : has ? (
             <button type="button" class={`chip${unwanted > 0 ? ' bad' : ''}`} aria-expanded={open} onClick={() => setOpen(!open)} title="What else changed on the page because of this edit">
               <span>
                 {summary}
@@ -109,7 +113,7 @@ export function TrayItem({ c, item, withTarget = false }: { c: Controller; item:
           )}
         </div>
       )}
-      {open && has ? <Effects c={c} item={item} /> : null}
+      {open && has && !effectsAbove ? <Effects c={c} item={item} /> : null}
       {item.kind === 'note' ? null : (
         <input
           class="input note"
@@ -221,8 +225,8 @@ export function ChangesPanel({ c, onClose }: { c: Controller; onClose(): void })
                 <SourceBadge loc={group.target.source} />
               </div>
               <ul class="tray">
-                {group.items.map((item) => (
-                  <TrayItem key={item.id} c={c} item={item} />
+                {group.items.map((item, index) => (
+                  <TrayItem key={item.id} c={c} item={item} effectsAbove={index > 0 && sameEffects(group.items[index - 1]!.sideEffects, item.sideEffects)} />
                 ))}
               </ul>
             </section>

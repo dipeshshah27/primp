@@ -2017,6 +2017,17 @@ async function viteDrags(browser: Browser, lane: Lane): Promise<void> {
       const canUndo = (await testState(t)).canUndo
       await t.evaluate(() => window.__primp_test!.redo())
       expect(undone.length === 0 && near(undoneBox.w, startBox.w) && near(undoneBox.h, startBox.h) && !canUndo && (await items(t)).length === 2, `undo: ${undone.length} items, box ${undoneBox.w} x ${undoneBox.h}, canUndo ${canUndo}`)
+      // Width and height are one gesture with the same side effects: one verdict marks both, and the tray lists them once.
+      expect(width.sideEffects.length > 0, 'the corner resize moved nothing else on the page, so there is no shared side effect to mark')
+      await t.evaluate((id) => window.__primp_test!.setVerdict(id, 0, 'unwanted'), width.id)
+      const marked = await items(t)
+      const heightAfter = style(marked.find((item) => item.kind === 'style' && item.property === 'height'))
+      const sameShown = await page.dock.evaluate(() => [...document.querySelectorAll('.tray .chip')].filter((chip) => chip.textContent === 'same side effects as above').length)
+      expect(heightAfter.sideEffects.filter((effect) => effect.verdict === 'unwanted').length === 1 && heightAfter.expect.some((entry) => entry.type === 'no-move'), `height after marking the width's first effect unwanted: ${JSON.stringify(heightAfter.sideEffects.map((effect) => effect.verdict))}`)
+      expect(sameShown === 1, `"same side effects as above" shown ${sameShown} times`)
+      await t.evaluate(() => window.__primp_test!.undo())
+      const unmarked = style((await items(t)).find((item) => item.kind === 'style' && item.property === 'height'))
+      expect(unmarked.sideEffects.every((effect) => effect.verdict !== 'unwanted') && (await items(t)).length === 2, 'one undo did not take the verdict back from both')
       // Escape during a drag: the size shown goes back, nothing is recorded.
       const before = await rect(t, card)
       const se = centre((await t.evaluate(() => window.__primp_test!.handles())).se!)

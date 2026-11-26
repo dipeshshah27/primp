@@ -17,6 +17,7 @@ import { ELEMENT_STATES } from '../probe/specificity.ts'
 import { customPropertiesOf, declaredIn, draftShowsIn, mediaOf, type DeclaredProperty } from '../probe/styles.ts'
 import type { Controller } from '../state/controller.ts'
 import type { Selection } from '../state/store.ts'
+import { sameEffects } from '../probe/effects.ts'
 import { TrayItem } from './changes.tsx'
 import { BoxModel, ColorField, Field, IconSeg, SelectField, useValueEdit, type ValueOf } from './fields.tsx'
 import {
@@ -794,8 +795,8 @@ export function Inspector({ c, selection, onClose }: { c: Controller; selection:
               Changes to this element <span class="aside">{mine.length}</span>
             </h3>
             <ul class="tray">
-              {mine.map((item) => (
-                <TrayItem key={item.id} c={c} item={item} />
+              {mine.map((item, index) => (
+                <TrayItem key={item.id} c={c} item={item} effectsAbove={index > 0 && sameEffects(mine[index - 1]!.sideEffects, item.sideEffects)} />
               ))}
             </ul>
           </section>

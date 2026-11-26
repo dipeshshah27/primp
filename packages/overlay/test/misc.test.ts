@@ -1,7 +1,7 @@
 import { pickBest } from '@primp/engine/locator'
 import type { Locator, SideEffect } from '@primp/protocol/change'
 import { describe, expect, it } from 'vitest'
-import { describeEffect, summarizeRecorded } from '../src/probe/effects.ts'
+import { describeEffect, sameEffect, sameEffects, summarizeRecorded } from '../src/probe/effects.ts'
 import { ruleOrder, ruleText, type PreviewSpec } from '../src/probe/preview.ts'
 import { contradicts, readableClass } from '../src/probe/ref.ts'
 import { isModuleClass, isUtilityClass } from '../src/probe/styles.ts'
@@ -171,6 +171,16 @@ describe('describing recorded effects', () => {
     subtreeCount: 13,
     verdict: 'unreviewed',
     ...over,
+  })
+
+  it('tells the same consequence apart from another, the verdict aside', () => {
+    expect(sameEffect(effect({}), effect({ verdict: 'unwanted' }))).toBe(true)
+    expect(sameEffect(effect({}), effect({ selector: 'footer' }))).toBe(false)
+    expect(sameEffect(effect({}), effect({ after: { x: 0, y: 60, w: 800, h: 400 } }))).toBe(false)
+    expect(sameEffects([effect({}), effect({ selector: 'footer' })], [effect({ verdict: 'expected' }), effect({ selector: 'footer' })])).toBe(true)
+    expect(sameEffects([effect({})], [effect({}), effect({})])).toBe(false)
+    // No effects is nothing to share.
+    expect(sameEffects([], [])).toBe(false)
   })
 
   it('phrases movement and resizing from the rectangles', () => {

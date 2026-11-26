@@ -113,6 +113,18 @@ export async function measureEffects(apply: () => readonly Element[], root: Elem
   }
 }
 
+const sameRect = (a: SideEffect['before'], b: SideEffect['before']): boolean => a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h
+
+/** The same consequence on the same element (the verdict aside): one gesture records it on each of its changes. */
+export function sameEffect(a: SideEffect, b: SideEffect): boolean {
+  return a.selector === b.selector && a.type === b.type && sameRect(a.before, b.before) && sameRect(a.after, b.after)
+}
+
+/** Two changes list the same side effects, in the same order (the changes of one gesture, such as a corner resize). */
+export function sameEffects(a: readonly SideEffect[], b: readonly SideEffect[]): boolean {
+  return a.length > 0 && a.length === b.length && a.every((effect, index) => sameEffect(effect, b[index]!))
+}
+
 const px = (n: number): string => `${Math.round(Math.abs(n) * 2) / 2}px`
 
 /** A phrase for one recorded effect, from its rectangles: `moved up 48px`, `became 16px taller`. */
