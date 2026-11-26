@@ -108,6 +108,10 @@ export interface Controller {
   knownSource(element: Element): SourceLoc | null | undefined
   /** Renders the prompt the drafts would be sent with and puts it on the clipboard, without sending. */
   copyPrompt(): Promise<{ prompt: string; copied: boolean }>
+  /** The prompt that fixes these layout shifts (issue ids of this page's report), as the server renders it; empty when it could not. */
+  shiftPrompt(ids: readonly string[]): Promise<string>
+  /** `shiftPrompt`, put on the clipboard. */
+  copyShiftPrompt(ids: readonly string[]): Promise<boolean>
   /** Renders the fix-up prompt for these sent items (what did not pass) and copies it; false when there was nothing to copy. */
   copyFixup(ids: readonly string[]): Promise<boolean>
   /**
@@ -1316,6 +1320,40 @@ export function createController(options: ControllerOptions): Controller {
       return copied
     })
 
+  const shiftPrompt = async (ids: readonly string[]): Promise<string> => {
+    if (!bus.connected()) return ''
+    const reqId = newId('s')
+    const answer = await new Promise<Extract<ServerMessage, { type: 'session:prompt-text' }> | null>((resolve) => {
+      const timer = window.setTimeout(() => {
+        pendingPrompts.delete(reqId)
+        resolve(null)
+      }, SEND_TIMEOUT_MS)
+      pendingPrompts.set(reqId, (message) => {
+        window.clearTimeout(timer)
+        pendingPrompts.delete(reqId)
+        resolve(message)
+      })
+      bus.send({ type: 'session:shift-prompt', reqId, doc: bus.doc, ids: [...ids] })
+    })
+    return answer?.prompt ?? ''
+  }
+
+  const copyShiftPrompt = (ids: readonly string[]): Promise<boolean> =>
+    enqueue(async () => {
+      if (!bus.connected()) {
+        toast('Not connected to primp.', 'bad')
+        return false
+      }
+      const prompt = await shiftPrompt(ids)
+      if (prompt === '') {
+        toast('primp did not render the prompt for this shift.', 'bad')
+        return false
+      }
+      const copied = await copy(prompt)
+      toast(copied ? 'Prompt to fix the layout shift copied: paste it into your agent' : 'The browser did not allow copying.', copied ? 'ok' : 'bad')
+      return copied
+    })
+
   const copyPrompt = (): Promise<{ prompt: string; copied: boolean }> =>
     enqueue(async () => {
       const drafts = store.allDrafts.value
@@ -1705,6 +1743,8 @@ export function createController(options: ControllerOptions): Controller {
     noteOf,
     copyPrompt,
     copyFixup,
+    shiftPrompt,
+    copyShiftPrompt,
     elementOf,
     knownSource: (element) => sources.get(element),
     setState,

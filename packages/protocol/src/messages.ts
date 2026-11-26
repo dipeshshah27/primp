@@ -75,6 +75,8 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
   }),
   /** The user asked for the items to be checked again from the dock. */
   z.object({ type: z.literal('session:reverify'), ids: z.array(z.string()) }),
+  /** The user wants the prompt that fixes these layout shifts of the document's last report (answered with session:prompt-text). */
+  z.object({ type: z.literal('session:shift-prompt'), reqId: z.string(), doc: z.string(), ids: z.array(z.string()) }),
   /** The user wants the fix-up prompt for these items (what did not pass, as instructions to paste). */
   z.object({ type: z.literal('session:fixup'), reqId: z.string(), ids: z.array(z.string()) }),
   /** The tab became visible or hidden; a measurement taken while hidden is not trusted. */

@@ -637,6 +637,21 @@ describe('shifts', () => {
     expect(session.shifts()).toBe(session.shifts('doc-a'))
   })
 
+  it('session:shift-prompt answers with the clipboard instructions for the chosen shifts of that document', async () => {
+    const { connect } = rig()
+    const socket = connect('doc-a')
+    socket.receive({ type: 'session:shifts', doc: 'doc-a', recording: RECORDING })
+    await vi.waitFor(() => expect(socket.of('session:shift-report')).toHaveLength(1))
+    const issue = socket.last('session:shift-report')!.report.issues[0]!
+    socket.receive({ type: 'session:shift-prompt', reqId: 'p1', doc: 'doc-a', ids: [issue.id] })
+    const answer = socket.last('session:prompt-text')
+    expect(answer).toMatchObject({ reqId: 'p1', count: 1 })
+    expect(answer?.prompt).toContain('## Layout shifts (1)')
+    expect(answer?.prompt).toContain(`\`${issue.id}\``)
+    socket.receive({ type: 'session:shift-prompt', reqId: 'p2', doc: 'doc-b', ids: [issue.id] })
+    expect(socket.last('session:prompt-text')).toMatchObject({ reqId: 'p2', prompt: '', count: 0 })
+  })
+
   it('sends the report without sources when no culprit resolver is given, or when it fails', async () => {
     const plain = rig()
     const a = plain.connect('doc-a')

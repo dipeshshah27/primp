@@ -143,6 +143,8 @@ function start(host: StandinHost): void {
   let batches = 0
   /** The items of the last Send, for the simulated agent. */
   let lastBatch: string[] = []
+  /** The last shift report of each document, for the dock's Copy fix prompt. */
+  const shiftsByDoc = new Map<string, { report: ShiftReport; culpritSources: Record<string, SourceLoc> }>()
   let measures = 0
   const measuring = new Map<string, (answer: { visible: boolean; results: MeasuredItem[] }) => void>()
   /** One verification at a time, as primp's verifier runs them: a Check again waits for a running simulation. */
@@ -342,6 +344,7 @@ function start(host: StandinHost): void {
           }
         }
         events.lastReport = report
+        shiftsByDoc.set(message.doc, { report, culpritSources })
         socket.deliver({ type: 'session:shift-report', doc: message.doc, report, culpritSources })
         window.dispatchEvent(new CustomEvent(REPORT_EVENT, { detail: { report, culpritSources } }))
         return
@@ -350,6 +353,19 @@ function start(host: StandinHost): void {
         const resolve = measuring.get(message.reqId)
         measuring.delete(message.reqId)
         resolve?.({ visible: message.visible, results: message.results })
+        return
+      }
+      case 'session:shift-prompt': {
+        const entry = shiftsByDoc.get(message.doc)
+        const wanted = new Set(message.ids)
+        const issues = entry?.report.issues.filter((issue) => wanted.has(issue.id)) ?? []
+        let prompt = ''
+        try {
+          if (entry !== undefined && issues.length > 0) prompt = renderPrompt([], { batchId: 'layout-shifts', channel: 'clipboard' }, { shifts: issues, culpritSources: entry.culpritSources })
+        } catch {
+          // Left empty: the dock says it could not render it.
+        }
+        socket.deliver({ type: 'session:prompt-text', reqId: message.reqId, prompt, count: issues.length })
         return
       }
       case 'session:fixup': {

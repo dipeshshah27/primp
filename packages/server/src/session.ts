@@ -546,6 +546,19 @@ export function createSession(options: SessionOptions): Session {
         return void onShifts(connection, message.doc, message.recording).catch((error: unknown) => log('error', 'session:shifts failed', error))
       case 'session:measured':
         return onMeasured(connection, message)
+      case 'session:shift-prompt': {
+        // The same instructions get_layout_shifts gives an agent over MCP, worded for the clipboard.
+        const entry = shiftsByDoc.get(message.doc)
+        const wanted = new Set(message.ids)
+        const issues = entry?.report.issues.filter((issue) => wanted.has(issue.id)) ?? []
+        let prompt = ''
+        try {
+          if (entry !== undefined && issues.length > 0) prompt = renderPrompt([], { batchId: 'layout-shifts', channel: 'clipboard' }, { shifts: issues, culpritSources: entry.culpritSources })
+        } catch (error) {
+          log('error', 'the layout-shift prompt could not be rendered', error)
+        }
+        return send(connection, { type: 'session:prompt-text', reqId: message.reqId, prompt, count: issues.length })
+      }
       case 'session:fixup': {
         // What did not pass, as instructions to paste: the same fix-up an agent gets over MCP, worded for the clipboard.
         const wanted = message.ids.map((id) => items.get(id)).filter((item): item is ChangeItem => item !== undefined && item.status !== 'draft')

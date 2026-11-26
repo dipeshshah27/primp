@@ -2389,7 +2389,15 @@ async function shiftsTab(browser: Browser, lane: Lane, bundles: Bundles): Promis
       expect(row.who === 'div#promo-banner' && row.text.includes('injected content') && row.badge.includes('index.html:38'), `row: ${JSON.stringify(row)}`)
       expect(Math.abs(Number(row.cls) - 0.039) < 0.002, `CLS shown: ${row.cls}`)
       expect(row.text.includes('header#site-header') && row.text.includes('down 96px'), `victims: ${row.text}`)
-      return `before the report: "${waiting.trim().slice(0, 60)}..."; ${seconds.toFixed(1)} s later, unprompted: CLS ${row.cls}, culprit ${row.who} (${row.badge.trim()}), "injected content", victims moved down 96px`
+      // A shift with a named cause can be handed to an agent: the server renders its instructions for the clipboard.
+      const prompt = await t.evaluate(() => {
+        const controller = window.__primp_overlay!.controller
+        const issue = controller.store.shifts.value?.report.issues.find((one) => one.scored && one.cause === 'injected-content')
+        return issue === undefined ? Promise.resolve('') : controller.shiftPrompt([issue.id])
+      })
+      const button = await page.dock.evaluate(() => [...document.querySelectorAll('button')].some((one) => one.textContent?.trim() === 'Copy fix prompt'))
+      expect(button && prompt.includes('## Layout shifts (1)') && prompt.includes('promo-banner'), `Copy fix prompt button ${button}; prompt ${prompt.slice(0, 200)}`)
+      return `before the report: "${waiting.trim().slice(0, 60)}..."; ${seconds.toFixed(1)} s later, unprompted: CLS ${row.cls}, culprit ${row.who} (${row.badge.trim()}), "injected content", victims moved down 96px; Copy fix prompt renders ${prompt.split('\n').length} lines naming #promo-banner`
     })
 
     await report.attempt('shiftReport(): the attributed report names the expected culprit, and the dock added nothing to the recording', async () => {

@@ -128,6 +128,11 @@ function IssueRow({ c, issue, state }: { c: Controller; issue: ShiftIssue; state
         </div>
       ) : null}
       <div class="row">
+        {issue.cause === 'unknown' || issue.cause === 'dev-artifact' ? null : (
+          <button type="button" class="btn sm" title="Copy instructions that fix this shift, to paste into your agent" onClick={() => void c.copyShiftPrompt([issue.id])}>
+            Copy fix prompt
+          </button>
+        )}
         <button
           type="button"
           class={`btn sm${pinned ? ' on' : ''}`}
@@ -248,7 +253,7 @@ export function ShiftsPanel({ c, onClose }: { c: Controller; onClose(): void }) 
         <ShiftsTab c={c} />
       </div>
       <footer class="pop-foot foot">
-        <span class="hint grow">Shifts of this page load.</span>
+        <span class="hint grow">Shifts of this page load. With MCP, tell your agent: “Fix the layout shift primp found.”</span>
         <button type="button" class="btn sm" disabled={pending} onClick={() => void c.requestShifts().catch(() => undefined)}>
           <IconRefresh size={14} />
           Measure again
