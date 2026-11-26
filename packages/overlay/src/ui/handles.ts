@@ -17,17 +17,26 @@
  * measurement, no history and no message to the server; the release records one `resize`.
  * Shift on the corner keeps the aspect ratio. Escape cancels and restores.
  *
- * Reorder: the grip shows an insertion line in the gap between siblings nearest to the pointer
- * (probe/order.ts `dropSlot`: rows, columns and grids alike); the drop calls `reorder`. Escape
- * cancels.
+ * Reorder: the grip stands on what a drag moves (`controller.moveTarget`): the selection when it
+ * is an item of a list, else the nearest ancestor that is (the card around a clicked paragraph,
+ * outlined dashed while the grip is hovered); pressing it selects that element. During the drag
+ * the element is SHOWN where the drop would put it (`controller.previewMove`, a live move like the
+ * live size of a resize), its siblings glide to their new places, and a chip at the pointer says
+ * where it lands ("after Team · 2 of 3"). The drop target is computed on the layout as it was
+ * when the drag began (probe/order.ts `dropTarget`): over a sibling the element takes its place,
+ * over empty space it goes into the nearest gap. The dock's frames fade out of the way, and the
+ * page (or the list's own scroll box) scrolls when the pointer nears its edge. The drop calls
+ * `reorder`, which puts the live move back and records the move in the same task. Escape
+ * cancels and puts it back.
  *
- * Hidden while the controller is busy, without a selection, and each for an
- * element it cannot act on: the resize handles for an inline element, the grip for an element
- * that has no siblings (or is hidden by a recorded change).
+ * Hidden while the controller is busy and without a selection; the resize handles for an element
+ * they cannot act on. When nothing around the selection can be moved, a greyed grip says why.
  */
 
+import { motionPaused } from '../probe/page-mode.ts'
 import { SWALLOWED } from '../probe/select.ts'
-import { dropSlot, positionOf, toIndexOf, type Box } from '../probe/order.ts'
+import { dropTarget, elementChildren, positionOf, type Box } from '../probe/order.ts'
+import { labelOf } from '../probe/ref.ts'
 import type { Controller, SizeRequest } from '../state/controller.ts'
 
 export interface ViewRect {
@@ -58,11 +67,19 @@ export interface HandlesOptions {
   redraw(): void
   /** Other windows that may hold the keyboard focus during a drag (the dock's frame): Escape there cancels too. */
   keyTargets?(): (Window | null)[]
+  /** A drag began (its kind) or ended (null): the dock fades its frames out of the way meanwhile. */
+  onDrag?(kind: DragState['kind'] | null): void
 }
 
 const HANDLE = 14
-const GRIP_W = 26
-const GRIP_H = 16
+const GRIP_W = 34
+const GRIP_H = 22
+/** Within this distance of an edge, a reorder drag scrolls the page (or the list's scroll box). */
+const EDGE = 56
+/** The fastest scroll, in px per frame, with the pointer at the very edge. */
+const SCROLL_MAX = 22
+/** How long the siblings take to glide to their new places during a reorder drag. */
+const GLIDE_MS = 160
 /** A press that moves less than this is a click, not a drag. */
 const DRAG_THRESHOLD = 3
 /** How long the click that follows a drop is waited for. */
@@ -94,6 +111,48 @@ interface Drag {
   /** Resize: the border box when the drag began. */
   startW: number
   startH: number
+  /** Reorder: the layout when the drag began, which the drop target is computed on. */
+  origin?: Origin
+  /** The pointer's last position, for scrolling at the edges. */
+  x: number
+  y: number
+}
+
+/** The layout a reorder drag targets: the siblings' boxes as they were, and the scroll offsets then. */
+interface Origin {
+  boxes: (Box | null)[]
+  scrollX: number
+  scrollY: number
+  /** The scroll box the list sits in, when it is not the page. */
+  box: Element | null
+  boxLeft: number
+  boxTop: number
+}
+
+const scrolls = (value: string): boolean => value === 'auto' || value === 'scroll' || value === 'overlay'
+
+/** The nearest element at or above `from` that scrolls its content (not the page itself). */
+function scrollBoxOf(from: Element): Element | null {
+  for (let element: Element | null = from; element !== null; element = element.parentElement) {
+    if (element.localName === 'body' || element.localName === 'html') return null
+    const style = getComputedStyle(element)
+    if ((scrolls(style.overflowY) && element.scrollHeight > element.clientHeight + 1) || (scrolls(style.overflowX) && element.scrollWidth > element.clientWidth + 1)) return element
+  }
+  return null
+}
+
+const shownBox = (element: Element): Box | null => {
+  if (element.getClientRects().length === 0) return null
+  const r = element.getBoundingClientRect()
+  return r.width === 0 && r.height === 0 ? null : { left: r.left, top: r.top, width: r.width, height: r.height }
+}
+
+/** A sibling's name in the drag chip: its text when it has some, else its tag and class. */
+const shortName = (element: Element): string => {
+  const label = labelOf(element)
+  const quoted = /"(.*)"$/.exec(label)?.[1]
+  const name = quoted !== undefined && quoted !== '' ? `“${quoted.length > 22 ? `${quoted.slice(0, 21)}…` : quoted}”` : label.split(' "')[0]!
+  return name
 }
 
 export function createHandles(layer: HTMLElement, c: Controller, options: HandlesOptions, view: Window = window): Handles {
@@ -114,8 +173,23 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
     grip: make('grip', 'Drag to move this element among its siblings'),
   }
   for (const [name, node] of Object.entries(nodes)) node.dataset.handle = name
-  const line = make('insert')
   const tag = make('drag-tag')
+  /** The element the grip moves, outlined while the grip is hovered when it is not the selection. */
+  const targetBox = make('move-target')
+  /** A greyed grip when nothing around the selection can be moved; its tooltip says why. */
+  const gripOff = make('grip off')
+  gripOff.dataset.handleOff = ''
+  let gripTarget: Element | null = null
+  nodes.grip.addEventListener('pointerenter', () => {
+    if (drag !== null || gripTarget === null || gripTarget === store.selection.peek()?.element) return
+    const r = gripTarget.getBoundingClientRect()
+    targetBox.style.width = `${r.width}px`
+    targetBox.style.height = `${r.height}px`
+    show(targetBox, r.left, r.top)
+  })
+  nodes.grip.addEventListener('pointerleave', () => hide(targetBox))
+  /** The siblings' glides in progress: finished before anything is measured. */
+  let glides: Animation[] = []
 
   let drag: Drag | null = null
   let swallowing = false
@@ -130,13 +204,33 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
     at(node, x, y)
   }
 
+  /** `controller.moveTarget`, asked again only when the selection or the recorded changes change (it walks up the tree). */
+  let known: { element: Element; items: unknown; target: ReturnType<Controller['moveTarget']> } | null = null
+  const moveTarget = (): ReturnType<Controller['moveTarget']> => {
+    const element = store.selection.peek()?.element
+    const items = store.items.peek()
+    if (element === undefined) return null
+    if (known === null || known.element !== element || known.items !== items) known = { element, items, target: c.moveTarget() }
+    return known.target
+  }
+
+  /** Where the grip goes for a box: above it, else below it, else just inside its top edge; never over the page's text when there is room. */
+  const gripAt = (box: ViewRect): { x: number; y: number } => {
+    const x = Math.max(2, Math.min(view.innerWidth - GRIP_W - 2, box.x + box.width / 2 - GRIP_W / 2))
+    if (box.y >= GRIP_H + 6) return { x, y: box.y - GRIP_H - 4 }
+    if (box.y + box.height + GRIP_H + 6 <= view.innerHeight) return { x, y: box.y + box.height + 4 }
+    return { x, y: box.y + 3 }
+  }
+
   const place = (box: ViewRect | null): void => {
     lastBox = box
     const selection = store.selection.peek()
     const dragging = drag !== null && !drag.cancelled
     const visible = box !== null && selection !== null && (dragging || !store.busy.peek())
-    const resizable = visible && (drag?.state.kind === 'resize' || c.resizeRefusal() === null)
-    const movable = visible && (drag?.state.kind === 'reorder' || c.reorderRefusal() === null)
+    const reordering = dragging && drag?.state.kind === 'reorder'
+    const resizable = visible && !reordering && (drag?.state.kind === 'resize' || c.resizeRefusal() === null)
+    const target = visible && !dragging ? moveTarget() : null
+    gripTarget = target?.refusal === null ? target.element : null
     if (!resizable || box === null) {
       hide(nodes.e)
       hide(nodes.s)
@@ -150,14 +244,47 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
       else hide(nodes.s)
       show(nodes.se, box.x + box.width - half, box.y + box.height - half)
     }
-    if (!movable || box === null) hide(nodes.grip)
-    // Centred above the top edge; inside the box when that edge is at the top of the viewport.
-    else show(nodes.grip, box.x + box.width / 2 - GRIP_W / 2, box.y < GRIP_H + 4 ? box.y + 3 : box.y - GRIP_H - 3)
+    // During a reorder drag the grip stays under the pointer's capture but out of sight: the chip shows the drag.
+    nodes.grip.style.visibility = reordering ? 'hidden' : ''
+    if (reordering) {
+      hide(gripOff)
+      return
+    }
+    if (target === null || box === null) {
+      hide(nodes.grip)
+      hide(gripOff)
+      hide(targetBox)
+      return
+    }
+    if (target.refusal !== null) {
+      hide(nodes.grip)
+      hide(targetBox)
+      const at = gripAt(box)
+      gripOff.title = /only child|page body/.test(target.refusal) ? `${target.refusal} To move its container instead, select the parent (↑).` : target.refusal
+      show(gripOff, at.x, at.y)
+      return
+    }
+    hide(gripOff)
+    const own = target.element === selection?.element
+    const r = own ? box : rectOf(target.element)
+    const at = gripAt(r)
+    const name = labelOf(target.element).split(' "')[0]
+    nodes.grip.title = own ? 'Drag to move this element among its siblings (Alt+↑ / Alt+↓ moves it one place)' : `Drag to move the ${name} this element is in, among its siblings`
+    nodes.grip.classList.toggle('item', !own)
+    show(nodes.grip, at.x, at.y)
   }
 
-  const showTag = (text: string, x: number, y: number): void => {
+  /** The chip next to the pointer, kept inside the viewport. */
+  const showTag = (text: string, x: number, y: number, beside = true): void => {
     tag.textContent = text
-    show(tag, x, y)
+    tag.style.display = 'block'
+    const width = tag.offsetWidth
+    const height = tag.offsetHeight
+    let left = beside ? x + 16 : x
+    let top = beside ? y + 18 : y
+    if (left + width > view.innerWidth - 4) left = Math.max(4, x - width - 12)
+    if (top + height > view.innerHeight - 4) top = Math.max(4, y - height - 12)
+    show(tag, left, top)
   }
 
   // --- swallowing the page's events ------------------------------------------
@@ -191,7 +318,6 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
   const finish = (): void => {
     const ended = drag
     drag = null
-    hide(line)
     hide(tag)
     try {
       if (ended !== null && ended.handle.hasPointerCapture(ended.pointerId)) ended.handle.releasePointerCapture(ended.pointerId)
@@ -199,15 +325,31 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
       // Already released.
     }
     ended?.handle.classList.remove('active')
+    if (ended?.started === true) options.onDrag?.(null)
     place(lastBox)
     options.redraw()
+  }
+
+  /** Ends the siblings' glides at once: a measurement must not see them half way. */
+  const settleGlides = (): void => {
+    for (const glide of glides) {
+      try {
+        glide.cancel()
+      } catch {
+        // Already gone.
+      }
+    }
+    glides = []
   }
 
   const cancel = (): void => {
     if (drag === null || drag.cancelled) return
     if (drag.state.kind === 'resize') c.previewSize(null)
+    else {
+      settleGlides()
+      c.previewMove(null)
+    }
     drag.cancelled = true
-    hide(line)
     hide(tag)
     options.redraw()
   }
@@ -232,46 +374,92 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
     current.state = { kind: 'resize', handle, size }
     c.previewSize(size)
     const now = rectOf(current.element)
-    showTag(`${Math.round(now.width)} × ${Math.round(now.height)}`, now.x + now.width + 6, now.y + now.height + 4)
+    showTag(`${Math.round(now.width)} × ${Math.round(now.height)}`, now.x + now.width + 6, now.y + now.height + 4, false)
     options.redraw()
   }
 
-  const reorderTo = (current: Drag, x: number, y: number): void => {
-    if (current.state.kind !== 'reorder') return
-    const position = positionOf(current.element)
-    if (position === null) return
-    const slot = dropSlot(position.siblings.map(boxOf), x, y)
-    if (slot === null) return
-    const toIndex = toIndexOf(slot.slot, position.index)
-    const shown: ViewRect | null = toIndex === position.index ? null : { x: slot.line.left, y: slot.line.top, width: slot.line.width, height: slot.line.height }
-    current.state = { kind: 'reorder', fromIndex: position.index, count: position.siblings.length, toIndex, line: shown }
-    if (shown === null) {
-      hide(line)
-      hide(tag)
-      return
+  /** Where the drop would land: computed on the layout of the drag's start, moved by what has scrolled since. */
+  const targetAt = (current: Drag, from: number, x: number, y: number) => {
+    const origin = current.origin!
+    const dx = view.scrollX - origin.scrollX + (origin.box === null ? 0 : origin.box.scrollLeft - origin.boxLeft)
+    const dy = view.scrollY - origin.scrollY + (origin.box === null ? 0 : origin.box.scrollTop - origin.boxTop)
+    const boxes = origin.boxes.map((box) => (box === null ? null : { left: box.left - dx, top: box.top - dy, width: box.width, height: box.height }))
+    return dropTarget(boxes, from, x, y)
+  }
+
+  /** Lets the siblings glide from where they were to where the live move put them (First, Last, Invert, Play). */
+  const glide = (siblings: readonly Element[], before: Map<Element, DOMRect>, dragged: Element): void => {
+    settleGlides()
+    if (motionPaused() || view.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    for (const sibling of siblings) {
+      const was = before.get(sibling)
+      if (was === undefined || sibling === dragged || typeof sibling.animate !== 'function') continue
+      const now = sibling.getBoundingClientRect()
+      const dx = was.left - now.left
+      const dy = was.top - now.top
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue
+      try {
+        // Added to whatever transform the page gives it, and gone when it ends: no style of the page is touched.
+        glides.push(sibling.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0, 0)' }], { duration: GLIDE_MS, easing: 'cubic-bezier(0.2, 0, 0, 1)', composite: 'add' }))
+      } catch {
+        // No Web Animations here: the siblings jump instead.
+      }
     }
-    line.style.width = `${shown.width}px`
-    line.style.height = `${shown.height}px`
-    show(line, shown.x, shown.y)
-    // Above a vertical line, below the start of a horizontal one.
-    const across = shown.width > shown.height
-    showTag(`position ${toIndex + 1} of ${position.siblings.length}`, across ? shown.x : shown.x - 8, across ? shown.y + 6 : shown.y - 22)
+  }
+
+  const reorderTo = (current: Drag, x: number, y: number): void => {
+    if (current.state.kind !== 'reorder' || current.origin === undefined) return
+    const from = current.state.fromIndex
+    const found = targetAt(current, from, x, y)
+    if (found === null) return
+    const toIndex = found.toIndex
+    if (toIndex !== current.state.toIndex) {
+      const parent = current.element.parentElement
+      const siblings = parent === null ? [] : elementChildren(parent)
+      const before = new Map(siblings.map((sibling) => [sibling, sibling.getBoundingClientRect()] as const))
+      c.previewMove(toIndex === from ? null : toIndex)
+      glide(siblings, before, current.element)
+      options.redraw()
+    }
+    const shown: ViewRect | null = found.line === null ? null : { x: found.line.left, y: found.line.top, width: found.line.width, height: found.line.height }
+    current.state = { kind: 'reorder', fromIndex: from, count: current.state.count, toIndex, line: shown }
+    showTag(chipText(current.element, toIndex === from), x, y)
+  }
+
+  /** What the drag chip says: where the element now stands, by its neighbours, and its place among the shown siblings. */
+  const chipText = (element: Element, unchanged: boolean): string => {
+    const parent = element.parentElement
+    if (unchanged || parent === null) return 'No change: drop it over another place'
+    const shown = elementChildren(parent).filter((sibling) => sibling === element || shownBox(sibling) !== null)
+    const at = shown.indexOf(element)
+    const where = at > 0 ? `after ${shortName(shown[at - 1]!)}` : shown.length > 1 ? `before ${shortName(shown[1]!)}` : ''
+    return `${where} · ${at + 1} of ${shown.length}`
   }
 
   const begin = (name: HandleName, handle: HTMLElement, event: PointerEvent): void => {
-    const element = store.selection.peek()?.element
+    let element = store.selection.peek()?.element
     if (element === undefined || !element.isConnected) return
     const box = rectOf(element)
     let state: DragState
+    let origin: Origin | undefined
     if (name === 'grip') {
+      const target = c.moveTarget()
+      if (target === null || target.refusal !== null) return
+      // The grip may stand on the item around the selection (the card around a paragraph): pressing it selects that.
+      if (target.element !== element) c.select(target.element)
+      element = target.element
       const position = positionOf(element)
-      if (position === null || c.reorderRefusal() !== null) return
+      if (position === null) return
       state = { kind: 'reorder', fromIndex: position.index, count: position.siblings.length, toIndex: null, line: null }
+      const box = scrollBoxOf(position.parent)
+      origin = { boxes: position.siblings.map(shownBox), scrollX: view.scrollX, scrollY: view.scrollY, box, boxLeft: box?.scrollLeft ?? 0, boxTop: box?.scrollTop ?? 0 }
+      hide(targetBox)
     } else {
       if (c.resizeRefusal() !== null) return
       state = { kind: 'resize', handle: name, size: {} }
     }
-    drag = { pointerId: event.pointerId, handle, startX: event.clientX, startY: event.clientY, started: false, cancelled: false, element, state, startW: box.width, startH: box.height }
+    drag = { pointerId: event.pointerId, handle, startX: event.clientX, startY: event.clientY, started: false, cancelled: false, element, state, startW: box.width, startH: box.height, x: event.clientX, y: event.clientY }
+    if (origin !== undefined) drag.origin = origin
     handle.classList.add('active')
     try {
       handle.setPointerCapture(event.pointerId)
@@ -287,14 +475,61 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
     finish()
     if (current.cancelled || !current.started || !same) {
       if (state.kind === 'resize') c.previewSize(null)
+      else {
+        settleGlides()
+        c.previewMove(null)
+      }
       return
     }
     if (state.kind === 'resize') {
       // The live rule stays until the recorded preview replaces it, in the same task: no frame shows the old size.
       void c.resize(state.size)
-    } else if (state.toIndex !== null && state.toIndex !== state.fromIndex) {
-      void c.reorder(state.toIndex)
+      return
     }
+    settleGlides()
+    // Likewise the live move: `reorder` puts it back and records the move in one task.
+    if (state.toIndex !== null && state.toIndex !== state.fromIndex) void c.reorder(state.toIndex)
+    else c.previewMove(null)
+  }
+
+  // --- scrolling at the edges during a reorder drag -----------------------------------
+
+  /** How fast to scroll for a pointer at `at` within [low, high]: negative near low, positive near high, 0 in between. */
+  const speed = (at: number, low: number, high: number): number => {
+    const edge = Math.min(EDGE, (high - low) / 4)
+    if (at < low + edge) return -Math.ceil(SCROLL_MAX * Math.min(1, (low + edge - at) / edge))
+    if (at > high - edge) return Math.ceil(SCROLL_MAX * Math.min(1, (at - (high - edge)) / edge))
+    return 0
+  }
+
+  const scrollLoop = (): void => {
+    const current = drag
+    if (current === null || current.cancelled || current.state.kind !== 'reorder' || current.origin === undefined) return
+    let moved = false
+    const box = current.origin.box
+    if (box !== null) {
+      const r = box.getBoundingClientRect()
+      const vx = speed(current.x, r.left, r.right)
+      const vy = speed(current.y, r.top, r.bottom)
+      if (vx !== 0 || vy !== 0) {
+        const left = box.scrollLeft
+        const top = box.scrollTop
+        box.scrollBy(vx, vy)
+        moved = box.scrollLeft !== left || box.scrollTop !== top
+      }
+    }
+    if (!moved) {
+      const vx = speed(current.x, 0, view.innerWidth)
+      const vy = speed(current.y, 0, view.innerHeight)
+      if (vx !== 0 || vy !== 0) {
+        const left = view.scrollX
+        const top = view.scrollY
+        view.scrollBy(vx, vy)
+        moved = view.scrollX !== left || view.scrollY !== top
+      }
+    }
+    if (moved) reorderTo(current, current.x, current.y)
+    view.requestAnimationFrame(scrollLoop)
   }
 
   // --- listeners -----------------------------------------------------------------
@@ -321,9 +556,16 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
     if (!(event instanceof PointerEvent) || event.pointerId !== current.pointerId) return
     if (event.type === 'pointermove') {
       if (current.cancelled) return
+      current.x = event.clientX
+      current.y = event.clientY
       if (!current.started) {
         if (Math.hypot(event.clientX - current.startX, event.clientY - current.startY) < DRAG_THRESHOLD) return
         current.started = true
+        options.onDrag?.(current.state.kind)
+        if (current.state.kind === 'reorder') {
+          place(lastBox)
+          scrollLoop()
+        }
       }
       if (current.state.kind === 'resize') resizeTo(current, event.clientX, event.clientY, event.shiftKey)
       else reorderTo(current, event.clientX, event.clientY)
@@ -349,6 +591,13 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
   }
 
   const onDown = (event: PointerEvent): void => {
+    const first = event.composedPath()[0]
+    if (first === gripOff) {
+      // Only there to say why nothing can be moved: the press is not a selection click.
+      event.stopImmediatePropagation()
+      event.preventDefault()
+      return
+    }
     const name = handleOf(event)
     if (name === undefined) return
     event.stopImmediatePropagation()
@@ -375,7 +624,8 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
       stopSwallowing()
       view.removeEventListener('pointerdown', onDown, { capture: true })
       view.removeEventListener('keydown', onKey, true)
-      for (const node of [...Object.values(nodes), line, tag]) node.remove()
+      settleGlides()
+      for (const node of [...Object.values(nodes), tag, targetBox, gripOff]) node.remove()
     },
   }
 }

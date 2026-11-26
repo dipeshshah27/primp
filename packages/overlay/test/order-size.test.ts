@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { pickBest } from '@primp/engine/locator'
 import type { Locator } from '@primp/protocol/change'
-import { dropSlot, siblingPicker, toIndexOf, type Box } from '../src/probe/order.ts'
+import { dropSlot, dropTarget, listItemIndex, sameKind, siblingPicker, toIndexOf, type Box, type Signature } from '../src/probe/order.ts'
 import { cssSizeFor } from '../src/probe/size.ts'
 
 const box = (left: number, top: number, width: number, height: number): Box => ({ left, top, width, height })
@@ -81,6 +81,88 @@ describe('dropSlot: the gap nearest to the pointer', () => {
 
   it('nothing to drop among', () => {
     expect(dropSlot([], 0, 0)).toBeNull()
+  })
+})
+
+describe('dropTarget: where a drop puts the dragged element, as a sortable list does it', () => {
+  const row = [box(0, 0, 100, 80), box(120, 0, 100, 80), box(240, 0, 100, 80)]
+  const column = [box(0, 0, 200, 40), box(0, 50, 200, 40), box(0, 100, 200, 40)]
+
+  it('over a sibling: takes its place, coming from either side', () => {
+    expect(dropTarget(row, 0, 290, 40)).toMatchObject({ toIndex: 2, over: 2 })
+    expect(dropTarget(row, 2, 50, 40)).toMatchObject({ toIndex: 0, over: 0 })
+    expect(dropTarget(column, 0, 100, 70)).toMatchObject({ toIndex: 1, over: 1 })
+    // The line stands for the gap the element lands in: after the sibling when coming from before it.
+    expect(dropTarget(row, 0, 290, 40)!.line).toEqual({ left: 339, top: 0, width: 2, height: 80 })
+    expect(dropTarget(row, 2, 50, 40)!.line).toEqual({ left: -1, top: 0, width: 2, height: 80 })
+  })
+
+  it('in the middle of a big sibling far from any gap, the drop still lands (the bug: the nearest gap was its own)', () => {
+    // A 2-column bento: a wide first card, a narrow second, then two halves. Dragging the first over the middle of the fourth.
+    const bento = [box(0, 0, 760, 430), box(780, 0, 370, 430), box(0, 450, 570, 530), box(585, 450, 570, 530)]
+    const target = dropTarget(bento, 0, 760, 520)!
+    expect(target.toIndex).toBe(3)
+    expect(target.line).not.toBeNull()
+  })
+
+  it('over its own box nothing changes, and no line is shown', () => {
+    expect(dropTarget(row, 1, 170, 40)).toEqual({ toIndex: 1, over: 1, line: null })
+  })
+
+  it('in empty space: the nearest gap, as before', () => {
+    expect(dropTarget(row, 0, 230, 40)).toMatchObject({ toIndex: 1, over: null })
+    expect(dropTarget(column, 2, 100, 46)).toMatchObject({ toIndex: 1, over: null })
+    // The gap next to the element itself is no move.
+    expect(dropTarget(row, 0, 110, 40)).toEqual({ toIndex: 0, over: null, line: null })
+  })
+
+  it('children without a box (a <script>, display: none) are no target and offer no gap, but count in the indexes', () => {
+    // DOM: [script, A, (hidden), B, C]; the hidden ones report an empty box at 0,0.
+    const empty = box(0, 0, 0, 0)
+    const boxes = [null, box(0, 0, 100, 80), empty, box(120, 0, 100, 80), box(240, 0, 100, 80)]
+    // A (index 1) over C (index 4): after C.
+    expect(dropTarget(boxes, 1, 290, 40)).toMatchObject({ toIndex: 4, over: 4 })
+    // C over A: A's place, index 1 (the script stays first).
+    expect(dropTarget(boxes, 4, 50, 40)).toMatchObject({ toIndex: 1, over: 1 })
+    // At the top-left corner, where the empty boxes sit, the target is A, never a hidden child.
+    expect(dropTarget(boxes, 4, 0, 0)).toMatchObject({ toIndex: 1, over: 1 })
+    // C into the gap between A and B: before B, which is DOM index 3; C comes from later, so it lands at 3.
+    expect(dropTarget(boxes, 4, 110, 40)).toMatchObject({ toIndex: 3, over: null })
+    // After the last shown child.
+    expect(dropTarget(boxes, 1, 350, 40)).toMatchObject({ toIndex: 4, over: null })
+  })
+
+  it('nothing rendered: no target', () => {
+    expect(dropTarget([null, box(0, 0, 0, 0)], 0, 0, 0)).toBeNull()
+  })
+})
+
+describe('listItemIndex: the item a drag moves is the first of the chain that has a sibling of its kind', () => {
+  const sig = (tag: string, ...classes: string[]): Signature => ({ tag, classes })
+
+  it('sameKind: same tag and a class in common, or both without classes', () => {
+    expect(sameKind(sig('article', 'group', 'p-6'), sig('article', 'group', 'p-8'))).toBe(true)
+    expect(sameKind(sig('li'), sig('li'))).toBe(true)
+    expect(sameKind(sig('li', 'a'), sig('li'))).toBe(false)
+    expect(sameKind(sig('div', 'x'), sig('section', 'x'))).toBe(false)
+  })
+
+  it('a paragraph inside a card inside a grid of cards: the card', () => {
+    const chain = [
+      { self: sig('p', 'border-b'), siblings: [sig('div', 'space-y-2')] },
+      { self: sig('div', 'mt-6'), siblings: [sig('div', 'icon'), sig('h3'), sig('p', 'muted')] },
+      { self: sig('article', 'group', 'lg:col-span-4'), siblings: [sig('article', 'group', 'lg:col-span-2'), sig('article', 'group')] },
+      { self: sig('div', 'grid'), siblings: [] },
+    ]
+    expect(listItemIndex(chain)).toBe(2)
+  })
+
+  it('a link among links is its own item', () => {
+    expect(listItemIndex([{ self: sig('a', 'rounded-md'), siblings: [sig('a', 'rounded-md'), sig('a', 'rounded-md')] }])).toBe(0)
+  })
+
+  it('nothing list-like: null', () => {
+    expect(listItemIndex([{ self: sig('h1'), siblings: [sig('p')] }])).toBeNull()
   })
 })
 

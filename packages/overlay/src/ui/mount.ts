@@ -471,6 +471,15 @@ export function mountDock(c: Controller): DockHandle {
       else c.undo()
       return
     }
+    // Alt+↑ / Alt+↓: what the grip would move goes one place earlier or later (left and right are the browser's history keys).
+    if (!typing && event.altKey && !mod && (event.key === 'ArrowUp' || event.key === 'ArrowDown') && store.selection.peek() !== null) {
+      event.preventDefault()
+      event.stopPropagation()
+      const target = c.moveTarget()
+      if (target !== null && target.element !== store.selection.peek()?.element) c.select(target.element)
+      void c.move(event.key === 'ArrowUp' ? -1 : 1)
+      return
+    }
     if (mod || event.altKey) return
     if (inFrame && event.key === 'Escape') {
       event.preventDefault()
@@ -620,7 +629,15 @@ export function mountDock(c: Controller): DockHandle {
   }
   const STATUS_WORD = { draft: 'not sent yet', pending: 'sent, not verified yet', pass: 'verified', drift: 'landed with a nearby value', fail: 'verification failed' } as const
 
-  const handles = createHandles(layer, c, { redraw: () => redraw(), keyTargets: () => [bar.contentWindow, pop.contentWindow] })
+  const handles = createHandles(layer, c, {
+    redraw: () => redraw(),
+    keyTargets: () => [bar.contentWindow, pop.contentWindow],
+    // The toolbar and the popover would cover the places a drag goes to: faded and click-through meanwhile.
+    onDrag(kind) {
+      bar.classList.toggle('faded', kind !== null)
+      pop.classList.toggle('faded', kind !== null)
+    },
+  })
   const highlighter = createHighlighter(layer, store, window, {
     onSelection(box) {
       handles.place(box)

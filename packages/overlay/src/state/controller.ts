@@ -36,7 +36,7 @@ import { measureEffects, type EffectsResult } from '../probe/effects.ts'
 import { measure, type MeasureRequest, type Measurement } from '../probe/measure.ts'
 import { createPreview, type Preview, type PreviewSpec } from '../probe/preview.ts'
 import { computedLonghands, computedValue, isCustomProperty, isSupportedProperty, isValidValue } from '../probe/properties.ts'
-import { elementChildren, positionOf, reorderRefusal } from '../probe/order.ts'
+import { elementChildren, itemOf, positionOf, reorderRefusal } from '../probe/order.ts'
 import { buildRef, elementOfUid, labelOf, locate, locatorOf, setUidPrefix, uidOf } from '../probe/ref.ts'
 import { pauseMotion, resumeMotion, setSelectCursor } from '../probe/page-mode.ts'
 import { createPicker, neighbour, type Picker } from '../probe/select.ts'
@@ -126,6 +126,14 @@ export interface Controller {
   resize(size: SizeRequest, options?: StyleEditOptions): Promise<EditResult>
   /** During a handle drag: shows a size on the page and records nothing; null takes it away. */
   previewSize(size: SizeRequest | null): void
+  /** During a grip drag: shows the selected element at `toIndex` among its siblings and records nothing; null puts it back. */
+  previewMove(toIndex: number | null): void
+  /**
+   * What the grip moves for the selection: the selection when it is an item of a list, else the
+   * nearest ancestor that is one (the card around a paragraph), else the selection; with the
+   * reason it cannot be moved, if any. Null without a selection. Reads signals.
+   */
+  moveTarget(): { element: Element; refusal: string | null } | null
   /** Moves the selected element to `toIndex` among its parent's element children (from 0). */
   reorder(toIndex: number): Promise<EditResult>
   /** Moves the selected element by `delta` positions among its siblings (-1: earlier, +1: later). */
@@ -998,8 +1006,36 @@ export function createController(options: ControllerOptions): Controller {
    * now ends a row) is listed as for any other edit. The target is recorded again after the move:
    * its position changed on purpose, and verification looks for it at the new place.
    */
+  /** The preview of a grip drag in progress: one move, no item, no history, nothing sent. */
+  const LIVE_MOVE = 'primp-live-move'
+
+  const previewMove = (toIndex: number | null): void => {
+    const selection = store.selection.peek()
+    if (toIndex === null || selection === null || !selection.element.isConnected) {
+      if (preview.has(LIVE_MOVE)) forget(LIVE_MOVE)
+      return
+    }
+    const spec: PreviewSpec = { itemId: LIVE_MOVE, uid: uidOf(selection.element), locator: selection.ref.locator, scope: 'instance', declarations: [], seq: Number.MAX_SAFE_INTEGER, move: { toIndex } }
+    preview.apply(spec, selection.element)
+  }
+
+  const moveTarget = (): { element: Element; refusal: string | null } | null => {
+    const selection = store.selection.value
+    void store.items.value
+    if (selection === null) return null
+    const selected = selection.element
+    const item = itemOf(selected)
+    if (item !== null && item !== selected) {
+      const refusal = reorderRefusalOf(item)
+      if (refusal === null) return { element: item, refusal }
+    }
+    return { element: selected, refusal: reorderRefusalOf(selected) }
+  }
+
   const reorderWith = (pick: (index: number, count: number) => number | string): Promise<EditResult> =>
     enqueue(async () => {
+      // A drag's live move is put back in the same task as the measurement starts: no frame shows the old order in between.
+      if (preview.has(LIVE_MOVE)) forget(LIVE_MOVE)
       clearErrors()
       const selection = target()
       if (selection === null) return fail('Select an element first.')
@@ -1551,6 +1587,8 @@ export function createController(options: ControllerOptions): Controller {
     setStyles,
     resize,
     previewSize,
+    previewMove,
+    moveTarget,
     reorder,
     move,
     reorderRefusal() {

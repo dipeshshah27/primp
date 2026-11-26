@@ -137,19 +137,30 @@ export const HOST_CSS = `
 .handle:hover::before, .handle.active::before { background: var(--sel); }
 .handle.e { cursor: ew-resize; } .handle.s { cursor: ns-resize; } .handle.se { cursor: nwse-resize; }
 .grip {
-  width: 26px; height: 16px; padding: 4px 4px; border-radius: 6px; cursor: grab;
-  background: radial-gradient(circle, rgb(255 255 255 / 0.95) 1.2px, transparent 1.7px) content-box 0 0 / 6px 4px repeat, var(--sel);
+  width: 34px; height: 22px; padding: 6px 7px; border-radius: 7px; cursor: grab;
+  background: radial-gradient(circle, rgb(255 255 255 / 0.95) 1.3px, transparent 1.8px) content-box 0 0 / 6px 5px repeat, var(--sel);
   box-shadow: 0 0 0 1px rgb(255 255 255 / 0.85), 0 1px 3px rgb(15 23 42 / 0.3);
 }
+/* A larger hit area than the pill shows. */
+.grip::after { content: ""; position: absolute; inset: -5px -4px; }
 .grip:hover, .grip.active { background-color: #2563eb; }
 .grip.active { cursor: grabbing; }
-.insert {
-  position: absolute; left: 0; top: 0; display: none; z-index: 3; pointer-events: none; border-radius: 1px;
-  background: var(--sel); box-shadow: 0 0 0 1px rgb(255 255 255 / 0.9);
+/* The grip of the item around the selection (the card around a paragraph): outlined, not filled, until hovered. */
+.grip.item { background: radial-gradient(circle, var(--sel) 1.3px, transparent 1.8px) content-box 0 0 / 6px 5px repeat, #fff; box-shadow: 0 0 0 1.5px var(--sel), 0 1px 3px rgb(15 23 42 / 0.3); }
+.grip.item:hover, .grip.item.active { background: radial-gradient(circle, rgb(255 255 255 / 0.95) 1.3px, transparent 1.8px) content-box 0 0 / 6px 5px repeat, #2563eb; }
+/* Nothing around the selection can be moved: greyed, the tooltip says why. */
+.grip.off { cursor: not-allowed; background: radial-gradient(circle, rgb(255 255 255 / 0.9) 1.3px, transparent 1.8px) content-box 0 0 / 6px 5px repeat, #a1a1aa; }
+.grip.off:hover { background-color: #a1a1aa; }
+/* What the item's grip moves, while it is hovered. */
+.move-target {
+  position: absolute; left: 0; top: 0; display: none; z-index: 1; pointer-events: none; box-sizing: border-box;
+  border: 1.5px dashed var(--sel); border-radius: 3px; background: rgb(59 130 246 / 0.06);
 }
+/* Next to the pointer during a reorder drag: where the element lands. */
 .drag-tag {
-  position: absolute; left: 0; top: 0; display: none; z-index: 3; pointer-events: none; padding: 2px 7px; border-radius: 6px;
-  background: var(--sel); color: #fff; white-space: pre; font: 500 11px/1.4 var(--sans);
+  position: absolute; left: 0; top: 0; display: none; z-index: 7; pointer-events: none; padding: 3px 8px; border-radius: 7px;
+  background: #18181b; color: #fff; white-space: pre; font: 500 12px/1.4 var(--sans);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.12), 0 4px 12px rgb(15 23 42 / 0.25);
 }
 
 /* The two frames: the toolbar (or launcher) and the popover. The blur is on the frame element,
@@ -164,7 +175,9 @@ iframe.bar { z-index: 6; border-radius: 22px; }
 iframe.pop { z-index: 5; border-radius: 12px; }
 iframe.pop.sheet { border-radius: 14px 14px 0 0; }
 iframe.hidden { display: none; }
-iframe.settled { transition: transform 150ms ease; }
+iframe.settled { transition: transform 150ms ease, opacity 120ms ease; }
+/* Out of the way while a handle is dragged over the page (handles.ts). */
+iframe.faded { opacity: 0.12; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { iframe.settled, .pin { transition: none; } }
 `
 

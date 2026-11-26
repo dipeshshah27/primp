@@ -1706,6 +1706,7 @@ async function viteReorder(browser: Browser, lane: Lane): Promise<void> {
       const only = await t.evaluate(() => window.__primp_test!.move(1))
       const onlyButtons = await page.dock.evaluate(() => [...document.querySelectorAll('[aria-label="Move among siblings"] button')].every((button) => (button as HTMLButtonElement).disabled))
       const onlyHandles = await t.evaluate(() => window.__primp_test!.handles())
+      const firstPlan = await t.evaluate((selector) => document.querySelector(selector)!.getBoundingClientRect().toJSON() as DOMRect, PLAN)
       await t.evaluate(() => window.__primp_test!.select('[data-label="plan-features"] li'))
       await t.evaluate(() => window.__primp_test!.hide())
       const hidden = await t.evaluate(() => window.__primp_test!.move(1))
@@ -1713,10 +1714,12 @@ async function viteReorder(browser: Browser, lane: Lane): Promise<void> {
       expect(!earlier.ok && earlier.error?.includes('already the first') === true, `move(-1) on the first plan: ${JSON.stringify(earlier)}`)
       expect(!outside.ok && outside.error?.includes('positions 1 to 3') === true, `reorder(3): ${JSON.stringify(outside)}`)
       expect(buttons.length === 2 && buttons[0]?.disabled === true && buttons[1]?.disabled === false, `buttons on the first plan: ${JSON.stringify(buttons)}`)
-      expect(!only.ok && only.error?.includes('only child') === true && onlyButtons && onlyHandles.grip === undefined, `only child: ${JSON.stringify(only)}, buttons disabled ${onlyButtons}, handles ${JSON.stringify(onlyHandles)}`)
+      // The period has no siblings to move among, but it sits in a plan, one of three: the grip stands on that plan instead.
+      const onPlan = onlyHandles.grip !== undefined && Math.abs(centre(onlyHandles.grip).x - centre(firstPlan).x) < 2 && onlyHandles.grip.y + onlyHandles.grip.height <= firstPlan.top
+      expect(!only.ok && only.error?.includes('only child') === true && onlyButtons && onPlan, `only child: ${JSON.stringify(only)}, buttons disabled ${onlyButtons}, handles ${JSON.stringify(onlyHandles)}, first plan ${JSON.stringify(firstPlan)}`)
       expect(!hidden.ok && hidden.error?.includes('hidden by a recorded change') === true, `hidden: ${JSON.stringify(hidden)}`)
       expect((await items(t)).length === 0 && JSON.stringify(await planOrder(t)) === JSON.stringify(PLAN_NAMES), 'something was recorded or moved')
-      return `"${earlier.error}"; "${outside.error}"; "${only.error}"; "${hidden.error}"; Move earlier disabled on the first plan, both disabled and no grip for the only child`
+      return `"${earlier.error}"; "${outside.error}"; "${only.error}"; "${hidden.error}"; Move earlier disabled on the first plan; for the only child both buttons disabled and the grip on the plan around it`
     })
 
     await report.attempt('Move later on the first pricing plan: a reorder item with indexes, anchors and an order check; the DOM order changes; the tray says where', async () => {
@@ -1877,10 +1880,20 @@ async function viteDrags(browser: Browser, lane: Lane): Promise<void> {
       // Over the third plan's button first (it must not be pressed), then into the gap between Team and Scale.
       await t.mouse.move(cta.x + cta.width / 2, cta.y + cta.height / 2, { steps: 8 })
       const overButton = await t.evaluate(() => window.__primp_test!.drag())
+      // The move is shown live, nothing is recorded yet, and the dock's frames are faded out of the way.
+      const liveOver = await planOrder(t)
+      const midItems = (await items(t)).length
+      const faded = await t.evaluate(() => [...document.querySelector('primp-root')!.shadowRoot!.querySelectorAll('iframe')].map((frame) => frame.classList.contains('faded')))
       const gap = { x: (team.right + scale.left) / 2, y: team.top + team.height / 2 }
       await t.mouse.move(gap.x, gap.y, { steps: 8 })
       const dragging = await t.evaluate(() => window.__primp_test!.drag())
-      await sleep(150)
+      const liveGap = await planOrder(t)
+      const chip = await t.evaluate(() => {
+        const tag = document.querySelector('primp-root')!.shadowRoot!.querySelector<HTMLElement>('.drag-tag')!
+        const r = tag.getBoundingClientRect()
+        return { text: tag.textContent, shown: tag.style.display !== 'none', inside: r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight }
+      })
+      await sleep(200)
       await t.screenshot({ path: join(SHOTS, 'reorder-drag-light.png') })
       await t.mouse.up()
       await t.evaluate(() => window.__primp_overlay!.controller.idle())
@@ -1889,14 +1902,79 @@ async function viteDrags(browser: Browser, lane: Lane): Promise<void> {
       const order = await planOrder(t)
       const events = await appEvents(t)
       expect(overButton?.kind === 'reorder' && overButton.toIndex === 2, `over the third plan's button: ${JSON.stringify(overButton)}`)
+      expect(JSON.stringify(liveOver) === JSON.stringify(['Team', 'Scale', 'Starter']) && midItems === 0, `live, over Scale: ${liveOver.join(', ')}, ${midItems} items recorded mid-drag`)
+      expect(faded.length === 2 && faded.every(Boolean), `dock frames faded mid-drag: ${JSON.stringify(faded)}`)
+      expect(JSON.stringify(liveGap) === JSON.stringify(['Team', 'Starter', 'Scale']), `live, in the gap: ${liveGap.join(', ')}`)
+      expect(chip.shown && chip.inside && chip.text?.startsWith('after “Team') === true && chip.text.endsWith('· 2 of 3'), `chip: ${JSON.stringify(chip)}`)
       expect(dragging?.kind === 'reorder' && dragging.toIndex === 1 && dragging.line !== null && dragging.line.width === 2 && Math.abs(dragging.line.x + 1 - gap.x) < 2, `in the gap: ${JSON.stringify(dragging)} (gap at x ${gap.x})`)
       const item = structure(all[0])
       expect(all.length === 1 && item.move?.fromIndex === 0 && item.move.toIndex === dragging.toIndex && JSON.stringify(order) === JSON.stringify(['Team', 'Starter', 'Scale']), `after the drop: ${all.length} items, move ${JSON.stringify(item.move).slice(0, 120)}, order ${order.join(', ')}`)
       expect(Object.keys(events).length === 0, `the app saw: ${JSON.stringify(events)}`)
       expect((await t.evaluate(() => window.__primp_test!.drag())) === null, 'the drag did not end')
-      return `grip at ${Math.round(start.x)},${Math.round(start.y)}; over the third plan's button the line stood for position 3; in the gap between Team and Scale a 2px vertical line at x ${dragging.line.x + 1} for position ${dragging.toIndex + 1}; dropped: one reorder 0 -> ${item.move.toIndex}, order ${order.join(', ')}; the app's handlers on the plans, their buttons and the document saw nothing`
+      const unfaded = await t.evaluate(() => [...document.querySelector('primp-root')!.shadowRoot!.querySelectorAll('iframe')].every((frame) => !frame.classList.contains('faded')))
+      expect(unfaded, 'the dock frames stayed faded after the drop')
+      return `grip at ${Math.round(start.x)},${Math.round(start.y)}; over the third plan's button the page showed ${liveOver.join(', ')} live (nothing recorded, dock faded), position 3; in the gap between Team and Scale a 2px vertical line at x ${dragging.line.x + 1} for position ${dragging.toIndex + 1}, the page showing ${liveGap.join(', ')}, chip "${chip.text}"; dropped: one reorder 0 -> ${item.move.toIndex}, order ${order.join(', ')}; the app's handlers on the plans, their buttons and the document saw nothing`
     })
     await t.evaluate(() => window.__primp_test!.undo())
+
+    await report.attempt('reorder from inside a plan: the grip stands on the plan, Escape mid-drag puts it back, a drop moves the plan; Alt+Down moves it one place; the page scrolls at the edge', async () => {
+      const name = `${PLAN}:nth-of-type(1) [data-label="plan-name"]`
+      await t.evaluate((selector) => window.__primp_test!.select(selector), name)
+      const plans = await t.evaluate((selector) => [...document.querySelectorAll(selector)].map((plan) => plan.getBoundingClientRect().toJSON() as DOMRect), PLAN)
+      const grip = (await t.evaluate(() => window.__primp_test!.handles())).grip
+      expect(grip !== undefined && Math.abs(centre(grip).x - centre(plans[0]!).x) < 2 && grip.y + grip.height <= plans[0]!.top, `grip for the plan's name: ${JSON.stringify(grip)}, plan ${JSON.stringify(plans[0])}`)
+      const start = centre(grip!)
+      await t.mouse.move(start.x, start.y)
+      await sleep(50)
+      const outlined = await t.evaluate(() => document.querySelector('primp-root')!.shadowRoot!.querySelector<HTMLElement>('.move-target')!.style.display === 'block')
+      // Escape mid-drag: the live move goes back, nothing is recorded; the plan is now the selection.
+      await t.mouse.down()
+      await t.mouse.move(centre(plans[2]!).x, centre(plans[2]!).y, { steps: 8 })
+      const live = await planOrder(t)
+      await t.keyboard.press('Escape')
+      const afterEscape = await planOrder(t)
+      await t.mouse.up()
+      await t.evaluate(() => window.__primp_overlay!.controller.idle())
+      const selected = await t.evaluate(() => window.__primp_test!.selection()?.label ?? '')
+      expect(outlined, 'the plan the grip moves was not outlined while the grip was hovered')
+      expect(JSON.stringify(live) === JSON.stringify(['Team', 'Scale', 'Starter']) && JSON.stringify(afterEscape) === JSON.stringify(PLAN_NAMES) && (await items(t)).length === 0, `live ${live.join(', ')}, after Escape ${afterEscape.join(', ')}`)
+      expect(selected.startsWith('div.plan "Starter'), `selection after pressing the grip: ${selected}`)
+      // A drop over Team: the plan takes Team's place.
+      const again = centre((await t.evaluate(() => window.__primp_test!.handles())).grip!)
+      await t.mouse.move(again.x, again.y)
+      await t.mouse.down()
+      await t.mouse.move(centre(plans[1]!).x, centre(plans[1]!).y, { steps: 8 })
+      await t.mouse.up()
+      await t.evaluate(() => window.__primp_overlay!.controller.idle())
+      const dropped = await planOrder(t)
+      const recorded = await items(t)
+      expect(JSON.stringify(dropped) === JSON.stringify(['Team', 'Starter', 'Scale']) && recorded.length === 1 && structure(recorded[0]).move?.toIndex === 1, `dropped over Team: ${dropped.join(', ')}, ${recorded.length} items`)
+      await t.evaluate(() => window.__primp_test!.undo())
+      // Alt+Down with the name selected: the plan goes one place later.
+      await t.evaluate((selector) => window.__primp_test!.select(selector), name)
+      await t.keyboard.press('Alt+ArrowDown')
+      await t.evaluate(() => window.__primp_overlay!.controller.idle())
+      const byKey = await planOrder(t)
+      const keyState = await testState(t)
+      const keyFocus = await t.evaluate(() => `${document.activeElement?.localName} ${document.hasFocus()}`)
+      expect(JSON.stringify(byKey) === JSON.stringify(['Team', 'Starter', 'Scale']) && (await items(t)).length === 1, `Alt+Down: ${byKey.join(', ')}; error ${keyState.error}; selection ${await t.evaluate(() => window.__primp_test!.selection()?.label)}; focus ${keyFocus}`)
+      await t.evaluate(() => window.__primp_test!.undo())
+      // Held near the bottom edge, a drag scrolls the page.
+      const grip3 = centre((await t.evaluate(() => window.__primp_test!.handles())).grip!)
+      const scrollBefore = await t.evaluate(() => scrollY)
+      const height = await t.evaluate(() => innerHeight)
+      await t.mouse.move(grip3.x, grip3.y)
+      await t.mouse.down()
+      await t.mouse.move(grip3.x, height - 4, { steps: 6 })
+      await sleep(400)
+      const scrollDuring = await t.evaluate(() => scrollY)
+      await t.keyboard.press('Escape')
+      await t.mouse.up()
+      await t.evaluate(() => window.__primp_overlay!.controller.idle())
+      expect(scrollDuring > scrollBefore + 40 && (await items(t)).length === 0 && JSON.stringify(await planOrder(t)) === JSON.stringify(PLAN_NAMES), `scroll ${scrollBefore} -> ${scrollDuring}`)
+      await t.evaluate((selector) => document.querySelector(selector)?.scrollIntoView({ block: 'center' }), PLAN)
+      return `grip on the plan around its name, the plan outlined while hovered; live ${live.join(', ')}, Escape back to ${afterEscape.join(', ')}, selection ${selected.slice(0, 20)}; dropped over Team: ${dropped.join(', ')}; Alt+Down: ${byKey.join(', ')}; edge scroll ${scrollBefore} -> ${scrollDuring}`
+    })
 
     await report.attempt('resize by a REAL mouse drag on the corner handle of a card: width and height, one undo step, the border box is the dragged size; Escape during a drag cancels', async () => {
       const card = `${CARD}:nth-of-type(1)`

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Reordering by drag is easier to aim and shows the result while you drag.** The grip moves the list item around the selection (the card around a clicked paragraph). The element is shown where it would land, its siblings slide into place, and a label at the pointer says where it goes. Dropping over a sibling takes its place. The dock fades out of the way, and the page scrolls at the window's edge. Alt+↑ / Alt+↓ moves the element one place. Hidden siblings (`<script>`, `display: none`) are no longer drop targets. When nothing can be moved, a greyed grip says why.
+
 ## 0.1.0
 
 The first release.

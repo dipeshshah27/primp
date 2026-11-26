@@ -91,6 +91,10 @@ function SettingsPanel({ c, ui, onClose }: { c: Controller; ui: DockUi; onClose(
           <dd>
             <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd>
           </dd>
+          <dt>Move earlier, later</dt>
+          <dd>
+            <kbd>Alt</kbd> <kbd>↑</kbd>, <kbd>Alt</kbd> <kbd>↓</kbd>
+          </dd>
           <dt>Click through to the page</dt>
           <dd>
             <kbd>Alt</kbd> + click
