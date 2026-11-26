@@ -110,6 +110,8 @@ export interface Controller {
   copyPrompt(): Promise<{ prompt: string; copied: boolean }>
   /** The prompt that fixes these layout shifts (issue ids of this page's report), as the server renders it; empty when it could not. */
   shiftPrompt(ids: readonly string[]): Promise<string>
+  /** Takes sent changes nobody has taken yet back into the drafts, to change them before they go out again. */
+  withdraw(ids: readonly string[]): void
   /** `shiftPrompt`, put on the clipboard. */
   copyShiftPrompt(ids: readonly string[]): Promise<boolean>
   /** Renders the fix-up prompt for these sent items (what did not pass) and copies it; false when there was nothing to copy. */
@@ -1523,6 +1525,12 @@ export function createController(options: ControllerOptions): Controller {
     })
     noticeResults(result.items)
     for (const id of result.released) forget(id)
+    if (result.returned.length > 0) {
+      const back = result.returned.filter((item) => item.page === here())
+      void enqueue(async () => {
+        for (const item of back) if (present().some((other) => other.id === item.id && other.status === 'draft')) syncPreview(item)
+      })
+    }
     for (const item of result.resend) upsert(item)
     // Drafts from before a reload get their previews back once the page has built itself.
     // ... and so do the drafts this tab kept over a reload.
@@ -1745,6 +1753,7 @@ export function createController(options: ControllerOptions): Controller {
     copyFixup,
     shiftPrompt,
     copyShiftPrompt,
+    withdraw: (ids) => bus.send({ type: 'session:withdraw', ids: [...ids] }),
     elementOf,
     knownSource: (element) => sources.get(element),
     setState,

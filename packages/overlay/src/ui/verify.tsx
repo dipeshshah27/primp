@@ -141,6 +141,11 @@ function VerifyItem({ c, item, number }: { c: Controller; item: ChangeItem; numb
       )}
       {item.status === 'dismissed' ? null : (
         <div class="row">
+          {item.status === 'queued' ? (
+            <button type="button" class="btn sm quiet" title="No agent has taken it yet: bring it back to your changes to edit or delete it" onClick={() => c.withdraw([item.id])}>
+              Take back
+            </button>
+          ) : null}
           <button type="button" class="btn sm quiet" style="margin-left:auto" onClick={() => c.reverify([item.id])}>
             Check again
           </button>

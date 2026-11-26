@@ -329,6 +329,21 @@ describe('activity (the terminal lines)', () => {
   })
 })
 
+describe('withdraw (taking a sent change back)', () => {
+  it('turns queued changes back into drafts; one an agent has taken stays with it', () => {
+    const { connect, session } = rig()
+    const socket = connect('doc-a')
+    for (const id of ['one', 'two']) socket.receive({ type: 'session:upsert', item: styleItem(id) })
+    socket.receive({ type: 'session:send', reqId: 's1', ids: ['one'] })
+    socket.receive({ type: 'session:send', reqId: 's2', ids: ['two'] })
+    session.getPendingChanges({ batchId: 'batch-2' })
+    socket.receive({ type: 'session:withdraw', ids: ['one', 'two'] })
+    expect(statuses(session.items())).toEqual({ one: 'draft', two: 'claimed' })
+    expect(session.item('one')?.batchId).toBeUndefined()
+    expect(socket.last('session:state')?.items.find((item) => item.id === 'one')?.status).toBe('draft')
+  })
+})
+
 describe('fix-up and verifying (the dock)', () => {
   it('session:fixup answers with the clipboard fix-up for what did not pass, and empty when everything passed', () => {
     const { connect, session } = rig()

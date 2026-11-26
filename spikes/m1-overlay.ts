@@ -1186,6 +1186,27 @@ async function viteMeasure(browser: Browser, lane: Lane): Promise<void> {
       expect(shown.status === 'verified' && shown.text.includes('pass') && shown.text.includes('padding-top'), `Verify tab: ${JSON.stringify(shown).slice(0, 300)}`)
       return `the dock sent session:reverify; the server settled, asked the dock to measure, judged the raw checks with the engine: ${verified.verification.status} (${verified.verification.checks.length} checks, settle ${verified.verification.settle?.status}/${verified.verification.settle?.signal}); the Verify tab shows "verified" with the per-check rows`
     })
+
+    await report.attempt('Take back: a sent change nobody has taken becomes a draft again, with its preview back on the page', async () => {
+      await t.evaluate(() => window.__primp_test!.select('[data-label="hero-title"]'))
+      const edit = await t.evaluate(() => window.__primp_test!.setStyle('letter-spacing', '3px'))
+      expect(edit.ok && edit.item !== null, `not recorded: ${edit.error}`)
+      const id = edit.item!.id
+      await t.evaluate(() => window.__primp_test!.send())
+      const sentLooks = await computed(t, '[data-label="hero-title"]', 'letter-spacing')
+      expect(lane.primp.session.item(id)?.status === 'queued' && sentLooks !== '3px', `after Send: ${lane.primp.session.item(id)?.status}, letter-spacing ${sentLooks}`)
+      await t.evaluate(() => window.__primp_test!.openTab('verify'))
+      await page.dock.locator(`[data-item="${id}"] button`, { hasText: 'Take back' }).click()
+      await waitFor(() => lane.primp.session.item(id)?.status === 'draft', { what: 'the server to take it back', timeoutMs: 3000 })
+      const back = await waitFor(async () => {
+        const value = await computed(t, '[data-label="hero-title"]', 'letter-spacing')
+        return value === '3px' ? value : undefined
+      }, { what: 'the preview to come back', timeoutMs: 3000 })
+      const drafts = (await items(t)).filter((one) => one.status === 'draft').map((one) => one.id)
+      expect(drafts.includes(id), `drafts in the dock: ${drafts.join(', ')}`)
+      await t.evaluate((one) => window.__primp_overlay!.controller.deleteItem(one), id)
+      return `queued -> Take back -> draft on the server and in the dock; letter-spacing ${back} shown again`
+    })
   } finally {
     revert?.()
     if (revert !== undefined) await waitFor(() => sourceApplied('20px'), { what: 'the fixture source to be restored' }).catch(() => undefined)

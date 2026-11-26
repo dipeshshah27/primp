@@ -546,6 +546,16 @@ export function createSession(options: SessionOptions): Session {
         return void onShifts(connection, message.doc, message.recording).catch((error: unknown) => log('error', 'session:shifts failed', error))
       case 'session:measured':
         return onMeasured(connection, message)
+      case 'session:withdraw': {
+        // Only what no agent has taken: a claimed change is in an agent's hands, and taking it back would race its edit.
+        const back = message.ids.map((id) => items.get(id)).filter((item): item is ChangeItem => item !== undefined && item.status === 'queued')
+        for (const item of back) {
+          item.status = 'draft'
+          delete item.batchId
+        }
+        if (back.length > 0) record('upsert', back.map((item) => item.id), connection.doc === undefined ? {} : { doc: connection.doc })
+        return broadcastState()
+      }
       case 'session:shift-prompt': {
         // The same instructions get_layout_shifts gives an agent over MCP, worded for the clipboard.
         const entry = shiftsByDoc.get(message.doc)

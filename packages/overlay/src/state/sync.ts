@@ -27,6 +27,8 @@ export interface Reconciled {
   resend: ChangeItem[]
   /** Ids that were drafts here and have another status on the server now; their previews must go. */
   released: string[]
+  /** Items that were sent and are drafts again (taken back); their previews come back. */
+  returned: ChangeItem[]
 }
 
 export const bySeq = (a: ChangeItem, b: ChangeItem): number => a.seq - b.seq || a.createdAt - b.createdAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
@@ -38,6 +40,7 @@ export function reconcile(local: readonly ChangeItem[], server: readonly ChangeI
   const adopted: ChangeItem[] = []
   const resend: ChangeItem[] = []
   const released: string[] = []
+  const returned: ChangeItem[] = []
 
   for (const remote of server) {
     theirs.add(remote.id)
@@ -49,6 +52,8 @@ export function reconcile(local: readonly ChangeItem[], server: readonly ChangeI
       // The dock's copy is the newer one; the server numbers the items.
       items.push(own.seq === remote.seq ? own : { ...own, seq: remote.seq })
     } else if (own !== undefined) {
+      // Sent, and taken back to be edited (session:withdraw): a draft again, whose preview comes back.
+      returned.push(remote)
       items.push(remote)
     } else if (options.first && !options.deleted.has(remote.id)) {
       items.push(remote)
@@ -60,7 +65,7 @@ export function reconcile(local: readonly ChangeItem[], server: readonly ChangeI
     items.push(own)
     if (options.first) resend.push(own)
   }
-  return { items: items.sort(bySeq), adopted, resend, released }
+  return { items: items.sort(bySeq), adopted, resend, released, returned }
 }
 
 export interface ListDiff {
