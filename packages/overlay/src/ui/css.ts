@@ -119,7 +119,7 @@ export const HOST_CSS = `
 .tip.wrap { white-space: normal; width: max-content; }
 .tip kbd { margin-left: 8px; padding: 0 5px; border-radius: 4px; background: rgb(255 255 255 / 0.12); color: #d4d4d8; font: 500 11px/16px var(--sans); }
 .tip .sub { display: block; color: #a1a1aa; font-weight: 450; margin-top: 2px; white-space: normal; }
-.toast { white-space: nowrap; }
+.toast { white-space: normal; width: max-content; max-width: 340px; }
 .toast.bad { background: #7f1d1d; }
 .note-chip { white-space: normal; width: 260px; background: #18181b; border-left: 3px solid #f59e0b; }
 :host([data-theme="light"]) .tip, :host([data-theme="light"]) .toast, :host([data-theme="light"]) .note-chip, :host([data-theme="light"]) .label-chip { background: #18181b; }

@@ -152,13 +152,18 @@ export function mountDock(c: Controller): DockHandle {
   over.setAttribute('aria-hidden', 'true')
   const tipNode = document.createElement('div')
   tipNode.className = 'tip'
+  // Outside the aria-hidden layer: a screen reader announces what the toast says.
+  const toasts = document.createElement('div')
+  toasts.className = 'over'
   const toastNode = document.createElement('div')
   toastNode.className = 'toast'
   toastNode.setAttribute('role', 'status')
+  toastNode.setAttribute('aria-live', 'polite')
+  toasts.append(toastNode)
   const noteNode = document.createElement('div')
   noteNode.className = 'note-chip'
-  over.append(tipNode, toastNode, noteNode)
-  shadow.append(layer, pop, bar, over)
+  over.append(tipNode, noteNode)
+  shadow.append(layer, pop, bar, over, toasts)
 
   const viewport = (): { w: number; h: number } => ({
     w: document.documentElement.clientWidth || innerWidth,
@@ -309,7 +314,8 @@ export function mountDock(c: Controller): DockHandle {
     const x = Math.max(4, Math.min(view.w - width - 4, barBox.x + barBox.w / 2 - width / 2))
     const y = barBox.y + barBox.h / 2 > view.h / 2 ? barBox.y - height - 10 : barBox.y + barBox.h + 10
     place(toastNode, x, y)
-    toastTimer = window.setTimeout(() => (store.toast.value = null), TOAST_MS)
+    // A refusal is read, not glanced at: it stays twice as long.
+    toastTimer = window.setTimeout(() => (store.toast.value = null), toast.tone === 'bad' ? TOAST_MS * 2 : TOAST_MS)
   })
 
   /** The resize refusal, next to the handles of the selection, after a resize was tried. */
@@ -477,7 +483,10 @@ export function mountDock(c: Controller): DockHandle {
       event.stopPropagation()
       const target = c.moveTarget()
       if (target !== null && target.element !== store.selection.peek()?.element) c.select(target.element)
-      void c.move(event.key === 'ArrowUp' ? -1 : 1)
+      void c.move(event.key === 'ArrowUp' ? -1 : 1).then((result) => {
+        // Pressed on the page: say why nothing moved there, not only in the inspector.
+        if (!result.ok && result.error !== undefined) store.toast.value = { text: result.error, tone: 'bad', at: performance.now() }
+      })
       return
     }
     if (mod || event.altKey) return

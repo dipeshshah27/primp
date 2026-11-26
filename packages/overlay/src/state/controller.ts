@@ -1312,6 +1312,7 @@ export function createController(options: ControllerOptions): Controller {
         const sent = new Map(answer.batch.items.map((item) => [item.id, item]))
         if (sent.size === 0) {
           store.error.value = 'Nothing was sent: the server holds none of these changes as drafts.'
+          toast(store.error.value, 'bad')
           return ''
         }
         // The agent's hot reload must land on an untouched page: the sent previews go now.

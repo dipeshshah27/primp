@@ -488,8 +488,12 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
     }
     settleGlides()
     // Likewise the live move: `reorder` puts it back and records the move in one task.
-    if (state.toIndex !== null && state.toIndex !== state.fromIndex) void c.reorder(state.toIndex)
-    else c.previewMove(null)
+    if (state.toIndex !== null && state.toIndex !== state.fromIndex) {
+      void c.reorder(state.toIndex).then((result) => {
+        // The drop happened on the page: a refusal is said there, as a toast.
+        if (!result.ok && result.error !== undefined) store.toast.value = { text: result.error, tone: 'bad', at: performance.now() }
+      })
+    } else c.previewMove(null)
   }
 
   // --- scrolling at the edges during a reorder drag -----------------------------------
