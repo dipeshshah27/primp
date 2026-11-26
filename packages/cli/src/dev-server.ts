@@ -143,6 +143,13 @@ export interface WaitForDevServerOptions {
   detect?: typeof detectDevServer
   /** Called when detection waits for the project's own ports to answer (a first compile). */
   onWait?: (ports: number[]) => void
+  /**
+   * Without a command of its own: how long to keep looking for a dev server the person is still
+   * starting in another terminal. Default 0: one look.
+   */
+  waitWithoutCommandMs?: number
+  /** Called once when nothing was found and primp keeps looking (`waitWithoutCommandMs`). */
+  onLooking?: () => void
 }
 
 export type WaitOutcome =
@@ -160,6 +167,8 @@ export async function waitForDevServer(options: WaitForDevServerOptions): Promis
   const probe = options.probe ?? probeHttp
   const detect = options.detect ?? detectDevServer
   const deadline = Date.now() + (options.timeoutMs ?? 60_000)
+  const started = Date.now()
+  let looking = false
   const local = (port: number): ProxyTarget => ({ protocol: 'http', host: 'localhost', port })
   let detection: DevServerDetection | undefined
 
@@ -185,7 +194,16 @@ export async function waitForDevServer(options: WaitForDevServerOptions): Promis
       })
       if (detection.chosen !== undefined) return { status: 'ready', target: local(detection.chosen.port), detection, via: detection.chosen.via }
     }
-    if (options.child === undefined) return { status: 'timeout', detection }
+    if (options.child === undefined) {
+      const lookUntil = started + (options.waitWithoutCommandMs ?? 0)
+      if (Date.now() >= lookUntil) return { status: 'timeout', detection }
+      if (!looking) {
+        looking = true
+        options.onLooking?.()
+      }
+      await sleep(Math.min(options.intervalMs ?? 400, Math.max(0, lookUntil - Date.now())) || 1)
+      continue
+    }
     if (options.child.hasExited()) return { status: 'exited', ...(await options.child.exited) }
     if (Date.now() >= deadline) return { status: 'timeout', detection }
     await Promise.race([sleep(options.intervalMs ?? 400), options.child.exited])

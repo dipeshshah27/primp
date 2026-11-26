@@ -143,6 +143,25 @@ describe('waitForDevServer', () => {
     expect(Date.now() - started).toBeLessThan(300)
   })
 
+  it('without --exec but with time to look, finds a dev server started a moment later, and says it is looking once', async () => {
+    let asks = 0
+    let said = 0
+    const found = await waitForDevServer({
+      projectRoot: '/p',
+      detect: async () => (++asks < 3 ? nothing : { chosen: { port: 3000, url: 'http://localhost:3000', via: 'process', pid: 9 }, others: [], ignored: [], method: 'process' }),
+      probe: async () => html,
+      waitWithoutCommandMs: 5000,
+      intervalMs: 20,
+      onLooking: () => void said++,
+    })
+    expect(found).toMatchObject({ status: 'ready', target: { port: 3000 } })
+    expect([asks, said]).toEqual([3, 1])
+    // And gives up when the time is over.
+    const started = Date.now()
+    expect(await waitForDevServer({ projectRoot: '/p', detect: async () => nothing, probe: async () => refused, waitWithoutCommandMs: 150, intervalMs: 20 })).toEqual({ status: 'timeout', detection: nothing })
+    expect(Date.now() - started).toBeLessThan(1000)
+  })
+
   it('with a target, waits for exactly that port; any HTTP answer counts', async () => {
     const asked: number[] = []
     let calls = 0

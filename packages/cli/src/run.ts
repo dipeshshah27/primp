@@ -147,6 +147,9 @@ export async function runPrimp(options: RunOptions): Promise<RunHandle> {
       excludePorts: own.ports,
       excludePids: own.pids,
       timeoutMs: options.startTimeoutMs,
+      // A person at a terminal may start primp first and the dev server a moment later.
+      ...(options.target === undefined && options.exec === undefined && (options.interactive ?? process.stdout.isTTY === true) ? { waitWithoutCommandMs: 30_000 } : {}),
+      onLooking: () => print(`primp: no dev server is running for this project yet; looking for one for 30 s (start it in another terminal, or stop with Ctrl+C and pass --exec "npm run dev")`),
       onWait: (() => {
         let said = false
         return (ports: number[]) => {
