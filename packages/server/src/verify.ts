@@ -89,7 +89,9 @@ export function itemStatusAfter(status: VerificationStatus): ItemStatus | undefi
   }
 }
 
-const VERIFIABLE: ReadonlySet<ItemStatus> = new Set<ItemStatus>(['queued', 'claimed', 'failed', 'verified'])
+/** The statuses a change can be verified in; any other is left alone. */
+export const VERIFIABLE_STATUSES: ReadonlySet<ItemStatus> = new Set<ItemStatus>(['queued', 'claimed', 'failed', 'verified'])
+const VERIFIABLE = VERIFIABLE_STATUSES
 
 /**
  * The reason the dock gives when it could not emulate the interaction state of a `computed`
@@ -192,6 +194,26 @@ export function toMeasured(raw: CheckResult, item: MeasuredItem): Measured {
 }
 
 /**
+ * Another change among `items` that is out and sets `property` on the element `selector` names, in
+ * the same interaction state as `item` (a bystander is measured in the state its change is made
+ * for, which is the resting one unless the change says otherwise): the one case in which a
+ * bystander is meant to change. A `:hover` edit of the property does not explain a resting value that moved.
+ */
+export function changedElsewhereIn(items: readonly ChangeItem[], item: ChangeItem, selector: string, property: string): ChangeItem | undefined {
+  const state = item.kind === 'style' ? item.condition.state : undefined
+  return items.find(
+    (other) =>
+      other.id !== item.id &&
+      other.kind === 'style' &&
+      other.status !== 'draft' &&
+      other.status !== 'dismissed' &&
+      other.condition.state === state &&
+      other.target.selector === selector &&
+      (other.property === property || Object.hasOwn(other.longhands ?? {}, property)),
+  )
+}
+
+/**
  * Judges what the dock measured for one item: each raw check becomes the engine's verdict. Shared
  * by the verifier and by the website's in-browser stand-in, so both judge exactly alike.
  * `changedElsewhere` names another change that sets a bystander's property on purpose, if any.
@@ -249,19 +271,7 @@ export function createVerifier(options: VerifierOptions): Verifier {
    * which is the resting one unless the change says otherwise): the one case in which a
    * bystander is meant to change. A `:hover` edit of the property does not explain a resting value that moved.
    */
-  const changedElsewhere = (item: ChangeItem, selector: string, property: string): ChangeItem | undefined => {
-    const state = item.kind === 'style' ? item.condition.state : undefined
-    return session.items().find(
-      (other) =>
-        other.id !== item.id &&
-        other.kind === 'style' &&
-        other.status !== 'draft' &&
-        other.status !== 'dismissed' &&
-        other.condition.state === state &&
-        other.target.selector === selector &&
-        (other.property === property || Object.hasOwn(other.longhands ?? {}, property)),
-    )
-  }
+  const changedElsewhere = (item: ChangeItem, selector: string, property: string): ChangeItem | undefined => changedElsewhereIn(session.items(), item, selector, property)
 
   const verify = async (params: VerifyParams = {}): Promise<VerifyOutcome> => {
     const wanted =

@@ -211,6 +211,12 @@ describe('logical properties map to the physical ones they set', () => {
     expect(physicalOf('padding-left')).toBe('padding-left')
   })
 
+  it('logical corners: block side, then inline side', () => {
+    expect(physicalOf('border-start-start-radius')).toBe('border-top-left-radius')
+    expect(physicalOf('border-end-start-radius')).toBe('border-bottom-left-radius')
+    expect(physicalOf('border-start-end-radius', { direction: 'rtl' })).toBe('border-top-left-radius')
+  })
+
   it('a vertical writing mode leaves the sides logical', () => {
     expect(physicalOf('padding-inline-start', { vertical: true })).toBe('padding-inline-start')
     expect(physicalOf('inline-size', { vertical: true })).toBe('inline-size')

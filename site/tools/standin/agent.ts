@@ -12,7 +12,8 @@
  *            elements share (a bystander moves: fail), and it rounds a length to a nearby value
  *            (drift). Changes where neither mistake is possible are done right.
  *
- * Every rule is `!important`: this page's own utility classes must not win over the "edit".
+ * The rules are unlayered and not `!important`: they win over this site's Tailwind utilities (which
+ * sit in cascade layers) as a source edit would, and the dock's own previews still win over them.
  */
 
 import type { ChangeItem, StyleChange } from '../../../packages/protocol/src/change.ts'
@@ -64,8 +65,9 @@ function nearValue(item: StyleChange): string | null {
 
 function styleRule(selector: string, item: StyleChange, value: string): string {
   const state = item.condition.state
-  const target = state === undefined ? selector : selector.split(',').map((part) => `${part.trim()}:${state}`).join(', ')
-  const rule = `${target} { ${item.property}: ${value} !important; }`
+  // `:is()` keeps a selector list (or one with `:is(a, b)` inside) whole.
+  const target = state === undefined ? selector : `:is(${selector}):${state}`
+  const rule = `${target} { ${item.property}: ${value}; }`
   return item.condition.media === undefined || item.condition.media === '' ? rule : `@media ${item.condition.media} { ${rule} }`
 }
 
@@ -83,7 +85,8 @@ export function applyAsAgent(items: readonly ChangeItem[], mode: AgentMode): Age
     if (item.kind === 'style') {
       // Only a class rule: an agent edits `.btn`, not `*` or `a` (which would restyle the whole page).
       const selector = item.origin?.selector
-      const shared = item.origin?.via === 'rule' && (item.origin.alsoStyles ?? 0) > 0 && selector !== undefined && /^\.[^\s,>+~]+$/.test(selector) ? selector : undefined
+      // Not a rule under a media query either: copied without it, the edit would reach other widths too.
+      const shared = item.origin?.via === 'rule' && (item.origin.alsoStyles ?? 0) > 0 && item.origin.media === undefined && selector !== undefined && /^\.[^\s,>+~]+$/.test(selector) ? selector : undefined
       if (mode === 'sloppy' && shared !== undefined && item.condition.state === undefined) {
         css.push(styleRule(shared, item, item.after.authored))
         edits.push({ itemId: item.id, did: `changed ${item.property} in the shared rule ${shared.replace(/\\(.)/g, '$1')}, which other elements use too`, mistake: 'shared-rule' })
@@ -103,7 +106,7 @@ export function applyAsAgent(items: readonly ChangeItem[], mode: AgentMode): Age
       continue
     }
     if (item.op === 'hide') {
-      css.push(`${item.target.selector} { display: none !important; }`)
+      css.push(`${item.target.selector} { display: none; }`)
       edits.push({ itemId: item.id, did: `hid ${label}` })
     } else if (item.op === 'remove') {
       element.remove()

@@ -9,7 +9,7 @@
 
 import { ActivityIcon, ArrowRightIcon, BotIcon, RotateCcwIcon, SendIcon, ShieldCheckIcon, XIcon } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CopyButton } from '@/components/copy-button'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -122,11 +122,8 @@ export function LiveDock() {
   const [open, setOpen] = useState(false)
   const [replay, setReplay] = useState<{ held: boolean } | null>(null)
   const [simulation, setSimulation] = useState<SimulationResult | null>(null)
-  /** Closing the sheet to watch a simulated agent opens the Verification panel, not Changes. */
-  const toVerify = useRef(false)
-
+  // Closed from here (a controlled `open`), the sheet does not call onOpenChange: the Verification panel stays.
   const simulate = (mode: AgentMode): void => {
-    toVerify.current = true
     setOpen(false)
     setSimulation(null)
     dockApi()?.panel('verify')
@@ -162,8 +159,7 @@ export function LiveDock() {
         open={open}
         onOpenChange={(next) => {
           setOpen(next)
-          if (!next && !toVerify.current) dockApi()?.panel('changes')
-          if (!next) toVerify.current = false
+          if (!next) dockApi()?.panel('changes')
         }}
       >
         <SheetContent primpRoot className="gap-0 sm:max-w-2xl">
@@ -268,6 +264,7 @@ const WORD: Record<string, string> = {
 
 function SimulationNotice({ result, onClose }: { result: SimulationResult; onClose: () => void }) {
   const parts = Object.entries(result.counts).map(([status, count]) => `${count} ${WORD[status] ?? status.replaceAll('_', ' ')}`)
+  const headline = parts.length === 0 ? `The ${result.mode} agent had nothing to do.` : `The ${result.mode} agent is done: ${parts.join(', ')}.`
   return (
     <aside
       data-primp-root
@@ -281,9 +278,7 @@ function SimulationNotice({ result, onClose }: { result: SimulationResult; onClo
           <BotIcon className="size-4" />
         </span>
         <div className="min-w-0 flex-1 space-y-2">
-          <p className="font-medium">
-            The {result.mode} agent is done: {parts.join(', ')}.
-          </p>
+          <p className="font-medium">{headline}</p>
           <ul className="list-disc space-y-0.5 pl-4 text-muted-foreground">
             {result.did.map((line, index) => (
               <li key={index}>{line}</li>

@@ -124,6 +124,42 @@ describe('declaredWinners: the winner at rest and in a state', () => {
   })
 })
 
+describe('originOf: the declaration that wins the cascade decides, whatever its name', () => {
+  const stylesOf = (rules: MatchedRule[], layers: string[] = []): ElementStyles => ({
+    rules,
+    inline: [],
+    declared: declaredWinners(rules, [], layers),
+    states: statesWithRules(rules),
+    layers,
+    media: [],
+    system: 'tailwind',
+    tailwind: true,
+    stats: { rules: rules.length, unreadableSheets: 0, ms: 0 },
+  })
+
+  it('a later layer that sets the property logically beats an earlier exact one (Tailwind 4 utilities over a component)', () => {
+    const layers = ['components', 'utilities']
+    const component = rule('.btn', 'padding-left: 8px', [], { layer: 'components' })
+    const utility = rule('.ps-4', 'padding-inline-start: 1rem', [], { layer: 'utilities' })
+    const origin = originOf(stylesOf([component, utility], layers), 'padding-left')
+    expect(origin.origin).toMatchObject({ via: 'rule', selector: '.ps-4' })
+    expect(origin.authored).toBeUndefined()
+  })
+
+  it('within one rule the later declaration wins: padding, then padding-left', () => {
+    const one = rule('.card', 'padding: 20px; padding-left: 24px')
+    const origin = originOf(stylesOf([one]), 'padding-left')
+    expect(origin.origin).toMatchObject({ via: 'rule', selector: '.card' })
+    expect(origin.authored).toBe('24px')
+  })
+
+  it('an !important exact declaration in a weaker rule still wins', () => {
+    const weak = rule('.a', 'padding-left: 4px !important')
+    const strong = rule('#x.a.b', 'padding-inline-start: 9px')
+    expect(originOf(stylesOf([weak, strong]), 'padding-left').authored).toBe('4px')
+  })
+})
+
 describe('declaredIn and originOf', () => {
   const base = rule('.plan__cta', 'background-color: #0f172a; cursor: pointer', [], { sheet: '/src/styles/site.css' })
   const hover = rule('.plan__cta:hover', 'background-color: #1e293b', ['hover'], { sheet: '/src/styles/site.css' })

@@ -579,20 +579,42 @@ export interface PropertyOrigin {
 }
 
 /**
+ * Of the declarations that set `property` (by its own name, a shorthand, a longhand, or a logical
+ * property), the one that wins the cascade: importance, then inline, layers, specificity and source
+ * order, and within one rule the later declaration (`padding` then `padding-left`: the latter).
+ */
+function decidingDeclaration(styles: Pick<ElementStyles, 'layers' | 'inline' | 'flow'>, declared: readonly DeclaredProperty[], property: string): DeclaredProperty | undefined {
+  const rankOf = (entry: DeclaredProperty): CascadeRank =>
+    entry.rule === undefined
+      ? { inline: true, important: entry.important, layer: Infinity, specificity: [0, 0, 0], order: styles.inline.findIndex((one) => one.property === entry.property) }
+      : { inline: false, important: entry.important, layer: entry.rule.layer === undefined ? Infinity : styles.layers.indexOf(entry.rule.layer), specificity: entry.rule.specificity, order: entry.rule.order }
+  const placeIn = (entry: DeclaredProperty): number => (entry.rule === undefined ? -1 : entry.rule.declarations.findIndex((one) => one.property === entry.property))
+  let best: DeclaredProperty | undefined
+  for (const entry of declared) {
+    if (entry.property !== property && !setsProperty(entry.property, property, styles.flow)) continue
+    if (best === undefined) {
+      best = entry
+      continue
+    }
+    const order = compareCascade(rankOf(entry), rankOf(best))
+    if (order > 0 || (order === 0 && entry.rule === best.rule && placeIn(entry) > placeIn(best))) best = entry
+  }
+  return best
+}
+
+/**
  * The declaration that sets `property` on the element before an edit: by its own name, through a
  * shorthand, or through its longhands. With `state`, the one that sets it while the element is in
  * that state, which is a resting rule when no rule for the state declares the property.
  */
 export function originOf(styles: ElementStyles, property: string, state?: ElementState | null): PropertyOrigin {
   const declared = declaredIn(styles, state)
-  const exact = declared.find((entry) => entry.property === property)
-  let found = exact
-  if (found === undefined) {
-    // The list is sorted strongest first, so the first relative found is the one that decides: a
-    // shorthand, a longhand, or the logical property that sets this physical one (Tailwind 4's
-    // `px-4` is `padding-inline`, which is what decides `padding-left`).
-    found = declared.find((entry) => setsProperty(entry.property, property, styles.flow))
-  }
+  // The list is sorted strongest first, so the first declaration that sets the property is the one
+  // that decides: by its own name, a shorthand, a longhand, or the logical property that sets this
+  // physical one (Tailwind 4's `px-4` is `padding-inline`, which decides `padding-left` over a
+  // weaker `padding-left` of a component layer).
+  const found = decidingDeclaration(styles, declared, property)
+  const exact = found?.property === property ? found : undefined
   if (found === undefined) {
     const inherited = property.startsWith('--') || INHERITED.has(property)
     return { origin: { via: inherited ? 'inherited' : 'default' }, system: styles.system }

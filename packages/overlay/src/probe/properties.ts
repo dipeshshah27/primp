@@ -104,9 +104,18 @@ const LOGICAL_SIZE: Record<string, string> = {
  * is `padding-left` in a left-to-right horizontal text); any other property is returned as it is.
  * In a vertical writing mode the sides are left logical.
  */
+const LOGICAL_CORNER = /^border-(start|end)-(start|end)-radius$/
+
 export function physicalOf(property: string, flow: Flow = {}): string {
   const size = LOGICAL_SIZE[property]
   if (size !== undefined) return flow.vertical === true ? property : size
+  const corner = LOGICAL_CORNER.exec(property)
+  if (corner !== null) {
+    // Block side first, then inline side: Tailwind 4's `rounded-s-*` is border-start-start-radius and border-end-start-radius.
+    if (flow.vertical === true) return property
+    const [, block, inline] = corner
+    return `border-${block === 'start' ? 'top' : 'bottom'}-${(inline === 'start') !== (flow.direction === 'rtl') ? 'left' : 'right'}-radius`
+  }
   const side = LOGICAL_SIDE.exec(property)
   if (side === null || flow.vertical === true) return property
   const [, box, axis, edge, part = ''] = side

@@ -35,7 +35,7 @@ import type { ChangeItem, SourceLoc } from '../../../packages/protocol/src/chang
 import type { ClientMessage, ServerMessage, SessionInfo } from '../../../packages/protocol/src/messages.ts'
 import type { ShiftIssue, ShiftRecording, ShiftReport } from '../../../packages/protocol/src/shift.ts'
 import { toSourceLoc } from '../../../packages/server/src/source-loc.ts'
-import { itemStatusAfter, judgeMeasured } from '../../../packages/server/src/verify.ts'
+import { changedElsewhereIn, itemStatusAfter, judgeMeasured, VERIFIABLE_STATUSES } from '../../../packages/server/src/verify.ts'
 import { judgeItem } from '../../../packages/engine/src/judge.ts'
 import type { MeasuredItem } from '../../../packages/server/src/session.ts'
 import { applyAsAgent, type AgentMode } from './agent.ts'
@@ -145,7 +145,13 @@ function start(host: StandinHost): void {
   let lastBatch: string[] = []
   let measures = 0
   const measuring = new Map<string, (answer: { visible: boolean; results: MeasuredItem[] }) => void>()
-  let simulating = false
+  /** One verification at a time, as primp's verifier runs them: a Check again waits for a running simulation. */
+  let queue: Promise<unknown> = Promise.resolve()
+  const inTurn = <T>(task: () => Promise<T>): Promise<T> => {
+    const run = queue.then(task)
+    queue = run.catch(() => undefined)
+    return run
+  }
 
   const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -174,7 +180,7 @@ function start(host: StandinHost): void {
     const counts: Record<string, number> = {}
     for (const item of wanted) {
       const found = answer?.results.find((result) => result.itemId === item.id)
-      const checks = item.kind === 'note' || found === undefined ? [] : judgeMeasured(item, found)
+      const checks = item.kind === 'note' || found === undefined ? [] : judgeMeasured(item, found, (selector, property) => changedElsewhereIn([...items.values()], item, selector, property))
       const extras = {
         settle,
         visible: answer?.visible ?? true,
@@ -195,35 +201,35 @@ function start(host: StandinHost): void {
 
   /** The simulated agent: claims the last batch, applies it to the page, and has it verified for real. */
   const simulate = async (mode: AgentMode): Promise<void> => {
-    if (simulating) return
     const batch = lastBatch.map((id) => items.get(id)).filter((item): item is ChangeItem => item !== undefined && item.status === 'queued')
-    if (batch.length === 0) return
-    simulating = true
-    try {
-      const claimedAt = Date.now()
-      for (const item of batch) {
-        item.status = 'claimed'
-        item.claimedAt = claimedAt
-      }
-      broadcast()
-      // An agent reads the prompt and edits files; then the dev server reloads the module.
-      await sleep(1400)
-      const started = performance.now()
-      const edits = applyAsAgent(batch, mode)
-      await sleep(350)
-      const settle = { status: 'settled', signal: 'simulated agent', ms: Math.round(performance.now() - started), filesChanged: [] as string[] }
-      const counts = await check(batch, settle)
-      const results = edits.map((edit) => ({ itemId: edit.itemId, ...(edit.mistake === undefined ? {} : { mistake: edit.mistake }), status: items.get(edit.itemId)?.verification?.status ?? 'unknown' }))
-      const simulation: SimulationResult = { mode, counts, did: edits.map((edit) => edit.did), results }
-      events.lastSimulation = simulation
-      window.dispatchEvent(new CustomEvent(VERIFIED_EVENT, { detail: simulation }))
-    } finally {
-      simulating = false
+    if (batch.length === 0) {
+      // Said, not swallowed: the site has already turned to the Verification panel.
+      const nothing: SimulationResult = { mode, counts: {}, did: ['nothing: the changes of the last Send were already handled'], results: [] }
+      events.lastSimulation = nothing
+      window.dispatchEvent(new CustomEvent(VERIFIED_EVENT, { detail: nothing }))
+      return
     }
+    const claimedAt = Date.now()
+    for (const item of batch) {
+      item.status = 'claimed'
+      item.claimedAt = claimedAt
+    }
+    broadcast()
+    // An agent reads the prompt and edits files; then the dev server reloads the module.
+    await sleep(1400)
+    const started = performance.now()
+    const edits = applyAsAgent(batch, mode)
+    await sleep(350)
+    const settle = { status: 'settled', signal: 'simulated agent', ms: Math.round(performance.now() - started), filesChanged: [] as string[] }
+    const counts = await check(batch, settle)
+    const results = edits.map((edit) => ({ itemId: edit.itemId, ...(edit.mistake === undefined ? {} : { mistake: edit.mistake }), status: items.get(edit.itemId)?.verification?.status ?? 'unknown' }))
+    const simulation: SimulationResult = { mode, counts, did: edits.map((edit) => edit.did), results }
+    events.lastSimulation = simulation
+    window.dispatchEvent(new CustomEvent(VERIFIED_EVENT, { detail: simulation }))
   }
   window.addEventListener(SIMULATE_EVENT, (event) => {
     const mode = (event as CustomEvent<{ mode?: AgentMode }>).detail?.mode === 'sloppy' ? 'sloppy' : 'careful'
-    void simulate(mode)
+    void inTurn(() => simulate(mode))
   })
 
   const sorted = (): ChangeItem[] => [...items.values()].sort((a, b) => a.seq - b.seq)
@@ -346,9 +352,16 @@ function start(host: StandinHost): void {
         return
       }
       case 'session:reverify': {
-        // "Check again" in the dock: the page is measured again as it is now.
-        const wanted = message.ids.map((id) => items.get(id)).filter((item): item is ChangeItem => item !== undefined && item.status !== 'draft' && item.status !== 'queued')
-        if (wanted.length > 0) void check(wanted, { status: 'settled', signal: 'checked again', ms: 0, filesChanged: [] })
+        // "Check again" in the dock: the page is measured again as it is now. The same selection as
+        // primp's verifier: no ids is everything queued, claimed or failed.
+        const ids = message.ids
+        void inTurn(async () => {
+          const wanted =
+            ids.length === 0
+              ? sorted().filter((item) => item.status === 'queued' || item.status === 'claimed' || item.status === 'failed')
+              : ids.map((id) => items.get(id)).filter((item): item is ChangeItem => item !== undefined && VERIFIABLE_STATUSES.has(item.status))
+          if (wanted.length > 0) await check(wanted, { status: 'settled', signal: 'checked again', ms: 0, filesChanged: [] })
+        })
         return
       }
       default:
