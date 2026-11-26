@@ -23,6 +23,7 @@ import {
   type SessionSummary,
 } from '../../protocol/src/session.ts'
 import { findSession, isProcessAlive, removeSessionFile, type SessionDirOption } from './session-file.ts'
+import { SELF } from './registration.ts'
 
 /**
  * `primp mcp`: the stdio MCP server an agent host starts.
@@ -296,7 +297,7 @@ function locateSession(cwd: string, options: SessionDirOption): LocatedSession {
         [
           `primp is running for ${lookup.projectRoots.length} projects below ${cwd} and it is not clear which one is meant:`,
           ...lookup.projectRoots.map((root) => `  ${root}`),
-          'Start the agent inside one of those directories, or register the server as "primp mcp --project <directory>".',
+          `Start the agent inside one of those directories, or register the server as "${SELF} mcp --project <directory>".`,
         ].join('\n'),
       )
     case 'none':

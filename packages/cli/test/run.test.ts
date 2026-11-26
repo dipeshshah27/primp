@@ -106,7 +106,7 @@ describe('runPrimp', () => {
     expect(out).toContain('primp 1.2.3')
     expect(out).toContain(`open      ${running.primp.url}`)
     expect(out).toContain(`target    http://localhost:${target}    (vite)`)
-    expect(out).toMatch(/Claude Code {3}claude mcp add primp -- /)
+    expect(out).toMatch(/Claude Code {3}claude mcp add --scope user primp -- /)
     expect(out).toMatch(/Codex {9}codex mcp add primp -- /)
     expect(out).toContain('.cursor/mcp.json')
     expect(out).toContain('"--project"')

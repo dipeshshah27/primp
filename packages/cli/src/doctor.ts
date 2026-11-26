@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { buildOverlayAssets, type OverlayAssets, type OverlayAssetsOptions } from '../../server/src/assets.ts'
 import { detectDevServer, detectFramework, type DevServerDetection, type FrameworkInfo } from '../../server/src/detect.ts'
 import { findSession, listSessions, type SessionLookup } from '../../server/src/session-file.ts'
+import { SELF } from './registration.ts'
 
 /**
  * `primp doctor`: what primp sees on this machine, one line per check.
@@ -104,7 +105,7 @@ export async function collectDoctorChecks(projectRoot: string, deps: DoctorDeps)
 
   if (session.kind === 'found') add('Session', 'ok', `primp is running for ${session.session.projectRoot} (pid ${session.session.pid}); open ${session.session.proxyUrl}`)
   else if (session.kind === 'ambiguous') add('Session', 'warn', `primp is running for several projects below this directory: ${session.projectRoots.join(', ')}`)
-  else add('Session', 'ok', 'primp is not running for this project (start it with `primp`)')
+  else add('Session', 'ok', `primp is not running for this project (start it with \`${SELF}\`)`)
 
   try {
     const assets = await deps.buildAssets()

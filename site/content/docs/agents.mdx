@@ -9,8 +9,10 @@ For each client it knows, `setup` prints the client's own registration command a
 ### Claude Code
 
 ```sh
-claude mcp add primp -- npx -y @primpdev/cli mcp
+claude mcp add --scope user primp -- npx -y @primpdev/cli mcp
 ```
+
+`--scope user` registers primp once for every project. Without it, Claude Code registers a server for the current project only.
 
 ### Codex
 
@@ -28,7 +30,7 @@ Put this in `.cursor/mcp.json` in the project. Cursor starts servers outside the
     "primp": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "primp", "mcp", "--project", "${workspaceFolder}"]
+      "args": ["-y", "@primpdev/cli", "mcp", "--project", "${workspaceFolder}"]
     }
   }
 }

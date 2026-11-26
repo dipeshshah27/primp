@@ -21,6 +21,8 @@ export interface SetupDeps {
   confirm(question: string): Promise<boolean>
   /** Runs the client's command with its output shown; resolves with the exit code. */
   exec(binary: string, args: string[]): Promise<number>
+  /** Runs a client's command with its output hidden; resolves with the exit code. Absent: nothing is checked first. */
+  probe?(binary: string, args: string[]): Promise<number>
   print(line: string): void
 }
 
@@ -32,7 +34,7 @@ export interface SetupOptions {
 
 export interface SetupOutcome {
   client: string
-  result: 'registered' | 'failed' | 'declined' | 'not-installed'
+  result: 'registered' | 'already' | 'failed' | 'declined' | 'not-installed'
   exitCode?: number
 }
 
@@ -48,6 +50,11 @@ export async function runSetup(deps: SetupDeps, options: SetupOptions = {}): Pro
       outcomes.push({ client: registration.client, result: 'not-installed' })
       continue
     }
+    if (deps.probe !== undefined && (await deps.probe(registration.binary, registration.check)) === 0) {
+      deps.print(`${registration.client}: already connected to primp; nothing to do.`)
+      outcomes.push({ client: registration.client, result: 'already' })
+      continue
+    }
     deps.print(`${registration.client}: primp can register itself by running`)
     deps.print(`  ${registration.line}`)
     const agreed = options.yes === true || (await deps.confirm(`Run it now? [y/N] `))
@@ -61,7 +68,7 @@ export async function runSetup(deps: SetupDeps, options: SetupOptions = {}): Pro
       deps.print(`  registered with ${registration.client}.`)
       outcomes.push({ client: registration.client, result: 'registered', exitCode })
     } else {
-      deps.print(`  \`${registration.binary}\` exited with code ${exitCode}. If it says a server named primp exists already, nothing needs doing.`)
+      deps.print(`  \`${registration.binary}\` exited with code ${exitCode}; its message is above.`)
       outcomes.push({ client: registration.client, result: 'failed', exitCode })
     }
   }
@@ -90,6 +97,15 @@ export function isOnPath(binary: string, env: NodeJS.ProcessEnv = process.env, p
   return false
 }
 
+function run(binary: string, args: string[], stdio: 'inherit' | 'ignore'): Promise<number> {
+  return new Promise<number>((resolve) => {
+    // Windows installs these CLIs as .cmd shims, which only a shell can start.
+    const child = spawn(binary, args, { stdio, shell: process.platform === 'win32' })
+    child.once('error', () => resolve(127))
+    child.once('exit', (code) => resolve(code ?? 1))
+  })
+}
+
 /** The real thing: PATH lookup, a terminal prompt, and the client's command with inherited stdio. */
 export function terminalSetupDeps(): SetupDeps {
   return {
@@ -104,13 +120,8 @@ export function terminalSetupDeps(): SetupDeps {
         prompt.close()
       }
     },
-    exec: (binary, args) =>
-      new Promise<number>((resolve) => {
-        // Windows installs these CLIs as .cmd shims, which only a shell can start.
-        const child = spawn(binary, args, { stdio: 'inherit', shell: process.platform === 'win32' })
-        child.once('error', () => resolve(127))
-        child.once('exit', (code) => resolve(code ?? 1))
-      }),
+    exec: (binary, args) => run(binary, args, 'inherit'),
+    probe: (binary, args) => run(binary, args, 'ignore'),
     print: (line) => process.stdout.write(`${line}\n`),
   }
 }

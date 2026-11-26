@@ -707,17 +707,17 @@ function printRegistration(): void {
 How users register the shim (published package; not executed by this spike)
 
   Claude Code   https://code.claude.com/docs/en/mcp
-    claude mcp add primp -- npx -y @primpdev/cli mcp
+    claude mcp add --scope user primp -- npx -y @primpdev/cli mcp
     claude mcp add --scope project primp -- npx -y @primpdev/cli mcp      (shared through .mcp.json)
     .mcp.json equivalent:
-      { "mcpServers": { "primp": { "command": "npx", "args": ["-y", "primp", "mcp"] } } }
+      { "mcpServers": { "primp": { "command": "npx", "args": ["-y", "@primpdev/cli", "mcp"] } } }
 
   Codex CLI     https://developers.openai.com/codex/mcp  (redirects to https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
     codex mcp add primp -- npx -y @primpdev/cli mcp
     ~/.codex/config.toml equivalent:
       [mcp_servers.primp]
       command = "npx"
-      args = ["-y", "primp", "mcp"]
+      args = ["-y", "@primpdev/cli", "mcp"]
 
   Cursor        https://cursor.com/docs/context/mcp      (.cursor/mcp.json in the project)
       {
@@ -725,7 +725,7 @@ How users register the shim (published package; not executed by this spike)
           "primp": {
             "type": "stdio",
             "command": "npx",
-            "args": ["-y", "primp", "mcp", "--project", "\${workspaceFolder}"]
+            "args": ["-y", "@primpdev/cli", "mcp", "--project", "\${workspaceFolder}"]
           }
         }
       }

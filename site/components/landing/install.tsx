@@ -23,7 +23,7 @@ const TABS = [
     value: 'agent',
     label: 'Connect your agent',
     command: 'npx @primpdev/cli setup',
-    steps: ['claude mcp add primp -- npx -y @primpdev/cli mcp   (asks first)', 'codex mcp add primp -- npx -y @primpdev/cli mcp    (asks first)', 'prints .cursor/mcp.json for Cursor'],
+    steps: ['claude mcp add --scope user primp -- npx -y @primpdev/cli mcp   (asks first)', 'codex mcp add primp -- npx -y @primpdev/cli mcp                 (asks first)', 'prints .cursor/mcp.json for Cursor'],
     text: "Asks before running Claude Code's or Codex's own command to register primp's MCP server, and prints the configuration for Cursor. It never edits a configuration file itself.",
   },
 ]

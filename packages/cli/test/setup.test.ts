@@ -16,6 +16,8 @@ interface Script {
   installed: string[]
   answers: boolean[]
   exitCodes?: Record<string, number>
+  /** Clients that answer their `check` command with 0: primp is registered already. */
+  registered?: string[]
 }
 
 function deps(script: Script): SetupDeps & { printed: string[]; asked: string[]; ran: [string, string[]][] } {
@@ -37,6 +39,7 @@ function deps(script: Script): SetupDeps & { printed: string[]; asked: string[];
       return script.exitCodes?.[binary] ?? 0
     },
     print: (line) => printed.push(line),
+    ...(script.registered === undefined ? {} : { probe: async (binary: string) => (script.registered!.includes(binary) ? 0 : 1) }),
   }
 }
 
@@ -46,7 +49,7 @@ describe('primp setup', () => {
     const outcomes = await runSetup(d, { shim: SHIM })
     expect(d.asked).toHaveLength(2)
     expect(d.ran).toEqual([
-      ['claude', ['mcp', 'add', 'primp', '--', 'npx', '-y', '@primpdev/cli', 'mcp']],
+      ['claude', ['mcp', 'add', '--scope', 'user', 'primp', '--', 'npx', '-y', '@primpdev/cli', 'mcp']],
       ['codex', ['mcp', 'add', 'primp', '--', 'npx', '-y', '@primpdev/cli', 'mcp']],
     ])
     expect(outcomes).toEqual([
@@ -54,7 +57,7 @@ describe('primp setup', () => {
       { client: 'Codex', result: 'registered', exitCode: 0 },
     ])
     // The command is shown before the question, so the user knows what they agree to.
-    expect(d.printed.indexOf('  claude mcp add primp -- npx -y @primpdev/cli mcp')).toBeGreaterThan(-1)
+    expect(d.printed.indexOf('  claude mcp add --scope user primp -- npx -y @primpdev/cli mcp')).toBeGreaterThan(-1)
   })
 
   it('runs nothing on no (the default answer)', async () => {
@@ -70,7 +73,7 @@ describe('primp setup', () => {
     expect(d.asked).toHaveLength(1)
     expect(d.ran.map(([binary]) => binary)).toEqual(['codex'])
     expect(outcomes.map((outcome) => outcome.result)).toEqual(['not-installed', 'registered'])
-    expect(d.printed).toContain('  claude mcp add primp -- npx -y @primpdev/cli mcp')
+    expect(d.printed).toContain('  claude mcp add --scope user primp -- npx -y @primpdev/cli mcp')
     expect(d.printed.some((line) => line.includes('`claude` command was not found'))).toBe(true)
   })
 
@@ -90,6 +93,15 @@ describe('primp setup', () => {
       { client: 'Codex', result: 'registered', exitCode: 0 },
     ])
     expect(d.printed.some((line) => line.includes('`claude` exited with code 1'))).toBe(true)
+  })
+
+  it('a client that has primp already is told so and not asked or run again; the others are', async () => {
+    const d = deps({ installed: ['claude', 'codex'], answers: [true], registered: ['claude'] })
+    const outcomes = await runSetup(d, { shim: SHIM })
+    expect(outcomes.map((outcome) => outcome.result)).toEqual(['already', 'registered'])
+    expect(d.asked).toHaveLength(1)
+    expect(d.ran.map(([binary]) => binary)).toEqual(['codex'])
+    expect(d.printed).toContain('Claude Code: already connected to primp; nothing to do.')
   })
 
   it('always prints the Cursor JSON and never runs anything for Cursor', async () => {

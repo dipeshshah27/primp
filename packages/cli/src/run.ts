@@ -7,7 +7,7 @@ import { detectFramework, parseTarget, targetOrigin, type DevServerDetection } f
 import type { ProxyTarget } from '../../server/src/headers.ts'
 import { startDevServer, waitForDevServer, type DevServerProcess } from './dev-server.ts'
 import { ownProcesses } from './doctor.ts'
-import { registrationText, shimCommand } from './registration.ts'
+import { registrationText, SELF, shimCommand } from './registration.ts'
 
 /**
  * The default command: `primp [--target <url|port>] [--port <n>] [--exec "<command>"] [--project <dir>] [--no-open]`.
@@ -81,7 +81,7 @@ function notFoundMessage(projectRoot: string, detection: DevServerDetection | un
     lines.push(`Ports opened by this project that did not answer with a page: ${detection.ignored.map((entry) => `${entry.port} (${entry.reason})`).join(', ')}.`)
   }
   if (detection?.processScan !== undefined) lines.push(`Note: ${detection.processScan}.`)
-  lines.push('Start your dev server and run primp again, or name it: primp --target 5173, or let primp start it: primp --exec "npm run dev".')
+  lines.push(`Start your dev server and run primp again, or name it: ${SELF} --target 5173, or let primp start it: ${SELF} --exec "npm run dev".`)
   return lines.join('\n')
 }
 

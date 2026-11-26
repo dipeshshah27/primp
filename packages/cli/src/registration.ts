@@ -13,6 +13,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 export const MCP_SERVER_NAME = 'primp'
 
+/**
+ * How to run primp from a terminal, in advice the CLI prints. Most people run it with npx and have
+ * no `primp` on their PATH; the npx form works for a global install too.
+ */
+export const SELF = 'npx @primpdev/cli'
+
 /** The command line that starts the stdio shim. */
 export interface ShimCommand {
   command: string
@@ -53,16 +59,20 @@ export interface ClientRegistration {
   args: string[]
   /** The same as one line for a terminal. */
   line: string
+  /** Arguments that exit 0 when the shim is registered already (and print nothing that matters). */
+  check: string[]
 }
 
+/** Claude Code: in the user scope, so it is registered once for every project (its default scope is this project only). */
 export function claudeRegistration(shim: ShimCommand): ClientRegistration {
-  const args = ['mcp', 'add', MCP_SERVER_NAME, '--', shim.command, ...shim.args]
-  return { client: 'Claude Code', binary: 'claude', args, line: ['claude', ...args].map(shellQuote).join(' ') }
+  const args = ['mcp', 'add', '--scope', 'user', MCP_SERVER_NAME, '--', shim.command, ...shim.args]
+  return { client: 'Claude Code', binary: 'claude', args, line: ['claude', ...args].map(shellQuote).join(' '), check: ['mcp', 'get', MCP_SERVER_NAME] }
 }
 
+/** Codex keeps its MCP servers in one configuration for the user. */
 export function codexRegistration(shim: ShimCommand): ClientRegistration {
   const args = ['mcp', 'add', MCP_SERVER_NAME, '--', shim.command, ...shim.args]
-  return { client: 'Codex', binary: 'codex', args, line: ['codex', ...args].map(shellQuote).join(' ') }
+  return { client: 'Codex', binary: 'codex', args, line: ['codex', ...args].map(shellQuote).join(' '), check: ['mcp', 'get', MCP_SERVER_NAME] }
 }
 
 /** Contents for `.cursor/mcp.json` in the project. Cursor starts servers outside the project, hence `--project`. */
@@ -78,7 +88,7 @@ export function cursorConfig(shim: ShimCommand): string {
 export function registrationText(shim: ShimCommand): string {
   const indent = (text: string, by: string): string => text.split('\n').map((line) => by + line).join('\n')
   return [
-    'Connect a coding agent (once per machine, or run `primp setup`):',
+    `Connect a coding agent (once per machine, or let \`${SELF} setup\` do it):`,
     `  Claude Code   ${claudeRegistration(shim).line}`,
     `  Codex         ${codexRegistration(shim).line}`,
     '  Cursor        put this in .cursor/mcp.json in the project:',

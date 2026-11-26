@@ -7,8 +7,8 @@ const PUBLISHED: ShimCommand = { command: 'npx', args: ['-y', '@primpdev/cli', '
 
 describe('registration commands', () => {
   it('are the ones spike S6 verified for the published package', () => {
-    expect(claudeRegistration(PUBLISHED).line).toBe('claude mcp add primp -- npx -y @primpdev/cli mcp')
-    expect(claudeRegistration(PUBLISHED)).toMatchObject({ binary: 'claude', args: ['mcp', 'add', 'primp', '--', 'npx', '-y', '@primpdev/cli', 'mcp'] })
+    expect(claudeRegistration(PUBLISHED).line).toBe('claude mcp add --scope user primp -- npx -y @primpdev/cli mcp')
+    expect(claudeRegistration(PUBLISHED)).toMatchObject({ binary: 'claude', args: ['mcp', 'add', '--scope', 'user', 'primp', '--', 'npx', '-y', '@primpdev/cli', 'mcp'] })
     expect(codexRegistration(PUBLISHED).line).toBe('codex mcp add primp -- npx -y @primpdev/cli mcp')
     expect(JSON.parse(cursorConfig(PUBLISHED))).toEqual({
       mcpServers: { primp: { type: 'stdio', command: 'npx', args: ['-y', '@primpdev/cli', 'mcp', '--project', '${workspaceFolder}'] } },
@@ -17,7 +17,7 @@ describe('registration commands', () => {
 
   it('print all three clients in the block shown at start-up', () => {
     const text = registrationText(PUBLISHED)
-    expect(text).toContain('claude mcp add primp -- npx -y @primpdev/cli mcp')
+    expect(text).toContain('claude mcp add --scope user primp -- npx -y @primpdev/cli mcp')
     expect(text).toContain('codex mcp add primp -- npx -y @primpdev/cli mcp')
     expect(text).toContain('.cursor/mcp.json')
     expect(text).toContain('"${workspaceFolder}"')
@@ -43,6 +43,6 @@ describe('registration commands', () => {
     expect(shellQuote("it's")).toBe("'it'\\''s'")
     expect(shellQuote('$HOME')).toBe("'$HOME'")
     const spaced: ShimCommand = { command: '/opt/node 22/bin/node', args: ['--import', 'file:///a b/loader.mjs', '/a b/index.ts', 'mcp'], fromSource: true }
-    expect(claudeRegistration(spaced).line).toBe("claude mcp add primp -- '/opt/node 22/bin/node' --import 'file:///a b/loader.mjs' '/a b/index.ts' mcp")
+    expect(claudeRegistration(spaced).line).toBe("claude mcp add --scope user primp -- '/opt/node 22/bin/node' --import 'file:///a b/loader.mjs' '/a b/index.ts' mcp")
   })
 })
