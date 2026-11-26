@@ -156,7 +156,7 @@ function SentNotice({ c }: { c: Controller }) {
     return (
       <div class="notice" role="status">
         <div class="row">
-          <span>{sent.note ?? 'Copied. Paste into your agent, or it will pick the batch up over MCP.'}</span>
+          <span>{sent.note ?? 'Copied. Paste into your agent, or it will pick the batch up over MCP. Your previews left the page, so your agent\'s edit shows as your source makes it; Verification can show what you asked.'}</span>
           {dismiss}
         </div>
       </div>

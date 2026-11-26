@@ -1207,6 +1207,28 @@ async function viteMeasure(browser: Browser, lane: Lane): Promise<void> {
       await t.evaluate((one) => window.__primp_overlay!.controller.deleteItem(one), id)
       return `queued -> Take back -> draft on the server and in the dock; letter-spacing ${back} shown again`
     })
+
+    await report.attempt('Show what you asked: the sent change on the page again while it is on, never in a measurement, gone when off', async () => {
+      await t.evaluate(() => window.__primp_test!.select('[data-label="hero-title"]'))
+      const edit = await t.evaluate(() => window.__primp_test!.setStyle('letter-spacing', '4px'))
+      const id = edit.item!.id
+      await t.evaluate(() => window.__primp_test!.send())
+      const before = await computed(t, '[data-label="hero-title"]', 'letter-spacing')
+      await t.evaluate(() => window.__primp_test!.openTab('verify'))
+      await page.dock.locator('button', { hasText: 'Show what you asked' }).click()
+      const shown = await computed(t, '[data-label="hero-title"]', 'letter-spacing')
+      // A measurement switches it off: the check sees the page as the source makes it.
+      const measured = await t.evaluate((one) => {
+        const item = window.__primp_overlay!.controller.store.items.value.find((entry) => entry.id === one)!
+        return window.__primp_test!.measure([{ itemId: one, locator: item.target.locator, expect: item.expect }])
+      }, id)
+      const actual = measured.results[0]?.checks[0]?.actual
+      await page.dock.locator('button', { hasText: 'Showing what you asked' }).click()
+      const after = await computed(t, '[data-label="hero-title"]', 'letter-spacing')
+      expect(before !== '4px' && shown === '4px' && after === before, `before ${before}, shown ${shown}, after ${after}`)
+      expect(actual === before, `measured with it on: ${actual} (the page without it: ${before})`)
+      return `letter-spacing ${before} -> ${shown} while shown, measured as ${actual}, ${after} after`
+    })
   } finally {
     revert?.()
     if (revert !== undefined) await waitFor(() => sourceApplied('20px'), { what: 'the fixture source to be restored' }).catch(() => undefined)

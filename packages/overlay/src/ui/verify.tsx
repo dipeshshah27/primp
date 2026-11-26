@@ -187,6 +187,9 @@ export function VerifyPanel({ c, onClose }: { c: Controller; onClose(): void }) 
   useEffect(() => {
     c.store.unseen.value = null
   })
+  // The asked-for look is a way to compare while looking at the results, not a state the page is left in.
+  useEffect(() => () => c.showAsked(false), [])
+  const asked = c.store.showingAsked.value
   return (
     <div class="pop" role="dialog" aria-label="Verification">
       <header class="pop-head">
@@ -204,6 +207,17 @@ export function VerifyPanel({ c, onClose }: { c: Controller; onClose(): void }) 
       </div>
       <footer class="pop-foot foot">
         <span class="hint grow">Results appear after your agent edits the source.</span>
+        {sent.some((item) => item.kind !== 'note' && item.page === c.store.route.value) ? (
+          <button
+            type="button"
+            class={`btn sm${asked ? ' on' : ''}`}
+            aria-pressed={asked}
+            title="Show the sent changes on the page as you asked for them, to compare with what your agent made"
+            onClick={() => c.showAsked(!asked)}
+          >
+            {asked ? 'Showing what you asked' : 'Show what you asked'}
+          </button>
+        ) : null}
         {toFix.length > 0 ? (
           <button type="button" class="btn sm" title="Copy what did not pass as instructions, to paste into your agent" onClick={() => void c.copyFixup(toFix.map((item) => item.id))}>
             Copy fix-up

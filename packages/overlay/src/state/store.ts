@@ -124,6 +124,8 @@ export interface Store {
   /** A recording was sent and its report has not arrived. */
   shiftsPending: Signal<boolean>
   sent: Signal<SentState | null>
+  /** The sent changes are shown on the page as they were asked for (a preview again), to compare with what the agent made. */
+  showingAsked: Signal<boolean>
   /** Items a verification is running for (session:verifying): when it started and the attempt shown then; gone once a later attempt is in. */
   checking: Signal<ReadonlyMap<string, { at: number; attempt: number }>>
   /** Results arrived that nobody has looked at yet: the worst of them, for the launcher's dot; null once the Verification panel was open. */
@@ -172,6 +174,7 @@ export function createStore(page: string): Store {
     shiftsPending: signal(false),
     sent: signal(null),
     checking: signal(new Map()),
+    showingAsked: signal(false),
     unseen: signal(null),
     sending: signal(false),
     error: signal(null),

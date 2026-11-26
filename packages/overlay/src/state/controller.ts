@@ -110,6 +110,12 @@ export interface Controller {
   copyPrompt(): Promise<{ prompt: string; copied: boolean }>
   /** The prompt that fixes these layout shifts (issue ids of this page's report), as the server renders it; empty when it could not. */
   shiftPrompt(ids: readonly string[]): Promise<string>
+  /**
+   * Shows the sent changes of this page on it again as they were asked for (on), or takes that away
+   * (off): to compare the agent's result with the request. A measurement switches them off like
+   * every preview, so verification never sees them.
+   */
+  showAsked(on: boolean): void
   /** Takes sent changes nobody has taken yet back into the drafts, to change them before they go out again. */
   withdraw(ids: readonly string[]): void
   /** `shiftPrompt`, put on the clipboard. */
@@ -1287,6 +1293,22 @@ export function createController(options: ControllerOptions): Controller {
     store.toast.value = { text, tone, at: performance.now() }
   }
 
+  /** Preview ids of the asked-for look of sent changes: apart from the drafts' own. */
+  const ASKED = 'primp-asked:'
+
+  const showAsked = (on: boolean): void => {
+    store.showingAsked.value = on
+    for (const item of present()) {
+      const id = `${ASKED}${item.id}`
+      const shown = on && item.status !== 'draft' && item.status !== 'dismissed' && item.kind !== 'note' && item.page === here()
+      if (!shown) {
+        if (preview.has(id)) forget(id)
+        continue
+      }
+      preview.restore({ ...specOf(item), itemId: id })
+    }
+  }
+
   const pendingFixups = new Map<string, (message: Extract<ServerMessage, { type: 'session:fixup-text' }>) => void>()
 
   /** Copies the fix-up prompt for the sent items that did not pass: what to paste into an agent that has no MCP. */
@@ -1780,6 +1802,7 @@ export function createController(options: ControllerOptions): Controller {
     shiftPrompt,
     copyShiftPrompt,
     withdraw: (ids) => bus.send({ type: 'session:withdraw', ids: [...ids] }),
+    showAsked,
     elementOf,
     knownSource: (element) => sources.get(element),
     setState,
