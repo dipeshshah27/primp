@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { claudeRegistration, codexRegistration, cursorConfig, registrationText, shellQuote, shimCommand, type ShimCommand } from '../src/registration.ts'
+import { claudeRegistration, codexRegistration, cursorConfig, registrationText, selfCommand, shellQuote, shimCommand, type ShimCommand } from '../src/registration.ts'
 
 const PUBLISHED: ShimCommand = { command: 'npx', args: ['-y', '@primpdev/cli', 'mcp'], fromSource: false }
 
@@ -35,6 +35,12 @@ describe('registration commands', () => {
     expect(registrationText(shim)).toContain('running from a checkout')
     // The bundled CLI is a .js file: it registers the published form.
     expect(shimCommand('file:///usr/lib/node_modules/primp/dist/cli.js')).toEqual(PUBLISHED)
+  })
+
+  it('advice names npx for the published package and the checkout\'s own command from source', () => {
+    expect(selfCommand(PUBLISHED)).toBe('npx @primpdev/cli')
+    const source: ShimCommand = { command: '/opt/node', args: ['--import', 'file:///x/tsx.mjs', '/x/cli/src/index.ts', 'mcp'], fromSource: true }
+    expect(selfCommand(source)).toBe('/opt/node --import file:///x/tsx.mjs /x/cli/src/index.ts')
   })
 
   it('quote arguments a shell would split or expand', () => {

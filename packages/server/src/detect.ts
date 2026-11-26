@@ -273,8 +273,8 @@ export interface DetectDevServerOptions {
   platform?: NodeJS.Platform
   /** Runs a command and resolves with its stdout; rejects when it cannot run. Default: `execFile`. */
   run?: (command: string, args: string[]) => Promise<string>
-  /** Asks a port for `/`, giving up after `timeoutMs`. Default: an HTTP GET to `http://localhost:<port>/`. */
-  probe?: (port: number, timeoutMs: number) => Promise<ProbeResult>
+  /** Asks a port for `/`, giving up after `timeoutMs` or when `abandon` fires. Default: an HTTP GET to `http://localhost:<port>/`. */
+  probe?: (port: number, timeoutMs: number, abandon?: AbortSignal) => Promise<ProbeResult>
   /** How long a well-known port, or any port once another answered, gets to answer. Default 1500 ms. */
   probeTimeoutMs?: number
   /**
@@ -298,12 +298,12 @@ function runCommand(command: string, args: string[]): Promise<string> {
 }
 
 /** GET `/` on `http://localhost:<port>` as a browser navigation would; HTML only counts when the status is not an error from a proxy that found nothing. */
-export async function probeHttp(port: number, timeoutMs = 1500): Promise<ProbeResult> {
+export async function probeHttp(port: number, timeoutMs = 1500, abandon?: AbortSignal): Promise<ProbeResult> {
   try {
     const response = await fetch(`http://localhost:${port}/`, {
       headers: { accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8' },
       redirect: 'manual',
-      signal: AbortSignal.timeout(timeoutMs),
+      signal: abandon === undefined ? AbortSignal.timeout(timeoutMs) : AbortSignal.any([AbortSignal.timeout(timeoutMs), abandon]),
     })
     const type = response.headers.get('content-type') ?? ''
     await response.body?.cancel().catch(() => {})
@@ -375,21 +375,31 @@ export async function detectDevServer(options: DetectDevServerOptions): Promise<
   }
 
   // Every candidate is asked at once. A project's own port may take a first compile to answer;
-  // it is waited for only when nothing else answered with a page in the quick round.
-  const asked = candidates.map((candidate) => ({ candidate, answer: probe(candidate.port, candidate.via === 'process' ? patient : quick) }))
-  const late: unique symbol = Symbol('late')
-  const timer = (ms: number): Promise<typeof late> => new Promise((resolve) => setTimeout(() => resolve(late), ms).unref?.())
-  const first = await Promise.all(asked.map(async ({ candidate, answer }) => ({ candidate, answer, result: await Promise.race([answer, timer(quick + 100)]) })))
-  const pending = first.filter((entry) => entry.result === late)
-  const answeredHtml = first.some((entry) => typeof entry.result !== 'symbol' && entry.result.html)
-  if (pending.length > 0 && !answeredHtml) options.onWait?.(pending.map((entry) => entry.candidate.port))
-  const answers = await Promise.all(
-    first.map(async ({ candidate, answer, result }): Promise<{ candidate: DevServerCandidate; result: ProbeResult }> => {
-      if (typeof result !== 'symbol') return { candidate, result }
-      if (answeredHtml) return { candidate, result: { html: false, answered: false, detail: `no answer within ${(quick / 1000).toFixed(1)} s` } }
-      return { candidate, result: await answer }
+  // it is waited for only when nothing answered with a page in the quick round, and only until
+  // one of them does. Probes no longer needed are abandoned, so nothing keeps the process alive.
+  const abandon = new AbortController()
+  const results = new Map<DevServerCandidate, ProbeResult>()
+  let pageFound: () => void = () => undefined
+  const firstPage = new Promise<void>((resolve) => (pageFound = resolve))
+  const asked = candidates.map((candidate) =>
+    probe(candidate.port, candidate.via === 'process' ? patient : quick, abandon.signal).then((result) => {
+      results.set(candidate, result)
+      if (result.html) pageFound()
+      return result
     }),
   )
+  const all = Promise.all(asked).then(() => undefined)
+  const quickRound = new Promise<void>((resolve) => setTimeout(resolve, quick + 100).unref?.())
+  await Promise.race([all, quickRound])
+  const pending = (): DevServerCandidate[] => candidates.filter((candidate) => !results.has(candidate))
+  if (pending().length > 0 && ![...results.values()].some((result) => result.html)) {
+    options.onWait?.(pending().map((candidate) => candidate.port))
+    await Promise.race([all, firstPage])
+  }
+  const waited = [...results.values()].some((result) => result.html) ? `no answer within ${(quick / 1000).toFixed(1)} s` : 'no answer in time'
+  for (const candidate of pending()) results.set(candidate, { html: false, answered: false, detail: waited })
+  abandon.abort()
+  const answers = candidates.map((candidate) => ({ candidate, result: results.get(candidate)! }))
   const html: DevServerCandidate[] = []
   for (const { candidate, result } of answers) {
     if (result.html) html.push(candidate)

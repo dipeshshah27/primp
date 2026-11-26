@@ -376,6 +376,28 @@ describe('detectDevServer', () => {
     expect(waited).toEqual([])
   })
 
+  it('while waiting, the first slow port to answer with a page ends the wait; the silent one is abandoned', async () => {
+    const abandoned: number[] = []
+    const probe = (port: number, timeoutMs: number, abandon?: AbortSignal): Promise<ProbeResult> =>
+      new Promise((resolve) => {
+        if (port === 5173) return void setTimeout(() => resolve(html), 300)
+        if (port === 3000) {
+          abandon?.addEventListener('abort', () => {
+            abandoned.push(port)
+            resolve({ html: false, answered: false, detail: 'AbortError' })
+          })
+          return
+        }
+        resolve(refused)
+      })
+    const started = Date.now()
+    const detection = await detectDevServer({ projectRoot: '/Users/sam/code/shop', framework: 'vite', run: lsof().run, probe, platform: 'darwin', probeTimeoutMs: 50, firstCompileTimeoutMs: 5000 })
+    expect(Date.now() - started).toBeLessThan(1500)
+    expect(detection.chosen?.port).toBe(5173)
+    expect(detection.ignored).toContainEqual({ port: 3000, reason: 'no answer within 0.1 s' })
+    expect(abandoned).toEqual([3000])
+  })
+
   it('a port that never answers is reported as such, after the long wait', async () => {
     const { probe } = slowProbe({ 5173: 5000 }, {})
     const detection = await detectDevServer({ projectRoot: '/Users/sam/code/shop', framework: 'vite', run: lsof().run, probe, platform: 'darwin', probeTimeoutMs: 50, firstCompileTimeoutMs: 200 })

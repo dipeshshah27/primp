@@ -4,7 +4,7 @@ import http from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { dirname, extname, join, normalize, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { SELF } from './registration.ts'
+import { selfCommand } from './registration.ts'
 
 /**
  * `primp demo`: a small static site with one seeded layout shift, served by a
@@ -40,7 +40,7 @@ export function prepareDemo(dir: string, template: string = demoTemplateDir()): 
       const index = join(target, 'index.html')
       const isDemo = existsSync(index) && DEMO_TITLES.some((title) => readFileSync(index, 'utf8').includes(title))
       if (isDemo) return { dir: target, created: false }
-      throw new DemoError(`${target} is not empty. Pass another directory: ${SELF} demo --dir <directory>.`)
+      throw new DemoError(`${target} is not empty. Pass another directory: ${selfCommand()} demo --dir <directory>.`)
     }
   }
   mkdirSync(target, { recursive: true })

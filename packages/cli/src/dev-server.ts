@@ -139,7 +139,7 @@ export interface WaitForDevServerOptions {
   excludePids?: readonly number[]
   timeoutMs?: number
   intervalMs?: number
-  probe?: (port: number, timeoutMs?: number) => Promise<ProbeResult>
+  probe?: (port: number, timeoutMs?: number, abandon?: AbortSignal) => Promise<ProbeResult>
   detect?: typeof detectDevServer
   /** Called when detection waits for the project's own ports to answer (a first compile). */
   onWait?: (ports: number[]) => void
@@ -177,7 +177,10 @@ export async function waitForDevServer(options: WaitForDevServerOptions): Promis
         framework: options.framework,
         excludePorts: options.excludePorts,
         excludePids: options.excludePids,
-        probe: (port, timeoutMs) => probe(port, timeoutMs),
+        probe: (port, timeoutMs, abandon) => probe(port, timeoutMs, abandon),
+        // With a command started by primp the loop asks again every few hundred ms: no long wait inside one pass,
+        // so the start timeout holds and a command that ends is noticed.
+        ...(options.child === undefined ? {} : { firstCompileTimeoutMs: 1500 }),
         ...(options.onWait === undefined ? {} : { onWait: options.onWait }),
       })
       if (detection.chosen !== undefined) return { status: 'ready', target: local(detection.chosen.port), detection, via: detection.chosen.via }

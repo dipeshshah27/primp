@@ -16,8 +16,8 @@ interface Script {
   installed: string[]
   answers: boolean[]
   exitCodes?: Record<string, number>
-  /** Clients that answer their `check` command with 0: primp is registered already. */
-  registered?: string[]
+  /** How primp is registered with each client already: for every project, for one, or with another command. */
+  registered?: Record<string, 'user' | 'local' | 'other'>
 }
 
 function deps(script: Script): SetupDeps & { printed: string[]; asked: string[]; ran: [string, string[]][] } {
@@ -39,7 +39,17 @@ function deps(script: Script): SetupDeps & { printed: string[]; asked: string[];
       return script.exitCodes?.[binary] ?? 0
     },
     print: (line) => printed.push(line),
-    ...(script.registered === undefined ? {} : { probe: async (binary: string) => (script.registered!.includes(binary) ? 0 : 1) }),
+    ...(script.registered === undefined
+      ? {}
+      : {
+          probe: async (binary: string) => {
+            const how = script.registered![binary]
+            if (how === undefined) return { code: 1, output: 'No MCP server found with name: primp' }
+            const scope = how === 'local' ? 'Local config (private to you in this project)' : 'User config (available in all your projects)'
+            const args = how === 'other' ? '-y some-other-package mcp' : SHIM.args.join(' ')
+            return { code: 0, output: `primp:\n  Scope: ${scope}\n  Command: npx\n  Args: ${args}\n` }
+          },
+        }),
   }
 }
 
@@ -96,12 +106,28 @@ describe('primp setup', () => {
   })
 
   it('a client that has primp already is told so and not asked or run again; the others are', async () => {
-    const d = deps({ installed: ['claude', 'codex'], answers: [true], registered: ['claude'] })
+    const d = deps({ installed: ['claude', 'codex'], answers: [true], registered: { claude: 'user' } })
     const outcomes = await runSetup(d, { shim: SHIM })
     expect(outcomes.map((outcome) => outcome.result)).toEqual(['already', 'registered'])
     expect(d.asked).toHaveLength(1)
     expect(d.ran.map(([binary]) => binary)).toEqual(['codex'])
     expect(d.printed).toContain('Claude Code: already connected to primp; nothing to do.')
+  })
+
+  it('a registration for one project only is not "already connected": setup offers the one for every project', async () => {
+    const d = deps({ installed: ['claude'], answers: [true], registered: { claude: 'local' } })
+    const outcomes = await runSetup(d, { shim: SHIM })
+    expect(outcomes[0]).toEqual({ client: 'Claude Code', result: 'registered', exitCode: 0 })
+    expect(d.printed).toContain('Claude Code: primp is registered for one project only; it can be registered for every project.')
+    expect(d.ran[0]?.[1]).toContain('user')
+  })
+
+  it('a server named primp with another command is left alone, and the user is told how to replace it', async () => {
+    const d = deps({ installed: ['claude'], answers: [true], registered: { claude: 'other' } })
+    const outcomes = await runSetup(d, { shim: SHIM })
+    expect(outcomes[0]?.result).toBe('failed')
+    expect(d.ran).toEqual([])
+    expect(d.printed.some((line) => line.includes('claude mcp remove primp'))).toBe(true)
   })
 
   it('always prints the Cursor JSON and never runs anything for Cursor', async () => {

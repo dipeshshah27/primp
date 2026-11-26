@@ -21,8 +21,8 @@ export interface SetupDeps {
   confirm(question: string): Promise<boolean>
   /** Runs the client's command with its output shown; resolves with the exit code. */
   exec(binary: string, args: string[]): Promise<number>
-  /** Runs a client's command with its output hidden; resolves with the exit code. Absent: nothing is checked first. */
-  probe?(binary: string, args: string[]): Promise<number>
+  /** Runs a client's command with its output captured, not shown. Absent: nothing is checked first. */
+  probe?(binary: string, args: string[]): Promise<{ code: number; output: string }>
   print(line: string): void
 }
 
@@ -50,10 +50,21 @@ export async function runSetup(deps: SetupDeps, options: SetupOptions = {}): Pro
       outcomes.push({ client: registration.client, result: 'not-installed' })
       continue
     }
-    if (deps.probe !== undefined && (await deps.probe(registration.binary, registration.check)) === 0) {
-      deps.print(`${registration.client}: already connected to primp; nothing to do.`)
-      outcomes.push({ client: registration.client, result: 'already' })
-      continue
+    const found = deps.probe === undefined ? undefined : await deps.probe(registration.binary, registration.check)
+    if (found !== undefined && found.code === 0) {
+      const how = registration.read(found.output)
+      if (how === 'ok') {
+        deps.print(`${registration.client}: already connected to primp; nothing to do.`)
+        outcomes.push({ client: registration.client, result: 'already' })
+        continue
+      }
+      if (how === 'other-command') {
+        // Adding a second server of the same name fails; the user decides what to do with theirs.
+        deps.print(`${registration.client}: a server named primp is registered with another command. To use this one, remove it (\`${registration.binary} mcp remove primp\`) and run setup again.`)
+        outcomes.push({ client: registration.client, result: 'failed' })
+        continue
+      }
+      deps.print(`${registration.client}: primp is registered for one project only; it can be registered for every project.`)
     }
     deps.print(`${registration.client}: primp can register itself by running`)
     deps.print(`  ${registration.line}`)
@@ -97,7 +108,7 @@ export function isOnPath(binary: string, env: NodeJS.ProcessEnv = process.env, p
   return false
 }
 
-function run(binary: string, args: string[], stdio: 'inherit' | 'ignore'): Promise<number> {
+function run(binary: string, args: string[], stdio: 'inherit'): Promise<number> {
   return new Promise<number>((resolve) => {
     // Windows installs these CLIs as .cmd shims, which only a shell can start.
     const child = spawn(binary, args, { stdio, shell: process.platform === 'win32' })
@@ -121,7 +132,15 @@ export function terminalSetupDeps(): SetupDeps {
       }
     },
     exec: (binary, args) => run(binary, args, 'inherit'),
-    probe: (binary, args) => run(binary, args, 'ignore'),
+    probe: (binary, args) =>
+      new Promise((resolve) => {
+        const child = spawn(binary, args, { stdio: ['ignore', 'pipe', 'pipe'], shell: process.platform === 'win32' })
+        let output = ''
+        child.stdout?.on('data', (chunk: Buffer) => (output += chunk.toString()))
+        child.stderr?.on('data', (chunk: Buffer) => (output += chunk.toString()))
+        child.once('error', () => resolve({ code: 127, output }))
+        child.once('exit', (code) => resolve({ code: code ?? 1, output }))
+      }),
     print: (line) => process.stdout.write(`${line}\n`),
   }
 }

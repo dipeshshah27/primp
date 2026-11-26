@@ -477,7 +477,7 @@ export function mountDock(c: Controller): DockHandle {
       return
     }
     // Alt+↑ / Alt+↓: what the grip would move goes one place earlier or later (left and right are the browser's history keys).
-    if (!typing && event.altKey && !mod && (event.key === 'ArrowUp' || event.key === 'ArrowDown') && store.selection.peek() !== null) {
+    if (!typing && event.altKey && !mod && !event.shiftKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown') && store.selection.peek() !== null) {
       event.preventDefault()
       event.stopPropagation()
       const target = c.moveTarget()

@@ -116,7 +116,15 @@ interface Drag {
   /** The pointer's last position, for scrolling at the edges. */
   x: number
   y: number
+  /**
+   * Scrolling at the edges is on: the pointer has travelled far enough. A grip near the top of the
+   * window starts inside the edge zone, and the page must not scroll away at the first move.
+   */
+  armed: boolean
 }
+
+/** How far the pointer travels before a reorder drag may scroll at the edges. */
+const ARM_PX = 24
 
 /** The layout a reorder drag targets: the siblings' boxes as they were, and the scroll offsets then. */
 interface Origin {
@@ -458,7 +466,7 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
       if (c.resizeRefusal() !== null) return
       state = { kind: 'resize', handle: name, size: {} }
     }
-    drag = { pointerId: event.pointerId, handle, startX: event.clientX, startY: event.clientY, started: false, cancelled: false, element, state, startW: box.width, startH: box.height, x: event.clientX, y: event.clientY }
+    drag = { pointerId: event.pointerId, handle, startX: event.clientX, startY: event.clientY, started: false, cancelled: false, element, state, startW: box.width, startH: box.height, x: event.clientX, y: event.clientY, armed: false }
     if (origin !== undefined) drag.origin = origin
     handle.classList.add('active')
     try {
@@ -511,6 +519,10 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
     if (current === null || current.cancelled || current.state.kind !== 'reorder' || current.origin === undefined) return
     let moved = false
     const box = current.origin.box
+    if (!current.armed) {
+      view.requestAnimationFrame(scrollLoop)
+      return
+    }
     if (box !== null) {
       const r = box.getBoundingClientRect()
       const vx = speed(current.x, r.left, r.right)
@@ -562,6 +574,7 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
       if (current.cancelled) return
       current.x = event.clientX
       current.y = event.clientY
+      if (!current.armed && Math.hypot(event.clientX - current.startX, event.clientY - current.startY) >= ARM_PX) current.armed = true
       if (!current.started) {
         if (Math.hypot(event.clientX - current.startX, event.clientY - current.startY) < DRAG_THRESHOLD) return
         current.started = true
@@ -597,9 +610,10 @@ export function createHandles(layer: HTMLElement, c: Controller, options: Handle
   const onDown = (event: PointerEvent): void => {
     const first = event.composedPath()[0]
     if (first === gripOff) {
-      // Only there to say why nothing can be moved: the press is not a selection click.
+      // A press on the greyed grip asks why nothing moves: it is said, and the press goes no further.
       event.stopImmediatePropagation()
       event.preventDefault()
+      if (gripOff.title !== '') store.toast.value = { text: gripOff.title, tone: 'bad', at: performance.now() }
       return
     }
     const name = handleOf(event)

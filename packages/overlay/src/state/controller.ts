@@ -1590,11 +1590,12 @@ export function createController(options: ControllerOptions): Controller {
   })
   // A client-side navigation: back and forward here; pushState is noticed by the DOM change that
   // follows it (onPageChange), and, for a navigation that changes nothing in the DOM, by a slow poll.
-  addEventListener('popstate', () => {
+  const onPopState = (): void => {
     followRoute()
     leftRoute()
-  })
-  window.setInterval(followRoute, 1000)
+  }
+  addEventListener('popstate', onPopState)
+  const routePoll = window.setInterval(followRoute, 1000)
 
   let resizeTimer: number | undefined
   addEventListener('resize', () => {
@@ -1656,6 +1657,8 @@ export function createController(options: ControllerOptions): Controller {
     copy: (text) => copy(text),
     lastEffects: () => lastEffects,
     dispose() {
+      window.clearInterval(routePoll)
+      removeEventListener('popstate', onPopState)
       store.state.value = null
       pinned = false
       holdState()

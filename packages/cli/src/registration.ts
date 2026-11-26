@@ -13,11 +13,6 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 export const MCP_SERVER_NAME = 'primp'
 
-/**
- * How to run primp from a terminal, in advice the CLI prints. Most people run it with npx and have
- * no `primp` on their PATH; the npx form works for a global install too.
- */
-export const SELF = 'npx @primpdev/cli'
 
 /** The command line that starts the stdio shim. */
 export interface ShimCommand {
@@ -45,6 +40,17 @@ export function shimCommand(entryUrl: string = import.meta.url): ShimCommand {
   return { command: process.execPath, args: ['--import', loader, entry, 'mcp'], fromSource: true }
 }
 
+/**
+ * How to run primp from a terminal, in advice the CLI prints. Most people run it with npx and have
+ * no `primp` on their PATH; the npx form works for a global install too. From a checkout, the
+ * command that runs that checkout.
+ */
+export function selfCommand(shim: ShimCommand = shimCommand()): string {
+  if (!shim.fromSource) return 'npx @primpdev/cli'
+  // The shim's command line without its trailing `mcp`.
+  return [shim.command, ...shim.args.slice(0, -1)].map(shellQuote).join(' ')
+}
+
 /** Quotes one argument for a POSIX shell when it needs it. */
 export function shellQuote(value: string): string {
   return /^[\w@%+=:,./-]+$/.test(value) ? value : `'${value.replace(/'/g, `'\\''`)}'`
@@ -59,20 +65,36 @@ export interface ClientRegistration {
   args: string[]
   /** The same as one line for a terminal. */
   line: string
-  /** Arguments that exit 0 when the shim is registered already (and print nothing that matters). */
+  /** Arguments that exit 0 when the shim is registered already. */
   check: string[]
+  /**
+   * Reads what `check` printed (it exited 0): `ok` when it is registered as this command would,
+   * `other-scope` when only for some projects, `other-command` when with another command.
+   */
+  read(output: string): 'ok' | 'other-scope' | 'other-command'
 }
+
+/** Whether `output` names the shim's command and arguments (as `<client> mcp get` prints them). */
+const namesShim = (output: string, shim: ShimCommand): boolean => output.includes(shim.command) && shim.args.every((arg) => output.includes(arg))
 
 /** Claude Code: in the user scope, so it is registered once for every project (its default scope is this project only). */
 export function claudeRegistration(shim: ShimCommand): ClientRegistration {
   const args = ['mcp', 'add', '--scope', 'user', MCP_SERVER_NAME, '--', shim.command, ...shim.args]
-  return { client: 'Claude Code', binary: 'claude', args, line: ['claude', ...args].map(shellQuote).join(' '), check: ['mcp', 'get', MCP_SERVER_NAME] }
+  return {
+    client: 'Claude Code',
+    binary: 'claude',
+    args,
+    line: ['claude', ...args].map(shellQuote).join(' '),
+    check: ['mcp', 'get', MCP_SERVER_NAME],
+    // `Scope: User config (available in all your projects)`; a Local or Project one is for one project.
+    read: (output) => (!/Scope:\s*User/i.test(output) ? 'other-scope' : namesShim(output, shim) ? 'ok' : 'other-command'),
+  }
 }
 
 /** Codex keeps its MCP servers in one configuration for the user. */
 export function codexRegistration(shim: ShimCommand): ClientRegistration {
   const args = ['mcp', 'add', MCP_SERVER_NAME, '--', shim.command, ...shim.args]
-  return { client: 'Codex', binary: 'codex', args, line: ['codex', ...args].map(shellQuote).join(' '), check: ['mcp', 'get', MCP_SERVER_NAME] }
+  return { client: 'Codex', binary: 'codex', args, line: ['codex', ...args].map(shellQuote).join(' '), check: ['mcp', 'get', MCP_SERVER_NAME], read: (output) => (namesShim(output, shim) ? 'ok' : 'other-command') }
 }
 
 /** Contents for `.cursor/mcp.json` in the project. Cursor starts servers outside the project, hence `--project`. */
@@ -88,7 +110,7 @@ export function cursorConfig(shim: ShimCommand): string {
 export function registrationText(shim: ShimCommand): string {
   const indent = (text: string, by: string): string => text.split('\n').map((line) => by + line).join('\n')
   return [
-    `Connect a coding agent (once per machine, or let \`${SELF} setup\` do it):`,
+    `Connect a coding agent (once per machine, or let \`${selfCommand(shim)} setup\` do it):`,
     `  Claude Code   ${claudeRegistration(shim).line}`,
     `  Codex         ${codexRegistration(shim).line}`,
     '  Cursor        put this in .cursor/mcp.json in the project:',

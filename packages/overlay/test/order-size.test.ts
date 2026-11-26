@@ -147,6 +147,21 @@ describe('listItemIndex: the item a drag moves is the first of the chain that ha
     expect(sameKind(sig('div', 'x'), sig('section', 'x'))).toBe(false)
   })
 
+  it('sameKind: a utility class in common says nothing; the same utilities do (a list from one component)', () => {
+    expect(sameKind(sig('div', 'flex', 'items-center', 'gap-2'), sig('div', 'flex', 'flex-col'))).toBe(false)
+    expect(sameKind(sig('a', 'rounded-md', 'px-2.5', 'py-1'), sig('a', 'px-2.5', 'rounded-md', 'py-1'))).toBe(true)
+    expect(sameKind(sig('article', 'group', 'lg:col-span-4'), sig('article', 'group', 'lg:col-span-2'))).toBe(true)
+  })
+
+  it('a title inside a card whose header and body are utility-styled divs: the card, not the header', () => {
+    const chain = [
+      { self: sig('h3', 'font-medium'), siblings: [sig('span', 'size-4')] },
+      { self: sig('div', 'flex', 'items-center', 'gap-2'), siblings: [sig('div', 'flex', 'flex-col')] },
+      { self: sig('article', 'card'), siblings: [sig('article', 'card'), sig('article', 'card')] },
+    ]
+    expect(listItemIndex(chain)).toBe(2)
+  })
+
   it('a paragraph inside a card inside a grid of cards: the card', () => {
     const chain = [
       { self: sig('p', 'border-b'), siblings: [sig('div', 'space-y-2')] },

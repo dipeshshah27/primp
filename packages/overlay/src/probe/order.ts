@@ -12,6 +12,7 @@
 import { pickBest } from '@primp/engine/locator'
 import type { Locator } from '@primp/protocol/change'
 import { isOwn, locate, type LocateResult, type LocatorPicker } from './ref.ts'
+import { isUtilityClass } from './styles.ts'
 
 /** The element children of `parent` that are the page's, in document order. */
 export function elementChildren(parent: Element): Element[] {
@@ -216,11 +217,18 @@ export interface Signature {
   classes: readonly string[]
 }
 
-/** Two elements look like items of one list: the same tag, and a class in common (or no classes at all). */
+/**
+ * Two elements look like items of one list: the same tag, and a class of their own in common
+ * (`card`, `group`). Utility classes (`flex`, `p-4`) say nothing about what an element is, so
+ * elements styled only with utilities are items of one list when their classes are the same
+ * (as a list rendered from one component is), and elements without classes when the tag is.
+ */
 export function sameKind(a: Signature, b: Signature): boolean {
   if (a.tag !== b.tag) return false
-  if (a.classes.length === 0 && b.classes.length === 0) return true
-  return a.classes.some((name) => b.classes.includes(name))
+  const ownA = a.classes.filter((name) => !isUtilityClass(name))
+  const ownB = b.classes.filter((name) => !isUtilityClass(name))
+  if (ownA.length > 0 || ownB.length > 0) return ownA.some((name) => ownB.includes(name))
+  return a.classes.length === b.classes.length && a.classes.every((name) => b.classes.includes(name))
 }
 
 /**
