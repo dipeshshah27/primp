@@ -103,6 +103,8 @@ function SettingsPanel({ c, ui, onClose }: { c: Controller; ui: DockUi; onClose(
           <dd>
             <kbd>⇧</kbd> + corner drag
           </dd>
+          <dt>Move primp anywhere (the round button, or the toolbar by its logo)</dt>
+          <dd>drag</dd>
           <dt>Cancel a drag</dt>
           <dd>
             <kbd>Esc</kbd>

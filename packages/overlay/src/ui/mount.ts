@@ -68,8 +68,13 @@ type Vertical = 'top' | 'middle' | 'bottom'
 interface Saved {
   h: Horizontal
   v: Vertical
+  /** Where the toolbar was dropped: its distance from the `h` edge, and from the `v` edge (top or bottom). Unset: MARGIN, in the corner. */
+  x?: number
+  y?: number
   theme: ThemeSetting
 }
+/** Dropped this close to an edge, the toolbar rests at MARGIN from it, in line with the corners. */
+const SNAP = 28
 
 /** The toolbar's resting places, in the order "Next corner" walks them. */
 const PLACES: [Horizontal, Vertical][] = [
@@ -103,11 +108,17 @@ function load(): Saved {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw === null) return fallback
     const saved = JSON.parse(raw) as Partial<Saved>
-    return {
+    const offset = (value: unknown): number | undefined => (typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : undefined)
+    const out: Saved = {
       h: saved.h === 'left' ? 'left' : 'right',
       v: saved.v === 'top' || saved.v === 'middle' ? saved.v : 'bottom',
       theme: saved.theme === 'dark' || saved.theme === 'light' ? saved.theme : 'auto',
     }
+    const x = offset(saved.x)
+    const y = offset(saved.y)
+    if (x !== undefined) out.x = x
+    if (y !== undefined && out.v !== 'middle') out.y = y
+    return out
   } catch {
     return fallback
   }
@@ -196,9 +207,14 @@ export function mountDock(c: Controller): DockHandle {
     const view = viewport()
     bar.style.width = `${barBox.w}px`
     bar.style.height = `${barBox.h}px`
-    barBox.x = state.h === 'left' ? MARGIN : view.w - barBox.w - MARGIN
-    barBox.y = state.v === 'top' ? MARGIN : state.v === 'middle' ? (view.h - barBox.h) / 2 : view.h - barBox.h - MARGIN
+    // Measured from the edges it was dropped near: it keeps its place by them when the window
+    // resizes, and the toolbar grows away from that edge when the dock opens.
+    const dx = state.x ?? MARGIN
+    const dy = state.y ?? MARGIN
+    barBox.x = state.h === 'left' ? dx : view.w - barBox.w - dx
+    barBox.y = state.v === 'top' ? dy : state.v === 'middle' ? (view.h - barBox.h) / 2 : view.h - barBox.h - dy
     barBox.x = Math.max(4, Math.min(view.w - barBox.w - 4, barBox.x))
+    barBox.y = Math.max(4, Math.min(view.h - barBox.h - 4, barBox.y))
     place(bar, barBox.x, barBox.y)
     placePop()
     // The first-time hint stays by the toolbar as it grows, moves or the window resizes.
@@ -452,12 +468,15 @@ export function mountDock(c: Controller): DockHandle {
       const next = PLACES[(index + 1) % PLACES.length] ?? PLACES[0]!
       state.h = next[0]
       state.v = next[1]
+      delete state.x
+      delete state.y
       save(state)
       placeBar()
     },
     startDrag(event) {
-      if (event.button !== 0) return
+      if (event.button !== 0 || dragging) return
       const handle = event.currentTarget as HTMLElement
+      const frameWindow = handle.ownerDocument.defaultView
       const startX = event.screenX
       const startY = event.screenY
       const fromX = barBox.x
@@ -480,21 +499,62 @@ export function mountDock(c: Controller): DockHandle {
         place(bar, barBox.x, barBox.y)
         placePop()
       }
-      const onUp = (): void => {
+      const end = (keep: boolean): void => {
         handle.removeEventListener('pointermove', onMove)
         handle.removeEventListener('pointerup', onUp)
-        handle.removeEventListener('pointercancel', onUp)
+        handle.removeEventListener('pointercancel', onCancel)
+        frameWindow?.removeEventListener('keydown', onKey, true)
+        removeEventListener('keydown', onKey, true)
         handle.classList.remove('dragging')
         dragging = false
         if (!moved) return
-        // Rest at the nearest corner (or the middle of a side).
-        const view = viewport()
-        state.h = barBox.x + barBox.w / 2 < view.w / 2 ? 'left' : 'right'
-        const middle = barBox.y + barBox.h / 2
-        state.v = middle < view.h / 3 ? 'top' : middle > (view.h * 2) / 3 ? 'bottom' : 'middle'
-        save(state)
+        // The click that ends a drag of the launcher must not open the dock.
+        const swallow = (click: Event): void => {
+          click.preventDefault()
+          click.stopPropagation()
+        }
+        frameWindow?.addEventListener('click', swallow, { capture: true, once: true })
+        const forget = (): void => {
+          setTimeout(() => frameWindow?.removeEventListener('click', swallow, true), 0)
+        }
+        // Ended by the button: its click comes now. Ended by Esc: when the button is let go.
+        if (keep) forget()
+        else {
+          const release = (): void => {
+            frameWindow?.removeEventListener('pointerup', release, true)
+            removeEventListener('pointerup', release, true)
+            forget()
+          }
+          frameWindow?.addEventListener('pointerup', release, true)
+          addEventListener('pointerup', release, true)
+        }
+        if (keep) {
+          // Rest where it was dropped, measured from the nearest edges; close to an edge, in line with the corners.
+          const view = viewport()
+          state.h = barBox.x + barBox.w / 2 < view.w / 2 ? 'left' : 'right'
+          state.v = barBox.y + barBox.h / 2 < view.h / 2 ? 'top' : 'bottom'
+          const fromSide = state.h === 'left' ? barBox.x : view.w - barBox.w - barBox.x
+          const fromEnd = state.v === 'top' ? barBox.y : view.h - barBox.h - barBox.y
+          state.x = fromSide < SNAP ? MARGIN : Math.round(fromSide)
+          state.y = fromEnd < SNAP ? MARGIN : Math.round(fromEnd)
+          save(state)
+        }
         bar.classList.add('settled')
         placeBar()
+      }
+      const onUp = (): void => end(true)
+      const onCancel = (): void => end(false)
+      // Esc puts it back where it was.
+      const onKey = (key: KeyboardEvent): void => {
+        if (key.key !== 'Escape' || !moved) return
+        key.preventDefault()
+        key.stopPropagation()
+        try {
+          handle.releasePointerCapture(event.pointerId)
+        } catch {
+          // Not captured.
+        }
+        end(false)
       }
       try {
         handle.setPointerCapture(event.pointerId)
@@ -503,7 +563,9 @@ export function mountDock(c: Controller): DockHandle {
       }
       handle.addEventListener('pointermove', onMove)
       handle.addEventListener('pointerup', onUp)
-      handle.addEventListener('pointercancel', onUp)
+      handle.addEventListener('pointercancel', onCancel)
+      frameWindow?.addEventListener('keydown', onKey, true)
+      addEventListener('keydown', onKey, true)
     },
   }
 

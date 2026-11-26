@@ -212,9 +212,10 @@ ul, ol { list-style: none; }
 /* ---------------------------------------------------------------- toolbar */
 .launcher {
   position: relative; width: 44px; height: 44px; border-radius: 22px; display: grid; place-items: center;
-  background: var(--surface); color: var(--text); transition: background-color 150ms ease;
+  background: var(--surface); color: var(--text); transition: background-color 150ms ease; touch-action: none;
 }
 .launcher:hover { background: var(--solid); }
+.launcher.dragging { cursor: grabbing; background: var(--solid); }
 /* New results nobody has looked at yet (state/controller.ts noticeResults): top left, the unsent count is top right. */
 .launcher .launcher-dot { position: absolute; left: 4px; top: 4px; width: 10px; height: 10px; border-radius: 5px; box-shadow: 0 0 0 2px var(--surface); }
 .launcher:focus-visible { outline-offset: -3px; border-radius: 22px; }

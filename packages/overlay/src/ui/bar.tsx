@@ -15,7 +15,7 @@ import { IconChanges, IconClose, IconCopy, IconEye, IconEyeOff, IconPause, IconP
 export interface DockUi {
   /** Shows a tooltip for a control of one of the frames (its rect in that frame), or hides it. */
   tip(text: string | null, anchor?: { frame: 'bar' | 'pop'; rect: DOMRect }, keys?: string): void
-  /** Drag the toolbar (pointer down on its grip). */
+  /** Drag the toolbar (pointer down on its grip, or on the launcher); it stays where it is dropped. */
   startDrag(event: PointerEvent): void
   /** Moves the toolbar to the next of its resting places (for keyboards). */
   nextPosition(): void
@@ -68,13 +68,14 @@ function Launcher({ c, ui }: { c: Controller; ui: DockUi }) {
   const connected = store.connected.value
   const unseen = store.unseen.value
   const said = { fail: 'something failed', drift: 'one landed close', unmeasured: 'some could not be measured', pass: 'passed' } as const
-  const tip = useTip(ui, unseen === null ? 'Open primp' : `Open primp: new results (${said[unseen]})`, `${ui.mod}⇧E`)
+  const tip = useTip(ui, `${unseen === null ? 'Open primp' : `Open primp: new results (${said[unseen]})`}. Drag to move`, `${ui.mod}⇧E`)
   return (
     <button
       type="button"
       class="launcher"
       aria-label={`Open primp${count > 0 ? `, ${count} unsent ${count === 1 ? 'change' : 'changes'}` : ''}${unseen === null ? '' : `, new results: ${unseen}`}${connected ? '' : ', reconnecting'}`}
       aria-keyshortcuts="Control+Shift+E Meta+Shift+E"
+      onPointerDown={(event) => ui.startDrag(event)}
       onClick={() => {
         ui.tip(null)
         c.setOpen(true)

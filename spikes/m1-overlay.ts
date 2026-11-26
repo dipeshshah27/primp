@@ -43,7 +43,7 @@ const EFFECTS_BUDGET_MS = 30
 const SENT_TEXT = 'Copied. Paste into your agent, or it will pick the batch up over MCP.'
 
 /** Equal within the half pixel the geometry snapshot rounds to. */
-const near = (a: number, b: number): boolean => Math.abs(a - b) <= 0.5
+const near = (a: number, b: number, within = 0.5): boolean => Math.abs(a - b) <= within
 const scored = (entries: PlainEntry[]): PlainEntry[] => entries.filter((entry) => !entry.hadRecentInput)
 const describeEntries = (entries: PlainEntry[]): string => `${scored(entries).length} (${fixed(sum(scored(entries).map((entry) => entry.value)), 6)})`
 const style = (item: ChangeItem | null | undefined): StyleChange => {
@@ -1367,6 +1367,62 @@ async function viteKeyboardAndConnection(browser: Browser, lane: Lane): Promise<
       const left = await t.evaluate(() => Math.round(document.querySelector('primp-root')!.shadowRoot!.querySelector('iframe[data-primp-dock="bar"]')!.getBoundingClientRect().left))
       expect(left === 16, `the dock did not keep its corner over the reload: left ${left}`)
       return 'reload: 3 drafts adopted from session:state, all three previews applied again to the re-found card, the dock is still in the corner it was moved to'
+    })
+
+    await report.attempt('the closed launcher is dragged by a REAL mouse anywhere and stays there (not opened by the drop, kept over a reload, Esc puts it back)', async () => {
+      const barRect = () =>
+        t.evaluate(() => {
+          const r = document.querySelector('primp-root')!.shadowRoot!.querySelector('iframe[data-primp-dock="bar"]')!.getBoundingClientRect()
+          return { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height), vw: document.documentElement.clientWidth, vh: innerHeight }
+        })
+      if ((await testState(t)).open) await t.evaluate(() => window.__primp_test!.open(false))
+      await sleep(300)
+      const start = await barRect()
+      expect(start.w === 44 && start.x === 16, `the launcher is not in the bottom-left corner: ${JSON.stringify(start)}`)
+      const drag = async (to: { x: number; y: number }, beforeUp?: () => Promise<void>): Promise<void> => {
+        const from = await barRect()
+        await t.mouse.move(from.x + 22, from.y + 22)
+        await t.mouse.down()
+        await t.mouse.move(to.x, to.y, { steps: 12 })
+        if (beforeUp !== undefined) await beforeUp()
+        await t.mouse.up()
+        await sleep(300)
+      }
+      // Into the upper-right quarter, away from every edge.
+      const target = { x: Math.round(start.vw * 0.7), y: 220 }
+      await drag(target)
+      const dropped = await barRect()
+      const state = await testState(t)
+      expect(!state.open && near(dropped.x + 22, target.x, 2) && near(dropped.y + 22, target.y, 2), `dropped at ${JSON.stringify(dropped)} for a pointer at ${JSON.stringify(target)}; open ${state.open}`)
+      // Open: the toolbar grows from the same right edge.
+      await t.evaluate(() => window.__primp_test!.open(true))
+      await sleep(350)
+      const open = await barRect()
+      expect(open.w > 300 && near(open.x + open.w, dropped.x + dropped.w, 2) && near(open.y, dropped.y, 2), `open toolbar at ${JSON.stringify(open)}, launcher was ${JSON.stringify(dropped)}`)
+      await t.evaluate(() => window.__primp_test!.open(false))
+      await sleep(350)
+      // Esc during a drag puts it back, and the release does not open the dock.
+      await drag({ x: 200, y: start.vh - 200 }, async () => {
+        await t.keyboard.press('Escape')
+        await sleep(100)
+      })
+      const kept = await barRect()
+      expect(!(await testState(t)).open && near(kept.x, dropped.x, 2) && near(kept.y, dropped.y, 2), `after Esc: ${JSON.stringify(kept)}, expected ${JSON.stringify(dropped)}; open ${(await testState(t)).open}`)
+      // Next to an edge it rests in line with the corners.
+      await drag({ x: start.vw - 30, y: 300 })
+      const snapped = await barRect()
+      expect(snapped.x + snapped.w === snapped.vw - 16 && near(snapped.y + 22, 300, 2), `dropped by the right edge: ${JSON.stringify(snapped)}`)
+      await t.reload({ waitUntil: 'load' })
+      await t.waitForFunction(() => window.__primp_test !== undefined)
+      await t.evaluate(() => window.__primp_test!.ready())
+      await sleep(300)
+      const reloaded = await barRect()
+      expect(reloaded.x === snapped.x && reloaded.y === snapped.y, `after a reload: ${JSON.stringify(reloaded)}, before ${JSON.stringify(snapped)}`)
+      // A plain click still opens it.
+      await t.mouse.click(reloaded.x + 22, reloaded.y + 22)
+      await sleep(300)
+      expect((await testState(t)).open, 'a click on the launcher did not open the dock')
+      return `dragged from the corner to ${dropped.x},${dropped.y} (the drop did not open the dock; opened, the toolbar kept its right edge); Esc mid-drag put it back; dropped 14px from the right edge it rests 16px from it; the place survived a reload; a click still opens it`
     })
   } finally {
     await page.close()
