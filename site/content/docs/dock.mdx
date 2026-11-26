@@ -85,7 +85,7 @@ State changes (`:hover` and the others) do not get this check.
 
 <kbd>⌘</kbd> <kbd>Z</kbd> (<kbd>Ctrl</kbd> <kbd>Z</kbd>) undoes, with <kbd>Shift</kbd> it redoes. Each change can be dropped on its own.
 
-**Send** queues the changes for your agent: an agent connected over MCP picks them up with `get_pending_changes`. It also copies the prompt, to paste into any agent or chat; if the browser does not allow copying, the Changes panel shows the prompt for you to copy. Once sent, the previews leave the page, so your agent's edit lands on the page as your source makes it. Sent changes leave the undo history.
+**Send** queues the changes for your agent: an agent connected over MCP picks them up with `get_pending_changes`, or at once when it is watching (`wait_for_changes`; the Send button then has a green dot). It also copies the prompt, to paste into any agent or chat; if the browser does not allow copying, the Changes panel shows the prompt for you to copy. Once sent, the previews leave the page, so your agent's edit lands on the page as your source makes it. Sent changes leave the undo history.
 
 **Copy prompt** puts the same instructions on the clipboard without sending anything.
 

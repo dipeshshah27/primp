@@ -51,7 +51,7 @@ async function startBackend(): Promise<void> {
     handlers: {
       get_session: () => session.getSession(),
       get_pending_changes: (params) => session.getPendingChanges(params),
-      wait_for_changes: (params) => session.waitForChanges(params.timeoutMs ?? 50_000),
+      wait_for_changes: (params, gone) => session.waitForChanges(params.timeoutMs ?? 50_000, gone),
       dismiss_change: (params) => session.dismissChange(params),
     },
   })
@@ -90,7 +90,7 @@ describe('primp mcp', () => {
     expect(Object.keys(byName.verify_changes?.inputSchema.properties ?? {}).sort()).toEqual(['ids', 'waitMs'])
     expect(byName.verify_changes?.inputSchema.required ?? []).toEqual([])
     expect(Object.keys(byName.verify_changes?.outputSchema?.properties ?? {}).sort()).toEqual(['counts', 'fixup', 'results', 'summary'])
-    expect(Object.keys(byName.get_pending_changes?.outputSchema?.properties ?? {}).sort()).toEqual(['batchIds', 'claimedAt', 'count', 'files', 'prompt'])
+    expect(Object.keys(byName.get_pending_changes?.outputSchema?.properties ?? {}).sort()).toEqual(['batchIds', 'claimedAt', 'count', 'files', 'prompt', 'waitEnded'])
     expect(Object.keys(byName.dismiss_change?.outputSchema?.properties ?? {}).sort()).toEqual(['dismissed', 'id', 'message', 'status'])
     for (const tool of tools) expect((tool.description ?? '').length, tool.name).toBeGreaterThan(120)
     expect(byName.get_session?.annotations?.readOnlyHint).toBe(true)
@@ -160,6 +160,22 @@ describe('primp mcp', () => {
     expect(pending.count).toBe(1)
     expect(text(result)).toContain('1 change(s) from batch batch-1 are now claimed by you.')
     expect(page.last('session:state')?.items.map((item) => item.status)).toEqual(['claimed'])
+  })
+
+  it('an agent interrupted while waiting stops the wait: the next Send stays queued for whoever asks', async () => {
+    await startBackend()
+    const client = await connect()
+    page.receive({ type: 'session:upsert', item: styleItem('pad', 'src/Header.tsx') })
+    const cancel = new AbortController()
+    const waiting = client.callTool({ name: 'wait_for_changes', arguments: { timeoutMs: 10_000 } }, { signal: cancel.signal }).catch(() => 'cancelled')
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    expect(page.last('session:state')?.info.agentWaiting).toBe(true)
+    cancel.abort()
+    expect(await waiting).toBe('cancelled')
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    expect(page.last('session:state')?.info.agentWaiting).toBeUndefined()
+    page.receive({ type: 'session:send', reqId: 's1', ids: ['pad'] })
+    expect(page.last('session:state')?.items.map((item) => item.status)).toEqual(['queued'])
   })
 
   it('dismiss_change closes a change with the reason; a refusal is a tool error with the explanation', async () => {

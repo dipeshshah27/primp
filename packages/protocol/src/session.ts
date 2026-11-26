@@ -67,6 +67,10 @@ export const PendingChangesSchema = z.object({
     .number()
     .nullable()
     .describe('Epoch milliseconds at which these changes were handed to the caller; null when nothing was handed over'),
+  waitEnded: z
+    .enum(['timeout', 'taken', 'closed', 'gone'])
+    .optional()
+    .describe('wait_for_changes only, when it hands nothing over: timeout (nothing was sent), taken (the developer sent changes but another agent took them first), closed (primp stopped), gone (the caller hung up)'),
 })
 export type PendingChanges = z.infer<typeof PendingChangesSchema>
 

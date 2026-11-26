@@ -28,11 +28,12 @@ import {
  */
 
 export type ControlHandlers = {
-  [M in ControlMethod]?: (params: ControlParams<M>) => ControlResult<M> | Promise<ControlResult<M>>
+  /** `gone` fires when the caller hangs up before the answer: a long call (wait_for_changes) stops there. */
+  [M in ControlMethod]?: (params: ControlParams<M>, gone: AbortSignal) => ControlResult<M> | Promise<ControlResult<M>>
 }
 
 /** A handler with its per-method types erased; see the note in dispatch(). */
-type AnyHandler = (params: unknown) => unknown
+type AnyHandler = (params: unknown, gone: AbortSignal) => unknown
 
 export interface ControlServerOptions {
   handlers: ControlHandlers
@@ -93,15 +94,20 @@ export async function createControlServer(options: ControlServerOptions): Promis
       return send(res, fail('bad_request', `only POST ${RPC_PATH} is served here`))
     }
 
+    // The caller hanging up (an agent interrupted, the shim gone) before the answer is written.
+    const gone = new AbortController()
+    res.on('close', () => {
+      if (!res.writableFinished) gone.abort()
+    })
     try {
-      send(res, { ok: true, result: await dispatch(await readJson(req)) })
+      send(res, { ok: true, result: await dispatch(await readJson(req), gone.signal) })
     } catch (error) {
       if (error instanceof RpcFailure) return send(res, fail(error.code, error.message))
       throw error
     }
   }
 
-  async function dispatch(body: unknown): Promise<unknown> {
+  async function dispatch(body: unknown, gone: AbortSignal): Promise<unknown> {
     const request = RpcRequestSchema.safeParse(body)
     if (!request.success) throw new RpcFailure('bad_request', 'body must be {"method": string, "params"?: any}')
     const { method } = request.data
@@ -119,7 +125,7 @@ export async function createControlServer(options: ControlServerOptions): Promis
     }
     try {
       // Parsing the result strips anything the protocol does not declare.
-      return schema.result.parse(await handler(params.data))
+      return schema.result.parse(await handler(params.data, gone))
     } catch (error) {
       options.onError?.(error, method)
       throw new RpcFailure('internal', `${method} failed: ${error instanceof Error ? error.message : String(error)}`)

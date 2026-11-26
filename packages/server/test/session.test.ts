@@ -348,11 +348,40 @@ describe('waitForChanges (an agent watching)', () => {
     expect(socket.last('session:state')?.info.agentWaiting).toBeUndefined()
   })
 
+  it('a caller that hangs up claims nothing: the changes stay queued for the next agent', async () => {
+    const { connect, session } = rig()
+    const socket = connect('doc-a')
+    socket.receive({ type: 'session:upsert', item: styleItem('one') })
+    const gone = new AbortController()
+    const waiting = session.waitForChanges(10_000, gone.signal)
+    await flush()
+    gone.abort()
+    const answer = await waiting
+    expect(answer).toMatchObject({ count: 0, waitEnded: 'gone' })
+    expect(socket.last('session:state')?.info.agentWaiting).toBeUndefined()
+    socket.receive({ type: 'session:send', reqId: 's1', ids: ['one'] })
+    expect(statuses(session.items())).toEqual({ one: 'queued' })
+  })
+
+  it('two agents wait; the one that loses the Send is told another took it, not that nothing was sent', async () => {
+    const { connect, session } = rig()
+    const socket = connect('doc-a')
+    socket.receive({ type: 'session:upsert', item: styleItem('one') })
+    const first = session.waitForChanges(10_000)
+    const second = session.waitForChanges(10_000)
+    await flush()
+    socket.receive({ type: 'session:send', reqId: 's1', ids: ['one'] })
+    const answers = await Promise.all([first, second])
+    expect(answers.map((answer) => answer.count).sort()).toEqual([0, 1])
+    expect(answers.find((answer) => answer.count === 0)?.waitEnded).toBe('taken')
+    expect(socket.last('session:sent')?.toAgent).toBe(true)
+  })
+
   it('returns when the session closes', async () => {
     const { session } = rig()
     const waiting = session.waitForChanges(60_000)
     session.close()
-    expect((await waiting).count).toBe(0)
+    expect(await waiting).toMatchObject({ count: 0, waitEnded: 'closed' })
   })
 })
 

@@ -98,6 +98,8 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
      * is not primp's server, such as a stand-in on a website with no agent. primp's server never sets it.
      */
     note: z.string().optional(),
+    /** An agent was waiting for this Send (MCP wait_for_changes) and has the batch: nothing needs pasting. */
+    toAgent: z.boolean().optional(),
   }),
   /** Answer to `session:prompt`: the prompt the drafts would be sent with (empty when none of them is a draft). */
   z.object({ type: z.literal('session:prompt-text'), reqId: z.string(), prompt: z.string(), count: z.number().int().nonnegative() }),

@@ -150,7 +150,7 @@ export interface Session {
    * While it waits the dock is told an agent is waiting. Resolves with nothing handed over after
    * `timeoutMs`, or when the session closes.
    */
-  waitForChanges(timeoutMs: number): Promise<PendingChanges>
+  waitForChanges(timeoutMs: number, gone?: AbortSignal): Promise<PendingChanges>
   dismissChange(params: { id: string; reason: string }): DismissChangeResult
 
   // --- state ---
@@ -407,7 +407,9 @@ export function createSession(options: SessionOptions): Session {
     const batch: SessionBatch = { batchId, itemIds: drafts.map((item) => item.id), sentAt: now(), sentFrom: connection.doc }
     batches.set(batchId, batch)
     record('send', batch.itemIds, { batchId, doc: connection.doc })
-    send(connection, { type: 'session:sent', reqId, batch: { batchId, items: drafts, prompt: render(batchId, drafts, 'clipboard') } })
+    // Decided before the waiting agents wake, which ends their wait.
+    const toAgent = waiters.size > 0
+    send(connection, { type: 'session:sent', reqId, batch: { batchId, items: drafts, prompt: render(batchId, drafts, 'clipboard') }, ...(toAgent ? { toAgent } : {}) })
     broadcastState()
     // Waiting agents take the batch now; each wakes, and the first to claim gets it.
     for (const wake of [...waiters]) wake()
@@ -646,13 +648,17 @@ export function createSession(options: SessionOptions): Session {
     }
   }
 
-  const waitForChanges = async (timeoutMs: number): Promise<PendingChanges> => {
+  const waitForChanges = async (timeoutMs: number, gone?: AbortSignal): Promise<PendingChanges> => {
     const queued = (): boolean => [...items.values()].some((item) => item.status === 'queued')
-    if (!queued() && !closed && timeoutMs > 0) {
+    const started = now()
+    if (!queued() && !closed && timeoutMs > 0 && gone?.aborted !== true) {
       await new Promise<void>((resolve) => {
         const timer = setTimeout(done, timeoutMs)
+        // A caller that went away claims nothing: the changes stay queued for whoever asks next.
+        gone?.addEventListener('abort', done, { once: true })
         function done(): void {
           clearTimeout(timer)
+          gone?.removeEventListener('abort', done)
           waiters.delete(done)
           resolve()
           // The dock stops saying an agent waits once the last one is gone.
@@ -662,7 +668,12 @@ export function createSession(options: SessionOptions): Session {
         if (waiters.size === 1) broadcastState()
       })
     }
-    return getPendingChanges()
+    if (gone?.aborted === true) return { batchIds: [], count: 0, files: [], prompt: '', claimedAt: null, waitEnded: 'gone' }
+    const pending = getPendingChanges()
+    if (pending.count > 0) return pending
+    // Nothing for this caller: say why, so an agent is not told "nothing was sent" when something was.
+    const sentMeanwhile = [...batches.values()].some((batch) => batch.sentAt >= started)
+    return { ...pending, waitEnded: closed ? 'closed' : sentMeanwhile ? 'taken' : 'timeout' }
   }
 
   const DISMISSABLE: ReadonlySet<ItemStatus> = new Set<ItemStatus>(['queued', 'claimed', 'failed'])

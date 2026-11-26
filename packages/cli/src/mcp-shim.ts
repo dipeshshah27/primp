@@ -190,12 +190,21 @@ export function createShimServer(options: ShimOptions = {}): McpServer {
       outputSchema: PendingChangesSchema,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
-    async ({ timeoutMs }): Promise<CallToolResult> => {
+    async ({ timeoutMs }, extra): Promise<CallToolResult> => {
       try {
         const session = locateSession(cwd, options)
         const wait = timeoutMs ?? 50_000
-        const pending = await callControl(session, 'wait_for_changes', { timeoutMs: wait }, wait + 10_000)
-        const text = pending.count === 0 ? `Nothing was sent in the last ${(wait / 1000).toFixed(wait < 10_000 ? 1 : 0)} s. Call wait_for_changes again to keep watching, unless the developer asked you to stop.` : describePending(pending, undefined)
+        // A cancelled call (the developer interrupted the agent) hangs up, so primp stops waiting and claims nothing.
+        const pending = await callControl(session, 'wait_for_changes', { timeoutMs: wait }, wait + 10_000, extra.mcpReq.signal)
+        const seconds = (wait / 1000).toFixed(wait < 10_000 ? 1 : 0)
+        const text =
+          pending.count > 0
+            ? describePending(pending, undefined)
+            : pending.waitEnded === 'taken'
+              ? 'The developer sent changes, but another agent took them first (get_session shows the counts). Call wait_for_changes again to keep watching.'
+              : pending.waitEnded === 'closed'
+                ? `primp stopped while you were waiting. ${NOT_RUNNING}.`
+                : `Nothing was sent in the last ${seconds} s. Call wait_for_changes again to keep watching, unless the developer asked you to stop.`
         return { content: [{ type: 'text', text }], structuredContent: pending }
       } catch (error) {
         return toolFailure(error)
@@ -348,10 +357,11 @@ async function callControl<M extends ControlMethod>(
   method: M,
   params: ControlParams<M>,
   timeoutMs: number,
+  cancel?: AbortSignal,
 ): Promise<ControlResult<M>> {
   let body: string
   try {
-    body = await postJson(session.file, { method, params }, timeoutMs)
+    body = await postJson(session.file, { method, params }, timeoutMs, cancel)
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code
     if (code === 'ECONNREFUSED' || code === 'ECONNRESET') {
@@ -403,9 +413,10 @@ async function callControl<M extends ControlMethod>(
  * One POST to the control endpoint. Uses a fresh socket per call (`agent:
  * false`) so no keep-alive connection holds the shim open after stdin closes.
  */
-function postJson(file: SessionFile, payload: unknown, timeoutMs: number): Promise<string> {
+function postJson(file: SessionFile, payload: unknown, timeoutMs: number, cancel?: AbortSignal): Promise<string> {
   const data = JSON.stringify(payload)
   return new Promise<string>((resolvePromise, reject) => {
+    if (cancel?.aborted === true) return reject(new Error('cancelled'))
     const req = request(
       {
         host: '127.0.0.1',
@@ -428,6 +439,7 @@ function postJson(file: SessionFile, payload: unknown, timeoutMs: number): Promi
     )
     req.setTimeout(timeoutMs, () => req.destroy(new Error(`no reply within ${timeoutMs} ms`)))
     req.on('error', reject)
+    cancel?.addEventListener('abort', () => req.destroy(new Error('cancelled')), { once: true })
     req.end(data)
   })
 }

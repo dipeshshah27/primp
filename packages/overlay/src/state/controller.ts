@@ -1358,7 +1358,8 @@ export function createController(options: ControllerOptions): Controller {
         store.history.value = emptyHistory(items)
         const copied = await copy(answer.batch.prompt)
         batch(() => {
-          const toAgent = store.info.peek()?.agentWaiting === true
+          // The server's word, decided at Send: the waiting state may already have ended by now.
+          const toAgent = answer.toAgent === true
           store.sent.value = { prompt: answer.batch.prompt, count: sent.size, copied, ...(answer.note === undefined ? {} : { note: answer.note }), ...(toAgent ? { toAgent } : {}) }
           // What was sent, and the prompt when the clipboard refused it, are in the Changes panel.
           if (store.open.value) store.panel.value = 'changes'
