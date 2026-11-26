@@ -125,6 +125,7 @@ const main = defineCommand({
     exec: { type: 'string', valueHint: 'command', description: 'Start the dev server with this command and stop it again on exit, for example --exec "npm run dev"' },
     project: projectArg,
     open: { type: 'boolean', default: true, description: 'Open the browser on the proxy URL', negativeDescription: 'Do not open the browser' },
+    quiet: { type: 'boolean', default: false, description: 'Print nothing after start-up (no lines for tabs, sends and results)' },
   },
   subCommands: { demo, mcp, setup, doctor },
   async run({ args }) {
@@ -151,6 +152,7 @@ const main = defineCommand({
         port: args.port,
         exec: args.exec,
         open: args.open,
+        quiet: args.quiet,
         version: pkg.version,
       })
       // Only happens with --exec: without its dev server there is nothing left to show.

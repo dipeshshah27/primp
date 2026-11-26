@@ -5,6 +5,7 @@ import { startPrimp, type PrimpHandle, type PrimpLogger } from '../../server/src
 import type { OverlayAssetsOptions } from '../../server/src/assets.ts'
 import { detectFramework, parseTarget, targetOrigin, type DevServerDetection } from '../../server/src/detect.ts'
 import type { ProxyTarget } from '../../server/src/headers.ts'
+import { createActivityPrinter } from './activity.ts'
 import { startDevServer, waitForDevServer, type DevServerProcess } from './dev-server.ts'
 import { ownProcesses } from './doctor.ts'
 import { registrationText, selfCommand, shimCommand } from './registration.ts'
@@ -45,6 +46,8 @@ export interface RunOptions {
   startTimeoutMs?: number
   /** Printed after the start-up lines and before "Press Ctrl+C to stop." (the demo's guide). */
   guide?: string
+  /** No activity lines (tab attached, changes sent, results) after start-up. */
+  quiet?: boolean
 }
 
 /** How to open the dock, in this platform's words. */
@@ -213,6 +216,7 @@ export async function runPrimp(options: RunOptions): Promise<RunHandle> {
       print('')
     }
     print('Press Ctrl+C to stop.')
+    if (options.quiet !== true) primp.session.onActivity(createActivityPrinter(print, { url: primp.url }))
 
     const interactive = options.interactive ?? process.stdout.isTTY === true
     if (options.open !== false && interactive) (options.openBrowser ?? openInBrowser)(primp.url)

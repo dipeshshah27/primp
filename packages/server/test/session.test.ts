@@ -312,6 +312,23 @@ describe('upsert and delete', () => {
   })
 })
 
+describe('activity (the terminal lines)', () => {
+  it('says when tabs attach and leave, what is sent, taken, waited for and dismissed', async () => {
+    const { connect, session } = rig()
+    const seen: string[] = []
+    session.onActivity((activity) => seen.push(activity.type === 'tabs' ? `tabs ${activity.tabs}` : activity.type === 'waiting' ? `waiting ${activity.waiting}` : activity.type))
+    const socket = connect('doc-a')
+    socket.receive({ type: 'session:upsert', item: styleItem('one') })
+    const waiting = session.waitForChanges(10_000)
+    await flush()
+    socket.receive({ type: 'session:send', reqId: 's1', ids: ['one'] })
+    await waiting
+    session.dismissChange({ id: 'one', reason: 'not ours' })
+    socket.close()
+    expect(seen).toEqual(['tabs 1', 'waiting true', 'sent', 'waiting false', 'claimed', 'dismissed', 'tabs 0'])
+  })
+})
+
 describe('waitForChanges (an agent watching)', () => {
   it('hands queued changes over at once, as getPendingChanges does', async () => {
     const { connect, session } = rig()

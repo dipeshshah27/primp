@@ -1,6 +1,7 @@
 import {
   STATE_NOT_EMULATED,
   beforeValueFor,
+  describeCheck,
   judgeCheck,
   judgeItem,
   renderFixup,
@@ -9,7 +10,7 @@ import {
   type SettleInfo,
 } from '@primp/engine'
 import type { ChangeItem, CheckResult, Expectation, ItemStatus, Rect, VerificationResult, VerificationStatus } from '@primp/protocol/change'
-import type { MeasuredItem, Session } from './session.ts'
+import type { Activity, MeasuredItem, Session } from './session.ts'
 import type { JournalEntry, JournalPosition, SettleDetector, SettleResult } from './settle.ts'
 
 /**
@@ -60,6 +61,8 @@ export interface VerifierOptions {
   graceMs?: number
   /** How long the browser may take to answer a measurement. Default 5000. */
   measureTimeoutMs?: number
+  /** Told the outcome of every verification, for the terminal's activity lines. */
+  announce?: (activity: Activity) => void
   sleep?: (ms: number) => Promise<void>
 }
 
@@ -384,6 +387,15 @@ export function createVerifier(options: VerifierOptions): Verifier {
 
     const counts: Partial<Record<VerificationStatus, number>> = {}
     for (const result of results) counts[result.status] = (counts[result.status] ?? 0) + 1
+    // For the terminal: one line per change that did not pass, with its first check that did not hold.
+    const lines = results
+      .filter((result) => result.status !== 'pass' && result.status !== 'not_checkable')
+      .map((result) => {
+        const label = session.item(result.itemId)?.target.label.split(' "')[0] ?? result.itemId
+        const check = result.checks.find((one) => one.status !== 'pass')
+        return `${label}: ${result.status.replaceAll('_', ' ')}${check === undefined ? '' : `, ${describeCheck(check).replaceAll('`', '')}`}`
+      })
+    options.announce?.({ type: 'verified', counts: counts as Record<string, number>, lines })
     const settled = (counts.pass ?? 0) + (counts.not_checkable ?? 0)
     const after = items.map((item) => session.item(item.id)).filter((item): item is ChangeItem => item !== undefined)
     const fixup = settled === results.length ? '' : renderFixup(after, { channel: 'mcp' })

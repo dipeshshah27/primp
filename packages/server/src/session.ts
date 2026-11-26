@@ -99,6 +99,18 @@ export interface SessionShifts {
 
 export type SessionEventType = 'upsert' | 'delete' | 'send' | 'claim' | 'dismiss' | 'patch'
 
+/** What happened, for the terminal's activity lines (cli/src/activity.ts). */
+export type Activity =
+  /** A tab with the dock connected or went away; `tabs` is how many are connected now. */
+  | { type: 'tabs'; tabs: number; url?: string }
+  | { type: 'sent'; count: number; batchId: string; toAgent: boolean }
+  | { type: 'claimed'; count: number }
+  /** An agent started or stopped waiting for the next Send (MCP wait_for_changes). */
+  | { type: 'waiting'; waiting: boolean }
+  | { type: 'dismissed'; id: string; label: string; reason: string }
+  /** A verification finished; `lines` name what did not pass. */
+  | { type: 'verified'; counts: Record<string, number>; lines: string[] }
+
 export interface SessionEvent {
   /** Shares the counter that numbers items. */
   seq: number
@@ -169,6 +181,10 @@ export interface Session {
    * resolves with its answer. Never rejects.
    */
   measure(items: readonly (MeasureItem | ChangeItem)[], timeoutMs: number): Promise<MeasureOutcome>
+  /** Called on every Activity. Returns the function that removes the listener. */
+  onActivity(listener: (activity: Activity) => void): () => void
+  /** Passes an Activity from outside the session (the verifier's results) to its listeners. */
+  announce(activity: Activity): void
   /** Called when the user asks from the dock for items to be checked again. Returns the function that removes the listener. */
   onReverify(listener: (ids: string[], doc: string | undefined) => void): () => void
   /** Changes fields of a stored item (status, verification, ...) and broadcasts the state. False when there is no such item. */
@@ -263,6 +279,17 @@ export function createSession(options: SessionOptions): Session {
     }
   }
 
+  const activityListeners = new Set<(activity: Activity) => void>()
+  const announce = (activity: Activity): void => {
+    for (const listener of activityListeners) {
+      try {
+        listener(activity)
+      } catch {
+        // A listener's failure is not the session's.
+      }
+    }
+  }
+
   /** Agents waiting in `waitForChanges`; each is woken by a Send. */
   const waiters = new Set<() => void>()
   const stateMessage = (): ServerMessage => ({ type: 'session:state', info: waiters.size > 0 ? { ...options.info, agentWaiting: true } : options.info, items: sorted() })
@@ -336,6 +363,7 @@ export function createSession(options: SessionOptions): Session {
     connection.connectedAt = now()
     setVisible(connection, message.visible)
     send(connection, stateMessage())
+    announce({ type: 'tabs', tabs: live().length, url: message.url })
   }
 
   const onResolve = async (connection: Connection, reqId: string, evidence: unknown): Promise<void> => {
@@ -411,6 +439,7 @@ export function createSession(options: SessionOptions): Session {
     const toAgent = waiters.size > 0
     send(connection, { type: 'session:sent', reqId, batch: { batchId, items: drafts, prompt: render(batchId, drafts, 'clipboard') }, ...(toAgent ? { toAgent } : {}) })
     broadcastState()
+    announce({ type: 'sent', count: drafts.length, batchId, toAgent: waiters.size > 0 })
     // Waiting agents take the batch now; each wakes, and the first to claim gets it.
     for (const wake of [...waiters]) wake()
   }
@@ -564,6 +593,7 @@ export function createSession(options: SessionOptions): Session {
     if (connection.visible) connection.lastVisibleAt = now()
     connection.open = false
     connections.delete(connection)
+    if (connection.doc !== undefined) announce({ type: 'tabs', tabs: live().length })
     for (const pending of [...measures.values()]) {
       if (pending.connection === connection) pending.settle({ status: 'disconnected', doc: connection.doc ?? '' })
     }
@@ -636,6 +666,7 @@ export function createSession(options: SessionOptions): Session {
       .join('\n\n')
 
     if (newlyClaimed.length > 0) {
+      announce({ type: 'claimed', count: newlyClaimed.length })
       record('claim', newlyClaimed, batchIds.length === 1 ? { batchId: batchIds[0] as string } : {})
       broadcastState()
     }
@@ -662,10 +693,16 @@ export function createSession(options: SessionOptions): Session {
           waiters.delete(done)
           resolve()
           // The dock stops saying an agent waits once the last one is gone.
-          if (waiters.size === 0) broadcastState()
+          if (waiters.size === 0) {
+            broadcastState()
+            announce({ type: 'waiting', waiting: false })
+          }
         }
         waiters.add(done)
-        if (waiters.size === 1) broadcastState()
+        if (waiters.size === 1) {
+          broadcastState()
+          announce({ type: 'waiting', waiting: true })
+        }
       })
     }
     if (gone?.aborted === true) return { batchIds: [], count: 0, files: [], prompt: '', claimedAt: null, waitEnded: 'gone' }
@@ -696,6 +733,7 @@ export function createSession(options: SessionOptions): Session {
     item.dismissReason = params.reason
     record('dismiss', [item.id], item.batchId === undefined ? {} : { batchId: item.batchId })
     broadcastState()
+    announce({ type: 'dismissed', id: item.id, label: item.target.label, reason: params.reason })
     return { id: item.id, dismissed: true, status: 'dismissed', message: `Change ${item.id} is dismissed; the developer sees the reason in the dock.` }
   }
 
@@ -735,6 +773,11 @@ export function createSession(options: SessionOptions): Session {
     shifts: (doc) => (doc !== undefined ? shiftsByDoc.get(doc) : lastShiftDoc === undefined ? undefined : shiftsByDoc.get(lastShiftDoc)),
     journal: (sinceSeq = 0) => events.filter((event) => event.seq > sinceSeq),
     measure,
+    onActivity(listener) {
+      activityListeners.add(listener)
+      return () => activityListeners.delete(listener)
+    },
+    announce,
     onReverify(listener) {
       reverifyListeners.add(listener)
       return () => reverifyListeners.delete(listener)
