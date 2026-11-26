@@ -8,7 +8,7 @@
  *     -> verify_changes
  *   primp -> waits for the dev server to apply the patch, measures the page, judges.
  *
- * Passes when each kind of patch gets the status the plan names for it, and nothing
+ * Passes when each kind of patch gets its expected status, and nothing
  * is ever reported as pass without the source having been edited to match.
  *
  * Parts: Vite + React 19; Next 16 with Turbopack, Server Components and a strict nonce CSP;
@@ -109,7 +109,6 @@ async function vite(): Promise<void> {
   report.section('Vite W. Watching: the agent waits, the developer presses Send, nobody switches windows')
   await report.attempt('wait_for_changes: the dock shows the agent waiting, Send wakes it with the change claimed, its patch passes', async () => {
     const waiting = loop.tool('wait_for_changes', { timeoutMs: 30_000 })
-    // The dock learns an agent is waiting: the Send button gets its dot.
     await waitFor(() => page.locator('primp-root').evaluate((host) => host.shadowRoot?.querySelector<HTMLIFrameElement>('iframe[data-primp-dock="bar"]')?.contentDocument?.querySelector('.tb.send .waiting') != null), { what: 'the waiting dot on Send', timeoutMs: 5000 })
     await loop.dock('open', true)
     const { item } = await loop.editAndSend('.pricing__title', { property: 'font-weight', value: '700', scope: 'all-instances' })

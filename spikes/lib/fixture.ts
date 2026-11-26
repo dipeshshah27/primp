@@ -24,7 +24,7 @@ import { since, waitFor } from './wait.ts'
  * holding the fixture's own files, and links `node_modules` back to the
  * checked-in install with a symlink, so nothing large is copied.
  *
- * What makes the symlinked copy work, per fixture (all measured, see S1):
+ * What makes the symlinked copy work, per fixture (measured in S1):
  *   - vite-react-19: `PRIMP_FIXTURE_CACHE_DIR=.vite` gives the copy its own
  *     dependency cache; otherwise every copy rewrites the shared
  *     `node_modules/.vite`.
@@ -81,7 +81,6 @@ export interface StartFixtureOptions {
   inPlace?: boolean
   /** Port to listen on. Default: a free port. Set it to restart a fixture where the previous one was. */
   port?: number
-  /** Extra environment for the dev server. */
   env?: Record<string, string>
   /** Path polled until it answers HTTP 200. Default `/`. */
   readyPath?: string
@@ -299,9 +298,8 @@ export interface FileEdit {
   file: string
   before: string
   after: string
-  /** `performance.now()` right after the write returned. */
+  /** `performance.now()` right after the write. */
   writtenAt: number
-  /** Writes `before` back. */
   revert(): void
 }
 
@@ -311,7 +309,6 @@ function resolveInside(handle: FixtureHandle, relPath: string): string {
   return file
 }
 
-/** Reads a file of the fixture the dev server is running from. */
 export function readFixtureFile(handle: FixtureHandle, relPath: string): string {
   return readFileSync(resolveInside(handle, relPath), 'utf8')
 }

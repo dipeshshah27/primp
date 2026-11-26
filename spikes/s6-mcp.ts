@@ -346,7 +346,7 @@ async function checkShim(fake: FakePrimp, nestedCwd: string): Promise<void> {
       const { client } = connection
       await check('2b', 'tools/list returns get_session', async () => {
         const { tools } = await withTimeout(client.listTools(), 10_000, 'tools/list')
-        // M1/M2 added get_pending_changes and dismiss_change next to get_session (checked by spike:m1-server).
+        // The other tools are checked by spike:m1-server.
         const tool = tools.find((candidate) => candidate.name === 'get_session')
         expect(tool !== undefined, `tools: ${tools.map((candidate) => candidate.name).join(', ')}`)
         expect((tool.description ?? '').length > 40, 'description missing')

@@ -1,5 +1,5 @@
 /**
- * Spike S7: layout-shift attribution, the headline feature.
+ * Spike S7: layout-shift attribution.
  *
  *   browser -> primp proxy (injects the hook) -> relay (request log, cache policy) -> corpus server
  *

@@ -14,8 +14,8 @@
  * entry with a null source node). A tool that measures the page's layout shifts must not add to
  * them every time its own list grows. Shifts inside a frame are reported to the frame, not to the
  * page. The frames have no `src` (`about:blank`), so no request is made and no
- * Content-Security-Policy applies to loading them; their styles are constructable stylesheets. As
- * a side benefit, page styles and dock styles cannot reach each other at all.
+ * Content-Security-Policy applies to loading them; their styles are constructable stylesheets.
+ * Page styles and dock styles cannot reach each other either.
  *
  * The host is a 0 x 0 fixed box in the top layer (popover API, manual mode; a very high z-index
  * where that is missing). Frames, boxes, pins and tooltips are placed with `transform` and sized
@@ -663,7 +663,7 @@ export function mountDock(c: Controller): DockHandle {
       const root = doc.getElementById('root')
       const content = root?.firstElementChild as HTMLElement | null | undefined
       if (content === null || content === undefined) onSize(0, 0)
-      // Layout size, not the box on screen: the opening animation scales it for a moment.
+      // Layout size, as in placePop.
       else onSize(content.offsetWidth, content.offsetHeight)
     })
     const root = doc.getElementById('root')

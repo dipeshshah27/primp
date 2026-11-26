@@ -12,7 +12,6 @@ export interface StandinSocket {
 }
 
 export interface StandinHost {
-  /** Open sockets. */
   sockets: Set<StandinSocket>
   /** Set by session.ts once it has loaded; until then, messages wait in `pending`. */
   receive: ((socket: StandinSocket, text: string) => void) | undefined

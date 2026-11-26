@@ -57,7 +57,6 @@ export interface PageRecord {
   cspViolations: CspViolation[]
   responses: ResponseEntry[]
   failedRequests: { url: string; method: string; failure: string }[]
-  /** URL of every WebSocket the page opened. */
   webSockets: string[]
   /**
    * URL of every main-frame navigation event. This INCLUDES same-document
@@ -67,9 +66,7 @@ export interface PageRecord {
   navigations: string[]
   /** URL of every main-frame document request: one per real page load, reload or redirect hop. */
   documentRequests: string[]
-  /** Number of `load` events of the page. */
   loads: number
-  /** Console entries of type `error`. */
   consoleErrors(): ConsoleEntry[]
 }
 
@@ -94,9 +91,8 @@ interface HarnessWindow {
 export async function launchBrowser(options: { headless?: boolean } = {}): Promise<Browser> {
   const browser = await chromium.launch({
     headless: options.headless ?? true,
-    // Playwright's own signal handlers close the browser and then call process.exit(130) at
-    // once, which would cut off the harness's cleanup (dev servers, working copies). The
-    // harness closes the browser itself on a signal.
+    // Playwright's handlers call process.exit(130) at once and cut off the harness's cleanup
+    // (dev servers, working copies); the harness closes the browser itself on a signal.
     handleSIGINT: false,
     handleSIGTERM: false,
     handleSIGHUP: false,

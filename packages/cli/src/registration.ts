@@ -23,10 +23,9 @@ export interface ShimCommand {
 }
 
 /**
- * `npx -y @primpdev/cli mcp` for the published package. From a checkout, the shim
- * is started the way the CLI itself was: Node with
- * tsx's loader and the entry file, both as absolute paths so it works from any
- * working directory an agent host picks.
+ * `npx -y @primpdev/cli mcp` for the published package. From a checkout, the shim is started
+ * the way the CLI itself was: Node with tsx's loader and the entry file, both as absolute paths
+ * so it works from any working directory an agent host picks.
  */
 export function shimCommand(entryUrl: string = import.meta.url): ShimCommand {
   if (!entryUrl.endsWith('.ts')) return { command: 'npx', args: ['-y', '@primpdev/cli', 'mcp'], fromSource: false }

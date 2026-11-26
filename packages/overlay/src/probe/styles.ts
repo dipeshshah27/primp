@@ -390,7 +390,7 @@ export function readStyles(el: Element): ElementStyles {
     states: statesWithRules(rules),
     layers,
     media,
-    // As before states were read: from the rules that apply at rest.
+    // From the rules that apply at rest only.
     system: detectSystem(
       el,
       rules.filter((rule) => rule.states.length === 0),
@@ -609,10 +609,8 @@ function decidingDeclaration(styles: Pick<ElementStyles, 'layers' | 'inline' | '
  */
 export function originOf(styles: ElementStyles, property: string, state?: ElementState | null): PropertyOrigin {
   const declared = declaredIn(styles, state)
-  // The list is sorted strongest first, so the first declaration that sets the property is the one
-  // that decides: by its own name, a shorthand, a longhand, or the logical property that sets this
-  // physical one (Tailwind 4's `px-4` is `padding-inline`, which decides `padding-left` over a
-  // weaker `padding-left` of a component layer).
+  // A logical property counts too: Tailwind 4's `px-4` is `padding-inline`, which decides
+  // `padding-left` over a weaker `padding-left` of a component layer.
   const found = decidingDeclaration(styles, declared, property)
   const exact = found?.property === property ? found : undefined
   if (found === undefined) {

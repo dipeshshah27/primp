@@ -23,7 +23,6 @@ export interface PickerCallbacks {
   onHover(element: Element | null): void
   /** An element was chosen (click, Enter, or an arrow key moving the selection). */
   onPick(element: Element, how: 'pointer' | 'keyboard'): void
-  /** Escape was pressed. */
   onCancel(): void
   /** The element the arrow keys start from: the current selection. */
   current(): Element | null
@@ -159,7 +158,7 @@ export function createPicker(callbacks: PickerCallbacks, doc: Document = documen
     if (!event.key.startsWith('Arrow')) return
     const from = callbacks.current() ?? hovered
     if (from === null) return
-    // The arrow keys belong to pick mode now, not to the page's scrolling or widgets.
+    // While picking, the arrow keys belong to pick mode, not to the page's scrolling or widgets.
     event.preventDefault()
     event.stopImmediatePropagation()
     const next = neighbour(from, event.key)

@@ -4,9 +4,8 @@
  *
  * The browser measures; it does not judge. `measureExpectation` returns raw facts in the shape
  * of the engine's `Measured` (packages/engine/src/judge.ts), and the server's judge decides
- * pass, drift or fail with its tolerances. Because the wire format of this milestone still
- * carries `CheckResult`s, `toCheck` fills one from the raw facts with a plain equality
- * comparison and nothing cleverer.
+ * pass, drift or fail with its tolerances. The wire format carries `CheckResult`s, so `toCheck`
+ * fills one from the raw facts by plain equality and nothing cleverer.
  *
  * Two things the raw facts guarantee:
  *   - nothing reads as measured when it was not: an element that is not found has
@@ -213,10 +212,9 @@ export function measureExpectation(target: LocateResult, expectation: Expectatio
  * moved element; `order.actual` lists the labels of the elements found, in document order. An
  * element found for two entries (siblings that look alike) counts for the first only.
  *
- * Every entry, the moved element too (its locator is the item's target locator), is found again
- * WITHOUT its position among its siblings (order.ts `siblingPicker`): the position is what is
- * being measured, and recognising an element by it would make the check agree with itself.
- * `target` (the item's element as `measure` located it) is not used for that reason.
+ * Every entry, the moved element too, is found again WITHOUT its position among its siblings
+ * (order.ts `siblingPicker`): the position is what is measured, and recognising an element by it
+ * would make the check agree with itself. That is also why `target` is not used.
  */
 export function measureOrder(target: LocateResult, expectation: Extract<Expectation, { type: 'order' }>, doc: Document = document): Measured {
   const seen = new Set<Element>()

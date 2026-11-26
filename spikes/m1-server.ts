@@ -12,8 +12,7 @@
  *      grouped by file, journal mark recorded), dismiss_change.
  *   C. Shutdown: session file, ports, and what the shim says afterwards.
  *   D. cls-corpus: `session:shifts` with real recordings; each expected culprit must come back
- *      with the file and line of expected.json (the measure of spike S7, section E, taken
- *      through the session instead of in the spike).
+ *      with the file and line of expected.json (spike S7's section E, through the session).
  *
  * Run: pnpm spike:m1-server            (exit 0 = pass)
  *      pnpm spike:m1-server -- --sections a,b,c    only these (the run then fails as incomplete)
@@ -491,7 +490,7 @@ async function corpusSection(browser: Browser): Promise<void> {
       const observeMs = corpusPage.expected.observeMs ?? 2000
       await handle.page.waitForFunction((ms) => performance.now() >= ms, observeMs, { polling: 50, timeout: observeMs + 15_000 })
       const from = (await stubOf(handle.page)).received
-      // The page hands over what its hook recorded, as the dock will.
+      // The page hands over what its hook recorded, as the dock does.
       await handle.page.evaluate(() => {
         const stub = window.__primpM1 as M1Stub
         const hook = window.__primp

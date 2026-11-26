@@ -360,7 +360,6 @@ describe('judgeCheck: a computed value under an interaction state', () => {
     expect(describeCheck(drift)).toBe('`padding-left` in the `:focus-visible` state landed as `16px` instead of `17px`')
     expect(describeCheck(lost)).toBe('`background-color` in the `:hover` state could not be read (expected `rgb(15, 23, 42)`)')
     expect(describeCheck(unread)).toBe('`background-color` in the `:hover` state could not be checked (expected `rgb(15, 23, 42)`)')
-    // The lead's example, word for word.
     expect(describeCheck(judgeCheck(hover, found({ actual: slate })))).toBe('`background-color` in the `:hover` state is `rgb(30, 41, 59)`; expected `rgb(15, 23, 42)`')
 
     expect(explainCheck(fail)).toMatch(/^`background-color` in the `:hover` state is `rgb\(239, 68, 68\)`; expected `rgb\(15, 23, 42\)` \(colour distance [\d.]+\)\. Make it compute to `rgb\(15, 23, 42\)` in the `:hover` state\.$/)
@@ -376,7 +375,7 @@ describe('judgeCheck: a computed value under an interaction state', () => {
     expect(mediaBlockedText(judgeCheck(both, found({ mediaMatches: false })))).toBe(
       'Could not be checked at the current viewport: `@media (min-width: 768px)` does not match (expected `font-size` `48px` in the `:active` state). Resize the browser so that the query matches, then verify again.',
     )
-    // A resting value reads as it always did.
+    // A resting check names no state.
     expect(describeCheck(judgeCheck(computed('background-color', dark), found({ actual: slate })))).toBe('`background-color` is `rgb(30, 41, 59)`; expected `rgb(15, 23, 42)`')
   })
 

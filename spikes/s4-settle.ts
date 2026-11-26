@@ -79,7 +79,6 @@ const IMMEDIATE_MS = 300
 const args = process.argv.slice(2)
 const only = args.includes('--only') ? args[args.indexOf('--only') + 1] : undefined
 const record = args.includes('--record')
-/** Print the journal of every edit, not only of failed ones. */
 const verbose = args.includes('--journal')
 
 // ---------------------------------------------------------------------------

@@ -278,7 +278,6 @@ export interface SettleDetector {
   ready(): Promise<void>
   /** Hands over a settle client's socket (an overlay WebSocket). */
   attachBrowser(socket: SettleSocket): void
-  /** The current journal position. */
   mark(): JournalPosition
   waitForSettle(options: WaitForSettleOptions): Promise<SettleResult>
   /** Entries after `since` (default: all that are kept). */

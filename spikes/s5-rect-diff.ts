@@ -3,13 +3,13 @@
  *
  *   pnpm spike:s5        exits 0 when every check passes, 1 otherwise
  *
- * Pass criterion (from the plan): snapshot + diff + classify of 2,500 elements, p95 < 30 ms on
+ * Pass criterion: snapshot + diff + classify of 2,500 elements, p95 < 30 ms on
  * this machine; a 12,000-element page is truncated to the cap and stays under the same budget.
  *
  * What is measured, per run, inside the page with performance.now():
  *   relayout  the browser's own style + layout for the edit (forced by one read)
  *   collect   snapshot() once layout is clean
- *   snapshot  relayout + collect: the "after" snapshot as the overlay will pay for it
+ *   snapshot  relayout + collect: the "after" snapshot as the overlay pays for it
  *   diff, classify
  *   total     snapshot + diff + classify           <- the gated number, on both pages
  *   total x2  total plus a fresh "before" snapshot <- also gated on page A, reported on page B

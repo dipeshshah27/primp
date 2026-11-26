@@ -19,10 +19,7 @@ export const visibility: Omit<VisibilityRecord, 'visibleThroughout'> = {
   restored: false,
 }
 
-/**
- * The validity flag of a shift measurement: visible at navigation start, when the hook ran, at
- * every change since and right now. Anything else and "no entries" does not mean "no shifts".
- */
+/** The validity flag of a shift measurement: visible at navigation start, when the hook ran, at every change since and right now. */
 export function visibleThroughout(): boolean {
   const visible = (state: string | undefined): boolean => state === undefined || state === 'visible'
   return (

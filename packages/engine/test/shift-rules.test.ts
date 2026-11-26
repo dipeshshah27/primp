@@ -102,7 +102,6 @@ function only(parts: Parts): ShiftIssue {
   expect(() => ShiftReportSchema.parse(report)).not.toThrow()
   expect(report.issues).toHaveLength(1)
   const issue = report.issues[0] as ShiftIssue
-  // The rule of the house.
   if (issue.confidence >= CONFIDENT) expect(issue.geometricMatch).toBe(true)
   return issue
 }
@@ -492,7 +491,7 @@ describe('3. an element that grew when a web font used by text inside it finishe
   })
 
   it('still names the text element itself when it is the one that accounts for the movement', () => {
-    // The <nav> grows by exactly the distance: it wins over the header, as before.
+    // The <nav> grows by exactly the distance: it wins over the header.
     const issue = only(headerGrew({ navGrowth: 40 }))
     expect(named(issue)).toEqual(['font-swap', '#nav'])
     expect(text(issue)).toMatch(/nav#nav is set in "Web Sans" and nothing else about it changed in that frame/)

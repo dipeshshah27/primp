@@ -17,7 +17,6 @@ export interface DevServerProcess {
   output(): string
   /** Ports of `http://localhost:<port>` style URLs the command has printed, in order of appearance. */
   announcedPorts(): number[]
-  /** Resolves when the command ends. */
   exited: Promise<{ code: number | null; signal: NodeJS.Signals | null }>
   hasExited(): boolean
   /** Stops the whole process group: SIGTERM, then SIGKILL after `graceMs`. Safe to call twice. */

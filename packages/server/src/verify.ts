@@ -272,12 +272,6 @@ export function createVerifier(options: VerifierOptions): Verifier {
   }
   const startTime = (start: number | JournalPosition): number => (typeof start === 'number' ? start : start.at)
 
-  /**
-   * Another change that is out and sets `property` on the element `selector` names, in the same
-   * interaction state as `item` (a bystander is measured in the state its change is made for,
-   * which is the resting one unless the change says otherwise): the one case in which a
-   * bystander is meant to change. A `:hover` edit of the property does not explain a resting value that moved.
-   */
   const changedElsewhere = (item: ChangeItem, selector: string, property: string): ChangeItem | undefined => changedElsewhereIn(session.items(), item, selector, property)
 
   const verify = async (params: VerifyParams = {}): Promise<VerifyOutcome> => {

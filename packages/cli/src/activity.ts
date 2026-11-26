@@ -91,7 +91,6 @@ export function createActivityPrinter(print: (line: string) => void, options: Ac
         print(`primp: your agent dismissed ${activity.label.length > 48 ? `${activity.label.slice(0, 47)}…` : activity.label}: ${activity.reason}`)
         return
       case 'verified': {
-        // A check nobody asked for (the source went quiet) is said when it found something new.
         if (activity.auto) {
           const key = JSON.stringify([activity.counts, activity.lines])
           if (key === lastAuto) return

@@ -5,8 +5,8 @@ import { onCleanup } from '../lib/index.ts'
 /**
  * A plain streaming HTTP relay with hooks on the headers, for the spikes.
  *
- * It stands where the product will later have options on the primp proxy
- * itself (the spikes may not change `packages/server`):
+ * It stands in for options on the primp proxy itself (the spikes may not
+ * change `packages/server`):
  *
  *   browser -> primp proxy (injects the hook) -> relay -> dev server
  *

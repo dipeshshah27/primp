@@ -1,14 +1,12 @@
 /**
  * The primp hook: the first script in `<head>`, synchronous, and small.
  *
- * It starts observing before the page has built anything, so that when a
- * layout shift happens the evidence about its cause is already on record:
- * which element changed size and by how much, what was inserted, which image
- * or font had just arrived, and whether the tab was visible at all.
+ * It starts observing before the page has built anything, so that when a layout shift happens
+ * the evidence about its cause is already on record: which element changed size and by how much,
+ * what was inserted, which image or font had just arrived, and whether the tab was visible.
  *
- * It reads and records. It never writes to the DOM, and no callback of it can
- * throw into the page. Later-loaded primp code talks to it through
- * `window.__primp`.
+ * It reads and records. It never writes to the DOM, and no callback of it can throw into the
+ * page. Later-loaded primp code talks to it through `window.__primp`.
  *
  * This module only defines the recorder; `installHook()` starts it. `hook/index.ts` starts it on
  * import (the bare hook, as spikes S3 and S7 inject it); `entry/hook.ts` starts it together with
@@ -24,10 +22,7 @@ import { installShifts, markSelf, onShift, selfMarks, shifts, supported } from '
 import { installStacks } from './stacks.ts'
 import { cost, frame, now, round } from './state.ts'
 
-/**
- * Must equal `SHIFT_RECORDING_VERSION`. The protocol module is imported for its types only:
- * importing the value would pull the schema library into this script.
- */
+/** Must equal `SHIFT_RECORDING_VERSION`; the protocol is imported for types only (see bus.ts). */
 const VERSION: typeof SHIFT_RECORDING_VERSION = 1
 
 /** Replaced at build time; `true` compiles in the DOM-call stack capture (see stacks.ts). */
@@ -36,9 +31,8 @@ declare const __PRIMP_HOOK_STACKS__: boolean | undefined
 export interface PrimpHook {
   version: typeof SHIFT_RECORDING_VERSION
   /**
-   * The overlay calls this right before it changes the page (a style preview,
-   * hiding an element). Layout shifts that start within 500 ms after the call
-   * are tagged `selfInduced` with `reason`.
+   * The overlay calls this right before it changes the page (a style preview, hiding an element).
+   * Layout shifts starting within 500 ms after it are tagged `selfInduced` with `reason`.
    */
   markSelf(reason: string): void
   /** A JSON-safe copy of everything recorded so far. */

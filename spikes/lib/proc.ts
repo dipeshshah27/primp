@@ -16,14 +16,12 @@ import { spawn } from 'node:child_process'
  *     process groups and removes working copies if the orderly path was cut
  *     short (for example by `process.exit()` in the middle of a spike).
  *
- * Two things that would defeat this, both measured while building S1:
+ * Two things that would defeat this:
  *   - Playwright installs its own SIGINT/SIGTERM/SIGHUP handlers at launch and
  *     calls `process.exit(130)` from them; `launchBrowser` turns them off.
- *   - Under `tsx`, a process that has not gone back to its event loop within
- *     about 60 ms of a relayed signal is SIGKILLed by the tsx wrapper. The
- *     signal handlers here therefore only start asynchronous work. The
- *     synchronous exit hooks cannot be protected the same way; they are a
- *     last resort, not the plan.
+ *   - tsx SIGKILLs a child that does not return to its event loop right after
+ *     a relayed signal (see `installHandlers`), so the signal handlers only
+ *     start asynchronous work.
  */
 
 export type Cleanup = () => Promise<void> | void
@@ -66,9 +64,8 @@ export function runCleanups(): Promise<void> {
     }
   })()
   cleaning = run
-  // Cleared only after the assignment above. Clearing it inside the function did nothing when there was
-  // nothing to clean: the function then finished before `cleaning` was assigned, the finished promise
-  // stayed in place, and every later call returned it without running the cleanups registered since.
+  // Cleared only after the assignment above: with nothing to clean, the function finishes before
+  // `cleaning` is assigned, and a finished promise left in place would swallow later cleanups.
   void run.finally(() => {
     if (cleaning === run) cleaning = undefined
   })
@@ -129,7 +126,6 @@ export function killGroupSync(pgid: number, waitMs = 2000): void {
   while (groupAlive(pgid) && Date.now() < deadline) sleepSync(10)
 }
 
-/** Whether any process of the group is still alive. */
 export function groupAlive(pgid: number): boolean {
   try {
     process.kill(-pgid, 0)

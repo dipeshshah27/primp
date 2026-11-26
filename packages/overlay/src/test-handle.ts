@@ -55,7 +55,7 @@ export interface TestState {
   activeState: ElementState | null
   /** The states at least one rule of the page styles the selected element in. */
   statesWithRules: ElementState[]
-  /** What is forced on the page right now: `rules` of the page were given the marker selector, `unreadable` stylesheets could not be looked at. */
+  /** What is forced on the page now: `rules` got the marker selector, `unreadable` stylesheets could not be read. */
   forced: { state: ElementState; rules: number; unreadable: number } | null
 }
 
@@ -98,10 +98,9 @@ export interface PrimpTestHandle {
   shiftReport(): Promise<ShiftState>
   /** Runs the measure path of `session:measure` locally. */
   measure(request: MeasureRequest): Promise<Measurement>
-  // Beyond the minimum, for checks that need them:
   /** The one-line side-effect summary of an item, as the tray shows it. */
   summary(itemId: string): string
-  /** Opens (true) or closes the dock; the old name of `open`. */
+  /** Alias of `open`. */
   pick(on: boolean): void
   open(on: boolean): void
   /** Opens a panel of the toolbar (or the inspector), or closes the popover with null. */

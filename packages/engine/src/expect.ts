@@ -21,10 +21,11 @@ export const NO_MOVE_TOLERANCE_PX = 1
  *      property name. Without `longhands`, or when none of them changed, a single one for
  *      `property` with `after.computed` (so a style change always has at least one). Each
  *      carries the item's condition, so a change made for `:hover` is checked in that state.
- *      structural change: `absent` for remove, `hidden` for hide. For reorder one `order`
- *      built from `move.now`: the neighbour before (if any), the moved element itself (the
- *      item's target, marked `self`), the neighbour after (if any). Nothing when neither
- *      neighbour is recorded (an only child, or no `move`): there is no order to check then.
+ *      structural change: `absent` for remove, `hidden` for hide. For reorder one `order`:
+ *      the siblings recorded before the element (`move.around`, or else the neighbour in
+ *      `move.now`), the moved element itself (the item's target, marked `self`), the siblings
+ *      after it. Nothing when no sibling is recorded (an only child, or no `move`): there is
+ *      no order to check then.
  *   2. one `no-move` per side effect with verdict `unwanted`, in the order of `sideEffects`,
  *      each carrying the BEFORE rectangle. A selector listed twice gives one constraint.
  *   3. style change with `bystanders`: `unchanged` expectations, bystander by bystander in the

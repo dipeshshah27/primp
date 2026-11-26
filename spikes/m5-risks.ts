@@ -1,5 +1,5 @@
 /**
- * Two feasibility checks made before building state editing and drag to reorder.
+ * Two feasibility checks for state editing and drag to reorder.
  *
  *   A. A state forced by packages/overlay/src/probe/states.ts (a marker attribute plus an extra
  *      selector on the page's own rules) gives the same computed values as the real state:
@@ -114,7 +114,7 @@ const selectors = (page: Page): Promise<string> =>
       try {
         visit(sheet.cssRules)
       } catch {
-        // skip
+        // Not readable.
       }
     }
     return out.join('\n')
@@ -201,7 +201,7 @@ async function focusCheck(): Promise<void> {
         try {
           for (const rule of sheet.cssRules) if (typeof (rule as CSSStyleRule).selectorText === 'string' && /:focus/.test((rule as CSSStyleRule).selectorText)) for (const name of (rule as CSSStyleRule).style) names.add(name)
         } catch {
-          // skip
+          // Not readable.
         }
       }
       return [...names]
@@ -235,7 +235,7 @@ async function reorderCheck(name: 'vite-react-19' | 'sveltekit-svelte-5' | 'next
     }, selector)
     expect(moved !== null && moved.before.join('|') !== moved.after.join('|'), `the move did not happen: ${JSON.stringify(moved)}`)
     const errorsBefore = record.pageErrors.length + record.consoleErrors().length
-    // The framework now re-renders the moved subtree: a text change in the component that renders the list.
+    // Make the framework re-render the moved subtree: a text change in the component that renders the list.
     const change = editFile(fixture, edit.file, replaceOnce(edit.from, edit.to))
     await waitFor(async () => (await page.content()).includes('Reordered check'), { what: 'the hot update', timeoutMs: 15_000 })
     await sleep(500)

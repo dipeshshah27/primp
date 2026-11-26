@@ -1,8 +1,6 @@
 /**
- * Stand-in for primp's head script, for spike `m1-server` (the real one is
- * packages/overlay/src/entry/hook.ts, which belongs to the dock work).
- *
- * It does the three things the server relies on, and nothing else:
+ * Stand-in for primp's head script (packages/overlay/src/entry/hook.ts), for
+ * spike `m1-server`. It does the three things the server relies on, and nothing else:
  *   1. installs the React DevTools hook and the layout-shift recorder, as the real head script does;
  *   2. opens the document's ONE overlay socket and speaks both message families on it:
  *      `settle:hello` plus answers to `settle:probe` (just enough for the settle detector to
@@ -17,7 +15,7 @@ import '../../packages/overlay/src/hook/index.ts'
 import type { ClientMessage, OVERLAY_ASSET_PATH, OVERLAY_SOCKET_PATH, ServerMessage } from '../../packages/protocol/src/messages.ts'
 import type { Evidence } from '../../packages/source/src/types.ts'
 
-/** Must equal the protocol's constants; only their types are imported, so zod stays out of the bundle. */
+/** Only the protocol constants' types are imported, so zod stays out of the bundle. */
 const SOCKET_PATH: typeof OVERLAY_SOCKET_PATH = '/__primp/ws'
 const OVERLAY_PATH: typeof OVERLAY_ASSET_PATH = '/__primp/overlay.js'
 
@@ -114,7 +112,6 @@ window.__primpM1 = stub
 
 socket.addEventListener('open', () => {
   stub.socketOpen = true
-  // The settle family first, then the session family, then whatever was queued.
   socket.send(JSON.stringify({ type: 'settle:hello', doc, url: location.href, timeOrigin: performance.timeOrigin, at: pageNow() }))
   const hello: ClientMessage = {
     type: 'session:hello',

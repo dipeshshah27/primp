@@ -124,7 +124,6 @@ export interface ProxyHandle {
   frameSummary(from?: number): FrameSummary
   /** Resolves with the first frame at index `from` or later that matches. */
   waitForFrame(match: (frame: RecordedFrame) => boolean, options?: WaitOptions & { from?: number }): Promise<RecordedFrame>
-  /** The underlying proxy. */
   server: ProxyServer
   close(): Promise<void>
 }

@@ -78,7 +78,7 @@ const HOOK_SRC = '/__primp/hook.js'
 const HOOK_TAG_START = `<script src="${HOOK_SRC}"`
 const HMR_TIMEOUT_MS = 20_000
 const TTFB_SAMPLES = 20
-/** The brief's streaming criterion for Next /stream. */
+/** Streaming criterion for Next /stream. */
 const STREAM_GAP_MS = 1000
 const FORM = 'application/x-www-form-urlencoded'
 

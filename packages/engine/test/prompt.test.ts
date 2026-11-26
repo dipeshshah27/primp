@@ -283,7 +283,7 @@ const paddingLonghands = {
   'padding-left': { before: '18px', after: '26px' },
 }
 
-/** The case that started it: both primary buttons, whose padding comes from `.btn`, which the secondary button uses too. */
+/** Both primary buttons, whose padding comes from `.btn`, which the secondary button uses too. */
 const sharedAllInstances = (): Extract<ChangeItem, { kind: 'style' }> =>
   style({
     id: 'c30',
@@ -1010,7 +1010,7 @@ describe('renderPrompt: bystanders', () => {
     expect(scopeOf(sharedAllInstancesSingle())).toBe(
       '- Scope: this element and any other rendered from the same component, and no other element. Make the change in that component, or in a CSS rule that matches only them.',
     )
-    // Without bystanders the sentences are the ones there were.
+    // Without bystanders: the plain scope sentences.
     expect(scopeOf(without(sharedAllInstances()))).toBe('- Scope: all 2 instances rendered from this source position. Change the shared source (the component or the CSS rule), not one instance.')
     expect(scopeOf(without(sharedAllInstancesSingle()))).toBe('- Scope: every element that shares this component or rule. Change the shared source, not this one element.')
   })
@@ -1125,7 +1125,7 @@ describe('renderPrompt: interaction states', () => {
     expect(originOf({ ...focusRing(), origin: { via: 'inherited' } })).toBe(
       '- Previous value: in the `:focus-visible` state nothing on the element set it; it was inherited. Set it on the element itself, with a `focus-visible:` utility class (or a `:focus-visible` rule), not on the ancestor.',
     )
-    // The resting sentences are untouched.
+    // A resting origin names no state.
     expect(originOf(noSource())).toBe('- Previous value set by: nothing; it is the browser default, so there is no existing declaration to edit')
   })
 
@@ -1225,7 +1225,7 @@ describe('renderPrompt: reorder', () => {
       expect(text).not.toMatch(/hide|hidden|remove element|display: none/)
       expect(text).toContain('move element')
     }
-    // Hide and remove read as they did.
+    // Hide and remove keep their own wording.
     expect(renderPrompt([hideBadge()], ctx)).toContain('### `c8` hide element\n')
     expect(renderPrompt([removeBanner()], ctx)).toContain('### `c7` remove element\n')
   })
@@ -1335,7 +1335,7 @@ describe('renderFixup: a moved element and a change made for a state', () => {
     expect(c41).toContain('- Found: `color` in the `:hover` state is still `rgb(100, 116, 139)` (unchanged); expected `rgb(15, 92, 99)`. Your edit has no effect on this property in the `:hover` state')
     expect(c41).toContain('if you changed the resting style instead, restore it: it was to stay as it is.')
     expect(c41).toContain('- Previous value: in the `:hover` state it came from rule `.nav-link` in `src/styles/nav.css`. That rule is not limited to `:hover`: it sets the resting value too. Do not edit it:')
-    // A resting change that failed is restated without its origin, as before.
+    // A resting change that failed is restated without its origin.
     expect(renderFixup([verified(singleExact(), () => found({ actual: '12px' }))])).not.toContain('- Previous value')
   })
 

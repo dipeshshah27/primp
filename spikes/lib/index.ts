@@ -118,7 +118,7 @@
  *   runCleanups()               stop everything the harness started, newest first; call it in `finally`
  *   onCleanup(fn), onExitSync(fn), spawnGroup(command, { cwd, env }), killGroup(pgid), groupAlive(pgid)
  *
- * RULES OF THUMB (each one cost a failed run while S1 was written)
+ * RULES OF THUMB
  *
  *   - Never call process.exit() while servers are running; set process.exitCode (report.finish()
  *     does) and let `runCleanups()` finish. SIGINT/SIGTERM are handled by the harness.
@@ -146,5 +146,4 @@ export * from './report.ts'
 export * from './wait.ts'
 export type { PrimpHookMarker } from './hooks/marker-hook.ts'
 
-/** Absolute path of the marker head script, for `startProxy({ headScripts: [{ name, entry }] })`. */
 export const MARKER_HOOK_ENTRY = fileURLToPath(new URL('./hooks/marker-hook.ts', import.meta.url))

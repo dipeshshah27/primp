@@ -62,7 +62,6 @@ export interface WriteSessionInput {
 export interface SessionHandle {
   /** Absolute path of the session file. */
   path: string
-  /** What was written. */
   session: SessionFile
   /** Deletes the file. Synchronous and safe to call more than once. */
   remove(): void

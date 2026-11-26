@@ -2,8 +2,8 @@
  * Pure CSS text helpers for the style reader: splitting selector lists, specificity, resolving
  * nested selectors, parsing a declaration block, and picking the declaration that wins.
  *
- * "Good enough for the common cases" is the bar: inline style first, then `!important`, then
- * cascade layers, specificity and source order. Scoping (`@scope`) proximity is not modelled.
+ * "Good enough for the common cases" is the bar: `!important`, then inline style, then cascade
+ * layers, specificity and source order. Scoping (`@scope`) proximity is not modelled.
  */
 
 import type { ElementState } from '@primp/protocol/change'
@@ -71,7 +71,7 @@ interface Scan {
   states: Set<string>
   /** A transient state is mentioned somewhere, at any depth. */
   anyState: boolean
-  /** It depends on a state in a way the dock does not model: `:focus-within`, or a state inside `:not()` or `:has()`. */
+  /** See `StateNeeds.beyond`. */
   beyond: boolean
 }
 

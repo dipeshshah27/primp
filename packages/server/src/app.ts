@@ -55,14 +55,12 @@ export interface StartPrimpOptions {
   /** Close on SIGINT and SIGTERM, then exit. Default true; pass false when the caller has its own signal handling. */
   handleSignals?: boolean
   cspMode?: CspMode
-  /** Passed to the settle detector (timings, polling). */
   settle?: Pick<SettleDetectorOptions, 'timings' | 'polling' | 'ignored'>
 }
 
 export interface PrimpHandle {
   /** What the developer opens: `http://localhost:<port>`. */
   url: string
-  /** The proxy's port. */
   port: number
   /** Loopback port of the control endpoint (`primp mcp` talks to it). */
   controlPort: number

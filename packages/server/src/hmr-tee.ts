@@ -134,8 +134,7 @@ export interface HmrTee {
    * Tells the tee that a tunnel's connection ended. A socket that closes
    * properly is noticed through its close frame; this is for the ones that
    * just drop (dev server killed, tab crashed), which `onFrame` never sees.
-   * The proxy has no hook for it yet, so until it does `live` can stay true
-   * after such a drop.
+   * The proxy does not call it, so `live` can stay true after such a drop.
    */
   onTunnelClose(tunnelId: number): void
   /** Calls `listener` for every event. Returns the function that removes it. */

@@ -43,7 +43,7 @@ export interface Bundles {
   /** The head script without the DOM-call stack capture. */
   hookNoStacks: Bundle
   overlay: Bundle
-  /** Minified size of the two M0 pieces the head script contains, each bundled alone with the same settings. */
+  /** Minified size of the two pieces the head script contains, each bundled alone with the same settings. */
   parts: { recorder: number; settle: number }
 }
 
@@ -192,7 +192,6 @@ export function rect(page: Page, selector: string): Promise<DocRect> {
   }, selector)
 }
 
-/** Computed value of `property` for every match of `selector`. */
 export function computedAll(page: Page, selector: string, property: string): Promise<string[]> {
   return page.evaluate(([sel, prop]) => [...document.querySelectorAll(sel)].map((element) => getComputedStyle(element).getPropertyValue(prop)), [selector, property] as const)
 }
@@ -203,7 +202,6 @@ export async function computed(page: Page, selector: string, property: string): 
   return values[0]
 }
 
-/** Elements that carry primp's mark. */
 export function marks(page: Page): Promise<number> {
   return page.evaluate(() => document.querySelectorAll('[data-primp-id]').length)
 }

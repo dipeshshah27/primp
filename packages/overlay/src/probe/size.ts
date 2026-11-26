@@ -30,7 +30,7 @@ const num = (value: string): number => {
   return Number.isFinite(n) ? n : 0
 }
 
-/** Padding and border of `element` along `axis`, read from its computed style. */
+/** Padding and border along `axis`, from a computed style. */
 export function boxModelOf(style: CSSStyleDeclaration, axis: 'width' | 'height'): BoxModel {
   const sides = axis === 'width' ? (['left', 'right'] as const) : (['top', 'bottom'] as const)
   let paddingAndBorder = 0

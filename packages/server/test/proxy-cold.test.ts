@@ -76,7 +76,6 @@ describe('cold mode (the browser cache kept out of the picture)', () => {
     expect(page.headers['clear-site-data']).toBe('"cache"')
     expect(rawValues(page.rawHeaders, 'cache-control')).toEqual(['no-store'])
     expect(page.text).toContain('/__primp/hook.js')
-    // A subresource cannot clear the cache, and must not try.
     expect((await send(proxy.port, { path: '/hero.png', headers: IMAGE })).headers['clear-site-data']).toBeUndefined()
     clear = false
     const later = await send(proxy.port, { path: '/page', headers: NAVIGATE })

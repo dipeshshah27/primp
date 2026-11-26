@@ -54,7 +54,6 @@ export function setSelectCursor(on: boolean, doc: Document = document): void {
 let pauseSheet: CSSStyleSheet | undefined
 let paused: Animation[] = []
 
-/** True while motion is paused by primp. */
 export function motionPaused(): boolean {
   return paused.length > 0 || (pauseSheet !== undefined && document.adoptedStyleSheets.includes(pauseSheet))
 }

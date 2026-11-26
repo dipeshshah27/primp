@@ -88,7 +88,6 @@ function onShifts(list: PerformanceObserverEntryList): void {
   }
 }
 
-/** Calls `listener` for every entry from now on. Returns the function that stops it. */
 export function onShift(listener: Listener): () => void {
   listeners.add(listener)
   return () => listeners.delete(listener)

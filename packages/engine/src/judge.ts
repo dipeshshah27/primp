@@ -333,7 +333,6 @@ function judgeOrder(expectation: Extract<Expectation, { type: 'order' }>, measur
   return { expectation, status: 'fail', expected, actual, note: asLabelled ? ORDER_NOT_AS_LABELLED : `the order in the page is ${found.map(oneLine).join(', then ')}` }
 }
 
-/** Judges one expectation against what was measured. */
 export function judgeCheck(expectation: Expectation, measured: Measured, context: CheckContext = {}): CheckResult {
   switch (expectation.type) {
     case 'computed':

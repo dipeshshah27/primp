@@ -18,7 +18,7 @@ import { toSourceLoc } from './source-loc.ts'
  *       draft -> queued     the user pressed Send (`session:send`)
  *       queued -> claimed   an agent fetched them (`getPendingChanges`)
  *       queued/claimed/failed -> dismissed   an agent closed one (`dismissChange`)
- *     `verified` and `failed` are set by verification (M3) through `patchItem`.
+ *     `verified` and `failed` are set by verification through `patchItem`.
  *   - documents: one per open overlay socket that said `session:hello`.
  *   - shifts: the latest recording and attributed report per document.
  *
@@ -180,7 +180,7 @@ export interface Session {
   shifts(doc?: string): SessionShifts | undefined
   journal(sinceSeq?: number): SessionEvent[]
 
-  // --- plumbing for verification (M3) and replay (M4) ---
+  // --- plumbing for verification and layout-shift replay ---
   /**
    * Asks the browser to measure, in the connected document that was visible most recently, and
    * resolves with its answer. Never rejects.

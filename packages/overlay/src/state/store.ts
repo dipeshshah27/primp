@@ -95,7 +95,7 @@ export interface Store {
    * gets every event. Written through `controller.setOpen`.
    */
   open: Signal<boolean>
-  /** Same as `open`; kept under its old name for the test handle and older checks. */
+  /** Alias of `open`, read by the test handle and checks. */
   pickMode: ReadonlySignal<boolean>
   /** The popover's content; null: no popover. */
   panel: Signal<PanelName | null>

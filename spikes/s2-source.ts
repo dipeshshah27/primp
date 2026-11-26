@@ -14,7 +14,7 @@
  * handed the element, its attribute allowlist does not contain `data-label`, and the
  * resolver's tag scoring drops the values of data-* attributes it reads from source files.
  *
- * Criteria (from the plan):
+ * Criteria:
  *   - React fixtures (Vite, Next incl. Server Components): >= 95% exact file+line   -> must pass
  *     (checked strictly: right file and line AND reported at level `exact`; on Next also for
  *     server and client components separately)

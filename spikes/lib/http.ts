@@ -21,7 +21,6 @@ export interface RawResponse {
   /** `[name, value, name, value, ...]` as received. */
   rawHeaders: string[]
   body: Buffer
-  /** The body as UTF-8. */
   text: string
   chunks: RawChunk[]
   /** Response headers received. */

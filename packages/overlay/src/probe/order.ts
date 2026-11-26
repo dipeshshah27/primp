@@ -56,12 +56,11 @@ export function reorderRefusal(element: Element, hiddenBy?: 'hide' | 'remove'): 
 // ---------------------------------------------------------------------------
 
 /**
- * `locate`'s choice without the element's position among its siblings: the last step of the
- * index path and the neighbour anchors are left out of the comparison (the parent's path and
- * everything else still count). An element that was moved, or whose order is what is being
- * checked, must not be recognised by the position it was recorded at: after a reorder the
- * sibling now standing there would win on position alone. Siblings that only their position
- * tells apart are then ambiguous, and `locate` reports that instead of guessing.
+ * `locate`'s choice ignoring the element's position among its siblings: the last index-path step
+ * and the neighbour anchors are left out (the parent's path and the rest still count). A moved
+ * element, or one whose order is being checked, must not be recognised by its recorded position:
+ * after a reorder the sibling now standing there would win on position alone. Siblings only their
+ * position tells apart are then ambiguous, and `locate` reports that instead of guessing.
  */
 export const siblingPicker: LocatorPicker = (want, candidates, options) => {
   const last = want.indexPath.length - 1
@@ -75,7 +74,6 @@ export const siblingPicker: LocatorPicker = (want, candidates, options) => {
   return pickBest(neutral(want), candidates.map(neutral), options)
 }
 
-/** `locate` with `siblingPicker`. */
 export function locateAmongSiblings(want: Locator, doc: Document = document): LocateResult {
   return locate(want, { document: doc, picker: siblingPicker })
 }

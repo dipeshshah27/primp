@@ -55,7 +55,6 @@ export type ProxyLogLevel = 'debug' | 'info' | 'warn' | 'error'
 export type ProxyLogger = (level: ProxyLogLevel, message: string, detail?: unknown) => void
 
 export interface ProxyOptions {
-  /** The dev server. */
   target: ProxyTarget
   /**
    * Where to listen. `localhost` (the default) binds both `127.0.0.1` and

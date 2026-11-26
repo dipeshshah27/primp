@@ -32,14 +32,12 @@ import { isOwnMoveRecord } from './own-moves.ts'
  *
  * Nothing here uses requestAnimationFrame, which does not run in a hidden tab.
  *
- * Everything the client adds to the page is this one observer and a few
- * listeners; it does not touch the DOM. Mutations inside an element marked
- * `data-primp-root` (the dock) are ignored, and so is anything in a shadow
- * tree, which a document-level observer does not see. So are primp's own
- * marks on the page: the `data-primp-id` attribute of a previewed element, the
- * `data-primp-force` attribute of an element held in `:hover` or another state,
- * the insertion or removal of a node that carries `data-primp-root`, and a reorder
- * preview moving an element among its siblings (own-moves.ts).
+ * The client adds one observer and a few listeners and never touches the DOM.
+ * It ignores mutations inside `data-primp-root` (the dock), anything in a shadow
+ * tree (a document-level observer does not see it), and primp's own marks: the
+ * `data-primp-id` attribute of a previewed element, the `data-primp-force`
+ * attribute of an element held in a state, a node carrying `data-primp-root`
+ * coming or going, and a reorder preview moving an element (own-moves.ts).
  */
 
 export interface SettleTransport {
@@ -99,9 +97,9 @@ function insidePrimp(node: Node): boolean {
   return element !== null && element.closest('[data-primp-root]') !== null
 }
 
-/** Marks an element that has a preview on it (packages/overlay/src/probe/preview.ts). */
+/** Marks an element that has a preview on it (preview.ts). */
 const MARK_ATTR = 'data-primp-id'
-/** Marks an element the dock holds in an interaction state, and its ancestors (packages/overlay/src/probe/states.ts). */
+/** Marks an element the dock holds in an interaction state, and its ancestors (states.ts). */
 const FORCE_ATTR = 'data-primp-force'
 
 function isPrimpNode(node: Node): boolean {
@@ -392,13 +390,12 @@ export function createSettleClient(transport: SettleTransport, doc: Document = d
 }
 
 /**
- * Opens a WebSocket of its own to `path` on the page's origin and runs a
- * settle client over it. This is what the spike injects; the real overlay will
- * pass its shared socket to `createSettleClient` instead.
+ * Opens a WebSocket of its own to `path` on the page's origin and runs a settle client over it:
+ * the stand-alone build the spikes inject. The product's head script (entry/hook.ts) passes its
+ * shared socket to `createSettleClient` instead.
  *
- * Must be called synchronously from the injected head script: a page with a
- * `<meta>` Content-Security-Policy only lets the hook open its socket before
- * the meta element is parsed.
+ * Must be called synchronously from a head script: a page with a `<meta>` Content-Security-Policy
+ * only lets a script open a socket before that element is parsed.
  */
 export function connectSettleClient(path = '/__primp/settle'): SettleClient {
   const url = new URL(path, location.href)

@@ -21,7 +21,7 @@ import type { ShiftIssue } from '../packages/protocol/src/shift.ts'
 import { startPrimp } from '../packages/server/src/app.ts'
 import { createReport, launchBrowser, newPage, onCleanup, runCleanups, sleep, startFixture, TMP_ROOT, waitFor } from './lib/index.ts'
 
-/** The plan's bar: the top culprit right on at least this share of positive pages. */
+/** Target: the top culprit right on at least this share of positive pages. */
 const TARGET = 0.8
 const CONFIDENT = 0.7
 

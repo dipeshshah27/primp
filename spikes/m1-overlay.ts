@@ -37,7 +37,7 @@ import { fixed, readPlainEntries, sum, type PlainEntry } from './s7-assets/measu
 const report = createReport('M1 overlay: head script, dock and probe against the real primp server')
 const SHOTS = join(TMP_ROOT, 'm1-overlay-shots')
 const HOOK_TARGET_BYTES = 12_000
-/** Budget for what this milestone adds to the head script on top of the M0 recorder and settle client. */
+/** Budget for what the head script adds on top of the shift recorder and settle client. */
 const HOOK_ADDED_BYTES = 2_500
 const EFFECTS_BUDGET_MS = 30
 const SENT_TEXT = 'Copied. Paste into your agent, or it will pick the batch up over MCP.'
@@ -1780,7 +1780,6 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
   }
 }
 
-/** A server on another port that serves one stylesheet without CORS headers: the page may use it but not read it. */
 // ---------------------------------------------------------------------------
 // Reorder and resize (vite-react-19)
 // ---------------------------------------------------------------------------
@@ -1788,7 +1787,6 @@ async function viteStates(browser: Browser, lane: Lane): Promise<void> {
 const PLAN = '[data-label="plan"]'
 const PLAN_NAMES = ['Starter', 'Team', 'Scale']
 
-/** The plan names in document order. */
 function planOrder(page: DockPage['page']): Promise<string[]> {
   return page.evaluate((selector) => [...document.querySelectorAll(selector)].map((plan) => plan.querySelector('[data-label="plan-name"]')?.textContent?.trim() ?? '?'), PLAN)
 }
@@ -2241,6 +2239,7 @@ async function viteDrags(browser: Browser, lane: Lane): Promise<void> {
   }
 }
 
+/** A server on another port that serves one stylesheet without CORS headers: the page may use it but not read it. */
 async function foreignStylesheet(css: string): Promise<{ url: string; close(): Promise<void> }> {
   const server = createServer((_request, response) => {
     response.writeHead(200, { 'content-type': 'text/css; charset=utf-8', 'cache-control': 'no-store' })
@@ -2755,7 +2754,7 @@ function bundleChecks(bundles: Bundles): void {
   report.section('bundles')
   const zod = [...bundles.hook.inputs, ...bundles.overlay.inputs].filter((file) => /node_modules\/(\.pnpm\/)?zod/.test(file))
   report.check('no schema library in the injected bundles', zod.length === 0, zod.length === 0 ? `hook: ${bundles.hook.inputs.length} modules, overlay: ${bundles.overlay.inputs.length} modules, none from zod` : zod.join(', '))
-  // What this milestone can answer for: the M0 recorder and settle client are in the bundle as they were.
+  // The recorder and settle client are measured on their own; only the rest counts against the budget.
   const added = bundles.hook.minified - bundles.parts.recorder - bundles.parts.settle
   report.check(
     `the socket, bus and loader add under ${HOOK_ADDED_BYTES} bytes to the head script`,
@@ -2796,19 +2795,16 @@ async function main(): Promise<void> {
     await viteReorder(browser, vite)
     await viteDrags(browser, vite)
   }
-  // Only the interaction-model checks of vite-react-19 (they also run as part of `vite`).
   if (only.includes('vite-ux') && !wants('vite')) {
     report.section('vite-react-19 interaction model')
     vite ??= await startLane('vite-react-19')
     await viteDockUx(browser, vite)
   }
-  // Only the state checks of vite-react-19 (they also run as part of `vite`).
   if (only.includes('vite-states') && !wants('vite')) {
     report.section('vite-react-19 states')
     vite = await startLane('vite-react-19')
     await viteStates(browser, vite)
   }
-  // Only the reorder and resize checks of vite-react-19 (they also run as part of `vite`).
   if (only.includes('vite-moves') && !wants('vite')) {
     report.section('vite-react-19 reorder and resize')
     vite ??= await startLane('vite-react-19')

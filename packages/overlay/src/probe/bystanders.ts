@@ -45,16 +45,15 @@ const classKey = (el: Element): string => [...el.classList].sort().join(' ')
  * The elements matched by `ruleSelector` that are outside the change, are rendered and are not
  * the dock's. Null when no part of the selector can be queried, which is "not known", not "none".
  *
- * Outside the change means, for an edit of `instance` scope: every element but the target, its
- * other instances included. For `all-instances`: every element but the target, its instances
- * (the ones the preview styles, see `attach` in preview.ts) and its twins, which are elements
- * with the target's tag and exactly its classes that sit elsewhere in the page (the same button
- * in the hero and in a card). A twin is the same kind of thing to any rule written by class, so
- * an edit "for all of them" that reaches it is not what a bystander check is there to catch.
+ * Outside the change, for `instance` scope: every element but the target, its other instances
+ * included. For `all-instances`: every element but the target, its instances (the ones the
+ * preview styles, see `attach` in preview.ts) and its twins: elements elsewhere with the target's
+ * tag and exactly its classes (the same button in the hero and in a card). A twin is the same kind
+ * of thing to any rule written by class, so an edit "for all of them" reaching it is not a bystander.
  *
- * Chosen first are elements in or near the viewport (within one viewport of it), and among
- * those the ones whose class list differs from the target's: a different kind of element says
- * more about the rule being shared than a twin of the target does. Document order decides the rest.
+ * Chosen first are elements within one viewport of the viewport, and among those the ones whose
+ * class list differs from the target's: a different kind of element says more about the rule
+ * being shared than a twin does. Document order decides the rest.
  */
 export function findBystanders(ruleSelector: string, target: Element, scope: 'instance' | 'all-instances'): BystanderSearch | null {
   const doc = target.ownerDocument

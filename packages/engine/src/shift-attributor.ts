@@ -348,9 +348,9 @@ function contains(candidate: Candidate, victim: Victim): boolean {
  * The candidate changed size by at least the distance a victim needed to leave (or enter) the
  * viewport, in the right direction, and lies before the victim: it is not around it, it is in the
  * victim's column, and it ended no lower than the victim's top at the moment that top is on record
- * (so a tall neighbour that reaches past the victim is beside it, not before it). The way the victim moved, or
- * undefined. Weaker than `explainsDirectly`: any large enough change before the victim passes, so
- * the caller must also make sure there is no second one (`consistentWith`).
+ * (so a tall neighbour that reaches past the victim is beside it, not before it). Returns the way
+ * the victim moved, or undefined. Weaker than `explainsDirectly`: any large enough change before
+ * the victim passes, so the caller must also make sure there is no second one (`consistentWith`).
  */
 function reaches(candidate: Candidate, victim: Victim): Bound | undefined {
   const { rect, style } = candidate.record

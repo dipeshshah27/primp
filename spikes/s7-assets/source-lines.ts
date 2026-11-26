@@ -7,8 +7,8 @@
  *   - an element a script inserted: the JavaScript stack of the DOM call, which
  *     the hook captures when it is built with stack capture.
  *
- * packages/source belongs to another work stream and is loaded lazily: if it
- * cannot be loaded, the section reports itself as unavailable instead of failing.
+ * packages/source is loaded lazily: if it cannot be loaded, the section reports
+ * itself as unavailable instead of failing.
  */
 
 import { readFileSync } from 'node:fs'

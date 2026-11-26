@@ -1,12 +1,12 @@
 /**
  * A stand-in for the primp overlay, for spike S3: the second head script.
  *
- * It does what the real dock will do to a page and nothing more: after
+ * It does what the real dock does to a page and nothing more: after
  * DOMContentLoaded it adds one custom element with a shadow root that holds a
  * small dock, marked `data-primp-root`, and shows it either in the top layer
  * (`popover="manual"`) or as a `position: fixed` box. All its styling goes
  * through a constructable stylesheet, the only way that works under every
- * Content-Security-Policy (see the proxy's findings).
+ * Content-Security-Policy.
  *
  * It also carries the "edit" the spike uses to test self-tagging:
  * `window.__primpStub.edit(...)` calls `window.__primp.markSelf()` and then

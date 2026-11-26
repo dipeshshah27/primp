@@ -50,7 +50,7 @@ export const cost: HookCost = {
 
 type TimedKind = 'shiftMs' | 'mutationMs' | 'resizeMs' | 'otherMs'
 
-/** Wraps an observer callback so the time spent in it is added to `cost` (under `otherMs` unless told otherwise). A throwing callback must never reach the page. */
+/** Wraps an observer callback so the time spent in it is added to `cost[kind]`. */
 export function timed<A extends unknown[]>(body: (...args: A) => void, kind: TimedKind = 'otherMs'): (...args: A) => void {
   return (...args) => {
     const start = now()

@@ -76,7 +76,7 @@ interface Symbolicated {
   line?: number
   col?: number
   ignored: boolean
-  /** `endpoint` or `source-map`, for notes. */
+  /** How the position was mapped, for notes. */
   by?: 'endpoint' | 'source-map' | 'identity'
   problem?: string
 }

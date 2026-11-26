@@ -31,17 +31,15 @@
  * REORDER is the one preview that changes the DOM structure: a spec with `move` puts its element
  * at `move.toIndex` among the element children of the SAME parent with `parent.insertBefore`
  * (every node stays a child of its parent, which a framework that owns the list survives). Each
- * applied move remembers the node that followed the element before it was moved, and the moves
- * are kept as a stack in the order they were made: they are put back in reverse order, so the
- * page's own order comes back exactly. A move is put back when its preview is removed (undo,
- * delete, Send), while previews are suspended (a measurement must see the page's own order;
- * `resume` moves it again), while it is muted, and on dispose. When the page changed the
- * children of a parent with a moved element (a re-render inserted or replaced siblings), the
- * moves in it are put back as far as the remembered nodes allow (else by index) and made again
- * from what is there now; an element that is gone is found again by its locator, or its
- * preview is reported as detached, as for a style preview. Nothing here throws into the page.
- * Every move is announced with `markSelf` first and noted in own-moves.ts, so the settle client
- * and this module's own observer do not take it for the page changing.
+ * applied move remembers the node that followed the element, and the moves are kept as a stack:
+ * they are put back in reverse order, so the page's own order comes back exactly. A move is put
+ * back when its preview is removed (undo, delete, Send), while previews are suspended (a
+ * measurement must see the page's own order), while it is muted, and on dispose. When a re-render
+ * changed the children of a parent with a moved element, its moves are put back as far as the
+ * remembered nodes allow (else by index) and made again; an element that is gone is found again
+ * by its locator or reported as detached, as for a style preview. Nothing here throws into the
+ * page. Every move is announced with `markSelf` first and noted in own-moves.ts, so the settle
+ * client and this module's own observer do not take it for the page changing.
  */
 
 import type { ElementState, Locator } from '@primp/protocol/change'

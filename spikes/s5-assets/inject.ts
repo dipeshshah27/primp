@@ -1,6 +1,6 @@
 /**
  * In-page half of spike S5. Bundled with esbuild and served as the first script in <head>,
- * the way the proxy will inject the overlay. Nothing here touches the DOM at load time.
+ * the way the proxy injects the overlay. Nothing here touches the DOM at load time.
  *
  * It exposes `window.__s5` with:
  *  - bench():      timings of snapshot / diff / classify around a real edit
@@ -23,7 +23,7 @@ const EDITS: Record<EditName, { selector: string; css: string }> = {
   sidebar: { selector: '#sidebar', css: '#sidebar{flex-basis:300px!important;width:300px!important}' },
 }
 
-// Edits go through one constructable stylesheet, as the real preview layer will.
+// Edits go through one constructable stylesheet, like the real preview layer.
 let sheet: CSSStyleSheet | undefined
 function previewSheet(): CSSStyleSheet {
   if (!sheet) {

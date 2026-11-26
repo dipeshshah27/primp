@@ -123,11 +123,10 @@ function onResize(entries: ResizeObserverEntry[]): void {
       record.rect = rectOf(element.getBoundingClientRect())
       const own = (record.style = styleOf(element, true)).fontFamily
       if (isMedia(element)) record.media = mediaHints(element)
-      // Text set in another font than the block around it sits in inline children, which never get a
-      // size of their own here (a `span` in the display face, an icon in `i`, an inline link): note
-      // their fonts on the block, or a web font that swaps in there cannot be linked to the block
-      // that re-wrapped because of it. Only for an element that changed size (one that has just
-      // appeared did not re-wrap), and only its first six children; a child without a height on
+      // Text in another font than its block sits in inline children, which get no size of their own
+      // here (a display-face `span`, an icon `i`): note their fonts on the block, or a web font
+      // swapping in there cannot be linked to the block that re-wrapped. Only for an element that
+      // changed size (a new one did not re-wrap), first six children; a child with no height on
       // record is inline (or not rendered).
       for (let child = before && element.firstElementChild, n = 0, font; child && n < 6; n++, child = child.nextElementSibling) {
         if (!sizes.get(child)?.h && (font = getComputedStyle(child).fontFamily) !== own) (record.inlineFonts ??= []).push(font)

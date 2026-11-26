@@ -1,7 +1,7 @@
 /**
  * The smallest possible head script: it records that it ran and what the
  * document looked like at that moment. Spikes inject it through the proxy to
- * prove injection order before the real hook exists.
+ * prove injection order without the real hook.
  *
  * Bundle it with `bundleBrowser(MARKER_HOOK_ENTRY)` or pass
  * `{ name: 'hook.js', entry: MARKER_HOOK_ENTRY }` to `startProxy`.

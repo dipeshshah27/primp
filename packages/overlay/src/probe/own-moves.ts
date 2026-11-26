@@ -1,7 +1,7 @@
 /**
- * Nodes primp moved itself (a reorder preview, probe/preview.ts), so that the page's mutation
- * observers of primp's (the settle client in the head script, the preview's own) can tell those
- * records from the page's.
+ * Nodes primp moved itself (a reorder preview, probe/preview.ts), so that primp's own mutation
+ * observers (the settle client in the head script, the preview's) can tell those records from
+ * the page's.
  *
  * The head script and the dock are two bundles, so the registry lives on the window: a WeakMap
  * from node to the time of the move. A record counts as primp's when every node it adds or

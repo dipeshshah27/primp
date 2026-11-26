@@ -89,7 +89,7 @@ export interface Controller {
    * page's animations end, and the page gets every event again. The recorded changes stay.
    */
   setOpen(open: boolean): void
-  /** The old name of `setOpen`. */
+  /** Alias of `setOpen`. */
   setPickMode(on: boolean): void
   /** Escape: closes the popover (and lets go of the selection) first, then the dock. */
   escape(): void
@@ -1058,14 +1058,6 @@ export function createController(options: ControllerOptions): Controller {
     return out
   }
 
-  /**
-   * Moves the selected element among the element children of its parent, to the index `pick`
-   * returns (or refuses with the text it returns). The moved element is the primary change; its
-   * siblings sliding along IS the reorder, so they are not side effects (and so never become a
-   * "must not move" by default); what moves outside the parent (it grew because a taller element
-   * now ends a row) is listed as for any other edit. The target is recorded again after the move:
-   * its position changed on purpose, and verification looks for it at the new place.
-   */
   /** The preview of a grip drag in progress: one move, no item, no history, nothing sent. */
   const LIVE_MOVE = 'primp-live-move'
 
@@ -1092,6 +1084,14 @@ export function createController(options: ControllerOptions): Controller {
     return { element: selected, refusal: reorderRefusalOf(selected) }
   }
 
+  /**
+   * Moves the selected element among the element children of its parent, to the index `pick`
+   * returns (or refuses with the text it returns). The moved element is the primary change; its
+   * siblings sliding along IS the reorder, so they are not side effects (and so never become a
+   * "must not move" by default); what moves outside the parent (it grew because a taller element
+   * now ends a row) is listed as for any other edit. The target is recorded again after the move:
+   * its position changed on purpose, and verification looks for it at the new place.
+   */
   const reorderWith = (pick: (index: number, count: number) => number | string): Promise<EditResult> =>
     enqueue(async () => {
       // A drag's live move is put back in the same task as the measurement starts: no frame shows the old order in between.
@@ -1668,8 +1668,8 @@ export function createController(options: ControllerOptions): Controller {
       })
     }
     for (const item of result.resend) upsert(item)
-    // Drafts from before a reload get their previews back once the page has built itself.
-    // ... and so do the drafts this tab kept over a reload.
+    // Drafts adopted from the server or kept by this tab over a reload get their previews back
+    // once the page has built itself.
     const keptIds = new Set(kept.map((item) => item.id))
     const mine = result.items.filter((item) => item.page === here() && item.status === 'draft' && (keptIds.has(item.id) || result.adopted.includes(item)))
     if (mine.length > 0) {
