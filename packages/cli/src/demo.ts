@@ -120,19 +120,21 @@ export function startDemoServer(root: string, port = 0): Promise<DemoServer> {
 }
 
 /** What to do next, printed after primp's own start-up lines. */
-export function demoGuide(dir: string, cwd: string = process.cwd()): string {
+export function demoGuide(dir: string, cwd: string = process.cwd(), keys: string = process.platform === 'darwin' ? '⌘⇧E' : 'Ctrl+Shift+E'): string {
   const shown = dir.startsWith(cwd + sep) ? `./${dir.slice(cwd.length + 1)}` : dir
   return [
     'This is the primp demo: a landing page for Corvane, a made-up uptime monitor, with one seeded layout shift.',
     '',
-    `  1. In the page, open the dock's Shifts tab: the product screenshot under the headline has no`,
-    '     reserved space, so everything below it jumps when it loads. primp names the element and its line.',
-    `  2. In your coding agent, in ${shown}, say:`,
+    `  1. Open the dock: the round button at the bottom right of the page, or ${keys}.`,
+    '  2. In its toolbar, press Layout shifts (the badge shows the score): the product screenshot under the',
+    '     headline has no reserved space, so everything below it jumps when it loads. primp names the',
+    '     element and its line.',
+    `  3. In your coding agent, in ${shown}, say:`,
     '       "Fix the layout shift primp found, then verify it."',
     '     It reads the shift (get_layout_shifts), edits index.html, and has primp reload the page',
     '     three times to confirm the jump is gone (verify_layout_shift).',
-    '  3. Try an edit: in the Edits tab pick the "Start free trial" button, change its padding or',
-    '     colour, press Send, and tell your agent: "Implement the primp changes and verify them."',
+    '  4. Try an edit: with the dock open, click the "Start free trial" button to select it, change its',
+    '     padding or colour, press Send, and tell your agent: "Implement the primp changes and verify them."',
     '',
     'No agent registered yet? Run `npx @primpdev/cli setup` in another terminal, or paste the prompt that Send copies.',
   ].join('\n')

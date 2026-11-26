@@ -106,9 +106,9 @@ const demo = defineCommand({
       const server = await startDemoServer(site.dir)
       closers.push(() => server.close())
       process.stdout.write(`primp: demo site ${site.created ? 'created in' : 'found in'} ${site.dir}, served at ${server.url}\n`)
-      const running = await runPrimp({ project: site.dir, target: String(server.port), open: args.open, version: pkg.version })
+      // The guide goes before "Press Ctrl+C to stop.", so it is the last thing read, not scrolled past.
+      const running = await runPrimp({ project: site.dir, target: String(server.port), open: args.open, version: pkg.version, guide: demoGuide(site.dir) })
       closers.push(() => running.close())
-      process.stdout.write(`\n${demoGuide(site.dir)}\n`)
     } catch (error) {
       if (!(error instanceof CliError) && !(error instanceof DemoError)) throw error
       process.stderr.write(`${error.message}\n`)

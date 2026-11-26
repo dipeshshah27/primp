@@ -111,6 +111,7 @@ describe('runPrimp', () => {
     expect(out).toContain('.cursor/mcp.json')
     expect(out).toContain('"--project"')
     expect(out).toContain('Press Ctrl+C to stop.')
+    expect(out).toMatch(/dock {6}the round button at the bottom right, or (⌘⇧E|Ctrl\+Shift\+E); then click anything on the page/)
     // The app answers through the proxy, with the hook injected.
     const page = await (await fetch(`${running.primp.url}/`, { headers: { accept: 'text/html', 'sec-fetch-dest': 'document', 'sec-fetch-mode': 'navigate' } })).text()
     expect(page).toContain('<h1>dev</h1>')

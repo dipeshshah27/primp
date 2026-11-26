@@ -43,6 +43,13 @@ export interface RunOptions {
   sessionDir?: string
   /** How long `--exec` may take until the dev server answers. Default 60 s. */
   startTimeoutMs?: number
+  /** Printed after the start-up lines and before "Press Ctrl+C to stop." (the demo's guide). */
+  guide?: string
+}
+
+/** How to open the dock, in this platform's words. */
+export function dockKeys(platform: NodeJS.Platform = process.platform): string {
+  return platform === 'darwin' ? '⌘⇧E' : 'Ctrl+Shift+E'
 }
 
 export interface RunHandle {
@@ -195,11 +202,16 @@ export async function runPrimp(options: RunOptions): Promise<RunHandle> {
     print('')
     print(`  primp ${options.version}`)
     print(`  open      ${primp.url}    (your app with the primp dock)`)
+    print(`  dock      the round button at the bottom right, or ${dockKeys()}; then click anything on the page`)
     print(`  target    ${primp.target}    (${framework.framework}${foundHow === '' ? '' : `; ${foundHow}`})`)
     print(`  project   ${primp.projectRoot}`)
     print('')
     print(registrationText(shimCommand()))
     print('')
+    if (options.guide !== undefined) {
+      print(options.guide)
+      print('')
+    }
     print('Press Ctrl+C to stop.')
 
     const interactive = options.interactive ?? process.stdout.isTTY === true

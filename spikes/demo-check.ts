@@ -2,7 +2,7 @@
  * `primp demo`, played through as the README tells it:
  *
  *   primp demo            -> a site appears in ./primp-demo, primp runs in front of it
- *   the page               -> the dock is there; the Shifts tab has the seeded jump
+ *   the page               -> the dock is there; its Layout shifts panel has the seeded jump
  *   agent (MCP)            -> get_layout_shifts names the picture and its line in index.html
  *   agent edits index.html -> verify_layout_shift: pass
  *   an edit in the dock    -> Send, the agent implements it in css/site.css, verify_changes: pass

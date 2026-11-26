@@ -82,5 +82,9 @@ describe('primp demo', () => {
     expect(guide).toContain('./primp-demo')
     expect(guide).toContain('get_layout_shifts')
     expect(guide).toContain('verify_layout_shift')
+    // The dock's own names, and how to open it.
+    expect(guide).toContain('Layout shifts')
+    expect(guide).not.toMatch(/Shifts tab|Edits tab/)
+    expect(demoGuide('/x/primp-demo', '/x', '⌘⇧E')).toContain('Open the dock: the round button at the bottom right of the page, or ⌘⇧E.')
   })
 })
