@@ -6,6 +6,7 @@ import { ruleOrder, ruleText, type PreviewSpec } from '../src/probe/preview.ts'
 import { contradicts, readableClass } from '../src/probe/ref.ts'
 import { isModuleClass, isUtilityClass } from '../src/probe/styles.ts'
 import { nudge } from '../src/ui/nudge.ts'
+import { alphaOf, keepAlpha } from '../src/ui/alpha.ts'
 import { physicalOf, setsProperty } from '../src/probe/properties.ts'
 
 describe('nudge', () => {
@@ -227,5 +228,22 @@ describe('logical properties map to the physical ones they set', () => {
     expect(setsProperty('padding-inline-start', 'padding-right')).toBe(false)
     expect(setsProperty('padding-inline-start', 'padding-right', { direction: 'rtl' })).toBe(true)
     expect(setsProperty('padding-left', 'padding-inline-start')).toBe(true)
+  })
+})
+
+describe('the colour picker keeps a colour see-through', () => {
+  it('reads the alpha of every common notation', () => {
+    expect(alphaOf('rgba(0, 0, 0, 0.5)')).toBe(0.5)
+    expect(alphaOf('rgb(0 0 0 / 25%)')).toBe(0.25)
+    expect(alphaOf('oklch(0.7 0.1 200 / 0.4)')).toBe(0.4)
+    expect(alphaOf('#00000080')).toBeCloseTo(0.502, 3)
+    expect(alphaOf('#0008')).toBeCloseTo(0.533, 3)
+    expect(alphaOf('#112233')).toBe(1)
+    expect(alphaOf('red')).toBe(1)
+  })
+
+  it('gives the picked colour the old alpha, and leaves an opaque one alone', () => {
+    expect(keepAlpha('#ff0000', 'rgba(0, 0, 255, 0.5)')).toBe('#ff000080')
+    expect(keepAlpha('#ff0000', '#0000ff')).toBe('#ff0000')
   })
 })

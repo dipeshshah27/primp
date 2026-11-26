@@ -140,6 +140,8 @@ export interface Controller {
   resize(size: SizeRequest, options?: StyleEditOptions): Promise<EditResult>
   /** During a handle drag: shows a size on the page and records nothing; null takes it away. */
   previewSize(size: SizeRequest | null): void
+  /** While a number is nudged in a field: shows the value on the page and records nothing; null takes it away. */
+  previewStyle(property: string, value: string | null): void
   /** During a grip drag: shows the selected element at `toIndex` among its siblings and records nothing; null puts it back. */
   previewMove(toIndex: number | null): void
   /**
@@ -562,6 +564,8 @@ export function createController(options: ControllerOptions): Controller {
 
   const select = (element: Element | null): void => {
     store.error.value = null
+    // A value being nudged belongs to the element it was nudged on.
+    if (element !== store.selection.peek()?.element && preview.has(LIVE_STYLE)) forget(LIVE_STYLE)
     if (element === null) {
       batch(() => {
         store.selection.value = null
@@ -945,7 +949,29 @@ export function createController(options: ControllerOptions): Controller {
     return { kept, note: `Only the ${kept.map((draft) => draft.property).join(' and ')} was recorded. ${reason}` }
   }
 
-  const setStyles = (edits: readonly StyleEdit[], options: StyleEditOptions = {}): Promise<EditResult> => enqueue(() => styleGesture(() => [...edits], options))
+  const setStyles = (edits: readonly StyleEdit[], options: StyleEditOptions = {}): Promise<EditResult> =>
+    enqueue(() => {
+      // A field's live value (Up/Down held) gives way to the recorded one in the same task: no frame shows the old value.
+      if (preview.has(LIVE_STYLE)) forget(LIVE_STYLE)
+      return styleGesture(() => [...edits], options)
+    })
+
+  /** The preview of a value being nudged in a field: one rule, no item, no history, nothing sent. */
+  const LIVE_STYLE = 'primp-live-style'
+
+  const previewStyle = (property: string, value: string | null): void => {
+    const selection = store.selection.peek()
+    if (value === null || selection === null || !selection.element.isConnected || !CSS.supports(property, value)) {
+      if (preview.has(LIVE_STYLE)) forget(LIVE_STYLE)
+      return
+    }
+    const media = store.media.peek()
+    const state = store.state.peek()
+    const spec: PreviewSpec = { itemId: LIVE_STYLE, uid: uidOf(selection.element), locator: selection.ref.locator, scope: store.scope.peek(), declarations: [{ property, value }], seq: Number.MAX_SAFE_INTEGER }
+    if (media !== null && media !== '' && mediaMatches(media)) spec.media = media
+    if (state !== null) spec.state = state
+    preview.apply(spec, selection.element)
+  }
 
   const setStyle = (property: string, value: string, options: StyleEditOptions = {}): Promise<EditResult> => setStyles([{ property, value }], options)
 
@@ -1839,6 +1865,7 @@ export function createController(options: ControllerOptions): Controller {
     setStyles,
     resize,
     previewSize,
+    previewStyle,
     previewMove,
     moveTarget,
     reorder,

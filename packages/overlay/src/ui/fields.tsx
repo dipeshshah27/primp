@@ -10,9 +10,12 @@ import type { ComponentChildren } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import type { Controller } from '../state/controller.ts'
 import { nudge } from './nudge.ts'
+import { keepAlpha } from './alpha.ts'
 
 /** A plain number typed into a length field means px. */
 const BARE_NUMBER = /^-?(?:\d+\.?\d*|\.\d+)$/
+/** After the last Up/Down press, how long until the nudged value is recorded. */
+const NUDGE_REST_MS = 350
 const stripPx = (value: string): string => (/^-?(?:\d+\.?\d*|\.\d+)px$/.test(value) ? value.slice(0, -2) : value)
 
 export interface EditOptions {
@@ -42,6 +45,17 @@ export function useValueEdit(c: Controller, property: string, value: string, opt
   const [error, setError] = useState<string | null>(null)
   const dirty = useRef(false)
   const input = useRef<HTMLInputElement>(null)
+  const nudgeTimer = useRef<number | undefined>(undefined)
+
+  // A nudge still waiting to be recorded when the field goes away is dropped with its live preview.
+  useEffect(
+    () => () => {
+      if (nudgeTimer.current === undefined) return
+      window.clearTimeout(nudgeTimer.current)
+      c.previewStyle(property, null)
+    },
+    [],
+  )
 
   // The recorded value changed (an edit, an undo, another element): show it, unless the user is typing.
   useEffect(() => {
@@ -49,6 +63,9 @@ export function useValueEdit(c: Controller, property: string, value: string, opt
   }, [value])
 
   const reset = (): void => {
+    if (nudgeTimer.current !== undefined) window.clearTimeout(nudgeTimer.current)
+    nudgeTimer.current = undefined
+    c.previewStyle(property, null)
     dirty.current = false
     setText(shown(value))
     setError(null)
@@ -104,7 +121,21 @@ export function useValueEdit(c: Controller, property: string, value: string, opt
         event.preventDefault()
         dirty.current = true
         setText(nudged.text)
-        void apply(nudged.text, nudged)
+        // Shown at once; recorded once the keys rest: one undo step and one measurement for a run of presses.
+        const shownValue = options.unit === true && BARE_NUMBER.test(nudged.text.trim()) && Number(nudged.text.trim()) !== 0 ? `${nudged.text.trim()}px` : nudged.text.trim()
+        c.previewStyle(property, shownValue)
+        requestAnimationFrame(() => input.current?.setSelectionRange(nudged.start, nudged.end))
+        if (nudgeTimer.current !== undefined) window.clearTimeout(nudgeTimer.current)
+        const nudgedOn = c.store.selection.peek()?.element
+        nudgeTimer.current = window.setTimeout(() => {
+          nudgeTimer.current = undefined
+          // Another element selected meanwhile: the value is not recorded for it.
+          if (c.store.selection.peek()?.element !== nudgedOn) {
+            c.previewStyle(property, null)
+            return
+          }
+          void apply(nudged.text, nudged)
+        }, NUDGE_REST_MS)
       }
     },
     onBlur() {
@@ -186,10 +217,10 @@ export function ColorField({ c, property, value, k, edited }: FieldProps) {
           <i style={{ background: edit.text || value }} />
           <input
             type="color"
-            tabIndex={-1}
             aria-label={`Pick ${property}`}
             value={hex}
-            onChange={(event) => void edit.apply((event.currentTarget as HTMLInputElement).value)}
+            // The picker is opaque only: a colour that was see-through stays as see-through.
+            onChange={(event) => void edit.apply(keepAlpha((event.currentTarget as HTMLInputElement).value, edit.text || value))}
           />
         </span>
         {k === null ? null : (

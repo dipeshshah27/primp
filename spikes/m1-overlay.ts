@@ -731,12 +731,12 @@ async function viteEdits(browser: Browser, lane: Lane): Promise<void> {
       expect(all.length === 1 && style(all[0]).before.computed === '20px' && style(all[0]).after.authored === '34px', `items: ${JSON.stringify(all.map((item) => (item.kind === 'style' ? [item.before.computed, item.after.authored] : item.kind === 'structure' ? item.op : item.kind)))}`)
       const tray = await page.dock.evaluate(() => document.querySelector('.tray .item .change')?.textContent ?? '')
       expect(tray.includes('padding') && tray.includes('20px') && tray.includes('34px'), `tray line: "${tray}"`)
+      // The run of Up/Down presses is one undo step after the Enter: two steps in all.
       await t.evaluate(() => window.__primp_test!.undo())
+      const afterOne = style((await items(t))[0]).after.authored
       await t.evaluate(() => window.__primp_test!.undo())
-      await t.evaluate(() => window.__primp_test!.undo())
-      await t.evaluate(() => window.__primp_test!.undo())
-      expect((await items(t)).length === 0, 'four undos did not clear the four steps')
-      return `24px (Enter) -> 25px (ArrowUp) -> 35px (Shift+ArrowUp) -> 34px (ArrowDown): one item, before 20px; the tray reads "${tray.trim()}"`
+      expect(afterOne === '24px' && (await items(t)).length === 0, `one undo: ${afterOne} (the Enter step); two undos: ${(await items(t)).length} items`)
+      return `24px (Enter) -> 25px (ArrowUp) -> 35px (Shift+ArrowUp) -> 34px (ArrowDown), shown at once and recorded once the keys rested: one item, before 20px, two undo steps; the tray reads "${tray.trim()}"`
     })
 
     await report.attempt('undo and redo restore the page and the item list exactly', async () => {
