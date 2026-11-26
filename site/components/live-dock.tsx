@@ -3,12 +3,13 @@
 /**
  * The website's side of the live dock. primp's real dock runs on every page (public/primp/, built
  * by `pnpm site:assets`), with an in-browser stand-in for primp's server (tools/standin/). This
- * module opens the dock, shows the prompt a Send produced, and runs the layout-shift replay.
+ * module opens the dock, shows the prompt a Send produced, offers a simulated agent that applies
+ * it (so primp's real verification can be watched), and runs the layout-shift replay.
  */
 
-import { ActivityIcon, ArrowRightIcon, RotateCcwIcon, SendIcon, XIcon } from 'lucide-react'
+import { ActivityIcon, ArrowRightIcon, BotIcon, RotateCcwIcon, SendIcon, ShieldCheckIcon, XIcon } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CopyButton } from '@/components/copy-button'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,16 @@ import { cn } from '@/lib/utils'
 
 /** Must match tools/standin/host.ts. */
 const SENT_EVENT = 'primp-site:sent'
+const SIMULATE_EVENT = 'primp-site:simulate'
+const VERIFIED_EVENT = 'primp-site:verified'
+
+type AgentMode = 'careful' | 'sloppy'
+
+interface SimulationResult {
+  mode: AgentMode
+  counts: Record<string, number>
+  did: string[]
+}
 
 type PanelName = 'changes' | 'shifts' | 'verify' | 'settings'
 
@@ -110,6 +121,17 @@ export function LiveDock() {
   const [sent, setSent] = useState<{ prompt: string; count: number } | null>(null)
   const [open, setOpen] = useState(false)
   const [replay, setReplay] = useState<{ held: boolean } | null>(null)
+  const [simulation, setSimulation] = useState<SimulationResult | null>(null)
+  /** Closing the sheet to watch a simulated agent opens the Verification panel, not Changes. */
+  const toVerify = useRef(false)
+
+  const simulate = (mode: AgentMode): void => {
+    toVerify.current = true
+    setOpen(false)
+    setSimulation(null)
+    dockApi()?.panel('verify')
+    window.dispatchEvent(new CustomEvent(SIMULATE_EVENT, { detail: { mode } }))
+  }
 
   useEffect(() => {
     const onSent = (event: Event): void => {
@@ -122,11 +144,16 @@ export function LiveDock() {
       dockApi()?.close()
     }
     window.addEventListener(SENT_EVENT, onSent)
+    const onVerified = (event: Event): void => setSimulation((event as CustomEvent<SimulationResult>).detail)
+    window.addEventListener(VERIFIED_EVENT, onVerified)
     if (document.documentElement.hasAttribute('data-primp-shift')) {
       const host = (window as unknown as { __primp_site_host?: { shift: { held: boolean } } }).__primp_site_host
       setReplay({ held: host?.shift.held ?? false })
     }
-    return () => window.removeEventListener(SENT_EVENT, onSent)
+    return () => {
+      window.removeEventListener(SENT_EVENT, onSent)
+      window.removeEventListener(VERIFIED_EVENT, onVerified)
+    }
   }, [])
 
   return (
@@ -135,7 +162,8 @@ export function LiveDock() {
         open={open}
         onOpenChange={(next) => {
           setOpen(next)
-          if (!next) dockApi()?.panel('changes')
+          if (!next && !toVerify.current) dockApi()?.panel('changes')
+          if (!next) toVerify.current = false
         }}
       >
         <SheetContent primpRoot className="gap-0 sm:max-w-2xl">
@@ -158,18 +186,25 @@ export function LiveDock() {
             </pre>
           </div>
           <div className="space-y-3 border-t bg-muted/30 p-5">
-            <p className="text-sm text-muted-foreground">
-              Nothing is verified on this site: verification needs <code className="font-mono text-foreground">npx @primpdev/cli</code> and an agent that edits your source. Then primp waits for the page to update, measures every change again and reports pass, drift or fail.
-            </p>
+            <div className="space-y-1">
+              <p className="flex items-center gap-2 text-sm font-medium">
+                <ShieldCheckIcon className="size-4 text-accent-brand-text" />
+                Watch primp verify it
+              </p>
+              <p className="text-sm text-muted-foreground">
+                A simulated agent applies these changes to this page, as your agent&apos;s edit would arrive after a hot reload. Then primp&apos;s real verifier measures the page and judges every change. The careful agent does what you asked; the sloppy one edits a CSS rule other elements share and rounds a length, the mistakes verification is there to catch.
+              </p>
+            </div>
             <div className="flex flex-wrap gap-2">
-              <Button asChild size="sm">
+              <Button size="sm" variant="accent" onClick={() => simulate('careful')}>
+                <BotIcon /> A careful agent
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => simulate('sloppy')}>
+                <BotIcon /> A sloppy agent
+              </Button>
+              <Button asChild size="sm" variant="ghost">
                 <Link href="/docs/" onClick={() => setOpen(false)}>
                   Run it on your project <ArrowRightIcon />
-                </Link>
-              </Button>
-              <Button asChild size="sm" variant="outline">
-                <Link href="/docs/agents/" onClick={() => setOpen(false)}>
-                  Connect your agent
                 </Link>
               </Button>
             </div>
@@ -178,6 +213,7 @@ export function LiveDock() {
       </Sheet>
 
       {replay !== null && <ReplayNotice held={replay.held} onClose={() => setReplay(null)} />}
+      {simulation !== null && <SimulationNotice result={simulation} onClose={() => setSimulation(null)} />}
     </>
   )
 }
@@ -208,6 +244,59 @@ function ReplayNotice({ held, onClose }: { held: boolean; onClose: () => void })
             <Button size="sm" variant="outline" asChild>
               {/* A full load, so primp records a fresh one. */}
               <a href="/">Normal load</a>
+            </Button>
+          </div>
+        </div>
+        <button type="button" onClick={onClose} aria-label="Hide this notice" className="rounded-sm text-muted-foreground hover:text-foreground">
+          <XIcon className="size-4" />
+        </button>
+      </div>
+    </aside>
+  )
+}
+
+const WORD: Record<string, string> = {
+  pass: 'pass',
+  drift: 'drift',
+  fail: 'fail',
+  unresolved: 'not found',
+  not_checkable: 'by eye',
+  not_measurable: 'not measurable',
+  no_browser: 'not measured',
+  tab_hidden: 'tab hidden',
+}
+
+function SimulationNotice({ result, onClose }: { result: SimulationResult; onClose: () => void }) {
+  const parts = Object.entries(result.counts).map(([status, count]) => `${count} ${WORD[status] ?? status.replaceAll('_', ' ')}`)
+  return (
+    <aside
+      data-primp-root
+      data-simulation={result.mode}
+      aria-label="Simulated agent"
+      aria-live="polite"
+      className="fixed bottom-4 left-4 z-40 w-[min(400px,calc(100vw-2rem))] animate-in rounded-xl border bg-popover/95 p-4 text-sm shadow-2xl backdrop-blur fade-in-0 slide-in-from-bottom-2"
+    >
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
+          <BotIcon className="size-4" />
+        </span>
+        <div className="min-w-0 flex-1 space-y-2">
+          <p className="font-medium">
+            The {result.mode} agent is done: {parts.join(', ')}.
+          </p>
+          <ul className="list-disc space-y-0.5 pl-4 text-muted-foreground">
+            {result.did.map((line, index) => (
+              <li key={index}>{line}</li>
+            ))}
+          </ul>
+          <p className="text-xs text-muted-foreground/80">The agent is simulated; the measuring and the judging are primp&apos;s own. The Verification panel shows each check.</p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Button size="sm" variant="accent" onClick={() => void openDock('verify')}>
+              Open Verification
+            </Button>
+            <Button size="sm" variant="outline" asChild>
+              {/* A full load puts the page back as it was. */}
+              <a href={typeof location === 'undefined' ? '/' : location.pathname}>Reset the page</a>
             </Button>
           </div>
         </div>

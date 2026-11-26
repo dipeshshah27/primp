@@ -6,6 +6,7 @@ import { ruleOrder, ruleText, type PreviewSpec } from '../src/probe/preview.ts'
 import { contradicts, readableClass } from '../src/probe/ref.ts'
 import { isModuleClass, isUtilityClass } from '../src/probe/styles.ts'
 import { nudge } from '../src/ui/nudge.ts'
+import { physicalOf, setsProperty } from '../src/probe/properties.ts'
 
 describe('nudge', () => {
   it('steps the number under the caret', () => {
@@ -195,5 +196,30 @@ describe('describing recorded effects', () => {
     expect(summarizeRecorded([])).toBe('no side effects')
     expect(summarizeRecorded([effect({})])).toBe('14 elements moved up 48px')
     expect(summarizeRecorded([effect({ subtreeCount: 0 })])).toBe('main.page moved up 48px')
+  })
+})
+
+describe('logical properties map to the physical ones they set', () => {
+  it('in a left-to-right horizontal text, and swapped right to left', () => {
+    expect(physicalOf('padding-inline-start')).toBe('padding-left')
+    expect(physicalOf('padding-inline-end')).toBe('padding-right')
+    expect(physicalOf('margin-block-start')).toBe('margin-top')
+    expect(physicalOf('border-inline-end-width')).toBe('border-right-width')
+    expect(physicalOf('inset-inline-start')).toBe('left')
+    expect(physicalOf('inline-size')).toBe('width')
+    expect(physicalOf('padding-inline-start', { direction: 'rtl' })).toBe('padding-right')
+    expect(physicalOf('padding-left')).toBe('padding-left')
+  })
+
+  it('a vertical writing mode leaves the sides logical', () => {
+    expect(physicalOf('padding-inline-start', { vertical: true })).toBe('padding-inline-start')
+    expect(physicalOf('inline-size', { vertical: true })).toBe('inline-size')
+  })
+
+  it('setsProperty: Tailwind 4 `ps-4` (padding-inline-start) decides padding-left, not padding-right', () => {
+    expect(setsProperty('padding-inline-start', 'padding-left')).toBe(true)
+    expect(setsProperty('padding-inline-start', 'padding-right')).toBe(false)
+    expect(setsProperty('padding-inline-start', 'padding-right', { direction: 'rtl' })).toBe(true)
+    expect(setsProperty('padding-left', 'padding-inline-start')).toBe(true)
   })
 })

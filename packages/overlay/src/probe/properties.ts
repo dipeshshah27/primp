@@ -81,6 +81,58 @@ export function longhandsOf(property: string): string[] {
   return known
 }
 
+/** How an element's text flows: what its logical properties (`padding-inline-start`, ...) map to. */
+export interface Flow {
+  /** `ltr` (default) or `rtl`. */
+  direction?: string
+  /** A vertical writing mode: logical sides are not mapped (they turn with the text). */
+  vertical?: boolean
+}
+
+const LOGICAL_SIDE = /^(margin|padding|inset|border|scroll-margin|scroll-padding)-(inline|block)-(start|end)(-(?:width|style|color))?$/
+const LOGICAL_SIZE: Record<string, string> = {
+  'inline-size': 'width',
+  'block-size': 'height',
+  'min-inline-size': 'min-width',
+  'min-block-size': 'min-height',
+  'max-inline-size': 'max-width',
+  'max-block-size': 'max-height',
+}
+
+/**
+ * The physical property a logical one sets on an element with this flow (`padding-inline-start`
+ * is `padding-left` in a left-to-right horizontal text); any other property is returned as it is.
+ * In a vertical writing mode the sides are left logical.
+ */
+export function physicalOf(property: string, flow: Flow = {}): string {
+  const size = LOGICAL_SIZE[property]
+  if (size !== undefined) return flow.vertical === true ? property : size
+  const side = LOGICAL_SIDE.exec(property)
+  if (side === null || flow.vertical === true) return property
+  const [, box, axis, edge, part = ''] = side
+  const rtl = flow.direction === 'rtl'
+  const physical = axis === 'block' ? (edge === 'start' ? 'top' : 'bottom') : (edge === 'start') !== rtl ? 'left' : 'right'
+  return box === 'inset' ? physical : `${box}-${physical}${part}`
+}
+
+/** Everything `property` sets, as physical longhands (and itself): `padding-inline` is padding-left and padding-right. */
+export function physicalSet(property: string, flow: Flow = {}): Set<string> {
+  const out = new Set<string>()
+  for (const name of [property, ...longhandsOf(property)]) {
+    out.add(name)
+    out.add(physicalOf(name, flow))
+  }
+  return out
+}
+
+/** Whether a declaration of `declared` sets (some of) what `property` names, logical and physical names alike. */
+export function setsProperty(declared: string, property: string, flow: Flow = {}): boolean {
+  if (declared === property) return true
+  const wanted = physicalSet(property, flow)
+  for (const name of physicalSet(declared, flow)) if (wanted.has(name)) return true
+  return false
+}
+
 /** The properties to compare for `property`: its longhands, or itself. */
 export function comparableProperties(property: string): string[] {
   const longhands = longhandsOf(property)

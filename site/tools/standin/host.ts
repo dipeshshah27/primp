@@ -25,10 +25,23 @@ export interface StandinHost {
 export interface SiteEvents {
   lastPrompt: string | null
   lastReport: unknown
+  lastSimulation?: SimulationResult
 }
 
 export const SENT_EVENT = 'primp-site:sent'
 export const REPORT_EVENT = 'primp-site:report'
+/** The site asks the stand-in to play an agent on the last batch: detail `{ mode: 'careful' | 'sloppy' }`. */
+export const SIMULATE_EVENT = 'primp-site:simulate'
+/** The simulated agent is done and its changes are verified: detail `SimulationResult`. */
+export const VERIFIED_EVENT = 'primp-site:verified'
+
+export interface SimulationResult {
+  mode: 'careful' | 'sloppy'
+  /** How many changes ended with each verification status. */
+  counts: Record<string, number>
+  /** What the simulated agent did, one line per change. */
+  did: string[]
+}
 
 declare global {
   interface Window {

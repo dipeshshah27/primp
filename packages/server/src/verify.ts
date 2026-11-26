@@ -191,6 +191,34 @@ export function toMeasured(raw: CheckResult, item: MeasuredItem): Measured {
   }
 }
 
+/**
+ * Judges what the dock measured for one item: each raw check becomes the engine's verdict. Shared
+ * by the verifier and by the website's in-browser stand-in, so both judge exactly alike.
+ * `changedElsewhere` names another change that sets a bystander's property on purpose, if any.
+ */
+export function judgeMeasured(item: ChangeItem, answer: MeasuredItem, changedElsewhere: (selector: string, property: string) => ChangeItem | undefined = () => undefined): CheckResult[] {
+  return answer.checks.map((raw) => {
+    // The judge knows two reasons a value cannot be measured: a media query that does not match, and an
+    // interaction state that could not be emulated. Any other reason the probe gives (the colour scheme,
+    // for one) is passed through as it is.
+    if (raw.status === 'not_measurable' && stateBlockedReason(raw) === undefined && !(raw.expectation.type === 'computed' && raw.expectation.condition.media !== undefined)) {
+      return { ...raw, note: raw.note ?? "could not be measured in the page's current state" }
+    }
+    // More than one element could be the recorded one: "is it gone?" has no answer. Never read that as gone.
+    if (raw.status === 'unresolved' && (raw.expectation.type === 'absent' || raw.expectation.type === 'hidden')) {
+      return { ...raw, note: raw.note ?? 'the element could not be told apart from another, so its absence could not be checked' }
+    }
+    const before = beforeValueFor(item, raw.expectation)
+    const judged = judgeCheck(raw.expectation, toMeasured(raw, answer), before === undefined ? {} : { before })
+    // A bystander of this change that the developer then edited on purpose: its value was meant to change.
+    if (judged.status === 'fail' && raw.expectation.type === 'unchanged') {
+      const other = changedElsewhere(raw.expectation.selector, raw.expectation.property)
+      if (other !== undefined) return { ...judged, status: 'pass', note: `not checked: \`${raw.expectation.property}\` of this element is changed by another change (${other.id})` }
+    }
+    return judged
+  })
+}
+
 const toSettleInfo = (settle: SettleResult): SettleInfo => ({
   status: settle.status,
   signal: settle.signal,
@@ -335,26 +363,7 @@ export function createVerifier(options: VerifierOptions): Verifier {
           extras.browser = false
         } else {
           extras.locatorConfidence = answer.locatorConfidence
-          checks = answer.checks.map((raw) => {
-            // The judge knows two reasons a value cannot be measured: a media query that does not match, and an
-            // interaction state that could not be emulated. Any other reason the probe gives (the colour scheme,
-            // for one) is passed through as it is.
-            if (raw.status === 'not_measurable' && stateBlockedReason(raw) === undefined && !(raw.expectation.type === 'computed' && raw.expectation.condition.media !== undefined)) {
-              return { ...raw, note: raw.note ?? "could not be measured in the page's current state" }
-            }
-            // More than one element could be the recorded one: "is it gone?" has no answer. Never read that as gone.
-            if (raw.status === 'unresolved' && (raw.expectation.type === 'absent' || raw.expectation.type === 'hidden')) {
-              return { ...raw, note: raw.note ?? 'the element could not be told apart from another, so its absence could not be checked' }
-            }
-            const before = beforeValueFor(item, raw.expectation)
-            const judged = judgeCheck(raw.expectation, toMeasured(raw, answer), before === undefined ? {} : { before })
-            // A bystander of this change that the developer then edited on purpose: its value was meant to change.
-            if (judged.status === 'fail' && raw.expectation.type === 'unchanged') {
-              const other = changedElsewhere(item, raw.expectation.selector, raw.expectation.property)
-              if (other !== undefined) return { ...judged, status: 'pass', note: `not checked: \`${raw.expectation.property}\` of this element is changed by another change (${other.id})` }
-            }
-            return judged
-          })
+          checks = judgeMeasured(item, answer, (selector, property) => changedElsewhere(item, selector, property))
         }
       }
       const result = judgeItem(item, checks, extras)

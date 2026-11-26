@@ -17,11 +17,16 @@
  *   session:prompt   -> session:prompt-text: the same prompt for Copy, nothing queued
  *   session:shifts   -> session:shift-report from the REAL attributeShifts of packages/engine,
  *                       culprits looked up with the same text search
- *   anything else    -> ignored (settle:* traffic, reverify, visibility, measured)
+ *   session:measured -> the answer to a measurement the simulated agent asked for (below)
+ *   anything else    -> ignored (settle:* traffic, reverify, visibility)
  *
  * The server parses every message with the protocol's zod schemas; this bundle leaves zod out
  * (build-assets.ts swaps it for a pass-through stub) and trusts the dock, which is the real one.
- * Nothing is verified: verification needs an agent that edits source, and there is none here.
+ *
+ * Verification, on request of the site (SIMULATE_EVENT): a simulated agent (agent.ts) claims the
+ * last batch and applies it to the page, then the dock is asked to measure (`session:measure`,
+ * as primp's server asks it) and the answers are judged by the server's own `judgeMeasured` and
+ * the engine's `judgeItem`. The agent is simulated; the measuring and the judging are primp's.
  */
 
 import { renderPrompt } from '../../../packages/engine/src/prompt.ts'
@@ -30,17 +35,21 @@ import type { ChangeItem, SourceLoc } from '../../../packages/protocol/src/chang
 import type { ClientMessage, ServerMessage, SessionInfo } from '../../../packages/protocol/src/messages.ts'
 import type { ShiftIssue, ShiftRecording, ShiftReport } from '../../../packages/protocol/src/shift.ts'
 import { toSourceLoc } from '../../../packages/server/src/source-loc.ts'
+import { itemStatusAfter, judgeMeasured } from '../../../packages/server/src/verify.ts'
+import { judgeItem } from '../../../packages/engine/src/judge.ts'
+import type { MeasuredItem } from '../../../packages/server/src/session.ts'
+import { applyAsAgent, type AgentMode } from './agent.ts'
 import type { ProjectFiles } from '../../../packages/source/src/node/files.ts'
 import { grepCandidates } from '../../../packages/source/src/node/grep.ts'
 import type { ElementContext, Evidence, Framework, SourceResult } from '../../../packages/source/src/types.ts'
 import SOURCES from 'site-sources'
-import { REPORT_EVENT, SENT_EVENT, type SiteEvents, type StandinHost, type StandinSocket } from './host.ts'
+import { REPORT_EVENT, SENT_EVENT, SIMULATE_EVENT, VERIFIED_EVENT, type SimulationResult, type SiteEvents, type StandinHost, type StandinSocket } from './host.ts'
 
 declare const __PRIMP_VERSION__: string
 
 /** What the dock says after Send on this site, instead of its words about MCP and the clipboard. */
 const SENT_NOTE =
-  'This page runs primp in your browser with no agent, so nothing is queued. The prompt is shown in the sheet; with npx @primpdev/cli your agent receives it and primp verifies the result.'
+  'This page runs primp in your browser with no agent. The prompt is in the sheet, where a simulated agent can apply it so you can watch primp verify it; with npx @primpdev/cli your own agent edits your source.'
 
 /**
  * The parts of ProjectFiles the text search uses (`list`, `read`), over the bundled sources.
@@ -132,6 +141,89 @@ function start(host: StandinHost): void {
   const items = new Map<string, ChangeItem>()
   let seq = 0
   let batches = 0
+  /** The items of the last Send, for the simulated agent. */
+  let lastBatch: string[] = []
+  let measures = 0
+  const measuring = new Map<string, (answer: { visible: boolean; results: MeasuredItem[] }) => void>()
+  let simulating = false
+
+  const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
+
+  /** Asks the dock to measure, as primp's server does; null when no dock answers in time. */
+  const measure = (wanted: ChangeItem[]): Promise<{ visible: boolean; results: MeasuredItem[] } | null> => {
+    const socket = [...host.sockets].find((one) => one.doc !== undefined)
+    if (socket === undefined) return Promise.resolve(null)
+    const reqId = `site-measure-${++measures}`
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        measuring.delete(reqId)
+        resolve(null)
+      }, 5000)
+      measuring.set(reqId, (answer) => {
+        clearTimeout(timer)
+        resolve(answer)
+      })
+      socket.deliver({ type: 'session:measure', reqId, items: wanted.map((item) => ({ itemId: item.id, locator: item.target.locator, expect: item.expect })) })
+    })
+  }
+
+  /** Measures the items through the dock and judges them as primp's verifier does; stores the results and tells every dock. */
+  const check = async (wanted: ChangeItem[], settle: { status: string; signal: string; ms: number; filesChanged: string[] }): Promise<Record<string, number>> => {
+    const toMeasure = wanted.filter((item) => item.kind !== 'note')
+    const answer = toMeasure.length === 0 ? { visible: true, results: [] } : await measure(toMeasure)
+    const counts: Record<string, number> = {}
+    for (const item of wanted) {
+      const found = answer?.results.find((result) => result.itemId === item.id)
+      const checks = item.kind === 'note' || found === undefined ? [] : judgeMeasured(item, found)
+      const extras = {
+        settle,
+        visible: answer?.visible ?? true,
+        browser: item.kind === 'note' || found !== undefined,
+        attempt: (item.verification?.attempt ?? 0) + 1,
+        now: Date.now(),
+        ...(found === undefined ? {} : { locatorConfidence: found.locatorConfidence }),
+      }
+      const result = judgeItem(item, checks, extras)
+      const status = itemStatusAfter(result.status)
+      if (status !== undefined) item.status = status
+      item.verification = result
+      counts[result.status] = (counts[result.status] ?? 0) + 1
+    }
+    broadcast()
+    return counts
+  }
+
+  /** The simulated agent: claims the last batch, applies it to the page, and has it verified for real. */
+  const simulate = async (mode: AgentMode): Promise<void> => {
+    if (simulating) return
+    const batch = lastBatch.map((id) => items.get(id)).filter((item): item is ChangeItem => item !== undefined && item.status === 'queued')
+    if (batch.length === 0) return
+    simulating = true
+    try {
+      const claimedAt = Date.now()
+      for (const item of batch) {
+        item.status = 'claimed'
+        item.claimedAt = claimedAt
+      }
+      broadcast()
+      // An agent reads the prompt and edits files; then the dev server reloads the module.
+      await sleep(1400)
+      const started = performance.now()
+      const edits = applyAsAgent(batch, mode)
+      await sleep(350)
+      const settle = { status: 'settled', signal: 'simulated agent', ms: Math.round(performance.now() - started), filesChanged: [] as string[] }
+      const counts = await check(batch, settle)
+      const simulation: SimulationResult = { mode, counts, did: edits.map((edit) => edit.did) }
+      events.lastSimulation = simulation
+      window.dispatchEvent(new CustomEvent(VERIFIED_EVENT, { detail: simulation }))
+    } finally {
+      simulating = false
+    }
+  }
+  window.addEventListener(SIMULATE_EVENT, (event) => {
+    const mode = (event as CustomEvent<{ mode?: AgentMode }>).detail?.mode === 'sloppy' ? 'sloppy' : 'careful'
+    void simulate(mode)
+  })
 
   const sorted = (): ChangeItem[] => [...items.values()].sort((a, b) => a.seq - b.seq)
   const state = (): ServerMessage => ({ type: 'session:state', info, items: sorted() })
@@ -195,6 +287,7 @@ function start(host: StandinHost): void {
           return
         }
         const batchId = `site-${++batches}`
+        lastBatch = drafts.map((item) => item.id)
         for (const item of drafts) {
           item.status = 'queued'
           item.batchId = batchId
@@ -245,8 +338,20 @@ function start(host: StandinHost): void {
         window.dispatchEvent(new CustomEvent(REPORT_EVENT, { detail: { report, culpritSources } }))
         return
       }
+      case 'session:measured': {
+        const resolve = measuring.get(message.reqId)
+        measuring.delete(message.reqId)
+        resolve?.({ visible: message.visible, results: message.results })
+        return
+      }
+      case 'session:reverify': {
+        // "Check again" in the dock: the page is measured again as it is now.
+        const wanted = message.ids.map((id) => items.get(id)).filter((item): item is ChangeItem => item !== undefined && item.status !== 'draft' && item.status !== 'queued')
+        if (wanted.length > 0) void check(wanted, { status: 'settled', signal: 'checked again', ms: 0, filesChanged: [] })
+        return
+      }
       default:
-        // session:measured, session:reverify, session:visibility: nothing asks for them here.
+        // session:visibility: nothing asks for it here.
         return
     }
   }

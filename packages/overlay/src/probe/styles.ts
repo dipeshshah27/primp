@@ -15,7 +15,7 @@
  */
 
 import type { ElementState, StyleChange } from '@primp/protocol/change'
-import { longhandsOf } from './properties.ts'
+import { setsProperty, type Flow } from './properties.ts'
 import {
   activeStates,
   atRest,
@@ -98,6 +98,8 @@ export interface ElementStyles {
   system: StylingSystem
   /** A Tailwind stylesheet is on the page. */
   tailwind: boolean
+  /** The element's direction and writing mode, which logical properties (`padding-inline`) map through. */
+  flow?: Flow
   /** Rules looked at, and sheets that could not be read. */
   stats: { rules: number; unreadableSheets: number; ms: number }
 }
@@ -171,6 +173,16 @@ function combineMedia(media: readonly MediaContext[]): MediaOption | undefined {
 /** The combined query an edit of this rule's property would be scoped to. */
 export function mediaOf(rule: MatchedRule): string | undefined {
   return combineMedia(rule.media)?.query
+}
+
+/** The element's direction and whether its writing mode is vertical; empty when they cannot be read. */
+function flowOf(el: Element): Flow {
+  try {
+    const style = getComputedStyle(el)
+    return { direction: style.direction, vertical: style.writingMode.startsWith('vertical') || style.writingMode.startsWith('sideways') }
+  } catch {
+    return {}
+  }
 }
 
 export function readStyles(el: Element): ElementStyles {
@@ -386,6 +398,7 @@ export function readStyles(el: Element): ElementStyles {
       tailwind,
     ),
     tailwind,
+    flow: flowOf(el),
     stats: { rules: seen, unreadableSheets: unreadable, ms: performance.now() - started },
   }
 }
@@ -462,9 +475,8 @@ export function declaredWinners(
  * A resting edit of the property does not reach into those states once it is in the source: the
  * state's rule still wins there. The preview of a resting edit is left out of them (preview.ts).
  */
-export function statesCovering(styles: Pick<ElementStyles, 'rules'>, property: string): ElementState[] {
-  const longhands = longhandsOf(property)
-  const related = (name: string): boolean => name === property || longhands.includes(name) || longhandsOf(name).includes(property)
+export function statesCovering(styles: Pick<ElementStyles, 'rules' | 'flow'>, property: string): ElementState[] {
+  const related = (name: string): boolean => setsProperty(name, property, styles.flow)
   const out = new Set<ElementState>()
   for (const rule of styles.rules) {
     if (rule.states.length === 0 || !rule.active) continue
@@ -576,9 +588,10 @@ export function originOf(styles: ElementStyles, property: string, state?: Elemen
   const exact = declared.find((entry) => entry.property === property)
   let found = exact
   if (found === undefined) {
-    const longhands = longhandsOf(property)
-    // The list is sorted strongest first, so the first relative found is the one that decides.
-    found = declared.find((entry) => longhands.includes(entry.property) || longhandsOf(entry.property).includes(property))
+    // The list is sorted strongest first, so the first relative found is the one that decides: a
+    // shorthand, a longhand, or the logical property that sets this physical one (Tailwind 4's
+    // `px-4` is `padding-inline`, which is what decides `padding-left`).
+    found = declared.find((entry) => setsProperty(entry.property, property, styles.flow))
   }
   if (found === undefined) {
     const inherited = property.startsWith('--') || INHERITED.has(property)
