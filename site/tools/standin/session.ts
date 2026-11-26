@@ -213,7 +213,8 @@ function start(host: StandinHost): void {
       await sleep(350)
       const settle = { status: 'settled', signal: 'simulated agent', ms: Math.round(performance.now() - started), filesChanged: [] as string[] }
       const counts = await check(batch, settle)
-      const simulation: SimulationResult = { mode, counts, did: edits.map((edit) => edit.did) }
+      const results = edits.map((edit) => ({ itemId: edit.itemId, ...(edit.mistake === undefined ? {} : { mistake: edit.mistake }), status: items.get(edit.itemId)?.verification?.status ?? 'unknown' }))
+      const simulation: SimulationResult = { mode, counts, did: edits.map((edit) => edit.did), results }
       events.lastSimulation = simulation
       window.dispatchEvent(new CustomEvent(VERIFIED_EVENT, { detail: simulation }))
     } finally {

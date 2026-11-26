@@ -41,6 +41,8 @@ export interface SimulationResult {
   counts: Record<string, number>
   /** What the simulated agent did, one line per change. */
   did: string[]
+  /** Per change: the mistake it made on purpose (sloppy mode), and the verification status primp gave. */
+  results: { itemId: string; mistake?: 'shared-rule' | 'near-value'; status: string }[]
 }
 
 declare global {

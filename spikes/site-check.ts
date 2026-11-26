@@ -354,24 +354,70 @@ try {
       return `item ${edit.item?.id}: letter-spacing -> -1px at ${edit.item?.target.source?.file}:${edit.item?.target.source?.line}; "${await dock('summary', edit.item?.id ?? '')}"`
     })
 
-    await report.attempt("Send shows the site's prompt sheet with the prompt primp's engine rendered; the dock then says nothing was queued", async () => {
+    await report.attempt("Send shows the site's prompt sheet with the prompt primp's engine rendered, and the offer to watch it verified; closed, the dock says what Send did here", async () => {
       const prompt = await dock('send')
       expect(prompt.includes('letter-spacing') && prompt.includes('components/landing/hero.tsx'), `prompt:\n${prompt.slice(0, 600)}`)
       const sheet = live.page.locator('[data-slot="sheet-content"]')
       await sheet.waitFor({ state: 'visible', timeout: 5000 })
       const shown = (await sheet.locator('[data-copy-source]').textContent()) ?? ''
       expect(shown === prompt, `the sheet shows another text (${shown.length} vs ${prompt.length} characters)`)
-      expect((await sheet.textContent())?.includes('verification needs') === true, 'the sheet does not say that verification needs npx @primpdev/cli and an agent')
+      const sheetText = (await sheet.textContent()) ?? ''
+      expect(sheetText.includes('Watch primp verify it') && (await sheet.getByRole('button', { name: 'A careful agent' }).count()) === 1 && (await sheet.getByRole('button', { name: 'A sloppy agent' }).count()) === 1, 'the sheet does not offer the simulated agents')
       await sleep(700)
       await live.page.screenshot({ path: join(SHOTS, 'prompt-sheet.png') })
       expect(!(await live.page.evaluate(() => (window as unknown as { __primp_dock: { isOpen(): boolean } }).__primp_dock.isOpen())), 'the dock stayed open over the sheet')
       await sheet.getByRole('button', { name: 'Close' }).click()
       await sheet.waitFor({ state: 'detached', timeout: 5000 })
       // Back on the dock's Changes panel, with the stand-in's words instead of "queued for your agent over MCP".
-      await waitFor(async () => /nothing is queued/.test(await dockText(live.page)), { what: "the stand-in's note in the Changes panel", timeoutMs: 5000 })
+      await waitFor(async () => /simulated agent/.test(await dockText(live.page)), { what: "the stand-in's note in the Changes panel", timeoutMs: 5000 })
       const panel = await dockText(live.page)
       expect(!/over MCP/.test(panel), `the Changes panel still talks about MCP:\n${panel.slice(0, 400)}`)
       return `${prompt.length} characters: ${prompt.split('\n')[0]}`
+    })
+
+    /** Makes an edit, sends it, and has the simulated agent in `mode` carry it out; the result as the stand-in reports it. */
+    const simulate = async (mode: 'careful' | 'sloppy', selector: string, property: string, value: string) => {
+      await live.page.evaluate(() => scrollTo(0, 0))
+      await dock('select', selector)
+      const edit = await dock('setStyle', property, value, { media: null, scope: 'instance' })
+      expect(edit.ok && edit.item !== null, `not recorded: ${edit.error}`)
+      await dock('send')
+      const sheet = live.page.locator('[data-slot="sheet-content"]')
+      await sheet.waitFor({ state: 'visible', timeout: 5000 })
+      await sheet.getByRole('button', { name: mode === 'careful' ? 'A careful agent' : 'A sloppy agent' }).click()
+      await sheet.waitFor({ state: 'detached', timeout: 5000 })
+      const result = await waitFor(
+        () => live.page.evaluate((id) => {
+          const last = (window as unknown as { __primp_site?: { lastSimulation?: { mode: string; results: { itemId: string; mistake?: string; status: string }[]; did: string[] } } }).__primp_site?.lastSimulation
+          return last?.results.some((entry) => entry.itemId === id) === true ? last : undefined
+        }, edit.item!.id),
+        { what: `the ${mode} agent's verification`, timeoutMs: 15_000 },
+      )
+      const item = (await dock('items')).find((one: { id: string }) => one.id === edit.item!.id) as { status: string; verification?: { status: string; checks: { status: string }[] } } | undefined
+      return { result, item, panel: await dockText(live.page) }
+    }
+
+    await report.attempt('a careful simulated agent: the dock measures the page and the real verifier passes the change', async () => {
+      const { result, item, panel } = await simulate('careful', '#hero-title', 'letter-spacing', '-2px')
+      expect(result.results.every((entry) => entry.status === 'pass'), `results: ${JSON.stringify(result.results)}`)
+      expect(item?.status === 'verified' && item.verification?.status === 'pass' && (item.verification?.checks.length ?? 0) > 0, `item: ${JSON.stringify(item).slice(0, 300)}`)
+      expect(/verified/.test(panel) && /The page now shows what you asked for/.test(panel), `Verification panel:\n${panel.slice(0, 400)}`)
+      await live.page.waitForSelector('[data-simulation="careful"]', { timeout: 5000 })
+      await live.page.screenshot({ path: join(SHOTS, 'simulated-careful.png') })
+      return `${result.did.join('; ')} -> ${result.results.map((entry) => entry.status).join(', ')}; ${item?.verification?.checks.length} check(s) measured by the dock`
+    })
+
+    await report.attempt('a sloppy simulated agent edits a shared Tailwind rule: the bystanders moved, and verification fails the change, naming them', async () => {
+      await live.page.goto(`${origin}/`)
+      await waitFor(() => live.page.evaluate(() => (window as unknown as { __primp_test?: unknown }).__primp_test !== undefined), { what: 'the dock', timeoutMs: 15_000 })
+      await dock('ready')
+      const { result, item, panel } = await simulate('sloppy', 'header nav a', 'padding-left', '16px')
+      const entry = result.results[0]
+      expect(entry?.mistake === 'shared-rule', `the sloppy agent did not edit the shared rule: ${JSON.stringify(result)}`)
+      expect(entry.status === 'fail' && item?.status === 'failed' && (item.verification?.checks.filter((check) => check.status === 'fail').length ?? 0) > 0, `item: ${JSON.stringify(item).slice(0, 300)}`)
+      expect(/keeps its padding-left/.test(panel), `Verification panel:\n${panel.slice(0, 600)}`)
+      await live.page.screenshot({ path: join(SHOTS, 'simulated-sloppy.png') })
+      return `${result.did.join('; ')} -> ${entry.status}; ${item?.verification?.checks.filter((check) => check.status === 'fail').length} bystander check(s) failed`
     })
 
     await report.attempt('"Replay with a layout shift" reloads with ?shift=1; the dock names the unsized hero screenshot', async () => {
