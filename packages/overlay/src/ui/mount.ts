@@ -202,6 +202,12 @@ export function mountDock(c: Controller): DockHandle {
   // --- the toolbar's frame -------------------------------------------------------
   const barBox = { x: 0, y: 0, w: 44, h: 44 }
   let dragging = false
+  /** A pointer is down on the grip or the launcher (it may not have moved yet): no second drag starts. */
+  let pressed = false
+  /** Esc for the toolbar drag in progress. Registered now, in the capture phase of the page's window, so it runs
+   *  before the selection's and the handles' Esc listeners, which are added later. */
+  let dragKey: ((event: KeyboardEvent) => void) | null = null
+  addEventListener('keydown', (event) => dragKey?.(event), true)
   const placeBar = (): void => {
     if (dragging) return
     const view = viewport()
@@ -464,8 +470,10 @@ export function mountDock(c: Controller): DockHandle {
     toggle,
     mod: /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? '⌘' : 'Ctrl',
     nextPosition() {
+      // Dropped somewhere along the way: first into the corner it is nearest.
+      const free = (state.x !== undefined && state.x !== MARGIN) || (state.y !== undefined && state.y !== MARGIN)
       const index = PLACES.findIndex(([horizontal, vertical]) => horizontal === state.h && vertical === state.v)
-      const next = PLACES[(index + 1) % PLACES.length] ?? PLACES[0]!
+      const next = free && index >= 0 ? PLACES[index]! : (PLACES[(index + 1) % PLACES.length] ?? PLACES[0]!)
       state.h = next[0]
       state.v = next[1]
       delete state.x
@@ -474,7 +482,8 @@ export function mountDock(c: Controller): DockHandle {
       placeBar()
     },
     startDrag(event) {
-      if (event.button !== 0 || dragging) return
+      if (event.button !== 0 || pressed) return
+      pressed = true
       const handle = event.currentTarget as HTMLElement
       const frameWindow = handle.ownerDocument.defaultView
       const startX = event.screenX
@@ -482,7 +491,10 @@ export function mountDock(c: Controller): DockHandle {
       const fromX = barBox.x
       const fromY = barBox.y
       let moved = false
+      /** Esc was pressed: back in its place, and the rest of the drag does nothing. */
+      let escaped = false
       const onMove = (move: PointerEvent): void => {
+        if (escaped) return
         const dx = move.screenX - startX
         const dy = move.screenY - startY
         if (!moved && Math.hypot(dx, dy) < 4) return
@@ -499,36 +511,32 @@ export function mountDock(c: Controller): DockHandle {
         place(bar, barBox.x, barBox.y)
         placePop()
       }
-      const end = (keep: boolean): void => {
-        handle.removeEventListener('pointermove', onMove)
-        handle.removeEventListener('pointerup', onUp)
-        handle.removeEventListener('pointercancel', onCancel)
-        frameWindow?.removeEventListener('keydown', onKey, true)
-        removeEventListener('keydown', onKey, true)
+      const stopDragging = (): void => {
         handle.classList.remove('dragging')
         dragging = false
+        bar.classList.add('settled')
+        placeBar()
+      }
+      /** The pointer is up (released: a click follows) or gone (cancelled: none does). */
+      const finish = (released: boolean): void => {
+        handle.removeEventListener('pointermove', onMove)
+        frameWindow?.removeEventListener('pointerup', onUp, true)
+        handle.removeEventListener('pointercancel', onGone)
+        handle.removeEventListener('lostpointercapture', onGone)
+        frameWindow?.removeEventListener('keydown', onKey, true)
+        if (dragKey === onKey) dragKey = null
+        pressed = false
         if (!moved) return
-        // The click that ends a drag of the launcher must not open the dock.
-        const swallow = (click: Event): void => {
-          click.preventDefault()
-          click.stopPropagation()
-        }
-        frameWindow?.addEventListener('click', swallow, { capture: true, once: true })
-        const forget = (): void => {
+        if (released) {
+          // The click that ends a drag must not open the dock or press a button. It comes right after the pointerup.
+          const swallow = (click: Event): void => {
+            click.preventDefault()
+            click.stopImmediatePropagation()
+          }
+          frameWindow?.addEventListener('click', swallow, { capture: true, once: true })
           setTimeout(() => frameWindow?.removeEventListener('click', swallow, true), 0)
         }
-        // Ended by the button: its click comes now. Ended by Esc: when the button is let go.
-        if (keep) forget()
-        else {
-          const release = (): void => {
-            frameWindow?.removeEventListener('pointerup', release, true)
-            removeEventListener('pointerup', release, true)
-            forget()
-          }
-          frameWindow?.addEventListener('pointerup', release, true)
-          addEventListener('pointerup', release, true)
-        }
-        if (keep) {
+        if (released && !escaped) {
           // Rest where it was dropped, measured from the nearest edges; close to an edge, in line with the corners.
           const view = viewport()
           state.h = barBox.x + barBox.w / 2 < view.w / 2 ? 'left' : 'right'
@@ -539,33 +547,31 @@ export function mountDock(c: Controller): DockHandle {
           state.y = fromEnd < SNAP ? MARGIN : Math.round(fromEnd)
           save(state)
         }
-        bar.classList.add('settled')
-        placeBar()
+        if (!escaped) stopDragging()
       }
-      const onUp = (): void => end(true)
-      const onCancel = (): void => end(false)
-      // Esc puts it back where it was.
+      const onUp = (): void => finish(true)
+      const onGone = (): void => finish(false)
+      // Esc puts it back where it was; the pointer stays captured, so its release still ends the drag here.
       const onKey = (key: KeyboardEvent): void => {
-        if (key.key !== 'Escape' || !moved) return
+        if (key.key !== 'Escape' || !moved || escaped) return
         key.preventDefault()
-        key.stopPropagation()
-        try {
-          handle.releasePointerCapture(event.pointerId)
-        } catch {
-          // Not captured.
-        }
-        end(false)
+        key.stopImmediatePropagation()
+        escaped = true
+        stopDragging()
       }
       try {
         handle.setPointerCapture(event.pointerId)
       } catch {
-        // Without capture the drag ends when the pointer leaves the grip.
+        // Without capture the toolbar follows only while the pointer is over its frame.
       }
       handle.addEventListener('pointermove', onMove)
-      handle.addEventListener('pointerup', onUp)
-      handle.addEventListener('pointercancel', onCancel)
+      // On the frame's window: also seen when capture could not be set and the pointer left the handle.
+      frameWindow?.addEventListener('pointerup', onUp, true)
+      handle.addEventListener('pointercancel', onGone)
+      // Capture lost without a pointerup (the element went away, the window lost the pointer): the drag is over.
+      handle.addEventListener('lostpointercapture', onGone)
       frameWindow?.addEventListener('keydown', onKey, true)
-      addEventListener('keydown', onKey, true)
+      dragKey = onKey
     },
   }
 

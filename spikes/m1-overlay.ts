@@ -1422,7 +1422,7 @@ async function viteKeyboardAndConnection(browser: Browser, lane: Lane): Promise<
       await t.mouse.click(reloaded.x + 22, reloaded.y + 22)
       await sleep(300)
       expect((await testState(t)).open, 'a click on the launcher did not open the dock')
-      return `dragged from the corner to ${dropped.x},${dropped.y} (the drop did not open the dock; opened, the toolbar kept its right edge); Esc mid-drag put it back; dropped 14px from the right edge it rests 16px from it; the place survived a reload; a click still opens it`
+      return `dragged from the corner to ${dropped.x},${dropped.y} (the drop did not open the dock; opened, the toolbar kept its right edge); Esc mid-drag put it back; dropped 8px from the right edge it rests 16px from it; the place survived a reload; a click still opens it`
     })
   } finally {
     await page.close()
