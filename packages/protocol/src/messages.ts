@@ -75,6 +75,8 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
   }),
   /** The user asked for the items to be checked again from the dock. */
   z.object({ type: z.literal('session:reverify'), ids: z.array(z.string()) }),
+  /** The user wants the fix-up prompt for these items (what did not pass, as instructions to paste). */
+  z.object({ type: z.literal('session:fixup'), reqId: z.string(), ids: z.array(z.string()) }),
   /** The tab became visible or hidden; a measurement taken while hidden is not trusted. */
   z.object({ type: z.literal('session:visibility'), doc: z.string(), visible: z.boolean() }),
 ])
@@ -119,5 +121,9 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
   }),
   /** Reload the page (layout-shift replay). */
   z.object({ type: z.literal('session:reload'), reason: z.string() }),
+  /** A verification of these items started: the page is awaited and then measured. Their results follow in session:state. */
+  z.object({ type: z.literal('session:verifying'), ids: z.array(z.string()) }),
+  /** Answer to `session:fixup`: the fix-up prompt (empty when every one of the items passed). */
+  z.object({ type: z.literal('session:fixup-text'), reqId: z.string(), prompt: z.string(), count: z.number().int().nonnegative() }),
 ])
 export type ServerMessage = z.infer<typeof ServerMessageSchema>

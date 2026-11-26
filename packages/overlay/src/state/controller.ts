@@ -108,6 +108,8 @@ export interface Controller {
   knownSource(element: Element): SourceLoc | null | undefined
   /** Renders the prompt the drafts would be sent with and puts it on the clipboard, without sending. */
   copyPrompt(): Promise<{ prompt: string; copied: boolean }>
+  /** Renders the fix-up prompt for these sent items (what did not pass) and copies it; false when there was nothing to copy. */
+  copyFixup(ids: readonly string[]): Promise<boolean>
   /**
    * Chooses the interaction state the selected element is shown in and new edits are made for;
    * null: at rest. The element looks hovered (focused, pressed) without the pointer or the focus
@@ -1279,6 +1281,41 @@ export function createController(options: ControllerOptions): Controller {
     store.toast.value = { text, tone, at: performance.now() }
   }
 
+  const pendingFixups = new Map<string, (message: Extract<ServerMessage, { type: 'session:fixup-text' }>) => void>()
+
+  /** Copies the fix-up prompt for the sent items that did not pass: what to paste into an agent that has no MCP. */
+  const copyFixup = (ids: readonly string[]): Promise<boolean> =>
+    enqueue(async () => {
+      if (!bus.connected()) {
+        toast('Not connected to primp.', 'bad')
+        return false
+      }
+      const reqId = newId('f')
+      const answer = await new Promise<Extract<ServerMessage, { type: 'session:fixup-text' }> | null>((resolve) => {
+        const timer = window.setTimeout(() => {
+          pendingFixups.delete(reqId)
+          resolve(null)
+        }, SEND_TIMEOUT_MS)
+        pendingFixups.set(reqId, (message) => {
+          window.clearTimeout(timer)
+          pendingFixups.delete(reqId)
+          resolve(message)
+        })
+        bus.send({ type: 'session:fixup', reqId, ids: [...ids] })
+      })
+      if (answer === null) {
+        toast('primp did not answer.', 'bad')
+        return false
+      }
+      if (answer.prompt === '') {
+        toast('Nothing to fix: every checked change passed.')
+        return false
+      }
+      const copied = await copy(answer.prompt)
+      toast(copied ? `Fix-up for ${answer.count} ${answer.count === 1 ? 'change' : 'changes'} copied: paste it into your agent` : 'The browser did not allow copying.', copied ? 'ok' : 'bad')
+      return copied
+    })
+
   const copyPrompt = (): Promise<{ prompt: string; copied: boolean }> =>
     enqueue(async () => {
       const drafts = store.allDrafts.value
@@ -1386,6 +1423,43 @@ export function createController(options: ControllerOptions): Controller {
     else addEventListener('load', later, { once: true })
   }
 
+  /** The newest verification time the dock has shown; results newer than it are news. */
+  let seenResultsAt: number | undefined
+
+  /** New results: no longer being checked, and said where the person is when the Verification panel is not open. */
+  const noticeResults = (items: readonly ChangeItem[]): void => {
+    if (store.checking.peek().size > 0) {
+      const next = new Map(store.checking.peek())
+      for (const item of items) {
+        const started = next.get(item.id)
+        if (started !== undefined && (item.verification?.at ?? 0) >= started - 1000) next.delete(item.id)
+      }
+      // A verification whose result never came (primp restarted) is not shown as running forever.
+      for (const [id, started] of next) if (Date.now() - started > 120_000) next.delete(id)
+      if (next.size !== store.checking.peek().size) store.checking.value = next
+    }
+    const newest = Math.max(0, ...items.map((item) => item.verification?.at ?? 0))
+    if (seenResultsAt === undefined) {
+      // What was there when this page loaded is not news.
+      seenResultsAt = newest
+      return
+    }
+    const fresh = items.filter((item) => (item.verification?.at ?? 0) > (seenResultsAt ?? 0) && item.verification !== undefined)
+    if (fresh.length === 0) return
+    seenResultsAt = newest
+    if (store.open.peek() && store.panel.peek() === 'verify') return
+    const count = (status: string): number => fresh.filter((item) => item.verification?.status === status).length
+    const failed = fresh.filter((item) => item.status === 'failed').length
+    const worst = failed > 0 ? 'fail' : count('drift') > 0 ? 'drift' : 'pass'
+    const rank = { pass: 0, drift: 1, fail: 2 } as const
+    const before = store.unseen.peek()
+    store.unseen.value = before !== null && rank[before] > rank[worst] ? before : worst
+    const parts = [count('pass') > 0 ? `${count('pass')} passed` : '', count('drift') > 0 ? `${count('drift')} drifted` : '', failed > 0 ? `${failed} failed` : '']
+    const other = fresh.length - count('pass') - count('drift') - failed
+    if (other > 0) parts.push(`${other} not measured`)
+    toast(`Checked: ${parts.filter((part) => part !== '').join(', ')}. See Verification.`, failed > 0 ? 'bad' : 'ok')
+  }
+
   const onState = (message: Extract<ServerMessage, { type: 'session:state' }>): void => {
     const first = awaitingFirstState
     awaitingFirstState = false
@@ -1409,6 +1483,7 @@ export function createController(options: ControllerOptions): Controller {
       }
       store.ready.value = true
     })
+    noticeResults(result.items)
     for (const id of result.released) forget(id)
     for (const item of result.resend) upsert(item)
     // Drafts from before a reload get their previews back once the page has built itself.
@@ -1560,6 +1635,15 @@ export function createController(options: ControllerOptions): Controller {
       case 'session:shift-report':
         onShiftReport(event)
         break
+      case 'session:verifying': {
+        const next = new Map(store.checking.peek())
+        for (const id of event.ids) next.set(id, Date.now())
+        store.checking.value = next
+        break
+      }
+      case 'session:fixup-text':
+        pendingFixups.get(event.reqId)?.(event)
+        break
       case 'session:measure': {
         const result = measureNow(event.items)
         bus.send({ type: 'session:measured', reqId: event.reqId, visible: result.visible, results: result.results })
@@ -1620,6 +1704,7 @@ export function createController(options: ControllerOptions): Controller {
     addNote,
     noteOf,
     copyPrompt,
+    copyFixup,
     elementOf,
     knownSource: (element) => sources.get(element),
     setState,

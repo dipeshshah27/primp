@@ -214,6 +214,8 @@ ul, ol { list-style: none; }
   background: var(--surface); color: var(--text); transition: background-color 150ms ease;
 }
 .launcher:hover { background: var(--solid); }
+/* New results nobody has looked at yet (state/controller.ts noticeResults): top left, the unsent count is top right. */
+.launcher .launcher-dot { position: absolute; left: 4px; top: 4px; width: 10px; height: 10px; border-radius: 5px; box-shadow: 0 0 0 2px var(--surface); }
 .launcher:focus-visible { outline-offset: -3px; border-radius: 22px; }
 .badge {
   position: absolute; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px;

@@ -5,6 +5,7 @@
  */
 
 import type { ChangeItem, CheckResult, ItemStatus, VerificationStatus } from '@primp/protocol/change'
+import { useEffect } from 'preact/hooks'
 import type { Controller } from '../state/controller.ts'
 import { itemPinStatus, pinGroups } from '../state/pins.ts'
 import { IconClose, IconRefresh } from './icons.tsx'
@@ -81,9 +82,15 @@ function Check({ check }: { check: CheckResult }) {
   )
 }
 
+/** How long an agent may hold a change before the panel suggests checking it by hand. */
+const STALL_MS = 90_000
+
 function VerifyItem({ c, item, number }: { c: Controller; item: ChangeItem; number: number | undefined }) {
-  const status = STATUS[item.status as Exclude<ItemStatus, 'draft'>]
+  const checking = c.store.checking.value.has(item.id)
+  const status = checking ? { text: 'checking…', tone: 'info' } : STATUS[item.status as Exclude<ItemStatus, 'draft'>]
   const result = item.verification
+  // An agent that took the change long ago and never asked for a check (or one that pasted the prompt): say what to do.
+  const stalled = !checking && item.status === 'claimed' && item.claimedAt !== undefined && Date.now() - item.claimedAt > STALL_MS && result === undefined
   return (
     <li class="item" data-item={item.id}>
       <div class="item-head">
@@ -95,7 +102,7 @@ function VerifyItem({ c, item, number }: { c: Controller; item: ChangeItem; numb
         <span class="label" title={`${item.target.label}\n${item.target.selector}`}>
           {item.target.label.split(' "')[0]}
         </span>
-        <span class={`chip ${status.tone}`} data-status={item.status}>
+        <span class={`chip ${status.tone}`} data-status={checking ? 'checking' : item.status}>
           {status.text}
         </span>
       </div>
@@ -106,6 +113,8 @@ function VerifyItem({ c, item, number }: { c: Controller; item: ChangeItem; numb
         {item.page === c.store.route.value ? null : <span class="chip">on {item.page}</span>}
       </div>
       {item.status === 'dismissed' && item.dismissReason !== undefined ? <div class="muted">Dismissed: {item.dismissReason}</div> : null}
+      {checking ? <div class="muted">Waiting for the page to update, then measuring it.</div> : null}
+      {stalled ? <div class="muted">Your agent has had this for a while without checking it. Once it has edited the source, press Check again.</div> : null}
       {result === undefined ? null : (
         <>
           <div class="row wrap">
@@ -158,6 +167,12 @@ export function VerifyTab({ c }: { c: Controller }) {
 
 export function VerifyPanel({ c, onClose }: { c: Controller; onClose(): void }) {
   const sent = c.store.items.value.filter((item) => item.status !== 'draft' && item.status !== 'dismissed')
+  // What did not pass, to hand back to an agent: the fix-up prompt (an MCP agent gets it from verify_changes by itself).
+  const toFix = sent.filter((item) => item.kind !== 'note' && item.verification !== undefined && item.verification.status !== 'pass')
+  // Looking at the results is seeing them: the launcher's dot goes.
+  useEffect(() => {
+    c.store.unseen.value = null
+  })
   return (
     <div class="pop" role="dialog" aria-label="Verification">
       <header class="pop-head">
@@ -175,6 +190,11 @@ export function VerifyPanel({ c, onClose }: { c: Controller; onClose(): void }) 
       </div>
       <footer class="pop-foot foot">
         <span class="hint grow">Results appear after your agent edits the source.</span>
+        {toFix.length > 0 ? (
+          <button type="button" class="btn sm" title="Copy what did not pass as instructions, to paste into your agent" onClick={() => void c.copyFixup(toFix.map((item) => item.id))}>
+            Copy fix-up
+          </button>
+        ) : null}
         <button type="button" class="btn sm" disabled={sent.length === 0} onClick={() => c.reverify(sent.map((item) => item.id))}>
           <IconRefresh size={14} />
           Check all again

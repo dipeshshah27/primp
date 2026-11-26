@@ -66,12 +66,13 @@ function Launcher({ c, ui }: { c: Controller; ui: DockUi }) {
   const { store } = c
   const count = store.allDrafts.value.length
   const connected = store.connected.value
-  const tip = useTip(ui, 'Open primp', `${ui.mod}⇧E`)
+  const unseen = store.unseen.value
+  const tip = useTip(ui, unseen === null ? 'Open primp' : `Open primp: new results (${unseen === 'fail' ? 'something failed' : unseen === 'drift' ? 'one landed close' : 'passed'})`, `${ui.mod}⇧E`)
   return (
     <button
       type="button"
       class="launcher"
-      aria-label={`Open primp${count > 0 ? `, ${count} unsent ${count === 1 ? 'change' : 'changes'}` : ''}${connected ? '' : ', reconnecting'}`}
+      aria-label={`Open primp${count > 0 ? `, ${count} unsent ${count === 1 ? 'change' : 'changes'}` : ''}${unseen === null ? '' : `, new results: ${unseen}`}${connected ? '' : ', reconnecting'}`}
       aria-keyshortcuts="Control+Shift+E Meta+Shift+E"
       onClick={() => {
         ui.tip(null)
@@ -80,6 +81,7 @@ function Launcher({ c, ui }: { c: Controller; ui: DockUi }) {
       {...tip}
     >
       <IconPrimp size={20} />
+      {unseen === null ? null : <span class={`dot launcher-dot ${unseen}`} aria-hidden="true" />}
       {count > 0 ? (
         <span class="badge" aria-hidden="true">
           {count}

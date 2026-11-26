@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto'
-import { renderPrompt } from '../../engine/src/prompt.ts'
+import { renderFixup, renderPrompt } from '../../engine/src/prompt.ts'
 import { attributeShifts } from '../../engine/src/shift-attributor.ts'
 import type { Batch, ChangeItem, CheckResult, Expectation, ItemStatus, Locator, SourceLoc } from '../../protocol/src/change.ts'
 import { ClientMessageSchema, type ClientMessage, type ServerMessage, type SessionInfo } from '../../protocol/src/messages.ts'
@@ -197,6 +197,8 @@ export interface Session {
   /** Sends `session:reload` to one document, or to the one `measure` would pick. False when none is connected. */
   reload(reason: string, doc?: string): boolean
   broadcastState(): void
+  /** Tells every document that a verification of these items started (the dock shows them as being checked). */
+  broadcastVerifying(ids: string[]): void
   /** Answers every pending measurement as disconnected and stops handling messages. */
   close(): void
 }
@@ -544,6 +546,12 @@ export function createSession(options: SessionOptions): Session {
         return void onShifts(connection, message.doc, message.recording).catch((error: unknown) => log('error', 'session:shifts failed', error))
       case 'session:measured':
         return onMeasured(connection, message)
+      case 'session:fixup': {
+        // What did not pass, as instructions to paste: the same fix-up an agent gets over MCP, worded for the clipboard.
+        const wanted = message.ids.map((id) => items.get(id)).filter((item): item is ChangeItem => item !== undefined && item.status !== 'draft')
+        const open = wanted.filter((item) => item.verification !== undefined && item.verification.status !== 'pass' && item.kind !== 'note')
+        return send(connection, { type: 'session:fixup-text', reqId: message.reqId, prompt: open.length === 0 ? '' : renderFixup(wanted, { channel: 'clipboard' }), count: open.length })
+      }
       case 'session:reverify':
         for (const listener of [...reverifyListeners]) {
           try {
@@ -803,6 +811,9 @@ export function createSession(options: SessionOptions): Session {
       return true
     },
     broadcastState,
+    broadcastVerifying(ids) {
+      for (const connection of connections) if (connection.doc !== undefined) send(connection, { type: 'session:verifying', ids: [...ids] })
+    },
     close() {
       if (closed) return
       closed = true

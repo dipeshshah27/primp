@@ -29,7 +29,7 @@
  * the engine's `judgeItem`. The agent is simulated; the measuring and the judging are primp's.
  */
 
-import { renderPrompt } from '../../../packages/engine/src/prompt.ts'
+import { renderFixup, renderPrompt } from '../../../packages/engine/src/prompt.ts'
 import { attributeShifts } from '../../../packages/engine/src/shift-attributor.ts'
 import type { ChangeItem, SourceLoc } from '../../../packages/protocol/src/change.ts'
 import type { ClientMessage, ServerMessage, SessionInfo } from '../../../packages/protocol/src/messages.ts'
@@ -215,6 +215,7 @@ function start(host: StandinHost): void {
       item.claimedAt = claimedAt
     }
     broadcast()
+    for (const socket of host.sockets) socket.deliver({ type: 'session:verifying', ids: batch.map((item) => item.id) })
     // An agent reads the prompt and edits files; then the dev server reloads the module.
     await sleep(1400)
     const started = performance.now()
@@ -351,6 +352,12 @@ function start(host: StandinHost): void {
         resolve?.({ visible: message.visible, results: message.results })
         return
       }
+      case 'session:fixup': {
+        const wanted = message.ids.map((id) => items.get(id)).filter((item): item is ChangeItem => item !== undefined && item.status !== 'draft')
+        const open = wanted.filter((item) => item.verification !== undefined && item.verification.status !== 'pass' && item.kind !== 'note')
+        socket.deliver({ type: 'session:fixup-text', reqId: message.reqId, prompt: open.length === 0 ? '' : renderFixup(wanted, { channel: 'clipboard' }), count: open.length })
+        return
+      }
       case 'session:reverify': {
         // "Check again" in the dock: the page is measured again as it is now. The same selection as
         // primp's verifier: no ids is everything queued, claimed or failed.
@@ -360,7 +367,9 @@ function start(host: StandinHost): void {
             ids.length === 0
               ? sorted().filter((item) => item.status === 'queued' || item.status === 'claimed' || item.status === 'failed')
               : ids.map((id) => items.get(id)).filter((item): item is ChangeItem => item !== undefined && VERIFIABLE_STATUSES.has(item.status))
-          if (wanted.length > 0) await check(wanted, { status: 'settled', signal: 'checked again', ms: 0, filesChanged: [] })
+          if (wanted.length === 0) return
+          socket.deliver({ type: 'session:verifying', ids: wanted.map((item) => item.id) })
+          await check(wanted, { status: 'settled', signal: 'checked again', ms: 0, filesChanged: [] })
         })
         return
       }

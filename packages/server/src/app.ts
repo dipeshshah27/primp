@@ -182,7 +182,7 @@ export async function startPrimp(options: StartPrimpOptions): Promise<PrimpHandl
 
     // Verification: on an agent's request (verify_changes), on the dock's (session:reverify), and by itself
     // after source edits for batches that were pasted as a prompt.
-    const verifier = createVerifier({ session, detector, hotReload: () => hmr.status().live, announce: (activity) => session.announce(activity) })
+    const verifier = createVerifier({ session, detector, hotReload: () => hmr.status().live, announce: (activity) => session.announce(activity), onStart: (ids) => session.broadcastVerifying(ids) })
     const shiftTools = createShiftTools({ session })
     undo.push(startAutoVerify({ session, detector, verifier, log: (message, error) => log('warn', message, error) }))
     undo.push(

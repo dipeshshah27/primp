@@ -329,6 +329,34 @@ describe('activity (the terminal lines)', () => {
   })
 })
 
+describe('fix-up and verifying (the dock)', () => {
+  it('session:fixup answers with the clipboard fix-up for what did not pass, and empty when everything passed', () => {
+    const { connect, session } = rig()
+    const socket = connect('doc-a')
+    for (const id of ['one', 'two']) socket.receive({ type: 'session:upsert', item: styleItem(id) })
+    socket.receive({ type: 'session:send', reqId: 's1', ids: ['one', 'two'] })
+    const check = { expectation: session.item('one')!.expect[0]!, status: 'fail' as const, expected: '16px', actual: '12px' }
+    session.patchItem('one', { status: 'failed', verification: { itemId: 'one', attempt: 1, at: 1, status: 'fail', checks: [check], hint: '' } })
+    session.patchItem('two', { status: 'verified', verification: { itemId: 'two', attempt: 1, at: 1, status: 'pass', checks: [], hint: '' } })
+    socket.receive({ type: 'session:fixup', reqId: 'f1', ids: ['one', 'two'] })
+    const answer = socket.last('session:fixup-text')
+    expect(answer?.reqId).toBe('f1')
+    expect(answer?.count).toBe(1)
+    expect(answer?.prompt).toMatch(/^# primp fix-up: 1 of 2 changes needs another pass/)
+    socket.receive({ type: 'session:fixup', reqId: 'f2', ids: ['two'] })
+    expect(socket.last('session:fixup-text')).toMatchObject({ reqId: 'f2', prompt: '', count: 0 })
+  })
+
+  it('broadcastVerifying tells every document which items are being checked', () => {
+    const { connect, session } = rig()
+    const a = connect('doc-a')
+    const b = connect('doc-b')
+    session.broadcastVerifying(['one'])
+    expect(a.last('session:verifying')?.ids).toEqual(['one'])
+    expect(b.last('session:verifying')?.ids).toEqual(['one'])
+  })
+})
+
 describe('waitForChanges (an agent watching)', () => {
   it('hands queued changes over at once, as getPendingChanges does', async () => {
     const { connect, session } = rig()

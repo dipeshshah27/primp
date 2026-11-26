@@ -65,6 +65,8 @@ export interface VerifierOptions {
   measureTimeoutMs?: number
   /** Told the outcome of every verification, for the terminal's activity lines. */
   announce?: (activity: Activity) => void
+  /** Told which items a verification is about as it starts (the dock shows them as being checked). */
+  onStart?: (ids: string[]) => void
   sleep?: (ms: number) => Promise<void>
 }
 
@@ -297,6 +299,7 @@ export function createVerifier(options: VerifierOptions): Verifier {
       }
     }
 
+    options.onStart?.(items.map((item) => item.id))
     // A write made right before this call may not have reached the watcher yet.
     await sleep(graceMs)
     // The earliest window start: everything any of these items could have caused is inside it.

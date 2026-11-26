@@ -124,6 +124,10 @@ export interface Store {
   /** A recording was sent and its report has not arrived. */
   shiftsPending: Signal<boolean>
   sent: Signal<SentState | null>
+  /** Items a verification is running for (session:verifying), with when it started; gone once their result is in. */
+  checking: Signal<ReadonlyMap<string, number>>
+  /** Results arrived that nobody has looked at yet: the worst of them, for the launcher's dot; null once the Verification panel was open. */
+  unseen: Signal<'pass' | 'drift' | 'fail' | null>
   sending: Signal<boolean>
   /** The last refusal (an invalid value, a failed send), shown until the next action. */
   error: Signal<string | null>
@@ -167,6 +171,8 @@ export function createStore(page: string): Store {
     shifts: signal(null),
     shiftsPending: signal(false),
     sent: signal(null),
+    checking: signal(new Map()),
+    unseen: signal(null),
     sending: signal(false),
     error: signal(null),
     busy: signal(false),
