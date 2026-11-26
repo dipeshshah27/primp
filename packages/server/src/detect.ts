@@ -273,9 +273,18 @@ export interface DetectDevServerOptions {
   platform?: NodeJS.Platform
   /** Runs a command and resolves with its stdout; rejects when it cannot run. Default: `execFile`. */
   run?: (command: string, args: string[]) => Promise<string>
-  /** Asks a port for `/`. Default: an HTTP GET to `http://localhost:<port>/`. */
-  probe?: (port: number) => Promise<ProbeResult>
+  /** Asks a port for `/`, giving up after `timeoutMs`. Default: an HTTP GET to `http://localhost:<port>/`. */
+  probe?: (port: number, timeoutMs: number) => Promise<ProbeResult>
+  /** How long a well-known port, or any port once another answered, gets to answer. Default 1500 ms. */
   probeTimeoutMs?: number
+  /**
+   * How long a port a project process listens on gets when nothing has answered with a page yet:
+   * a dev server compiles `/` on its first request, which takes Next or Nuxt several seconds.
+   * Default 20 s.
+   */
+  firstCompileTimeoutMs?: number
+  /** Called once when nothing answered quickly and the project's own ports are being waited for. */
+  onWait?: (ports: number[]) => void
 }
 
 function runCommand(command: string, args: string[]): Promise<string> {
@@ -337,7 +346,9 @@ export async function listProjectListeners(
 
 export async function detectDevServer(options: DetectDevServerOptions): Promise<DevServerDetection> {
   const platform = options.platform ?? process.platform
-  const probe = options.probe ?? ((port: number) => probeHttp(port, options.probeTimeoutMs))
+  const probe = options.probe ?? probeHttp
+  const quick = options.probeTimeoutMs ?? 1500
+  const patient = Math.max(quick, options.firstCompileTimeoutMs ?? 20_000)
   const excludedPorts = new Set(options.excludePorts ?? [])
   const excludedPids = new Set([process.pid, ...(options.excludePids ?? [])])
   const detection: DevServerDetection = { others: [], ignored: [], method: 'none' }
@@ -363,11 +374,26 @@ export async function detectDevServer(options: DetectDevServerOptions): Promise<
     candidates = WELL_KNOWN_PORTS.filter((port) => !excludedPorts.has(port)).map((port) => ({ port, url: `http://localhost:${port}`, via: 'port' }))
   }
 
-  const answers = await Promise.all(candidates.map(async (candidate) => ({ candidate, result: await probe(candidate.port) })))
+  // Every candidate is asked at once. A project's own port may take a first compile to answer;
+  // it is waited for only when nothing else answered with a page in the quick round.
+  const asked = candidates.map((candidate) => ({ candidate, answer: probe(candidate.port, candidate.via === 'process' ? patient : quick) }))
+  const late: unique symbol = Symbol('late')
+  const timer = (ms: number): Promise<typeof late> => new Promise((resolve) => setTimeout(() => resolve(late), ms).unref?.())
+  const first = await Promise.all(asked.map(async ({ candidate, answer }) => ({ candidate, answer, result: await Promise.race([answer, timer(quick + 100)]) })))
+  const pending = first.filter((entry) => entry.result === late)
+  const answeredHtml = first.some((entry) => typeof entry.result !== 'symbol' && entry.result.html)
+  if (pending.length > 0 && !answeredHtml) options.onWait?.(pending.map((entry) => entry.candidate.port))
+  const answers = await Promise.all(
+    first.map(async ({ candidate, answer, result }): Promise<{ candidate: DevServerCandidate; result: ProbeResult }> => {
+      if (typeof result !== 'symbol') return { candidate, result }
+      if (answeredHtml) return { candidate, result: { html: false, answered: false, detail: `no answer within ${(quick / 1000).toFixed(1)} s` } }
+      return { candidate, result: await answer }
+    }),
+  )
   const html: DevServerCandidate[] = []
   for (const { candidate, result } of answers) {
     if (result.html) html.push(candidate)
-    else if (candidate.via === 'process') detection.ignored.push({ port: candidate.port, reason: result.detail })
+    else if (candidate.via === 'process') detection.ignored.push({ port: candidate.port, reason: result.detail === 'TimeoutError' || /aborted due to timeout/.test(result.detail) ? 'no answer in time' : result.detail })
   }
   const [chosen, ...others] = orderCandidates(html, options.framework)
   if (chosen === undefined) return detection

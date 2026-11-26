@@ -343,6 +343,46 @@ describe('detectDevServer', () => {
     expect(missing.processScan).toMatch(/lsof is not installed/)
   })
 
+  /** A probe whose ports answer after a delay (a first compile), within the timeout it is given. */
+  const slowProbe = (delays: Record<number, number>, answers: Record<number, ProbeResult>) => {
+    const timeouts: Record<number, number> = {}
+    return {
+      timeouts,
+      probe: (port: number, timeoutMs: number): Promise<ProbeResult> => {
+        timeouts[port] = timeoutMs
+        const delay = delays[port] ?? 0
+        return new Promise((resolve) => setTimeout(() => resolve(delay > timeoutMs ? { html: false, answered: false, detail: 'TimeoutError' } : (answers[port] ?? refused)), Math.min(delay, timeoutMs)))
+      },
+    }
+  }
+
+  it("waits for a project's port that is slow to answer (a first compile) when nothing else answered, and says so", async () => {
+    const { probe, timeouts } = slowProbe({ 5173: 300 }, { 5173: html })
+    const waited: number[][] = []
+    const detection = await detectDevServer({ projectRoot: '/Users/sam/code/shop', framework: 'vite', run: lsof().run, probe, platform: 'darwin', probeTimeoutMs: 50, firstCompileTimeoutMs: 2000, onWait: (ports) => waited.push(ports) })
+    expect(detection.chosen?.port).toBe(5173)
+    expect(timeouts[5173]).toBe(2000)
+    expect(waited).toEqual([[5173]])
+  })
+
+  it('does not wait for a slow port once another answered with a page', async () => {
+    const { probe } = slowProbe({ 5173: 1500 }, { 5173: html, 3000: html })
+    const waited: number[][] = []
+    const started = Date.now()
+    const detection = await detectDevServer({ projectRoot: '/Users/sam/code/shop', framework: 'vite', run: lsof().run, probe, platform: 'darwin', probeTimeoutMs: 50, firstCompileTimeoutMs: 2000, onWait: (ports) => waited.push(ports) })
+    expect(Date.now() - started).toBeLessThan(1000)
+    expect(detection.chosen?.port).toBe(3000)
+    expect(detection.ignored).toContainEqual({ port: 5173, reason: 'no answer within 0.1 s' })
+    expect(waited).toEqual([])
+  })
+
+  it('a port that never answers is reported as such, after the long wait', async () => {
+    const { probe } = slowProbe({ 5173: 5000 }, {})
+    const detection = await detectDevServer({ projectRoot: '/Users/sam/code/shop', framework: 'vite', run: lsof().run, probe, platform: 'darwin', probeTimeoutMs: 50, firstCompileTimeoutMs: 200 })
+    expect(detection.chosen).toBeUndefined()
+    expect(detection.ignored).toContainEqual({ port: 5173, reason: 'no answer in time' })
+  })
+
   it('finds nothing when nothing answers', async () => {
     const detection = await detectDevServer({ projectRoot: '/nowhere', run: lsof('', '').run, probe: probeWith({}).probe, platform: 'linux' })
     expect(detection).toEqual({ others: [], ignored: [], method: 'none' })

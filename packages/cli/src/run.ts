@@ -131,6 +131,15 @@ export async function runPrimp(options: RunOptions): Promise<RunHandle> {
       excludePorts: own.ports,
       excludePids: own.pids,
       timeoutMs: options.startTimeoutMs,
+      onWait: (() => {
+        let said = false
+        return (ports: number[]) => {
+          if (said) return
+          said = true
+          // Next, Nuxt and others compile the page on its first request: that is worth a wait, and worth saying.
+          print(`primp: waiting for ${ports.map((port) => `http://localhost:${port}`).join(', ')} to answer (a dev server compiles the first page it is asked for)...`)
+        }
+      })(),
     })
     let target: ProxyTarget
     let foundHow = ''
