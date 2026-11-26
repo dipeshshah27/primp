@@ -121,6 +121,7 @@ export const HOST_CSS = `
 .tip .sub { display: block; color: #a1a1aa; font-weight: 450; margin-top: 2px; white-space: normal; }
 .toast { white-space: normal; width: max-content; max-width: 340px; }
 .toast.bad { background: #7f1d1d; }
+.toast.coach { background: #1e3a8a; }
 .note-chip { white-space: normal; width: 260px; background: #18181b; border-left: 3px solid #f59e0b; }
 :host([data-theme="light"]) .tip, :host([data-theme="light"]) .toast, :host([data-theme="light"]) .note-chip, :host([data-theme="light"]) .label-chip { background: #18181b; }
 

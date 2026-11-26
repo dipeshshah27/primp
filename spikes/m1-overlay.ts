@@ -372,6 +372,30 @@ async function viteDockUx(browser: Browser, lane: Lane): Promise<void> {
       return `closed on load and after a reload that followed an open dock: launcher 44x44, 16px from the right and bottom edges ("${launcher.label}"), no toolbar, no popover, no label chip`
     })
 
+    await report.attempt('the first time the dock is open with nothing selected, a hint says what to do; after the first selection it is gone for good', async () => {
+      await t.evaluate(() => localStorage.removeItem('primp:coached'))
+      await t.reload({ waitUntil: 'load' })
+      await t.waitForFunction(() => window.__primp_test !== undefined)
+      await t.evaluate(() => window.__primp_test!.ready())
+      page.dock = await dockFrame(t)
+      page.bar = await dockFrame(t, 'bar')
+      const coach = (): Promise<string | null> => t.evaluate(() => {
+        const node = document.querySelector('primp-root')?.shadowRoot?.querySelector<HTMLElement>('.toast.coach')
+        return node === null || node === undefined || node.style.display === 'none' ? null : node.textContent
+      })
+      const closed = await coach()
+      await t.evaluate(() => window.__primp_test!.open(true))
+      const shown = await waitFor(coach, { what: 'the first-time hint', timeoutMs: 2000 })
+      await t.evaluate((selector) => window.__primp_test!.select(selector), `${'[data-label="card"]'}:nth-of-type(1)`)
+      const afterSelect = await coach()
+      await t.evaluate(() => window.__primp_test!.open(false))
+      await t.evaluate(() => window.__primp_test!.open(true))
+      const later = await coach()
+      await t.evaluate(() => window.__primp_test!.open(false))
+      expect(closed === null && shown.startsWith('Click anything on the page') && afterSelect === null && later === null, `closed ${closed}, open ${shown}, after a selection ${afterSelect}, opened again ${later}`)
+      return `"${shown}" while open with nothing selected; gone after the first selection, and not shown when opened again`
+    })
+
     await report.attempt('Ctrl+Shift+E and the launcher open the toolbar; every toolbar button has a name and a tooltip', async () => {
       await t.locator('body').focus()
       await t.keyboard.press('Control+Shift+E')

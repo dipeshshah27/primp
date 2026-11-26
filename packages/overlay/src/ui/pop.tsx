@@ -91,6 +91,30 @@ function SettingsPanel({ c, ui, onClose }: { c: Controller; ui: DockUi; onClose(
           <dd>
             <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd>
           </dd>
+          <dt>Select what the pointer is over</dt>
+          <dd>
+            <kbd>Enter</kbd>
+          </dd>
+          <dt>Nudge a number in a field (by 10)</dt>
+          <dd>
+            <kbd>↑</kbd> <kbd>↓</kbd> (<kbd>⇧</kbd>)
+          </dd>
+          <dt>Keep the proportions while resizing</dt>
+          <dd>
+            <kbd>⇧</kbd> + corner drag
+          </dd>
+          <dt>Cancel a drag</dt>
+          <dd>
+            <kbd>Esc</kbd>
+          </dd>
+          <dt>Save a note</dt>
+          <dd>
+            <kbd>{mod}</kbd> <kbd>Enter</kbd>
+          </dd>
+          <dt>These shortcuts</dt>
+          <dd>
+            <kbd>?</kbd>
+          </dd>
           <dt>Move what the grip moves earlier, later</dt>
           <dd>
             <kbd>Alt</kbd> <kbd>↑</kbd>, <kbd>Alt</kbd> <kbd>↓</kbd>

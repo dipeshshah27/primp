@@ -51,6 +51,16 @@ const POP_WIDTH = 340
 /** Below this viewport width the popover is a bottom sheet. */
 const SHEET_BELOW = 480
 const STORAGE_KEY = 'primp:dock'
+/** Set once the person has selected something: the first-time hint is not shown again. */
+const COACHED_KEY = 'primp:coached'
+
+const coached = (): boolean => {
+  try {
+    return localStorage.getItem(COACHED_KEY) !== null
+  } catch {
+    return true
+  }
+}
 const TOAST_MS = 2400
 
 type Horizontal = 'left' | 'right'
@@ -161,6 +171,12 @@ export function mountDock(c: Controller): DockHandle {
   toasts.append(toastNode)
   const noteNode = document.createElement('div')
   noteNode.className = 'note-chip'
+  // The first time the dock is open with nothing selected: what to do now. Gone after the first selection.
+  const coachNode = document.createElement('div')
+  coachNode.className = 'toast coach'
+  coachNode.setAttribute('role', 'status')
+  coachNode.textContent = 'Click anything on the page to edit it. Alt+click uses the page as usual; Esc closes primp.'
+  toasts.append(coachNode)
   over.append(tipNode, noteNode)
   shadow.append(layer, pop, bar, over, toasts)
 
@@ -315,6 +331,33 @@ export function mountDock(c: Controller): DockHandle {
     place(toastNode, x, y)
     // A refusal is read, not glanced at: it stays twice as long.
     toastTimer = window.setTimeout(() => (store.toast.value = null), toast.tone === 'bad' ? TOAST_MS * 2 : TOAST_MS)
+  })
+
+  let wasCoached = coached()
+  effect(() => {
+    const open = store.open.value
+    const selected = store.selection.value !== null
+    void store.toast.value
+    if (selected && !wasCoached) {
+      wasCoached = true
+      try {
+        localStorage.setItem(COACHED_KEY, '1')
+      } catch {
+        // Storage is blocked: the hint may show again next time.
+      }
+    }
+    // Not over a toast: that one says something now.
+    if (!open || selected || wasCoached || store.toast.peek() !== null) {
+      coachNode.style.display = 'none'
+      return
+    }
+    coachNode.style.display = 'block'
+    const view = viewport()
+    const width = coachNode.offsetWidth
+    const height = coachNode.offsetHeight
+    const x = Math.max(4, Math.min(view.w - width - 4, barBox.x + barBox.w / 2 - width / 2))
+    const y = barBox.y + barBox.h / 2 > view.h / 2 ? barBox.y - height - 10 : barBox.y + barBox.h + 10
+    place(coachNode, x, y)
   })
 
   /** The resize refusal, next to the handles of the selection, after a resize was tried. */
@@ -498,6 +541,13 @@ export function mountDock(c: Controller): DockHandle {
     if (inFrame && event.key.startsWith('Arrow') && store.selection.peek() !== null) {
       event.preventDefault()
       c.navigate(event.key)
+      return
+    }
+    // `?` (Shift on most keyboards): the shortcuts, in Settings.
+    if (event.key === '?') {
+      event.preventDefault()
+      event.stopPropagation()
+      store.panel.value = 'settings'
       return
     }
     if (event.shiftKey) return

@@ -399,7 +399,12 @@ export async function createProxy(options: ProxyOptions): Promise<ProxyServer> {
     res.on('error', () => {})
     if (!isAllowedHost(req.headers.host, port)) {
       res.setHeader('connection', 'close')
-      return sendText(res, 403, 'Forbidden host\n')
+      // Said for a person who typed another name (a LAN address, a *.localhost name, a phone): what to open instead.
+      return sendText(
+        res,
+        403,
+        `Forbidden host\n\nprimp answers only on this machine, as http://localhost:${port} (also 127.0.0.1 and [::1]), so that no other device or web page can reach your dev server through it. Open http://localhost:${port}/ here instead.\n`,
+      )
     }
     if (isReserved(req.url)) {
       void serveAsset(req, res)
