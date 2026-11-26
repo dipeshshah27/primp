@@ -33,6 +33,9 @@ describe('primp demo', () => {
     expect(readFileSync(join(site.dir, 'css/site.css'), 'utf8')).not.toMatch(/@font-face|@import|url\((?!"data:)/)
     for (const svg of html.match(/<svg[^>]*>/g) ?? []) expect(svg).toMatch(/width="\d+" height="\d+"/)
     expect(html.match(/<img /g)).toHaveLength(1)
+    // An agent opened in the demo finds primp by itself: the published package, never an unrelated one.
+    expect(JSON.parse(readFileSync(join(site.dir, '.mcp.json'), 'utf8')).mcpServers.primp.args).toEqual(['-y', '@primpdev/cli', 'mcp'])
+    expect(JSON.parse(readFileSync(join(site.dir, '.cursor/mcp.json'), 'utf8')).mcpServers.primp.args).toEqual(['-y', '@primpdev/cli', 'mcp', '--project', '${workspaceFolder}'])
   })
 
   it('still recognises a demo copied out by an earlier version', () => {

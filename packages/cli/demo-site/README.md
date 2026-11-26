@@ -19,4 +19,4 @@ when it loads.
    while you edit); drag the edge of a feature card to resize it, or move a card to another place
    in the grid. Each one goes to your agent and is verified the same way.
 
-No agent connected over MCP? Run `npx @primpdev/cli setup`, or paste the prompt that Send copies.
+This directory has `.mcp.json` (Claude Code) and `.cursor/mcp.json` (Cursor): an agent opened here finds primp without any setup (Claude Code asks you once to approve it). Elsewhere, run `npx @primpdev/cli setup`, or paste the prompt that Send copies.

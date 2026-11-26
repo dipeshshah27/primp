@@ -130,3 +130,13 @@ describe('primp doctor', () => {
     expect(['18.20.0', '20.19.0', '22.21.9', '23.11.0', '24.10.0'].map(isSupportedNode)).toEqual([false, false, false, false, false])
   })
 })
+
+describe('doctor: the agent check', () => {
+  it('names the agents that have primp, or says how to connect one', async () => {
+    const connected = await collectDoctorChecks(project, deps({ registrations: () => [{ client: 'Claude Code', scope: 'every project' }] }))
+    expect(connected.find((check) => check.name === 'Agent')).toEqual({ name: 'Agent', status: 'ok', detail: 'Claude Code (every project)' })
+    const none = await collectDoctorChecks(project, deps({ registrations: () => [] }))
+    expect(none.find((check) => check.name === 'Agent')?.status).toBe('warn')
+    expect(none.find((check) => check.name === 'Agent')?.detail).toMatch(/setup/)
+  })
+})

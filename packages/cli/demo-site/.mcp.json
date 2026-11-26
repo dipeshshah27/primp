@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "primp": {
+      "command": "npx",
+      "args": ["-y", "@primpdev/cli", "mcp"]
+    }
+  }
+}

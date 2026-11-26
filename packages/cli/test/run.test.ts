@@ -78,6 +78,8 @@ async function run(options: Partial<RunOptions>): Promise<RunHandle & { printed:
     interactive: false,
     print: (line) => printed.push(line),
     openBrowser: (url) => opened.push(url),
+    // This machine's own agents do not decide what the tests see.
+    registrations: () => [],
     ...options,
   })
   handles.push(handle)
@@ -96,6 +98,14 @@ async function until<T>(read: () => T | undefined | false | Promise<T | undefine
 }
 
 describe('runPrimp', () => {
+  it('with an agent connected already: one line saying so, not the registration commands', async () => {
+    const target = await devServer()
+    const running = await run({ target: String(target), registrations: () => [{ client: 'Claude Code', scope: 'every project' }] })
+    const out = running.printed.join('\n')
+    expect(out).toContain('agent     Claude Code (every project); tell it to "watch primp" and every Send goes straight to it')
+    expect(out).not.toContain('claude mcp add')
+  })
+
   it('with --target: starts the proxy on the next port and prints the URL, the target and the three registrations', async () => {
     const target = await devServer()
     const running = await run({ target: String(target) })

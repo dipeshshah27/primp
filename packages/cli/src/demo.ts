@@ -136,6 +136,6 @@ export function demoGuide(dir: string, cwd: string = process.cwd(), keys: string
     '  4. Try an edit: with the dock open, click the "Start free trial" button to select it, change its',
     '     padding or colour, press Send, and tell your agent: "Implement the primp changes and verify them."',
     '',
-    'No agent registered yet? Run `npx @primpdev/cli setup` in another terminal, or paste the prompt that Send copies.',
+    `An agent opened in ${shown} finds primp by itself (.mcp.json for Claude Code, .cursor/mcp.json for Cursor). Elsewhere, run \`npx @primpdev/cli setup\`, or paste the prompt that Send copies.`,
   ].join('\n')
 }

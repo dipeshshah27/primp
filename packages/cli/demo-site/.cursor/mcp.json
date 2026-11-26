@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "primp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@primpdev/cli", "mcp", "--project", "${workspaceFolder}"]
+    }
+  }
+}

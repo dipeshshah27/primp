@@ -6,6 +6,7 @@ import type { OverlayAssetsOptions } from '../../server/src/assets.ts'
 import { detectFramework, parseTarget, targetOrigin, type DevServerDetection } from '../../server/src/detect.ts'
 import type { ProxyTarget } from '../../server/src/headers.ts'
 import { createActivityPrinter } from './activity.ts'
+import { connectedLine, findRegistrations, type AgentRegistration } from './agents.ts'
 import { startDevServer, waitForDevServer, type DevServerProcess } from './dev-server.ts'
 import { ownProcesses } from './doctor.ts'
 import { registrationText, selfCommand, shimCommand } from './registration.ts'
@@ -48,6 +49,8 @@ export interface RunOptions {
   guide?: string
   /** No activity lines (tab attached, changes sent, results) after start-up. */
   quiet?: boolean
+  /** The agents that have primp registered already. Default: read from their configuration files. */
+  registrations?: (projectRoot: string) => AgentRegistration[]
 }
 
 /** How to open the dock, in this platform's words. */
@@ -212,8 +215,15 @@ export async function runPrimp(options: RunOptions): Promise<RunHandle> {
     print(`  target    ${primp.target}    (${framework.framework}${foundHow === '' ? '' : `; ${foundHow}`})`)
     print(`  project   ${primp.projectRoot}`)
     print('')
-    print(registrationText(shimCommand()))
-    print('')
+    // Connected already: one line. Not yet: how to connect (every run, until it is).
+    const agents = connectedLine((options.registrations ?? findRegistrations)(primp.projectRoot))
+    if (agents !== undefined) {
+      print(`  agent     ${agents}; tell it to "watch primp" and every Send goes straight to it`)
+      print('')
+    } else {
+      print(registrationText(shimCommand()))
+      print('')
+    }
     if (options.guide !== undefined) {
       print(options.guide)
       print('')

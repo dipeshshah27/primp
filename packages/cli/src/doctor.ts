@@ -4,6 +4,7 @@ import { buildOverlayAssets, type OverlayAssets, type OverlayAssetsOptions } fro
 import { detectDevServer, detectFramework, type DevServerDetection, type FrameworkInfo } from '../../server/src/detect.ts'
 import { findSession, listSessions, type SessionLookup } from '../../server/src/session-file.ts'
 import { selfCommand } from './registration.ts'
+import { connectedLine, findRegistrations, type AgentRegistration } from './agents.ts'
 
 /**
  * `primp doctor`: what primp sees on this machine, one line per check.
@@ -28,6 +29,8 @@ export interface DoctorDeps {
   /** Ports and pids of running primp processes, which are not dev servers. */
   ownProcesses(): { ports: number[]; pids: number[] }
   buildAssets(options?: OverlayAssetsOptions): Promise<OverlayAssets>
+  /** The agents that have primp registered (read from their configuration files). Absent: not checked. */
+  registrations?(projectRoot: string): AgentRegistration[]
 }
 
 /** Mirrors the `engines` field of package.json. */
@@ -65,6 +68,7 @@ export function defaultDoctorDeps(options: { sessionDir?: string; assets?: Overl
     session: (projectRoot) => findSession(projectRoot, dir),
     ownProcesses: () => ownProcesses(options.sessionDir),
     buildAssets: (assets) => buildOverlayAssets(assets ?? options.assets),
+    registrations: (projectRoot) => findRegistrations(projectRoot),
   }
 }
 
@@ -114,6 +118,12 @@ export async function collectDoctorChecks(projectRoot: string, deps: DoctorDeps)
   if (session.kind === 'found') add('Session', 'ok', `primp is running for ${session.session.projectRoot} (pid ${session.session.pid}); open ${session.session.proxyUrl}`)
   else if (session.kind === 'ambiguous') add('Session', 'warn', `primp is running for several projects below this directory: ${session.projectRoots.join(', ')}`)
   else add('Session', 'ok', `primp is not running for this project (start it with \`${selfCommand()}\`)`)
+
+  if (deps.registrations !== undefined) {
+    const line = connectedLine(deps.registrations(projectRoot))
+    if (line !== undefined) add('Agent', 'ok', line)
+    else add('Agent', 'warn', `no coding agent has primp registered; run \`${selfCommand()} setup\`, or paste the prompt that Send copies`)
+  }
 
   try {
     const assets = await deps.buildAssets()
