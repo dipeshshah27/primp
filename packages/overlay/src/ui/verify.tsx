@@ -90,16 +90,18 @@ function VerifyItem({ c, item, number }: { c: Controller; item: ChangeItem; numb
   const status = checking ? { text: 'checking…', tone: 'info' } : STATUS[item.status as Exclude<ItemStatus, 'draft'>]
   const result = item.verification
   // An agent that took the change long ago and never asked for a check (or one that pasted the prompt): say what to do.
-  const stalled = !checking && item.status === 'claimed' && item.claimedAt !== undefined && Date.now() - item.claimedAt > STALL_MS && result === undefined
+  // By this dock's clock: the server's (another machine, through the tunnel) may differ.
+  const claimedSeen = c.store.claimedSeen.value.get(item.id)
+  const stalled = !checking && item.status === 'claimed' && claimedSeen !== undefined && Date.now() - claimedSeen > STALL_MS && result === undefined
   // Shown when the time comes, also with nothing else changing: a render at that moment.
   const [, tick] = useState(0)
   useEffect(() => {
-    if (item.status !== 'claimed' || item.claimedAt === undefined || result !== undefined) return
-    const due = item.claimedAt + STALL_MS - Date.now()
+    if (item.status !== 'claimed' || claimedSeen === undefined || result !== undefined) return
+    const due = claimedSeen + STALL_MS - Date.now()
     if (due <= 0) return
     const timer = window.setTimeout(() => tick((n) => n + 1), due + 50)
     return () => window.clearTimeout(timer)
-  }, [item.status, item.claimedAt, result])
+  }, [item.status, claimedSeen, result])
   return (
     <li class="item" data-item={item.id}>
       <div class="item-head">
@@ -150,8 +152,13 @@ function VerifyItem({ c, item, number }: { c: Controller; item: ChangeItem; numb
       )}
       {item.status === 'dismissed' ? null : (
         <div class="row">
-          {item.status === 'queued' ? (
-            <button type="button" class="btn sm quiet" title="No agent has taken it yet: bring it back to your changes to edit or delete it" onClick={() => c.withdraw([item.id])}>
+          {item.status === 'queued' && !checking ? (
+            <button
+              type="button"
+              class="btn sm quiet"
+              title="No agent has taken it over MCP yet: bring it back to your changes to edit or delete it. If you pasted its prompt into an agent, that agent may still make it."
+              onClick={() => c.withdraw([item.id])}
+            >
               Take back
             </button>
           ) : null}

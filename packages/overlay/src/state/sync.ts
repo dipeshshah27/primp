@@ -17,6 +17,8 @@ export interface ReconcileOptions {
   first: boolean
   /** Ids the dock deleted; a state message that still lists one of them must not bring it back. */
   deleted: ReadonlySet<string>
+  /** Ids this dock asked to take back (session:withdraw): only here does a sent change become a draft again. */
+  withdrawn?: ReadonlySet<string>
 }
 
 export interface Reconciled {
@@ -52,9 +54,12 @@ export function reconcile(local: readonly ChangeItem[], server: readonly ChangeI
       // The dock's copy is the newer one; the server numbers the items.
       items.push(own.seq === remote.seq ? own : { ...own, seq: remote.seq })
     } else if (own !== undefined) {
-      // Sent, and taken back to be edited (session:withdraw): a draft again, whose preview comes back.
-      returned.push(remote)
-      items.push(remote)
+      // Sent, and taken back to be edited (session:withdraw): a draft again, whose preview comes back,
+      // in the tab that took it back. In any other tab it is now another tab's draft: not listed here.
+      if (options.withdrawn?.has(remote.id) === true) {
+        returned.push(remote)
+        items.push(remote)
+      }
     } else if (options.first && !options.deleted.has(remote.id)) {
       items.push(remote)
       adopted.push(remote)

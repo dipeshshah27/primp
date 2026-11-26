@@ -371,7 +371,26 @@ function start(host: StandinHost): void {
       case 'session:fixup': {
         const wanted = message.ids.map((id) => items.get(id)).filter((item): item is ChangeItem => item !== undefined && item.status !== 'draft')
         const open = wanted.filter((item) => item.verification !== undefined && item.verification.status !== 'pass' && item.kind !== 'note')
-        socket.deliver({ type: 'session:fixup-text', reqId: message.reqId, prompt: open.length === 0 ? '' : renderFixup(wanted, { channel: 'clipboard' }), count: open.length })
+        let prompt = ''
+        try {
+          if (open.length > 0) prompt = renderFixup(wanted, { channel: 'clipboard' })
+        } catch {
+          // Answered with nothing: the dock says it could not be rendered.
+        }
+        socket.deliver({ type: 'session:fixup-text', reqId: message.reqId, prompt, count: open.length })
+        return
+      }
+      case 'session:withdraw': {
+        for (const id of message.ids) {
+          const item = items.get(id)
+          if (item === undefined || item.status !== 'queued') continue
+          item.status = 'draft'
+          delete item.batchId
+          delete item.claimedAt
+          delete item.verification
+        }
+        lastBatch = lastBatch.filter((id) => items.get(id)?.status === 'queued')
+        broadcast()
         return
       }
       case 'session:reverify': {

@@ -549,11 +549,15 @@ export function createSession(options: SessionOptions): Session {
       case 'session:measured':
         return onMeasured(connection, message)
       case 'session:withdraw': {
-        // Only what no agent has taken: a claimed change is in an agent's hands, and taking it back would race its edit.
+        // Only what no agent has taken over MCP: a claimed change is in an agent's hands, and taking it
+        // back would race its edit. (A pasted prompt cannot be seen from here: the dock says so.)
         const back = message.ids.map((id) => items.get(id)).filter((item): item is ChangeItem => item !== undefined && item.status === 'queued')
         for (const item of back) {
           item.status = 'draft'
           delete item.batchId
+          delete item.claimedAt
+          // Its next result belongs to the next send.
+          delete item.verification
         }
         if (back.length > 0) record('upsert', back.map((item) => item.id), connection.doc === undefined ? {} : { doc: connection.doc })
         return broadcastState()
@@ -581,7 +585,8 @@ export function createSession(options: SessionOptions): Session {
         } catch (error) {
           log('error', 'the fix-up could not be rendered', error)
         }
-        return send(connection, { type: 'session:fixup-text', reqId: message.reqId, prompt, count: prompt === '' ? 0 : open.length })
+        // An empty prompt with a count: it could not be rendered (not "nothing to fix").
+        return send(connection, { type: 'session:fixup-text', reqId: message.reqId, prompt, count: open.length })
       }
       case 'session:reverify':
         for (const listener of [...reverifyListeners]) {

@@ -53,10 +53,13 @@ describe('reconcile', () => {
 
   it('a sent change taken back (a draft again on the server) is returned, so its preview comes back', () => {
     const local = [item('a', { status: 'queued', batchId: 'batch-1' })]
-    const result = reconcile(local, [item('a')], { first: false, deleted: none })
+    const result = reconcile(local, [item('a')], { first: false, deleted: none, withdrawn: new Set(['a']) })
     expect(result.items.map((one) => one.status)).toEqual(['draft'])
     expect(result.returned.map((one) => one.id)).toEqual(['a'])
     expect(result.released).toEqual([])
+    // Another tab, which did not take it back: it is that tab's draft now, not listed here.
+    const elsewhere = reconcile(local, [item('a')], { first: false, deleted: none })
+    expect([elsewhere.items, elsewhere.returned]).toEqual([[], []])
   })
 
   it('keeps its own copy of a draft but the server numbering', () => {

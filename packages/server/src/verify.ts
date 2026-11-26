@@ -385,6 +385,9 @@ export function createVerifier(options: VerifierOptions): Verifier {
         }
       }
       const result = judgeItem(item, checks, extras)
+      // Taken back (a draft again) or dismissed while it was being checked: the result is about a change that is no longer out.
+      const now = session.item(item.id)
+      if (now === undefined || !VERIFIABLE.has(now.status)) continue
       results.push(result)
       const status = itemStatusAfter(result.status)
       session.patchItem(item.id, status === undefined ? { verification: result } : { status, verification: result })

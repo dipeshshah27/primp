@@ -124,6 +124,8 @@ export interface Store {
   /** A recording was sent and its report has not arrived. */
   shiftsPending: Signal<boolean>
   sent: Signal<SentState | null>
+  /** When this dock first saw each change claimed by an agent, by its own clock (the server's may differ). */
+  claimedSeen: Signal<ReadonlyMap<string, number>>
   /** The sent changes are shown on the page as they were asked for (a preview again), to compare with what the agent made. */
   showingAsked: Signal<boolean>
   /** Items a verification is running for (session:verifying): when it started and the attempt shown then; gone once a later attempt is in. */
@@ -175,6 +177,7 @@ export function createStore(page: string): Store {
     sent: signal(null),
     checking: signal(new Map()),
     showingAsked: signal(false),
+    claimedSeen: signal(new Map()),
     unseen: signal(null),
     sending: signal(false),
     error: signal(null),

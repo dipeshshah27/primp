@@ -1293,6 +1293,24 @@ export function createController(options: ControllerOptions): Controller {
     store.toast.value = { text, tone, at: performance.now() }
   }
 
+  /** Ids this tab asked to take back, until they are drafts again (or the server refused). */
+  const withdrawing = new Set<string>()
+
+  const withdraw = (ids: readonly string[]): void => {
+    if (!bus.connected()) {
+      toast('Not connected to primp.', 'bad')
+      return
+    }
+    for (const id of ids) withdrawing.add(id)
+    bus.send({ type: 'session:withdraw', ids: [...ids] })
+    // The server takes back only what no agent has: say so when it did not.
+    window.setTimeout(() => {
+      const refused = ids.filter((id) => withdrawing.has(id))
+      for (const id of refused) withdrawing.delete(id)
+      if (refused.length > 0) toast('Not taken back: an agent has it already, or it is being checked.', 'bad')
+    }, 3000)
+  }
+
   /** Preview ids of the asked-for look of sent changes: apart from the drafts' own. */
   const ASKED = 'primp-asked:'
 
@@ -1336,7 +1354,7 @@ export function createController(options: ControllerOptions): Controller {
         return false
       }
       if (answer.prompt === '') {
-        toast('Nothing to fix: every checked change passed.')
+        toast(answer.count > 0 ? 'primp could not write the fix-up; its terminal says why.' : 'Nothing to fix: every checked change passed.', answer.count > 0 ? 'bad' : 'ok')
         return false
       }
       const copied = await copy(answer.prompt)
@@ -1528,6 +1546,14 @@ export function createController(options: ControllerOptions): Controller {
       }
       if (next.size !== store.checking.peek().size) store.checking.value = next
     }
+    // How long an agent has held a change, by this dock's clock.
+    const seen = store.claimedSeen.peek()
+    const claimed = items.filter((item) => item.status === 'claimed')
+    if (claimed.some((item) => !seen.has(item.id)) || [...seen.keys()].some((id) => !claimed.some((item) => item.id === id))) {
+      store.claimedSeen.value = new Map(claimed.map((item) => [item.id, seen.get(item.id) ?? Date.now()]))
+    }
+    // A change that is a draft again starts its attempts over: its next result is news.
+    for (const item of items) if (item.status === 'draft') seenAttempts?.delete(item.id)
     if (seenAttempts === undefined) {
       // What was there when this page loaded is not news.
       seenAttempts = new Map(items.filter((item) => item.verification !== undefined).map((item) => [item.id, item.verification!.attempt]))
@@ -1553,7 +1579,7 @@ export function createController(options: ControllerOptions): Controller {
     // On the first state of this document: the drafts this tab held before the page was reloaded.
     const kept = store.info.value === null ? loadDrafts(projectKey(message.info)).filter((item) => !present().some((other) => other.id === item.id)) : []
     const before = kept.length === 0 ? present() : [...present(), ...kept]
-    const result = reconcile(before, message.items, { first, deleted: tombstones })
+    const result = reconcile(before, message.items, { first, deleted: tombstones, withdrawn: withdrawing })
     batch(() => {
       store.info.value = message.info
       if (kept.length > 0 || diffLists(before, result.items).upserts.length > 0 || before.length !== result.items.length) {
@@ -1573,6 +1599,9 @@ export function createController(options: ControllerOptions): Controller {
     noticeResults(result.items)
     for (const id of result.released) forget(id)
     if (result.returned.length > 0) {
+      for (const item of result.returned) withdrawing.delete(item.id)
+      // As after Send: the undo history before the take-back holds these as sent, which they no longer are.
+      store.history.value = emptyHistory(present())
       const back = result.returned.filter((item) => item.page === here())
       void enqueue(async () => {
         for (const item of back) if (present().some((other) => other.id === item.id && other.status === 'draft')) syncPreview(item)
@@ -1801,7 +1830,7 @@ export function createController(options: ControllerOptions): Controller {
     copyFixup,
     shiftPrompt,
     copyShiftPrompt,
-    withdraw: (ids) => bus.send({ type: 'session:withdraw', ids: [...ids] }),
+    withdraw,
     showAsked,
     elementOf,
     knownSource: (element) => sources.get(element),
